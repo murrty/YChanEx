@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmUpdateInfo));
             this.lbNotice = new System.Windows.Forms.Label();
             this.rtbNotice = new System.Windows.Forms.RichTextBox();
             this.btnUpdate = new System.Windows.Forms.Button();
@@ -92,6 +93,7 @@
             this.Controls.Add(this.btnUpdate);
             this.Controls.Add(this.rtbNotice);
             this.Controls.Add(this.lbNotice);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "frmUpdateInfo";

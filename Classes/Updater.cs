@@ -51,7 +51,7 @@ namespace YChanEx {
             try {
                 using (WebClient wc = new WebClient()) {
                     wc.Headers.Add("User-Agent: " + Adv.Default.UserAgent);
-                    bool isCritical = Regex.Replace(wc.DownloadString(rawURL + "/master/Resources/AppCrit"), @"\s", "").Equals("true")? true : false;
+                    bool isCritical = Regex.Replace(wc.DownloadString(rawURL + "/master/Resources/AppCrit"), @"\s", "").Equals("True")? true : false;
                     if (isCritical)
                         return true;
                     else
@@ -72,7 +72,7 @@ namespace YChanEx {
             try {
                 using (WebClient wc = new WebClient()) {
                     wc.Headers.Add("User-Agent: " + Adv.Default.UserAgent);
-                    string getCritInfo = Regex.Replace(wc.DownloadString(rawURL + "/master/Resources/CriticalInformation"), @"\s", "");
+                    string getCritInfo = wc.DownloadString(rawURL + "/master/Resources/CriticalInformation");
                     return getCritInfo;
                 }
             } catch (WebException wEx) {
