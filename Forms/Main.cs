@@ -39,24 +39,7 @@ namespace YChanEx {
 
         private void frmMain_Load(object sender, EventArgs e) {
             Properties.Settings.Default.runningUpdate = false;
-
-            if (YCSettings.Default.firstStart) {
-                FirstStart tFirstStart = new FirstStart();                        // if first start, show first start message
-                if (tFirstStart.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
-                    Settings tSettings = new Settings();
-                    tSettings.ShowDialog();
-
-                    tSettings.Close();
-                    tSettings.Dispose();
-                }
-                else { Environment.Exit(0); }
-
-                tFirstStart.Close();
-                tFirstStart.Dispose();
-
-                GC.Collect();
-            }
-
+            
             if (YCSettings.Default.updaterEnabled) {
                 decimal cV = Updater.getCloudVersion();
                 if (Updater.isUpdateAvailable(cV)) {
@@ -80,6 +63,24 @@ namespace YChanEx {
                 }
             }
 
+            if (YCSettings.Default.firstStart) {
+                FirstStart tFirstStart = new FirstStart();                        // if first start, show first start message
+                if (tFirstStart.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
+                    Settings tSettings = new Settings();
+                    tSettings.ShowDialog();
+
+                    tSettings.Close();
+                    tSettings.Dispose();
+                }
+                else { Environment.Exit(0); }
+
+                tFirstStart.Close();
+                tFirstStart.Dispose();
+
+                GC.Collect();
+            }
+
+
             nfTray.ContextMenu = mTray;
 
             if (File.Exists(System.Windows.Forms.Application.StartupPath + @"\ycxu.bat")) {
@@ -90,10 +91,17 @@ namespace YChanEx {
                 hasUpdated = false;
             }
 
+            if (YCSettings.Default.trayIcon)
+                nfTray.Visible = true;
+            else
+                nfTray.Visible = false;
+
             scnTimer.Enabled  = false;                                              // disable timer                 
             scnTimer.Interval = YCSettings.Default.scannerTimer;           // set interval
             scnTimer.Tick += new EventHandler(this.scan);                           // when Timer ticks call scan()
             if(YCSettings.Default.saveOnClose) {                           // if enabled load URLs from file 
+                if (Properties.Settings.Default.debugDisableSavedThreads)
+                    return;
                 string[] URLs;
 
                 string boards = FileController.loadURLs(true);
@@ -134,12 +142,6 @@ namespace YChanEx {
                     }
                 }
             }
-
-            if (YCSettings.Default.trayIcon)
-                nfTray.Visible = true;
-            else
-                nfTray.Visible = false;
-
         }
         private void frmMain_Shown(object sender, EventArgs e) {
             if (Properties.Settings.Default.debug)
@@ -225,10 +227,10 @@ namespace YChanEx {
 
         private void btnAdd_Click(object sender, EventArgs e) {
            string dlURL = edtURL.Text.Replace("http://", "https://").Replace("board/u18chan/", "");
-           if (dlURL.StartsWith("https://4chan.org/") || dlURL.StartsWith("https://www.4chan.org/") || dlURL.StartsWith("https://boards.4chan.org/") || dlURL.StartsWith("https://8ch.net/") || dlURL.StartsWith("https://www.8ch.net/") || dlURL.StartsWith("https://u18chan.com/") || dlURL.StartsWith("https://www.u18chan.com/"))
+           if (FileController.isSupported(dlURL))
                 downloadURL(dlURL, false);
             else
-                MessageBox.Show("Please enter a valid 4chan, 8chan, or u18chan url.");
+                MessageBox.Show("Please enter a supported site URL (Check the Github page for a list)");
 
             edtURL.Clear();
         }
@@ -279,6 +281,9 @@ namespace YChanEx {
         }
 
         private void addToHistory(string URL) {
+            //if (Properties.Settings.Default.debugDisableSavedThreads)
+            //    return;
+
             string dateNow = "";
 
             if (YCSettings.Default.saveDate)
@@ -297,6 +302,17 @@ namespace YChanEx {
                             File.AppendAllText(settingsDir + @"\4chanhistory.dat", dateNow + URL + " // " + getTitle(true, URL) + "\n");
                     }
 
+                }
+                else if (URL.StartsWith("https://7chan.org/")) {
+                    if (!File.Exists(settingsDir + @"\7chanhistory.dat")) {
+                        File.Create(settingsDir + @"\7chanhistory.dat").Close();
+                        File.AppendAllText(settingsDir + @"\7chanhistory.dat", dateNow + URL + " // " + getTitle(false, URL) + "\n");
+                    }
+                    else {
+                        string readHistory = File.ReadAllText(settingsDir + @"\7chanhistory.dat");
+                        if (!readHistory.Contains(URL))
+                            File.AppendAllText(settingsDir + @"\7chanhistory.dat", dateNow + URL);
+                    }
                 }
                 else if (URL.StartsWith("https://8ch.net/")) {
                     if (!File.Exists(settingsDir + @"\8chanhistory.dat")) {
@@ -333,9 +349,9 @@ namespace YChanEx {
                 threadBoard = "/" + threadURI.Segments[1] + " - ";
 
                 if (Is4Chan)
-                    boardTopic = Fchan.return4chanBoardTopic("/" + threadURI.Segments[1]);
+                    boardTopic = Fchan.getTopic("/" + threadURI.Segments[1]);
                 else if (threadURL.StartsWith("https://u18chan.com/"))
-                    boardTopic = U18Chan.returnU18Topic("/" + threadURL.Split('/')[3] + "/");
+                    boardTopic = U18Chan.getTopic("/" + threadURL.Split('/')[3] + "/");
 
                 HttpWebRequest getSource = (HttpWebRequest)WebRequest.Create(threadURI);
                 getSource.UserAgent = Adv.Default.UserAgent;

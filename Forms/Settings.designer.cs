@@ -52,6 +52,7 @@
             this.txtUserAgent = new System.Windows.Forms.TextBox();
             this.chkLogErrors = new System.Windows.Forms.CheckBox();
             this.chkDisableErrors = new System.Windows.Forms.CheckBox();
+            this.chkPreventDupes = new System.Windows.Forms.CheckBox();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabDownloads = new System.Windows.Forms.TabPage();
             this.tabApplication = new System.Windows.Forms.TabPage();
@@ -63,7 +64,6 @@
             this.rbAdvanced = new System.Windows.Forms.RadioButton();
             this.rbRegular = new System.Windows.Forms.RadioButton();
             this.label1 = new System.Windows.Forms.Label();
-            this.chkPreventDupes = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.edtTimer)).BeginInit();
             this.tabControl1.SuspendLayout();
             this.tabDownloads.SuspendLayout();
@@ -187,7 +187,7 @@
             0,
             0});
             this.edtTimer.Minimum = new decimal(new int[] {
-            5,
+            10,
             0,
             0,
             0});
@@ -400,6 +400,19 @@
             this.chkDisableErrors.UseVisualStyleBackColor = true;
             this.chkDisableErrors.CheckedChanged += new System.EventHandler(this.chkDisableErrors_CheckedChanged);
             // 
+            // chkPreventDupes
+            // 
+            this.chkPreventDupes.AutoSize = true;
+            this.chkPreventDupes.Location = new System.Drawing.Point(257, 126);
+            this.chkPreventDupes.Name = "chkPreventDupes";
+            this.chkPreventDupes.Size = new System.Drawing.Size(113, 17);
+            this.chkPreventDupes.TabIndex = 20;
+            this.chkPreventDupes.Text = "Prevent duplicates";
+            this.ttInfo.SetToolTip(this.chkPreventDupes, "Prevent duplicate file names by appending the MD5 of the file to the end of the f" +
+        "ile name.\r\nThis is a niche problem, so it may make original file names end with " +
+        "text that isn\'t required.");
+            this.chkPreventDupes.UseVisualStyleBackColor = true;
+            // 
             // tabControl1
             // 
             this.tabControl1.Controls.Add(this.tabDownloads);
@@ -543,19 +556,6 @@
             this.label1.Size = new System.Drawing.Size(226, 13);
             this.label1.TabIndex = 13;
             this.label1.Text = "This will reset the settings you choose to reset!";
-            // 
-            // chkPreventDupes
-            // 
-            this.chkPreventDupes.AutoSize = true;
-            this.chkPreventDupes.Location = new System.Drawing.Point(257, 126);
-            this.chkPreventDupes.Name = "chkPreventDupes";
-            this.chkPreventDupes.Size = new System.Drawing.Size(113, 17);
-            this.chkPreventDupes.TabIndex = 20;
-            this.chkPreventDupes.Text = "Prevent duplicates";
-            this.ttInfo.SetToolTip(this.chkPreventDupes, "Prevent duplicate file names by appending the MD5 of the file to the end of the f" +
-        "ile name.\r\nThis is a niche problem, so it may make original file names end with " +
-        "text that isn\'t required.");
-            this.chkPreventDupes.UseVisualStyleBackColor = true;
             // 
             // Settings
             // 

@@ -48,6 +48,8 @@ namespace YChanEx {
                 else if (U18Chan.isThread(url)) {
                     if (U18Chan.isNotBlacklisted(url)) // Check for blacklist before allowing download.
                         return new U18Chan(url, false);}
+                else if (Schan.isThread(url)) { 
+                    return new Schan(url, board);}
             } else {
                     if (Fchan.isBoard(url))
                         return new Fchan(url, board);
@@ -55,6 +57,19 @@ namespace YChanEx {
                         return new InfiniteChan(url, board);
                 }
             return null;
+        }
+
+        public static bool isSupported(string URL) {
+            if (URL.StartsWith("https://4chan.org/")) return true;
+            else if (URL.StartsWith("https://www.4chan.org/")) return true;
+            else if (URL.StartsWith("https://boards.4chan.org/")) return true;
+            else if (URL.StartsWith("https://8ch.net/")) return true;
+            else if (URL.StartsWith("https://www.8ch.net/")) return true;
+            else if (URL.StartsWith("https://u18chan.com/")) return true;
+            else if (URL.StartsWith("https://www.u18chan.com/")) return true;
+            else if (URL.StartsWith("https://7chan.org")) return true;
+            else if (URL.StartsWith("https://www.7chan.org")) return true;
+            else return false;
         }
 
         private static string GetFileName(string hrefLink) {

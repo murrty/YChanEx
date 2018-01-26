@@ -1,4 +1,6 @@
-﻿using System;
+﻿// 8ch.net
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -94,7 +96,7 @@ namespace YChanEx
                 if (((int)webEx.Status) == 7)
                     this.Gone = true;
                 else
-                    ErrorLog.logError(webEx.ToString(), "8chanDownloadError");
+                    ErrorLog.logError(webEx.ToString(), "InfiniteChan.getLinks");
                 throw webEx;
             }
 
@@ -124,8 +126,8 @@ namespace YChanEx
                     Res = Res + "http://8ch.net/" + getURL().Split('/')[3] + "/res/" + tNo[i].InnerText + ".html\n";
                 }
             }
-            catch (WebException webEx) { ErrorLog.logError(webEx.ToString(), "8chanGetThreadError"); }
-            catch (Exception ex) { ErrorLog.logError(ex.ToString(), "8chanGetThreadError"); }
+            catch (WebException webEx) { ErrorLog.logError(webEx.ToString(), "InfiniteChan.getThreads"); }
+            catch (Exception ex) { ErrorLog.logError(ex.ToString(), "InfiniteChan.getThreads"); }
             return Res;
         }
 
@@ -139,8 +141,7 @@ namespace YChanEx
             string strThumbsExt = "";
             string website = "";
             string str;
-            try
-            {
+            try {
                 WebClient wc = new WebClient();
                 wc.Headers.Add("User-Agent: " + Adv.Default.UserAgent);
                 website = wc.DownloadString(this.getURL());
@@ -166,7 +167,13 @@ namespace YChanEx
                 XmlNodeList xmlMd5 = doc.DocumentElement.SelectNodes("/root/posts/item/md5");
                 for (int i = 0; i < xmlExt.Count; i++) {
                     string tim = xmlTim[i].InnerText;
-                    string filename = xmlFilename[i].InnerText;
+                    string filename;
+
+                    if (YCSettings.Default.preventDupes)
+                        filename = xmlFilename[i].InnerText + " (" + xmlMd5[i].InnerText + ")";
+                    else
+                        filename = xmlFilename[i].InnerText;
+
                     string ext = xmlExt[i].InnerText;
                     string md5 = xmlMd5[i].InnerText;
 
@@ -191,10 +198,10 @@ namespace YChanEx
                     string dlURL = "https://8ch.net/file_store/" + tim + ext;
                     if (YCSettings.Default.originalName) {
                         string[] badchars = new string[] { "\\", "/", ":", "*", "?", "\"", "<", ">", "|" };
-                        string newfilename = filename + " (" + md5 + ")" + ext;
-                        for (int z = 0; z < badchars.Length - 1; z++) {
+                        string newfilename = filename;
+                        for (int z = 0; z < badchars.Length - 1; z++) 
                             newfilename = newfilename.Replace(badchars[z], "-");
-                        }
+                        
                         FileController.downloadFile(dlURL, this.SaveTo, true, newfilename);
                     }
                     else {
@@ -215,7 +222,13 @@ namespace YChanEx
                 XmlNodeList xmlMd5Ext = doc.DocumentElement.SelectNodes("/root/posts/item/extra_files/item/md5");
                 for (int i = 0; i < xmlExtExt.Count; i++) {
                     string tim = xmlTimExt[i].InnerText;
-                    string filename = xmlFilenameExt[i].InnerText;
+                    string filename;
+
+                    if (YCSettings.Default.preventDupes)
+                        filename = xmlFilenameExt[i].InnerText + " (" + xmlMd5Ext[i].InnerText + ")";
+                    else
+                        filename = xmlFilenameExt[i].InnerText;
+
                     string ext = xmlExtExt[i].InnerText;
                     string md5 = xmlMd5Ext[i].InnerText;
 
@@ -240,10 +253,10 @@ namespace YChanEx
                     string dlURL = "https://8ch.net/file_store/" + tim + ext;
                     if (YCSettings.Default.originalName) {
                         string[] badchars = new string[] { "\\", "/", ":", "*", "?", "\"", "<", ">", "|" };
-                        string newfilename = filename + " (" + md5 + ")" + ext;
-                        for (int z = 0; z < badchars.Length - 1; z++) {
+                        string newfilename = filename + ext;
+                        for (int z = 0; z < badchars.Length - 1; z++) 
                             newfilename = newfilename.Replace(badchars[z], "-");
-                        }
+                        
                         FileController.downloadFile(dlURL, this.SaveTo, true, newfilename);
                     }
                     else {
@@ -264,12 +277,12 @@ namespace YChanEx
                 if (((int)webEx.Status) == 7)
                     this.Gone = true;
                 else
-                    ErrorLog.logError(webEx.ToString(), "8chanDownloadError");
+                    ErrorLog.logError(webEx.ToString(), "InfiniteChan.download");
 
                 Debug.Print(webEx.ToString());
                 GC.Collect();
                 return;
-            } catch (Exception ex) { ErrorLog.logError(ex.ToString(), "8chanDownloadError"); }
+            } catch (Exception ex) { ErrorLog.logError(ex.ToString(), "InfiniteChan.download"); }
 
             GC.Collect();
         }

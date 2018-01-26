@@ -70,6 +70,7 @@
     <Compile Include="Classes\FileController.cs" />
     <Compile Include="Classes\ImageBoard.cs" />
     <Compile Include="Classes\InfiniteChan.cs" />
+    <Compile Include="Classes\Schan.cs" />
     <Compile Include="Classes\U18Chan.cs" />
     <Compile Include="Classes\Updater.cs" />
     <Compile Include="Forms\frmUpdateInfo.cs">

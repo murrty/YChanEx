@@ -1,9 +1,11 @@
-﻿/*
- * This is because they do not have a json list of all the posts, much like 4ch & 4+4ch
+﻿// u18chan.com
+// API WHEN
+
+/*
+ * This is because they do not have an api, much like 4ch & 4+4ch
  * This is the best way to download from u18chan, through source parsing.
  * 
  * I decided against board downloading for u18chan. It's just easier if entire boards don't get downloaded.
- * 
  */
 
 using System;
@@ -16,10 +18,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
-namespace YChanEx
-{
-    class U18Chan : ImageBoard
-    {
+namespace YChanEx {
+    class U18Chan : ImageBoard {
         // Numbers in case u18chan adds a new board that has a number
         public static string regThread = "u18chan.com/[a-zA-Z0-9]*?/topic/[0-9]*";
 
@@ -45,13 +45,12 @@ namespace YChanEx
         }
         public new static bool isBoard(string url) { return false; } // Always return false for board downloading.
 
-        public override void download()
-        {
+        public override void download() {
             string[] images;                    // Array that contains direct URLs to the image files
             string[] thumbnails;                // Array that contains direct URLs to the thumbnails
             var lwebsite = new List<string>();  // List that contains all the lines that start with "File: <a href=\"" for parsing
             var limages = new List<string>();   // List that contains all the lines that have image URLs after parsing them
-            string website = "";                // The string that contains the source for HTML saving.
+            string website;                // The string that contains the source for HTML saving.
 
             try {
                 // Create the directory to save files in.
@@ -84,7 +83,7 @@ namespace YChanEx
                 lwebsite.Clear();
 
                 // Downloads images from the lists
-                for (int y = 0; y < images.Length - 1; y++) {
+                for (int y = 0; y < images.Length; y++) {
                     string file = images[y].Split('/')[6];
                     string url = images[y];
                     string[] badchars = new string[] { "\\", "/", ":", "*", "?", "\"", "<", ">", "|" };
@@ -97,11 +96,11 @@ namespace YChanEx
                             newfilename = newfilename.Replace(badchars[z], "-");
                         
                         FileController.downloadFile(images[y], this.SaveTo, true, newfilename);
-                        website = website.Replace(url, this.SaveTo + newfilename);
+                        website = website.Replace(url, newfilename);
                     }
                     else {
                         // u-18chan saves files as the original file name, just appends _u18chan to the end of the file names
-                        for (int z = 0; z < badchars.Length - 1; z++)
+                        for (int z = 0; z < badchars.Length; z++)
                             newfilename = newfilename.Replace(badchars[z], "-");
 
                         FileController.downloadFile(images[y], this.SaveTo, true, newfilename);
@@ -118,13 +117,13 @@ namespace YChanEx
                     if (!Directory.Exists(this.SaveTo + "\\thumb"))
                         Directory.CreateDirectory(this.SaveTo + "\\thumb");
 
-                    for (int y = 0; y < thumbnails.Length - 1; y++) {
+                    for (int y = 0; y < thumbnails.Length; y++) {
                         string file = thumbnails[y].Split('/')[6];
                         string url = thumbnails[y];
                         FileController.downloadFile(thumbnails[y], this.SaveTo + "\\thumb", false, string.Empty);
-                        website = website.Replace(url, this.SaveTo + "\\thumb\\" + file);
-                        }
+                        website = website.Replace("src=\"//u18chan.com/uploads/user/lazyLoadPlaceholder_u18chan.gif\" data-original=\"" + url, "src=\"thumb\\" + file + "\" data-original=\"" + url);
                     }
+                }
 
                 // Download HTML
                 if (YCSettings.Default.htmlDownload == true && website != "")
@@ -135,16 +134,15 @@ namespace YChanEx
                 if (((int)webEx.Status) == 7)
                     this.Gone = true;
                 else
-                    ErrorLog.logError(webEx.ToString(), "U18ChanDownloadError");
+                    ErrorLog.logError(webEx.ToString(), "U18chan.download");
 
-                GC.Collect();
                 return;
-            } catch (Exception ex) { ErrorLog.logError(ex.ToString(), "U18ChanDownloadError"); }
+            } catch (Exception ex) { ErrorLog.logError(ex.ToString(), "U18chan.download"); }
 
             GC.Collect();
         }
 
-        public static string returnU18Topic(string board) {
+        public static string getTopic(string board) {
             // Furry Related (why)
             if (board == "/fur/")
                 return "Furries";

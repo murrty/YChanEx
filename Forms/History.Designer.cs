@@ -168,6 +168,7 @@
             this.cbSite.FormattingEnabled = true;
             this.cbSite.Items.AddRange(new object[] {
             "4chan",
+            "7chan",
             "8chan",
             "u-18chan"});
             this.cbSite.Location = new System.Drawing.Point(40, 11);

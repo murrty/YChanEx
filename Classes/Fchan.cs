@@ -1,4 +1,6 @@
-﻿using System;
+﻿// 4chan.net
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -90,9 +92,9 @@ namespace YChanEx {
                 if (((int)webEx.Status) == 7)
                     this.Gone = true;
                 else
-                    ErrorLog.logError(webEx.ToString(), "4chanGetLinksError");
+                    ErrorLog.logError(webEx.ToString(), "Fchan.getLinks");
                 throw webEx; }
-            catch (Exception ex) { ErrorLog.logError(ex.ToString(), "4chanGetLinksError"); throw ex; }
+            catch (Exception ex) { ErrorLog.logError(ex.ToString(), "Fchan.getLinks"); throw ex; }
             return exed;
         }
         override public string getThreads() {
@@ -123,8 +125,8 @@ namespace YChanEx {
             }
             catch(WebException webEx) {
                 Debug.Print(webEx.ToString());
-                ErrorLog.logError(webEx.ToString(), "4chanGetThreadsError"); }
-            catch (Exception ex) { ErrorLog.logError(ex.ToString(), "4chanGetThreadsError"); }
+                ErrorLog.logError(webEx.ToString(), "Fchan.getThreads"); }
+            catch (Exception ex) { ErrorLog.logError(ex.ToString(), "Fchan.getThreads"); }
 
             return Res;
         }
@@ -194,7 +196,13 @@ namespace YChanEx {
                 for (int y = 0; y < URLs.Length - 1; y++)
                     if (YCSettings.Default.originalName) {
                         string[] badchars = new string[] { "\\", "/", ":", "*", "?", "\"", "<", ">", "|" };
-                        string newfilename = xmlFilename[y].InnerText + " (" + xmlMd5[y].InnerText + ")" + xmlExt[y].InnerText;
+                        string newfilename = xmlFilename[y].InnerText;
+
+                        if (YCSettings.Default.preventDupes)
+                            newfilename = newfilename + " (" + xmlMd5[y].InnerText + ")" + xmlExt[y].InnerText;
+                        else
+                            newfilename = newfilename + xmlExt[y].InnerText;
+
                         //if (File.Exists(this.SaveTo + newfilename + xmlExt[y].InnerText)) { 
                             // TODO: Implement MD5 checking
                         //}
@@ -223,16 +231,17 @@ namespace YChanEx {
                 if (((int)webEx.Status) == 7)
                     this.Gone = true;
                 else
-                    ErrorLog.logError(webEx.ToString(), "4chanDownloadError");
+                    ErrorLog.logError(webEx.ToString(), "Fchan.download");
 
                 GC.Collect();
                 return;
-            } catch (Exception ex) { ErrorLog.logError(ex.ToString(), "4chanDownloadError"); }
+            }
+            catch (Exception ex) { ErrorLog.logError(ex.ToString(), "Fchan.download"); }
 
             GC.Collect();
         }
 
-        public static string return4chanBoardTopic(string board) {
+        public static string getTopic(string board) {
             // Japanese Culture
             if (board == "/a/")
                 return "Anime & Manga";
