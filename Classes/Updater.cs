@@ -12,7 +12,7 @@ namespace YChanEx {
     class Updater {
 
         public static string rawURL = "https://raw.githubusercontent.com/murrty/YChanEx";
-        public static string updateURL = "https://github.com/murrty/YChanEx/releases/download/v%arg1%";
+        public static string updateURL = "https://github.com/murrty/YChanEx/releases/download/%arg1%";
         public static string updateFile = @"\ycxu.bat";
 
         public static decimal getCloudVersion() {
@@ -104,7 +104,7 @@ namespace YChanEx {
             set arg2=%2
             timeout /t 5 /nobreak
             del %arg2%
-            powershell -Command "(New-Object Net.WebClient).DownloadFile('https://github.com/obscurename/YChanEx/releases/download/v%arg1%/YChanEx.exe', '%arg2%')"
+            powershell -Command "(New-Object Net.WebClient).DownloadFile('https://github.com/obscurename/YChanEx/releases/download/%arg1%/YChanEx.exe', '%arg2%')"
             %arg2%
             exit
              
