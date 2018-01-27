@@ -39,6 +39,7 @@ namespace YChanEx {
 
         private void frmMain_Load(object sender, EventArgs e) {
             Properties.Settings.Default.runningUpdate = false;
+            tcApp.TabPages.RemoveAt(1);
             
             if (YCSettings.Default.updaterEnabled) {
                 decimal cV = Updater.getCloudVersion();
@@ -100,15 +101,13 @@ namespace YChanEx {
             scnTimer.Interval = YCSettings.Default.scannerTimer;           // set interval
             scnTimer.Tick += new EventHandler(this.scan);                           // when Timer ticks call scan()
             if(YCSettings.Default.saveOnClose) {                           // if enabled load URLs from file 
-                if (Properties.Settings.Default.debugDisableSavedThreads)
-                    return;
                 string[] URLs;
 
-                string boards = FileController.loadURLs(true);
+                string boards = Controller.loadURLs(true);
                 if(boards != "") {
                     URLs = boards.Split('\n');
                     for(int i = 0; i < URLs.Length - 1; i++) {
-                        ImageBoard newImageboard = FileController.createNewIMB(URLs[i], true); // and add them 
+                        ImageBoard newImageboard = Controller.createNewIMB(URLs[i], true); // and add them 
                         lbBoards.Items.Add(URLs[i]);
                         clBoards.Add(newImageboard);
                     }
@@ -117,11 +116,11 @@ namespace YChanEx {
                 }
 
 
-                string threads = FileController.loadURLs(false);                         // load threads
+                string threads = Controller.loadURLs(false);                         // load threads
                 if(threads != "") {
                     URLs = threads.Split('\n');
                     for(int i = 0; i < URLs.Length - 1; i++) {
-                        ImageBoard newImageboard = FileController.createNewIMB(URLs[i], false);
+                        ImageBoard newImageboard = Controller.createNewIMB(URLs[i], false);
                         if(newImageboard == null) {
                             MessageBox.Show(URLs[i]);
                         }
@@ -148,10 +147,16 @@ namespace YChanEx {
                 mDebug.Visible = true;
 
             // Download url if it is a website
-            foreach (string arg in Environment.GetCommandLineArgs()) {
-                Uri testURL;
-                if (Uri.TryCreate(arg, UriKind.Absolute, out testURL) && (testURL.Scheme == Uri.UriSchemeHttp || testURL.Scheme == Uri.UriSchemeHttps))
-                    downloadURL(arg.Replace("http://", "https://"), true);
+            for (int i = 0; i < Environment.GetCommandLineArgs().Length; i++) {
+                string arg = Environment.GetCommandLineArgs()[i];
+                if (i != 0) {
+                    if (!arg.StartsWith("http://fchan.us") || arg.StartsWith("http://www.fchan.us") || arg.StartsWith("fchan.us/"))
+                        arg = arg.Replace("http://", "https://"); // Always use a secure download if available.
+
+                    Uri testURL;
+                    if (Uri.TryCreate(arg, UriKind.Absolute, out testURL) && (testURL.Scheme == Uri.UriSchemeHttp || testURL.Scheme == Uri.UriSchemeHttps))
+                        downloadURL(arg, true);
+                }
             }
 
             // Check for update
@@ -191,7 +196,7 @@ namespace YChanEx {
             YCSettings.Default.formSizeW = this.Width;
 
             if (YCSettings.Default.saveOnClose)
-                FileController.saveURLs(clBoards, clThreads);
+                Controller.saveURLs(clBoards, clThreads);
 
             if (Properties.Settings.Default.runningUpdate) {
                 YCSettings.Default.Save();
@@ -226,32 +231,43 @@ namespace YChanEx {
         }
 
         private void btnAdd_Click(object sender, EventArgs e) {
-           string dlURL = edtURL.Text.Replace("http://", "https://").Replace("board/u18chan/", "");
-           if (FileController.isSupported(dlURL))
-                downloadURL(dlURL, false);
-            else
-                MessageBox.Show("Please enter a supported site URL (Check the Github page for a list)");
+            string dlURL;
 
-            edtURL.Clear();
+            if (edtURL.Text.StartsWith("fchan.us/")) edtURL.Text = edtURL.Text.Replace("fchan.us/","http://fchan.us/");
+
+            if (!edtURL.Text.StartsWith("http://fchan.us") || edtURL.Text.StartsWith("http://www.fchan.us"))
+                dlURL = edtURL.Text.Replace("http://", "https://").Replace("board/u18chan/", "");
+            else
+                dlURL = edtURL.Text;
+
+             downloadURL(dlURL, false);
+             
+             edtURL.Clear();
         }
         #endregion
 
         #region Custom (downloadURL / addToHistory / getTitle / isUnique / getPlace / scan)
         private void downloadURL(string url, bool silentDownload) {
-            string dlURL = url.Replace("http://", "https://");
+            if (!Controller.isSupported(url)) {
+                MessageBox.Show("Please enter a supported site URL (Check the Github page for a list)");
+                return;
+            }
+
             bool board = (tcApp.SelectedIndex == 1);                             // Board Tab is open -> board=true; Thread tab -> board=false 
-            ImageBoard newImageboard = FileController.createNewIMB(dlURL.Trim(), board);
+            ImageBoard newImageboard = Controller.createNewIMB(url.Trim(), board);
+            if (url.StartsWith("fchan.us/"))
+                url = url.Replace("fchan.us/", "http://fchan.us/");
 
             if (newImageboard != null) {
                 if (isUnique(newImageboard.getURL(), clThreads)) {
                     if (board) {
-                        lbBoards.Items.Add(dlURL);
+                        lbBoards.Items.Add(url);
                         clBoards.Add(newImageboard);
                     }
                     else {
-                        lbThreads.Items.Add(dlURL);
+                        lbThreads.Items.Add(url);
                         clThreads.Add(newImageboard);
-                        addToHistory(dlURL);
+                        addToHistory(url);
                     }
                 }
                 else {
@@ -277,64 +293,34 @@ namespace YChanEx {
             scan(null, null);
 
             if (YCSettings.Default.saveOnClose)
-                FileController.saveURLs(clBoards, clThreads);
+                Controller.saveURLs(clBoards, clThreads);
         }
 
         private void addToHistory(string URL) {
-            //if (Properties.Settings.Default.debugDisableSavedThreads)
-            //    return;
-
-            string dateNow = "";
-
-            if (YCSettings.Default.saveDate)
-                dateNow = DateTime.Now.ToString("(yyyy-MM-dd, HH-mm-ss) ");
-
-            
-
             if (YCSettings.Default.saveHistory) {
                 if (URL.StartsWith("https://boards.4chan.org/")) {
-                    if (!File.Exists(settingsDir + @"\4chanhistory.dat")) {
-                        File.Create(settingsDir + @"\4chanhistory.dat").Close();
-                        File.AppendAllText(settingsDir + @"\4chanhistory.dat", dateNow + URL + " // " + getTitle(true, URL) + "\n");
-                    } else {
-                        string readHistory = File.ReadAllText(settingsDir + @"\4chanhistory.dat");
-                        if (!readHistory.Contains(URL))
-                            File.AppendAllText(settingsDir + @"\4chanhistory.dat", dateNow + URL + " // " + getTitle(true, URL) + "\n");
-                    }
-
+                    //Controller.saveHistory(0, URL + " // " + getTitle(true, URL), URL);
+                    Controller.saveHistory(0, URL + " // " + Controller.getHTMLTitle(0, URL), URL);
+                }
+                else if (URL.StartsWith("https://boards.420chan.org/")) {
+                    //Controller.saveHistory(1, URL + " // " + getTitle(false, URL), URL);
+                    Controller.saveHistory(1, URL + " // " + Controller.getHTMLTitle(1, URL), URL);
                 }
                 else if (URL.StartsWith("https://7chan.org/")) {
-                    if (!File.Exists(settingsDir + @"\7chanhistory.dat")) {
-                        File.Create(settingsDir + @"\7chanhistory.dat").Close();
-                        File.AppendAllText(settingsDir + @"\7chanhistory.dat", dateNow + URL + " // " + getTitle(false, URL) + "\n");
-                    }
-                    else {
-                        string readHistory = File.ReadAllText(settingsDir + @"\7chanhistory.dat");
-                        if (!readHistory.Contains(URL))
-                            File.AppendAllText(settingsDir + @"\7chanhistory.dat", dateNow + URL);
-                    }
+                    //Controller.saveHistory(2, URL + " // " + getTitle(false, URL), URL);
+                    Controller.saveHistory(2, URL + " // " + Controller.getHTMLTitle(2, URL), URL);
                 }
                 else if (URL.StartsWith("https://8ch.net/")) {
-                    if (!File.Exists(settingsDir + @"\8chanhistory.dat")) {
-                        File.Create(settingsDir + @"\8chanhistory.dat").Close();
-                        File.AppendAllText(settingsDir + @"\8chanhistory.dat", dateNow + URL + " // " + getTitle(false, URL) + "\n");
-                    }
-                    else {
-                        string readHistory = File.ReadAllText(settingsDir + @"\8chanhistory.dat");
-                        if (!readHistory.Contains(URL))
-                            File.AppendAllText(settingsDir + @"\8chanhistory.dat", dateNow + URL + " // " + getTitle(false, URL) + "\n");
-                    }
+                    //Controller.saveHistory(3, URL + " // " + getTitle(false, URL), URL);
+                    Controller.saveHistory(3, URL + " // " + Controller.getHTMLTitle(3, URL), URL);
+                }
+                else if (URL.StartsWith("http://fchan.us/")) {
+                    //Controller.saveHistory(4, URL + " // " + getTitle(false, URL), URL);
+                    Controller.saveHistory(4, URL + " // " + Controller.getHTMLTitle(4, URL), URL);
                 }
                 else if (URL.StartsWith("https://u18chan.com/")) {
-                    if (!File.Exists(settingsDir + @"\u18chanhistory.dat")) {
-                        File.Create(settingsDir + @"\u18chanhistory.dat").Close();
-                        File.AppendAllText(settingsDir + @"\u18chanhistory.dat", dateNow + URL + " // " + getTitle(false, URL) + "\n");
-                    }
-                    else {
-                        string readHistory = File.ReadAllText(settingsDir + @"\u18chanhistory.dat");
-                        if (!readHistory.Contains(URL))
-                            File.AppendAllText(settingsDir + @"\u18chanhistory.dat", dateNow + URL);
-                    }
+                    //Controller.saveHistory(5, URL + " // " + getTitle(false, URL), URL);
+                    Controller.saveHistory(5, URL + " // " + Controller.getHTMLTitle(5, URL), URL);
                 }
             }
         }
@@ -344,14 +330,13 @@ namespace YChanEx {
                 string threadTitle = "";
                 string threadBoard = "";
                 string boardTopic = "";
-                // 4Chan blocks WebClient, fakeout with HttpWebRequest
                 Uri threadURI = new Uri(threadURL);
                 threadBoard = "/" + threadURI.Segments[1] + " - ";
 
                 if (Is4Chan)
-                    boardTopic = Fchan.getTopic("/" + threadURI.Segments[1]);
+                    boardTopic = fourChan.getTopic("/" + threadURI.Segments[1]);
                 else if (threadURL.StartsWith("https://u18chan.com/"))
-                    boardTopic = U18Chan.getTopic("/" + threadURL.Split('/')[3] + "/");
+                    boardTopic = uEighteenChan.getTopic("/" + threadURL.Split('/')[3] + "/");
 
                 HttpWebRequest getSource = (HttpWebRequest)WebRequest.Create(threadURI);
                 getSource.UserAgent = Adv.Default.UserAgent;
@@ -454,7 +439,7 @@ namespace YChanEx {
 
                             is404 = true;
                             nfTray.BalloonTipTitle = "Thread 404'd";
-                            nfTray.BalloonTipText = "Thread " + ReturnID + " on /" + ReturnBoard + "/ has 404'd." + deadAction;
+                            nfTray.BalloonTipText = "Thread " + ReturnID.Replace(".html","") + " on /" + ReturnBoard + "/ has 404'd." + deadAction;
                             nfTray.BalloonTipIcon = ToolTipIcon.Error;
                             nfTray.Icon = Properties.Resources.YChanEx404;
                             nfTray.ShowBalloonTip(15000);
@@ -475,7 +460,7 @@ namespace YChanEx {
                         }
 
                         for (int l = 0; l < Threads.Length; l++) {
-                            ImageBoard newImageboard = FileController.createNewIMB(Threads[l], false);
+                            ImageBoard newImageboard = Controller.createNewIMB(Threads[l], false);
                             if (newImageboard != null && isUnique(newImageboard.getURL(), clThreads)) {
                                 lbThreads.Invoke((MethodInvoker)(() => { lbThreads.Items.Add(Threads[l]); }));
                                 clThreads.Add(newImageboard);
@@ -624,8 +609,7 @@ namespace YChanEx {
                 nfTray.ShowBalloonTip(30000);
             }
         }
-        private void nfTray_BalloonTipClosed(object sender, EventArgs e)
-        {
+        private void nfTray_BalloonTipClosed(object sender, EventArgs e) {
             if (is404)
                 nfTray.Icon = Properties.Resources.YChanEx;
         }
@@ -725,9 +709,7 @@ namespace YChanEx {
             Process.Start(sPath);
         }
         private void mTrayClipboard_Click(object sender, EventArgs e) {
-            string retURL = Clipboard.GetText().Replace("http://", "https://");
             if (Clipboard.ContainsText())
-                if (retURL.StartsWith("https://4chan.org/") || retURL.StartsWith("https://www.4chan.org/") || retURL.StartsWith("https://boards.4chan.org/") || retURL.StartsWith("https://8ch.net/") || retURL.StartsWith("https://www.8ch.net/") || retURL.StartsWith("https://u18chan.com/") || retURL.StartsWith("https://www.u18chan.com/"))
                     downloadURL(Clipboard.GetText(), false);
             else
                 MessageBox.Show("Clipboard does not contain text.");

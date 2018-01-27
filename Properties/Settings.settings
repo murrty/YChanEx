@@ -3,16 +3,13 @@
   <Profiles />
   <Settings>
     <Setting Name="currentVersion" Type="System.Decimal" Scope="Application">
-      <Value Profile="(Default)">1.672</Value>
+      <Value Profile="(Default)">1.68</Value>
     </Setting>
     <Setting Name="debug" Type="System.Boolean" Scope="Application">
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="runningUpdate" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
-    </Setting>
-    <Setting Name="debugDisableSavedThreads" Type="System.Boolean" Scope="Application">
-      <Value Profile="(Default)">True</Value>
     </Setting>
   </Settings>
 </SettingsFile>

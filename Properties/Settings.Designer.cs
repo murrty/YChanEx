@@ -25,7 +25,7 @@ namespace YChanEx.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1.672")]
+        [global::System.Configuration.DefaultSettingValueAttribute("1.68")]
         public decimal currentVersion {
             get {
                 return ((decimal)(this["currentVersion"]));
@@ -50,15 +50,6 @@ namespace YChanEx.Properties {
             }
             set {
                 this["runningUpdate"] = value;
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool debugDisableSavedThreads {
-            get {
-                return ((bool)(this["debugDisableSavedThreads"]));
             }
         }
     }

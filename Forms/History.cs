@@ -15,17 +15,21 @@ namespace YChanEx {
 
         /* Chan int guide (used to determine what board to work with):
          * 0 = 4chan
-         * 1 = 7chan
-         * 2 = 8chan
-         * 3 = u18chan
+         * 1 = 420chan
+         * 2 = 7chan
+         * 3 = 8chan
+         * 4 = fchan
+         * 5 = u18chan
         */
 
         #region Variables
         string settingsDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\YChanEx";
 
         ListBox fourChHistory = new ListBox();
+        ListBox ftChHistory = new ListBox();
         ListBox sevenChHistory = new ListBox();
         ListBox eightChHistory = new ListBox();
+        ListBox fChHistory = new ListBox();
         ListBox u18ChHistory = new ListBox();
         #endregion
 
@@ -45,11 +49,17 @@ namespace YChanEx {
             fourChHistory.Items.Clear();
             fourChHistory.Dispose();
 
+            ftChHistory.Items.Clear();
+            ftChHistory.Dispose();
+
             sevenChHistory.Items.Clear();
             sevenChHistory.Dispose();
 
             eightChHistory.Items.Clear();
             eightChHistory.Dispose();
+
+            fChHistory.Items.Clear();
+            fChHistory.Dispose();
 
             u18ChHistory.Items.Clear();
             u18ChHistory.Dispose();
@@ -70,27 +80,15 @@ namespace YChanEx {
 
             YCSettings.Default.historyIndex = cbSite.SelectedIndex;
 
+            enumerateBoardsInHistory(cbSite.SelectedIndex);
+            loadHistory(cbSite.SelectedIndex);
+
             if (cbSite.SelectedIndex == 0) {
-                enumerateBoardsInHistory(0);
-                loadHistory(0);
                 mOpenArchive.Enabled = true;
             }
-            else if (cbSite.SelectedIndex == 1) {
-                enumerateBoardsInHistory(1);
-                loadHistory(1);
+            else {
                 mOpenArchive.Enabled = false;
             }
-            else if (cbSite.SelectedIndex == 2) {
-                enumerateBoardsInHistory(2);
-                loadHistory(2);
-                mOpenArchive.Enabled = false;
-            }
-            else if (cbSite.SelectedIndex == 3) {
-                enumerateBoardsInHistory(3);
-                loadHistory(3);
-                mOpenArchive.Enabled = false;
-            }
-            else { lbHistory.Items.Clear(); }
         }
         private void cbBoard_SelectedIndexChanged(object sender, EventArgs e) {
             if (cbBoard.SelectedIndex != 0) {
@@ -104,8 +102,18 @@ namespace YChanEx {
                                 lbHistory.Items.Add(lsItem);
                         }
                     }
-                } 
+                }
                 else if (cbSite.SelectedIndex == 1) {
+                    if (ftChHistory.Items.Count != 0) {
+                        foreach (var lsItem in ftChHistory.Items) {
+                            Uri threadURL = new UriBuilder(getURL(lsItem.ToString())).Uri;
+                            string board = "/" + threadURL.Segments[1];
+                            if (board == cbBoard.SelectedItem.ToString())
+                                lbHistory.Items.Add(lsItem);
+                        }
+                    }
+                }
+                else if (cbSite.SelectedIndex == 2) {
                     if (sevenChHistory.Items.Count != 0) {
                         foreach (var lsItem in sevenChHistory.Items) {
                             Uri threadURL = new UriBuilder(getURL(lsItem.ToString())).Uri;
@@ -115,7 +123,7 @@ namespace YChanEx {
                         }
                     }
                 } 
-                else if (cbSite.SelectedIndex == 2) {
+                else if (cbSite.SelectedIndex == 3) {
                     if (eightChHistory.Items.Count != 0) {
                         foreach (var lsItem in eightChHistory.Items) {
                             Uri threadURL = new UriBuilder(getURL(lsItem.ToString())).Uri;
@@ -125,7 +133,17 @@ namespace YChanEx {
                         }
                     }
                 } 
-                else if (cbSite.SelectedIndex == 3) {
+                else if (cbSite.SelectedIndex == 4) {
+                    if (fChHistory.Items.Count != 0) {
+                        foreach (var lsItem in fChHistory.Items) {
+                            Uri threadURL = new UriBuilder(getURL(lsItem.ToString())).Uri;
+                            string board = "/" + threadURL.Segments[1];
+                            if (board == cbBoard.SelectedItem.ToString())
+                                lbHistory.Items.Add(lsItem);
+                        }
+                    }
+                }
+                else if (cbSite.SelectedIndex == 5) {
                     if (u18ChHistory.Items.Count != 0) {
                         foreach (var lsItem in u18ChHistory.Items) {
                             Uri threadURL = new UriBuilder(getURL(lsItem.ToString())).Uri;
@@ -136,12 +154,7 @@ namespace YChanEx {
                     }
                 }
             } else {
-                if (cbSite.SelectedIndex == 0)
-                    loadHistory(0);
-                else if (cbSite.SelectedIndex == 1)
-                    loadHistory(1);
-                else if (cbSite.SelectedIndex == 2)
-                    loadHistory(2);
+                loadHistory(cbSite.SelectedIndex);
             }
         }
 
@@ -155,8 +168,12 @@ namespace YChanEx {
                     string readLine;
                     while ((readLine = readFile.ReadLine()) != null) { fourChHistory.Items.Add(readLine); }}}
 
-            if (File.Exists(settingsDir + @"\7chanhistory.dat"))
-            {
+            if (File.Exists(settingsDir + @"\420chanhistory.dat")) {
+                using (StreamReader readFile = new StreamReader(settingsDir + @"\420chanhistory.dat")) {
+                    string readLine;
+                    while ((readLine = readFile.ReadLine()) != null) { ftChHistory.Items.Add(readLine); }}}
+
+            if (File.Exists(settingsDir + @"\7chanhistory.dat")) {
                 using (StreamReader readFile = new StreamReader(settingsDir + @"\7chanhistory.dat"))
                 {
                     string readLine;
@@ -166,6 +183,11 @@ namespace YChanEx {
                 using (StreamReader readFile = new StreamReader(settingsDir + @"\8chanhistory.dat")) {
                     string readLine;
                     while ((readLine = readFile.ReadLine()) != null) { eightChHistory.Items.Add(readLine); }}}
+
+            if (File.Exists(settingsDir + @"\fchanhistory.dat")) {
+                using (StreamReader readFile = new StreamReader(settingsDir + @"\fchanhistory.dat")) {
+                    string readLine;
+                    while ((readLine = readFile.ReadLine()) != null) { fChHistory.Items.Add(readLine); }}}
 
             if (File.Exists(settingsDir + @"\u18chanhistory.dat")) {
                 using (StreamReader readFile = new StreamReader(settingsDir + @"\u18chanhistory.dat")) {
@@ -179,18 +201,24 @@ namespace YChanEx {
             if (chan == 0) {
                 if (fourChHistory.Items.Count != 0)
                     foreach (var lsItem in fourChHistory.Items) { lbHistory.Items.Add(lsItem); }
-
             }
             else if (chan == 1) {
+                if (ftChHistory.Items.Count != 0)
+                    foreach (var lsItem in ftChHistory.Items) { lbHistory.Items.Add(lsItem); }
+            }
+            else if (chan == 2) {
                 if (sevenChHistory.Items.Count != 0)
                     foreach (var lsItem in sevenChHistory.Items) { lbHistory.Items.Add(lsItem); }
             }
-            else if (chan == 2) {
+            else if (chan == 3) {
                 if (eightChHistory.Items.Count != 0)
                     foreach (var lsItem in eightChHistory.Items) { lbHistory.Items.Add(lsItem); }
-                
-            } 
-            else if (chan == 2) {
+            }
+            else if (chan == 4) {
+                if (fChHistory.Items.Count != 0)
+                    foreach (var lsItem in fChHistory.Items) { lbHistory.Items.Add(lsItem); }
+            }
+            else if (chan == 5) {
                 if (u18ChHistory.Items.Count != 0)
                     foreach (var lsItem in u18ChHistory.Items) { lbHistory.Items.Add(lsItem); }
             }
@@ -216,6 +244,20 @@ namespace YChanEx {
                 }
             }
             else if (chan == 1) {
+                if (File.Exists(settingsDir + @"\420chanhistory.dat")) {
+                    using (StreamReader readFile = new StreamReader(settingsDir + @"\420chanhistory.dat")) {
+                        string readLine;
+                        while ((readLine = readFile.ReadLine()) != null) {
+                            Uri threadURL = new UriBuilder(getURL(readLine)).Uri;
+                            string board = "/" + threadURL.Segments[1];
+
+                            if (!cbBoard.Items.Contains(board))
+                                cbBoard.Items.Add(board);
+                        }
+                    }
+                }
+            }
+            else if (chan == 2) {
                 if (File.Exists(settingsDir + @"\7chanhistory.dat")) {
                     using (StreamReader readFile = new StreamReader(settingsDir + @"\7chanhistory.dat")) {
                         string readLine;
@@ -229,7 +271,7 @@ namespace YChanEx {
                     }
                 }
             }
-            else if (chan == 2) {
+            else if (chan == 3) {
                 if (File.Exists(settingsDir + @"\8chanhistory.dat")) {
                     using (StreamReader readFile = new StreamReader(settingsDir + @"\8chanhistory.dat")) {
                         string readLine;
@@ -243,7 +285,21 @@ namespace YChanEx {
                     }
                 }
             }
-            else if (chan == 3) {
+            else if (chan == 4) {
+                if (File.Exists(settingsDir + @"\fchanhistory.dat")) {
+                    using (StreamReader readFile = new StreamReader(settingsDir + @"\fchanhistory.dat")) {
+                        string readLine;
+                        while ((readLine = readFile.ReadLine()) != null) {
+                            Uri threadURL = new UriBuilder(getURL(readLine)).Uri;
+                            string board = "/" + threadURL.Segments[1];
+
+                            if (!cbBoard.Items.Contains(board))
+                                cbBoard.Items.Add(board);
+                        }
+                    }
+                }
+            }
+            else if (chan == 5) {
                 if (File.Exists(settingsDir + @"\u18chanhistory.dat")) {
                     using (StreamReader readFile = new StreamReader(settingsDir + @"\u18chanhistory.dat")) {
                         string readLine;
@@ -281,26 +337,36 @@ namespace YChanEx {
             if (cbSite.SelectedIndex == 0)
                 Process.Start(YCSettings.Default.downloadPath + @"\4chan");
             else if (cbSite.SelectedIndex == 1)
-                Process.Start(YCSettings.Default.downloadThumbnails + @"\7chan");
+                Process.Start(YCSettings.Default.downloadThumbnails + @"\420chan");
             else if (cbSite.SelectedIndex == 2)
-                Process.Start(YCSettings.Default.downloadPath + @"\8ch");
+                Process.Start(YCSettings.Default.downloadThumbnails + @"\7chan");
             else if (cbSite.SelectedIndex == 3)
+                Process.Start(YCSettings.Default.downloadPath + @"\8ch");
+            else if (cbSite.SelectedIndex == 4)
+                Process.Start(YCSettings.Default.downloadThumbnails + @"\fchan");
+            else if (cbSite.SelectedIndex == 5)
                 Process.Start(YCSettings.Default.downloadPath + @"\u18chan");
         }
         private void btnClear_Click(object sender, EventArgs e) {
             switch (MessageBox.Show("Are you sure you want to clear your history?", "YChanEx", MessageBoxButtons.YesNo)) {
                 case System.Windows.Forms.DialogResult.Yes:
                     if (File.Exists(settingsDir + @"\4chanhistory.dat"))
-                        File.WriteAllText(settingsDir + @"\4chanhistory.dat", string.Empty);
+                        File.Delete(settingsDir + @"\4chanhistory.dat");
+
+                    if (File.Exists(settingsDir + @"\420chanhistory.dat"))
+                        File.Delete(settingsDir + @"\420chanhistory.dat");
 
                     if (File.Exists(settingsDir + @"\7chanhistory.dat"))
-                        File.WriteAllText(settingsDir + @"\7chanhistory.dat", string.Empty);
+                        File.Delete(settingsDir + @"\7chanhistory.dat");
 
                     if (File.Exists(settingsDir + @"\8chanhistory.dat"))
-                        File.WriteAllText(settingsDir + @"\8chanhistory.dat", string.Empty);
+                        File.Delete(settingsDir + @"\8chanhistory.dat");
+
+                    if (File.Exists(settingsDir + @"\fchanhistory.dat"))
+                        File.Delete(settingsDir + @"\fchanhistory.dat");
 
                     if (File.Exists(settingsDir + @"\u18chanhistory.dat"))
-                        File.WriteAllText(settingsDir + @"\u18chanhistory.dat", string.Empty);
+                        File.Delete(settingsDir + @"\u18chanhistory.dat");
 
                     lbHistory.Items.Clear();
                     break;
@@ -322,13 +388,15 @@ namespace YChanEx {
             string thrID = threadURL.Segments[3];
             string thrBoard = threadURL.Segments[1];
 
-            string fchArchive = "https://archived.moe/" + thrBoard + "thread/" + thrID;
-            string schArchive = "Lol?";
-            string ichArchive = "Lol, infinitechan archives";
-            string u18Archive = "Lol, u18chan archives";
+            string fourChArchive = "https://archived.moe/" + thrBoard + "thread/" + thrID;
+            string fourtwentyChArchive = "bruh...";
+            string sevenChArchive = "Lol?";
+            string infChArchive = "Lol, infinitechan archives";
+            string fChArchive = "...?";
+            string u18ChArchive = "Lol, u18chan archives";
 
             if (cbSite.SelectedIndex == 0)
-                Process.Start(fchArchive);
+                Process.Start(fourChArchive);
             else {
                 if (MessageBox.Show(cbSite.SelectedItem + " does not have a archive available or does not need an archive.\nWould you like to try to open the URL?", "YChanEx", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
                     Process.Start(lbHistory.SelectedItem.ToString());
@@ -344,15 +412,23 @@ namespace YChanEx {
                 if (Directory.Exists(YCSettings.Default.downloadPath + @"\4chan\" + thrBoard + @"\" + thrID))
                     Process.Start(YCSettings.Default.downloadPath + @"\4chan\" + thrBoard + @"\" + thrID);
             }
-            else if (cbSite.SelectedIndex == 1){
+            else if (cbSite.SelectedIndex == 1) {
+                if (Directory.Exists(YCSettings.Default.downloadPath + @"\420chan\" + thrBoard + @"\" + thrID))
+                    Process.Start(YCSettings.Default.downloadPath + @"\420chan\" + thrBoard + @"\" + thrID);
+            }
+            else if (cbSite.SelectedIndex == 2) {
                 if (Directory.Exists(YCSettings.Default.downloadPath + @"\7chan\" + thrBoard + @"\" + thrID))
                     Process.Start(YCSettings.Default.downloadPath + @"\7chan\" + thrBoard + @"\" + thrID);
             }
-            else if (cbSite.SelectedIndex == 2){
+            else if (cbSite.SelectedIndex == 3) {
                 if (Directory.Exists(YCSettings.Default.downloadPath + @"\8ch\" + thrBoard + @"\" + thrID))
                     Process.Start(YCSettings.Default.downloadPath + @"\8ch\" + thrBoard + @"\" + thrID);
             }
-            else if (cbSite.SelectedIndex == 3) {
+            else if (cbSite.SelectedIndex == 4) {
+                if (Directory.Exists(YCSettings.Default.downloadPath + @"\fchan\" + thrBoard + @"\" +thrID))
+                    Process.Start(YCSettings.Default.downloadPath + @"\fchan\" + thrBoard + @"\" +thrID);
+            }
+            else if (cbSite.SelectedIndex == 5) {
                 if (Directory.Exists(YCSettings.Default.downloadPath + @"\u18chan\" + thrBoard + @"\" + thrID))
                     Process.Start(YCSettings.Default.downloadPath + @"\u18chan\" + thrBoard + @"\" + thrID);
             }
@@ -388,9 +464,18 @@ namespace YChanEx {
                             writeFile.WriteLine(historyItem.ToString());
                     }
                     lbHistory.Items.RemoveAt(lbHistory.SelectedIndex);
-
                 }
-                else if (cbSite.SelectedIndex == 1) {
+                if (cbSite.SelectedIndex == 1) {
+                    ftChHistory.Items.RemoveAt(ftChHistory.Items.IndexOf(itemToDelete));
+                    File.Delete(settingsDir + @"\420chanhistory.dat");
+                    using (FileStream fileStream = File.Open(settingsDir + @"\420chanhistory.dat", FileMode.Create))
+                    using (StreamWriter writeFile = new StreamWriter(fileStream)) {
+                        foreach (var historyItem in ftChHistory.Items)
+                            writeFile.WriteLine(historyItem.ToString());
+                    }
+                    lbHistory.Items.RemoveAt(lbHistory.SelectedIndex);
+                }
+                else if (cbSite.SelectedIndex == 2) {
                     sevenChHistory.Items.RemoveAt(sevenChHistory.Items.IndexOf(itemToDelete));
                     File.Delete(settingsDir + @"\7chanhistory.dat");
                     using (FileStream fileStream = File.Open(settingsDir + @"\7chanhistory.dat", FileMode.Create))
@@ -400,7 +485,7 @@ namespace YChanEx {
                     }
                     lbHistory.Items.RemoveAt(lbHistory.SelectedIndex);
                 }
-                else if (cbSite.SelectedIndex == 2) {
+                else if (cbSite.SelectedIndex == 3) {
                     eightChHistory.Items.RemoveAt(eightChHistory.Items.IndexOf(itemToDelete));
                     File.Delete(settingsDir + @"\8chanhistory.dat");
                     using (FileStream fileStream = File.Open(settingsDir + @"\8chanhistory.dat", FileMode.Create))
@@ -410,7 +495,17 @@ namespace YChanEx {
                     }
                     lbHistory.Items.RemoveAt(lbHistory.SelectedIndex);
                 }
-                else if (cbSite.SelectedIndex == 3) {
+                else if (cbSite.SelectedIndex == 4) {
+                    fChHistory.Items.RemoveAt(fChHistory.Items.IndexOf(itemToDelete));
+                    File.Delete(settingsDir + @"\fchanhistory.dat");
+                    using (FileStream fileStream = File.Open(settingsDir + @"\fchanhistory.dat", FileMode.Create))
+                    using (StreamWriter writeFile = new StreamWriter(fileStream)) {
+                        foreach (var historyItem in fChHistory.Items)
+                            writeFile.WriteLine(historyItem.ToString());
+                    }
+                    lbHistory.Items.RemoveAt(lbHistory.SelectedIndex);
+                }
+                else if (cbSite.SelectedIndex == 5) {
                     u18ChHistory.Items.RemoveAt(u18ChHistory.Items.IndexOf(itemToDelete));
                     File.Delete(settingsDir + @"\u18chanhistory.dat");
                     using (FileStream fileStream = File.Open(settingsDir + @"\u18chanhistory.dat", FileMode.Create))
