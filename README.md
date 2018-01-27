@@ -5,12 +5,12 @@ You can get the original (and outdated) application here:
 https://sourceforge.net/projects/ychan/
 
 # Supported chans
-4chan
-420chan
-7chan
-8chan
-fchan
-u18chan
+4chan  
+420chan  
+7chan  
+8chan  
+fchan  
+u18chan  
 
 Want me to add one of your favorites? Open an issue and I'll look into it.
 
