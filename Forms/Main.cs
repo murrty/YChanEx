@@ -43,12 +43,13 @@ namespace YChanEx {
             
             if (YCSettings.Default.updaterEnabled) {
                 decimal cV = Updater.getCloudVersion();
+                Properties.Settings.Default.cloudVersion = cV;
                 if (Updater.isUpdateAvailable(cV)) {
                     if (Updater.isUpdateCritical()) {
                         frmUpdateInfo uInfo = new frmUpdateInfo();
                         if (uInfo.ShowDialog() == System.Windows.Forms.DialogResult.Yes) {
-                            Updater.createUpdaterStub();
-                            Updater.runUpdater(cV);
+                            Updater.createUpdaterStub(cV);
+                            Updater.runUpdater();
                             return;
                         }
                         uInfo.Close();
@@ -56,8 +57,8 @@ namespace YChanEx {
                     }
                     else {
                         if (MessageBox.Show("An update is available.\nNew verison: " + cV.ToString() + " | Your version: " + Properties.Settings.Default.currentVersion.ToString() + "\n\nWould you like to update?", "YChanEx", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes) {
-                            Updater.createUpdaterStub();
-                            Updater.runUpdater(cV);
+                            Updater.createUpdaterStub(cV);
+                            Updater.runUpdater();
                             return;
                         }
                     }
@@ -144,7 +145,10 @@ namespace YChanEx {
         }
         private void frmMain_Shown(object sender, EventArgs e) {
             if (Properties.Settings.Default.debug)
-                mDebug.Visible = true;
+                mDebug.Visible = true; mDebug.Enabled = true;
+
+            if (Properties.Settings.Default.currentVersion < Properties.Settings.Default.cloudVersion)
+                mUpdateAvailable.Visible = true; mUpdateAvailable.Enabled = true;
 
             // Download url if it is a website
             for (int i = 0; i < Environment.GetCommandLineArgs().Length; i++) {
@@ -308,7 +312,7 @@ namespace YChanEx {
                 }
                 else if (URL.StartsWith("https://7chan.org/")) {
                     //Controller.saveHistory(2, URL + " // " + getTitle(false, URL), URL);
-                    Controller.saveHistory(2, URL + " // " + Controller.getHTMLTitle(2, URL), URL);
+                    Controller.saveHistory(2, URL, URL);// + " // " + Controller.getHTMLTitle(2, URL), URL);
                 }
                 else if (URL.StartsWith("https://8ch.net/")) {
                     //Controller.saveHistory(3, URL + " // " + getTitle(false, URL), URL);
@@ -320,7 +324,7 @@ namespace YChanEx {
                 }
                 else if (URL.StartsWith("https://u18chan.com/")) {
                     //Controller.saveHistory(5, URL + " // " + getTitle(false, URL), URL);
-                    Controller.saveHistory(5, URL + " // " + Controller.getHTMLTitle(5, URL), URL);
+                    Controller.saveHistory(5, URL, URL);// + " // " + Controller.getHTMLTitle(5, URL), URL);
                 }
             }
         }
@@ -689,6 +693,12 @@ namespace YChanEx {
             tAbout.Dispose();
 
             GC.Collect();
+        }
+     
+        private void mUpdateAvailable_Click(object sender, EventArgs e) {
+            if (Properties.Settings.Default.cloudVersion > Properties.Settings.Default.currentVersion)
+                if (MessageBox.Show("Would you like to update YChanEx?", "YChanEx", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
+                    Updater.createUpdaterStub(Properties.Settings.Default.cloudVersion); Updater.runUpdater(); this.Close();
         }
         #endregion
         #region mTray (mTrayShow / mTrayOpen / mTrayClipboard  / mTrayExit) Click

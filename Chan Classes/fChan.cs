@@ -1,5 +1,5 @@
 ﻿// fchan.us
-
+// API WHEN
 // File formatting: "<board>_<uploaded file number>_<original name>.<ext>"
 
 using System;
@@ -41,19 +41,19 @@ namespace YChanEx {
         public new static bool isBoard(string url) { return false; } // Always return false for board downloading.
 
         public override void download() {
-            string[] images;        // image urls
-            string[] thumbnails;    // thumbnail url
-            string[] original;      // original file name
-            var lImages = new List<string>();
-            var lThumbnails = new List<string>();
-            var lOriginal = new List<string>();
+            string[] images;                        // image urls array
+            string[] thumbnails;                    // thumbnail url array
+            string[] original;                      // original file name array
+            var lImages = new List<string>();       // List to add image links to
+            var lThumbnails = new List<string>();   // List to add thumbnail links to
+            var lOriginal = new List<string>();     // List to add the original name to.
             string website;
 
             try {
                 if (!Directory.Exists(this.SaveTo))
                     Directory.CreateDirectory(this.SaveTo);
 
-                website = Controller.getHTML(this.getURL(), true, "disclaimer=seen");
+                website = Controller.getHTML(this.getURL(), true, "disclaimer=seen"); // Fchan uses a disclaimer cookie. Fun.
 
                 string[] lines = website.Split('\n');
                 string foundURL;

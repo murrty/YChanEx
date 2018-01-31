@@ -1,12 +1,6 @@
 ﻿// u18chan.com
 // API WHEN
-
-/*
- * This is because they do not have an api, much like 4ch & 4+4ch
- * This is the best way to download from u18chan, through source parsing.
- * 
- * I decided against board downloading for u18chan. It's just easier if entire boards don't get downloaded.
- */
+// File foramtting: "<original name>_u18chan.<ext>"
 
 using System;
 using System.Collections.Generic;
@@ -20,7 +14,6 @@ using System.Windows.Forms;
 
 namespace YChanEx {
     class uEighteenChan : ImageBoard {
-        // Numbers in case u18chan adds a new board that has a number
         public static string regThread = "u18chan.com/[a-zA-Z0-9]*?/topic/[0-9]*";
 
         public uEighteenChan(string url, bool isBoard) : base(url, isBoard) {
@@ -48,7 +41,7 @@ namespace YChanEx {
         public override void download() {
             string[] images;                    // Array that contains direct URLs to the image files
             string[] thumbnails;                // Array that contains direct URLs to the thumbnails
-            var lwebsite = new List<string>();  // List that contains all the lines that start with "File: <a href=\"" for parsing
+            //var lwebsite = new List<string>();  // List that contains all the lines that start with "File: <a href=\"" for parsing
             var limages = new List<string>();   // List that contains all the lines that have image URLs after parsing them
             string website;                // The string that contains the source for HTML saving.
 
@@ -59,25 +52,15 @@ namespace YChanEx {
 
                 // Download the HTML source
                 website = Controller.getHTML(this.getURL());
-
-                // Sift through the HTML source for lines that start with "File: <a href=\""
-                var lines = website.Split('\n');
-                foreach (string line in lines) {
-                    if (line.Replace("	", "").StartsWith("File: <a href=\"")) {
-                        lwebsite.Add(line);
-                    }
-                }
-
-                // Get strings that are within <a href> html tags
-                Regex findFiles = new Regex("(?<=<a href=\").*?(?=\" target=\"_blank\">)");
-                foreach (Match imageLinks in findFiles.Matches(string.Join("\n", lwebsite))) {
+                
+                // Look for the file links using Regex
+                Regex href = new Regex("(?<=File: <a href=\").*?(?=\" target=\"_blank\">)");
+                foreach (Match imageLinks in href.Matches(website))
                     limages.Add(imageLinks.ToString());
-                }
 
                 // Convert the images to an array & clear the useless lists (save RAM)
                 images = limages.ToArray();
                 limages.Clear();
-                lwebsite.Clear();
 
                 // Downloads images from the lists
                 for (int y = 0; y < images.Length; y++) {
@@ -88,7 +71,7 @@ namespace YChanEx {
                     limages.Add(images[y].Replace("_u18chan.","s_u18chan.")); // Renames the _u18chan to s_u18chan for thumbnail URLs
                     if (YCSettings.Default.originalName) {
                         // Replace any invalid file names.
-                        newfilename = newfilename.Replace("_u18chan", "");
+                        newfilename = newfilename.Replace("_u18chan", ""); // This removes the _u18chan name in any files, as they use the original name.
                         for (int z = 0; z < badchars.Length - 1; z++)
                             newfilename = newfilename.Replace(badchars[z], "-");
                         

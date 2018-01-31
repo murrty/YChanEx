@@ -56,7 +56,7 @@ namespace YChanEx
         override protected string getLinks() {
             string exed = "";
             string JSONUrl = ("http://8ch.net/" + getURL().Split('/')[3] + "/res/" + getURL().Split('/')[5] + ".json").Replace(".html", "");
-            string str = "";
+            string str;
             XmlNodeList xmlTim;
             XmlNodeList xmlFilename;
             XmlNodeList xmlExt;

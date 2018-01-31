@@ -12,7 +12,8 @@ namespace YChanEx {
     class Updater {
 
         public static string rawURL = "https://raw.githubusercontent.com/murrty/YChanEx";
-        public static string updateURL = "https://github.com/murrty/YChanEx/releases/download/%arg1%";
+        public static string githubURL = "https://github.com/murrty/YChanEx";
+        public static string downloadURL = "https://github.com/murrty/YChanEx/releases/download/%upVersion%/YChanEx.exe";
         public static string updateFile = @"\ycxu.bat";
 
         public static decimal getCloudVersion() {
@@ -20,10 +21,7 @@ namespace YChanEx {
                 using (WebClient wc = new WebClient()) {
                     wc.Headers.Add("User-Agent: " + Adv.Default.UserAgent);
                     decimal clVers = decimal.Parse(Regex.Replace(wc.DownloadString(rawURL + "/master/Resources/AppVersion"), @"\s", ""));
-                    if (Properties.Settings.Default.currentVersion < clVers) {
-                        return clVers;
-                    }
-                    else { return -1; }
+                    return clVers;
                 }
             } catch (WebException wEx) {
                 Debug.Print(wEx.ToString());
@@ -86,47 +84,47 @@ namespace YChanEx {
             }
         }
 
-        public static void createUpdaterStub() {
-            string updaterCode = "@echo off\necho ===========================================\necho //    YCHANEX UPDATER  (BAT VERSION)     \\\\\necho //      CURRENT BATCH VERSION: 1.1       \\\\\necho //  IF THIS WINDOW DOES NOT CLOSE AFTER  \\\\\necho //       YCHANEX IS FULLY UPDATED        \\\\\necho //       THEN IT IS SAFE TO CLOSE.       \\\\\necho ===========================================\nset arg1=%1\nset arg2=%2\ntimeout /t 5 /nobreak\ndel %arg2%\npowershell -Command \"(New-Object Net.WebClient).DownloadFile('" + updateURL + "/YChanEx.exe', '%arg2%')\"\n%arg2%\nexit";
+        public static void createUpdaterStub(decimal updVersion) {
             /*
              * This is the entire code for the updater, it is designed to be light-weight and so is batch-based.
-             * Also, this appears in youtube-dl-gui first, but applies greatly to this program.
              
-            @echo off
-            echo ===========================================
-            echo //    YCHANEX UPDATER  (BAT VERSION)     \\
-            echo //      CURRENT BATCH VERSION: 1.1       \\
-            echo //  IF THIS WINDOW DOES NOT CLOSE AFTER  \\
-            echo //       YCHANEX IS FULLY UPDATED        \\
-            echo //       THEN IT IS SAFE TO CLOSE.       \\
-            echo ===========================================
-            set arg1=%1
-            set arg2=%2
-            timeout /t 5 /nobreak
-            del %arg2%
-            powershell -Command "(New-Object Net.WebClient).DownloadFile('https://github.com/obscurename/YChanEx/releases/download/%arg1%/YChanEx.exe', '%arg2%')"
-            %arg2%
-            exit
+                "@echo off"
+                "echo Updating YChanEx..."
+                "set upVersion=" + updVersion
+                "set programName=" + System.AppDomain.CurrentDomain.FriendlyName;
+                "timeout /t 5 /nobreak"
+                "del %programName%"
+                "powershell -Command "(New-Object Net.WebClient).DownloadFile(upateURL + '/%upVersion%/YChanEx.exe', '%programName%')""
+                "%programName%"
+                 "exit"
              
              */
+
             try {
                 if (File.Exists(Application.StartupPath + updateFile))
                     File.Delete(Application.StartupPath + updateFile);
 
                 File.Create(Application.StartupPath + updateFile).Dispose();
                 System.IO.StreamWriter writeApp = new System.IO.StreamWriter(Application.StartupPath + updateFile);
-                writeApp.WriteLine(updaterCode);
+                writeApp.WriteLine("@echo off");
+                writeApp.WriteLine("echo Updating YChanEx...");
+                writeApp.WriteLine("set upVersion=" + updVersion);
+                writeApp.WriteLine("set programName=" + System.AppDomain.CurrentDomain.FriendlyName);
+                writeApp.WriteLine("timeout /t 5 /nobreak");
+                writeApp.WriteLine("del %programName%");
+                writeApp.WriteLine("powershell -Command \"(New-Object Net.WebClient).DownloadFile('" + downloadURL + "', '%programName%')\"");
+                writeApp.WriteLine("%programName%");
+                writeApp.WriteLine("eixt");
                 writeApp.Close();
             } catch (Exception ex) {
                 Debug.Print(ex.ToString());
                 ErrorLog.logError(ex.ToString(), "UpdaterError");
             }
         }
-        public static void runUpdater(decimal updVersion) {
+        public static void runUpdater() {
             try { 
                 Process Updater = new Process();
                 Updater.StartInfo.FileName = System.Windows.Forms.Application.StartupPath + updateFile;
-                Updater.StartInfo.Arguments = updVersion.ToString() + " " + System.AppDomain.CurrentDomain.FriendlyName;
                 Updater.StartInfo.UseShellExecute = false;
                 Updater.StartInfo.CreateNoWindow = false;
                 Properties.Settings.Default.runningUpdate = true;

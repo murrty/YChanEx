@@ -25,7 +25,7 @@ namespace YChanEx.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1.68")]
+        [global::System.Configuration.DefaultSettingValueAttribute("1.681")]
         public decimal currentVersion {
             get {
                 return ((decimal)(this["currentVersion"]));
@@ -50,6 +50,18 @@ namespace YChanEx.Properties {
             }
             set {
                 this["runningUpdate"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("-1")]
+        public decimal cloudVersion {
+            get {
+                return ((decimal)(this["cloudVersion"]));
+            }
+            set {
+                this["cloudVersion"] = value;
             }
         }
     }

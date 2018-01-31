@@ -27,11 +27,11 @@ namespace YChanEx {
         static string settingsDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\YChanEx";
 
         public static string loadURLs(bool board) {
-            if (board && File.Exists(settingsDir + "\\boards.dat"))
-                return File.ReadAllText(settingsDir + "\\boards.dat");
-            else if (!board && File.Exists(settingsDir + "\\threads.dat"))
-                return File.ReadAllText(settingsDir + "\\threads.dat");
-            else
+            //if (board && File.Exists(settingsDir + "\\boards.dat"))
+            //    return File.ReadAllText(settingsDir + "\\boards.dat");
+            //else if (!board && File.Exists(settingsDir + "\\threads.dat"))
+            //    return File.ReadAllText(settingsDir + "\\threads.dat");
+            //else
                 return "";
         }
         public static void saveURLs(List<ImageBoard> Boards, List<ImageBoard> Threads) {
@@ -92,7 +92,7 @@ namespace YChanEx {
             else return false;
         }
 
-        private static string GetFileName(string hrefLink) {
+        private static string getFileName(string hrefLink) {
             string[] parts = hrefLink.Split('/');
             string fileName = "";
 
@@ -197,7 +197,7 @@ namespace YChanEx {
                         wc.DownloadFile(url, dir);
                 }
                 else {
-                    string FN = GetFileName(url);
+                    string FN = getFileName(url);
                     dir = dir + "\\" + FN;
 
                     if (!File.Exists(dir)) {

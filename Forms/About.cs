@@ -25,8 +25,8 @@ namespace YChanEx {
                 if (Updater.isUpdateCritical()) {
                     frmUpdateInfo uInfo = new frmUpdateInfo();
                     if (uInfo.ShowDialog() == System.Windows.Forms.DialogResult.Yes) {
-                        Updater.createUpdaterStub();
-                        Updater.runUpdater(cV);
+                        Updater.createUpdaterStub(cV);
+                        Updater.runUpdater();
                         return;
                     }
                     uInfo.Close();
@@ -34,8 +34,8 @@ namespace YChanEx {
                 } else {
                     if (MessageBox.Show("An update is available. \nNew verison: " + cV.ToString() + " | Your version: " + Properties.Settings.Default.currentVersion.ToString() + "\n\nWould you like to update?", "YChanEx", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
                     {
-                        Updater.createUpdaterStub();
-                        Updater.runUpdater(cV);
+                        Updater.createUpdaterStub(cV);
+                        Updater.runUpdater();
                         return;
                     }
                 }
