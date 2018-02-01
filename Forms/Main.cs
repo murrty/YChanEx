@@ -40,29 +40,20 @@ namespace YChanEx {
         private void frmMain_Load(object sender, EventArgs e) {
             Properties.Settings.Default.runningUpdate = false;
             tcApp.TabPages.RemoveAt(1);
-            
+
             if (YCSettings.Default.updaterEnabled) {
-                decimal cV = Updater.getCloudVersion();
-                Properties.Settings.Default.cloudVersion = cV;
-                if (Updater.isUpdateAvailable(cV)) {
-                    if (Updater.isUpdateCritical()) {
-                        frmUpdateInfo uInfo = new frmUpdateInfo();
-                        if (uInfo.ShowDialog() == System.Windows.Forms.DialogResult.Yes) {
-                            Updater.createUpdaterStub(cV);
-                            Updater.runUpdater();
-                            return;
-                        }
-                        uInfo.Close();
-                        uInfo.Dispose();
-                    }
-                    else {
-                        if (MessageBox.Show("An update is available.\nNew verison: " + cV.ToString() + " | Your version: " + Properties.Settings.Default.currentVersion.ToString() + "\n\nWould you like to update?", "YChanEx", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes) {
+                Thread checkUpdates = new Thread(() => {
+                    decimal cV = Updater.getCloudVersion();
+
+                    if (Updater.isUpdateAvailable(cV)) {
+                        if (MessageBox.Show("An update is available. \nNew verison: " + cV.ToString() + " | Your version: " + Properties.Settings.Default.currentVersion.ToString() + "\n\nWould you like to update?", "YChanEx", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes) {
                             Updater.createUpdaterStub(cV);
                             Updater.runUpdater();
                             return;
                         }
                     }
-                }
+                });
+                checkUpdates.Start();
             }
 
             if (YCSettings.Default.firstStart) {
@@ -98,16 +89,16 @@ namespace YChanEx {
             else
                 nfTray.Visible = false;
 
-            scnTimer.Enabled  = false;                                              // disable timer                 
+            scnTimer.Enabled = false;                                              // disable timer                 
             scnTimer.Interval = YCSettings.Default.scannerTimer;           // set interval
             scnTimer.Tick += new EventHandler(this.scan);                           // when Timer ticks call scan()
-            if(YCSettings.Default.saveOnClose) {                           // if enabled load URLs from file 
+            if (YCSettings.Default.saveOnClose) {                           // if enabled load URLs from file 
                 string[] URLs;
 
                 string boards = Controller.loadURLs(true);
-                if(boards != "") {
+                if (boards != "") {
                     URLs = boards.Split('\n');
-                    for(int i = 0; i < URLs.Length - 1; i++) {
+                    for (int i = 0; i < URLs.Length - 1; i++) {
                         ImageBoard newImageboard = Controller.createNewIMB(URLs[i], true); // and add them 
                         lbBoards.Items.Add(URLs[i]);
                         clBoards.Add(newImageboard);
@@ -118,11 +109,11 @@ namespace YChanEx {
 
 
                 string threads = Controller.loadURLs(false);                         // load threads
-                if(threads != "") {
+                if (threads != "") {
                     URLs = threads.Split('\n');
-                    for(int i = 0; i < URLs.Length - 1; i++) {
+                    for (int i = 0; i < URLs.Length - 1; i++) {
                         ImageBoard newImageboard = Controller.createNewIMB(URLs[i], false);
-                        if(newImageboard == null) {
+                        if (newImageboard == null) {
                             MessageBox.Show(URLs[i]);
                         }
                         else {
@@ -133,11 +124,10 @@ namespace YChanEx {
                             });
                             thrThreads.Add(nIMB);
                             thrThreads.Last().Start();
-							if(!scnTimer.Enabled)
-							{
-								scnTimer.Enabled = true;
-								scan(null, null);
-							}
+                            if (!scnTimer.Enabled) {
+                                scnTimer.Enabled = true;
+                                scan(null, null);
+                            }
                         }
                     }
                 }
@@ -169,7 +159,8 @@ namespace YChanEx {
                 nfTray.BalloonTipTitle = "YChanEx Updated";
                 nfTray.BalloonTipText = "YChanEx has been updated to v" + Properties.Settings.Default.currentVersion.ToString() + ".";
                 nfTray.ShowBalloonTip(30000);
-            } else if (hasUpdated) {
+            }
+            else if (hasUpdated) {
                 MessageBox.Show("YChanEx has been updated to v" + Properties.Settings.Default.currentVersion.ToString() + ".");
             }
 
@@ -190,7 +181,8 @@ namespace YChanEx {
                 mTrayShow.Text = "Show";
                 if (!nfTray.Visible)
                     nfTray.Visible = true;                                        // double check for icon
-            } else {
+            }
+            else {
                 mTrayShow.Text = "Hide";
             }
         }
@@ -213,7 +205,7 @@ namespace YChanEx {
                 if (clw.ShowDialog() == DialogResult.OK) {
                     foreach (string thrItem in lbThreads.Items)
                         thrThreads[lbThreads.Items.IndexOf(thrItem)].Abort();
-                    
+
                     YCSettings.Default.Save();
                     Environment.Exit(0);
                 }
@@ -237,16 +229,16 @@ namespace YChanEx {
         private void btnAdd_Click(object sender, EventArgs e) {
             string dlURL;
 
-            if (edtURL.Text.StartsWith("fchan.us/")) edtURL.Text = edtURL.Text.Replace("fchan.us/","http://fchan.us/");
+            if (edtURL.Text.StartsWith("fchan.us/")) edtURL.Text = edtURL.Text.Replace("fchan.us/", "http://fchan.us/");
 
             if (!edtURL.Text.StartsWith("http://fchan.us") || edtURL.Text.StartsWith("http://www.fchan.us"))
                 dlURL = edtURL.Text.Replace("http://", "https://").Replace("board/u18chan/", "");
             else
                 dlURL = edtURL.Text;
 
-             downloadURL(dlURL, false);
-             
-             edtURL.Clear();
+            downloadURL(dlURL, false);
+
+            edtURL.Clear();
         }
         #endregion
 
@@ -328,7 +320,7 @@ namespace YChanEx {
                 }
             }
         }
-       
+
         private string getTitle(bool Is4Chan, string threadURL) {
             try {
                 string threadTitle = "";
@@ -383,16 +375,16 @@ namespace YChanEx {
 
         private bool isUnique(string url, List<ImageBoard> List) {
             bool flag = true;
-            for(int i = 0; i < List.Count; i++) {
-                if(List[i].getURL() == url)
+            for (int i = 0; i < List.Count; i++) {
+                if (List[i].getURL() == url)
                     flag = false;
             }
             return flag;
         }
         private int getPlace(string url) {
             int plc = -1;
-            for(int i = 0; i < clThreads.Count; i++) {
-                if(clThreads[i].getURL() == url)
+            for (int i = 0; i < clThreads.Count; i++) {
+                if (clThreads[i].getURL() == url)
                     plc = i;
             }
             return plc;
@@ -405,45 +397,41 @@ namespace YChanEx {
 
 
             if (Scanner == null || !Scanner.IsAlive) {
-                Scanner = new Thread(delegate () {
-                    for (int k = 0; k < clThreads.Count; k++)
-                    {
-                        if (clThreads[k].isGone())
-                        {
+                Scanner = new Thread(delegate() {
+                    for (int k = 0; k < clThreads.Count; k++) {
+                        if (clThreads[k].isGone()) {
 
                             DeadThreadURL = new UriBuilder(lbThreads.Items[k].ToString()).Uri;
                             string ReturnID = DeadThreadURL.Segments[3];
-                            string ReturnBoard = DeadThreadURL.Segments[1].Replace("/","");
+                            string ReturnBoard = DeadThreadURL.Segments[1].Replace("/", "");
                             // MessageBox.Show(ReturnID);
 
                             string deadAction = "";
-                            if (YCSettings.Default.threadDeadAction == 1)
-                            {
+                            if (YCSettings.Default.threadDeadAction == 1) {
                                 deadAction = "\nClick here to copy archive link";
                             }
-                            else if (YCSettings.Default.threadDeadAction == 2)
-                            {
+                            else if (YCSettings.Default.threadDeadAction == 2) {
                                 deadAction = "\nClick here to open archive link";
-                            }else if (YCSettings.Default.threadDeadAction == 3)
-                            {
+                            }
+                            else if (YCSettings.Default.threadDeadAction == 3) {
                                 deadAction = "\nClick here to copy original link";
-                            }else if (YCSettings.Default.threadDeadAction == 4)
-                            {
+                            }
+                            else if (YCSettings.Default.threadDeadAction == 4) {
                                 deadAction = "\nClick here to open original link";
-                            }else if (YCSettings.Default.threadDeadAction == 5)
-                            {
+                            }
+                            else if (YCSettings.Default.threadDeadAction == 5) {
                                 deadAction = "\nClick here to copy thread ID";
-                            }else if (YCSettings.Default.threadDeadAction == 6)
-                            {
+                            }
+                            else if (YCSettings.Default.threadDeadAction == 6) {
                                 deadAction = "\nClick here to copy download folder path";
-                            }else if (YCSettings.Default.threadDeadAction == 7)
-                            {
+                            }
+                            else if (YCSettings.Default.threadDeadAction == 7) {
                                 deadAction = "\nClick here to open download folder path";
                             }
 
                             is404 = true;
                             nfTray.BalloonTipTitle = "Thread 404'd";
-                            nfTray.BalloonTipText = "Thread " + ReturnID.Replace(".html","") + " on /" + ReturnBoard + "/ has 404'd." + deadAction;
+                            nfTray.BalloonTipText = "Thread " + ReturnID.Replace(".html", "") + " on /" + ReturnBoard + "/ has 404'd." + deadAction;
                             nfTray.BalloonTipIcon = ToolTipIcon.Error;
                             nfTray.Icon = Properties.Resources.YChanEx404;
                             nfTray.ShowBalloonTip(15000);
@@ -468,7 +456,7 @@ namespace YChanEx {
                             if (newImageboard != null && isUnique(newImageboard.getURL(), clThreads)) {
                                 lbThreads.Invoke((MethodInvoker)(() => { lbThreads.Items.Add(Threads[l]); }));
                                 clThreads.Add(newImageboard);
-                                Thread nIMB = new Thread(delegate () { newImageboard.download(); });
+                                Thread nIMB = new Thread(delegate() { newImageboard.download(); });
                                 nIMB.Name = newImageboard.getURL();
                                 thrThreads.Add(nIMB);
                                 thrThreads[thrThreads.Count - 1].Start();
@@ -481,7 +469,7 @@ namespace YChanEx {
                             /*                        MessageBox.Show("Down: " + k);
                             */
 
-                            thrThreads[k] = new Thread(delegate () {
+                            thrThreads[k] = new Thread(delegate() {
                                 int x = k;
                                 try {
                                     clThreads[k - 1].download();   // why
@@ -505,9 +493,9 @@ namespace YChanEx {
 
         #region lbThreads / lbBoards (MouseDown)
         private void lbThreads_MouseDown(object sender, MouseEventArgs e) {
-            if(e.Button == System.Windows.Forms.MouseButtons.Right) {
+            if (e.Button == System.Windows.Forms.MouseButtons.Right) {
                 tPos = -1;
-                if(lbThreads.IndexFromPoint(e.Location) != -1) {
+                if (lbThreads.IndexFromPoint(e.Location) != -1) {
                     lbThreads.SelectedIndex = lbThreads.IndexFromPoint(e.X, e.Y);
                     tPos = lbThreads.IndexFromPoint(e.Location);
                     mThreads.Show(lbThreads, new Point(e.X, e.Y));
@@ -515,9 +503,9 @@ namespace YChanEx {
             }
         }
         private void lbBoards_MouseDown(object sender, MouseEventArgs e) {
-            if(e.Button == System.Windows.Forms.MouseButtons.Right) {
+            if (e.Button == System.Windows.Forms.MouseButtons.Right) {
                 bPos = -1;
-                if(lbBoards.IndexFromPoint(e.Location) != -1) {
+                if (lbBoards.IndexFromPoint(e.Location) != -1) {
                     lbBoards.SelectedIndex = lbBoards.IndexFromPoint(e.X, e.Y);
                     bPos = lbBoards.IndexFromPoint(e.Location);
                     mBoards.Show(lbBoards, new Point(e.X, e.Y));
@@ -530,7 +518,8 @@ namespace YChanEx {
             if (this.Visible) {
                 mTrayShow.Text = "Show";
                 this.Hide();
-            } else {
+            }
+            else {
                 mTrayShow.Text = "Hide";
                 this.Show();
             }
@@ -577,7 +566,7 @@ namespace YChanEx {
                         Process.Start("https://4chan.org/" + ReturnBoard + "/threads/" + ReturnID);
                     else if (DeadThreadURL.ToString().StartsWith("https://8ch.net/") || DeadThreadURL.ToString().StartsWith("https://www.8ch.net/") || DeadThreadURL.ToString().StartsWith("https://8chan.co/") || DeadThreadURL.ToString().StartsWith("https://www.8chan.co/"))
                         Process.Start("https://8ch.net/" + ReturnBoard + "/res/" + ReturnID + ".html");
-                        
+
                     is404 = false;
                 }
                 else if (YCSettings.Default.threadDeadAction == 5) {
@@ -619,25 +608,21 @@ namespace YChanEx {
         }
         #endregion
         #region MenuBar (mSettings / mHistory / mLicenseAndSource / mAbout) Click
-        private void mHistory_Click(object sender, EventArgs e)
-        {
+        private void mHistory_Click(object sender, EventArgs e) {
             History thHistory = new History();
             thHistory.Show();
         }
 
-        private void mSettings_Click(object sender, EventArgs e)
-        {
+        private void mSettings_Click(object sender, EventArgs e) {
             if (Adv.Default.settingsDisableScan)
                 scnTimer.Stop();
 
             OldPath = YCSettings.Default.downloadPath;
 
             Settings tSettings = new Settings();
-            if (tSettings.ShowDialog() == DialogResult.OK)
-            {
+            if (tSettings.ShowDialog() == DialogResult.OK) {
                 if (tSettings.moveFolders)
-                    if (YCSettings.Default.downloadPath != OldPath)
-                    { 
+                    if (YCSettings.Default.downloadPath != OldPath) {
                         if (scnTimer.Enabled)
                             scnTimer.Stop();
 
@@ -647,13 +632,11 @@ namespace YChanEx {
                         if (!Directory.Exists(YCSettings.Default.downloadPath))
                             Directory.CreateDirectory(YCSettings.Default.downloadPath);
 
-                        if (fcFolder)
-                        {
+                        if (fcFolder) {
                             Directory.Move(OldPath + @"\4chan", YCSettings.Default.downloadPath + @"\4chan");
                         }
 
-                        if (ecFolder)
-                        {
+                        if (ecFolder) {
                             Directory.Move(OldPath + @"\8ch", YCSettings.Default.downloadPath + @"\8ch");
                         }
                     }
@@ -677,16 +660,14 @@ namespace YChanEx {
             GC.Collect();
         }
 
-        private void mLicenseAndSource_Click(object sender, EventArgs e)
-        {
+        private void mLicenseAndSource_Click(object sender, EventArgs e) {
             LicenseSource frmLicenseSrc = new LicenseSource();
             frmLicenseSrc.ShowDialog();
             frmLicenseSrc.Close();
             frmLicenseSrc.Dispose();
             GC.Collect();
         }
-        private void mAbout_Click(object sender, EventArgs e)
-        {
+        private void mAbout_Click(object sender, EventArgs e) {
             About tAbout = new About();
             tAbout.ShowDialog();
             tAbout.Close();
@@ -694,7 +675,7 @@ namespace YChanEx {
 
             GC.Collect();
         }
-     
+
         private void mUpdateAvailable_Click(object sender, EventArgs e) {
             if (Properties.Settings.Default.cloudVersion > Properties.Settings.Default.currentVersion)
                 if (MessageBox.Show("Would you like to update YChanEx?", "YChanEx", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
@@ -720,14 +701,14 @@ namespace YChanEx {
         }
         private void mTrayClipboard_Click(object sender, EventArgs e) {
             if (Clipboard.ContainsText())
-                    downloadURL(Clipboard.GetText(), false);
+                downloadURL(Clipboard.GetText(), false);
             else
                 MessageBox.Show("Clipboard does not contain text.");
         }
         private void mTrayExit_Click(object sender, EventArgs e) {
             this.Close();
         }
-        #endregion        
+        #endregion
         #region mThreads (mThreadsOpenF / mThreadsOpenB / mThreadsCopyL / mThreadsRemove) Click
         private void mThreadsOpenF_Click(object sender, EventArgs e) {
             if (tPos != -1) {
@@ -785,7 +766,7 @@ namespace YChanEx {
                 lbBoards.Items.RemoveAt(bPos);
             }
         }
-        #endregion   
+        #endregion
 
         #region Debug (mDebugTitle / mDebugID) Click
         private void mDebugTitle_Click(object sender, EventArgs e) {
@@ -794,8 +775,7 @@ namespace YChanEx {
             else if (Clipboard.GetText().StartsWith("https://8ch.net/") || Clipboard.GetText().StartsWith("https://www.8ch.net/") || Clipboard.GetText().StartsWith("https://8chan.co/") || Clipboard.GetText().StartsWith("https://www.8chan.co/"))
                 MessageBox.Show(getTitle(false, Clipboard.GetText()));
         }
-        private void mDebugID_Click(object sender, EventArgs e)
-        {}
+        private void mDebugID_Click(object sender, EventArgs e) { }
         #endregion
 
         private void mReload_Click(object sender, EventArgs e) {

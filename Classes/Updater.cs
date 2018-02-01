@@ -4,30 +4,67 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace YChanEx {
     class Updater {
 
         public static string rawURL = "https://raw.githubusercontent.com/murrty/YChanEx";
         public static string githubURL = "https://github.com/murrty/YChanEx";
+        public static string githubJSON = "https://api.github.com/repos/murrty/ychanex/releases/latest";
         public static string downloadURL = "https://github.com/murrty/YChanEx/releases/download/%upVersion%/YChanEx.exe";
         public static string updateFile = @"\ycxu.bat";
 
-        public static decimal getCloudVersion() {
+        public static string getJSON(string url) {
             try {
                 using (WebClient wc = new WebClient()) {
                     wc.Headers.Add("User-Agent: " + Adv.Default.UserAgent);
-                    decimal clVers = decimal.Parse(Regex.Replace(wc.DownloadString(rawURL + "/master/Resources/AppVersion"), @"\s", ""));
-                    return clVers;
+                    string json = wc.DownloadString(url);
+                    byte[] bytes = Encoding.ASCII.GetBytes(json);
+                    using (var stream = new MemoryStream(bytes)) {
+                        var quotas = new XmlDictionaryReaderQuotas();
+                        var jsonReader = JsonReaderWriterFactory.CreateJsonReader(stream, quotas);
+                        var xml = XDocument.Load(jsonReader);
+                        stream.Flush();
+                        stream.Close();
+                        return xml.ToString();
+                    }
                 }
-            } catch (WebException wEx) {
+            }
+            catch (WebException WebE) {
+                Debug.Print(WebE.ToString());
+                MessageBox.Show(WebE.ToString());
+                return null;
+                throw WebE;
+            }
+            catch (Exception ex) {
+                Debug.Print(ex.ToString());
+                MessageBox.Show(ex.ToString());
+                return null;
+                throw ex;
+            }
+        }
+
+        public static decimal getCloudVersion() {
+            try {
+                string xml = getJSON(githubJSON);
+                XmlDocument doc = new XmlDocument();
+                doc.LoadXml(xml);
+                XmlNodeList xmlTag = doc.DocumentElement.SelectNodes("/root/tag_name");
+
+                return decimal.Parse(xmlTag[0].InnerText);
+            }
+            catch (WebException wEx) {
                 Debug.Print(wEx.ToString());
                 ErrorLog.logError(wEx.ToString(), "UpdateCheckError");
                 return -1;
-            } catch (Exception ex) {
+            }
+            catch (Exception ex) {
                 Debug.Print(ex.ToString());
                 ErrorLog.logError(ex.ToString(), "UpdateCheckError");
                 return -1;
@@ -45,46 +82,8 @@ namespace YChanEx {
                 return false;
             }
         }
-        public static bool isUpdateCritical() {
-            try {
-                using (WebClient wc = new WebClient()) {
-                    wc.Headers.Add("User-Agent: " + Adv.Default.UserAgent);
-                    bool isCritical = Regex.Replace(wc.DownloadString(rawURL + "/master/Resources/AppCrit"), @"\s", "").Equals("True")? true : false;
-                    if (isCritical)
-                        return true;
-                    else
-                        return false;
-                }
-            } catch (WebException wEx) {
-                Debug.Print(wEx.ToString());
-                ErrorLog.logError(wEx.ToString(), "UpdateCheckError");
-                return false;
-            } catch (Exception ex) {
-                Debug.Print(ex.ToString());
-                ErrorLog.logError(ex.ToString(), "UpdateCheckError");
-                return false;
-            }
-        }
-        public static string getCriticalInformation()
-        {
-            try {
-                using (WebClient wc = new WebClient()) {
-                    wc.Headers.Add("User-Agent: " + Adv.Default.UserAgent);
-                    string getCritInfo = wc.DownloadString(rawURL + "/master/Resources/CriticalInformation");
-                    return getCritInfo;
-                }
-            } catch (WebException wEx) {
-                Debug.Print(wEx.ToString());
-                ErrorLog.logError(wEx.ToString(), "UpdateCheckError");
-                return "Unable to get information from " + rawURL + "/master/Resources/CriticalInformation";
-            } catch (Exception ex) {
-                Debug.Print(ex.ToString());
-                ErrorLog.logError(ex.ToString(), "UpdateCheckError");
-                return "Unable to get information from " + rawURL + "/master/Resources/CriticalInformation";
-            }
-        }
 
-        public static void createUpdaterStub(decimal updVersion) {
+        public static void createUpdaterStub(decimal cloudVersion) {
             /*
              * This is the entire code for the updater, it is designed to be light-weight and so is batch-based.
              
@@ -108,7 +107,7 @@ namespace YChanEx {
                 System.IO.StreamWriter writeApp = new System.IO.StreamWriter(Application.StartupPath + updateFile);
                 writeApp.WriteLine("@echo off");
                 writeApp.WriteLine("echo Updating YChanEx...");
-                writeApp.WriteLine("set upVersion=" + updVersion);
+                writeApp.WriteLine("set upVersion=" + cloudVersion);
                 writeApp.WriteLine("set programName=" + System.AppDomain.CurrentDomain.FriendlyName);
                 writeApp.WriteLine("timeout /t 5 /nobreak");
                 writeApp.WriteLine("del %programName%");
@@ -136,6 +135,5 @@ namespace YChanEx {
                 return;
             }
         }
-  
     }
 }

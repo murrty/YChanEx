@@ -75,12 +75,6 @@
     <Compile Include="Chan Classes\sevenChan.cs" />
     <Compile Include="Chan Classes\uEighteenChan.cs" />
     <Compile Include="Classes\Updater.cs" />
-    <Compile Include="Forms\frmUpdateInfo.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\frmUpdateInfo.Designer.cs">
-      <DependentUpon>frmUpdateInfo.cs</DependentUpon>
-    </Compile>
     <Compile Include="Forms\History.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -144,9 +138,6 @@
     <EmbeddedResource Include="Forms\FirstStart.resx">
       <DependentUpon>FirstStart.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Forms\frmUpdateInfo.resx">
-      <DependentUpon>frmUpdateInfo.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Forms\History.resx">
       <DependentUpon>History.cs</DependentUpon>
     </EmbeddedResource>
@@ -195,8 +186,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Changelog.txt" />
-    <None Include="Resources\CriticalInformation" />
-    <None Include="Resources\AppCrit" />
     <Content Include="Resources\YChanEx.ico" />
     <Content Include="Resources\YChanEx404.ico" />
   </ItemGroup>
