@@ -45,6 +45,7 @@
             this.mLicenseAndSource = new System.Windows.Forms.MenuItem();
             this.mHelpSep = new System.Windows.Forms.MenuItem();
             this.mAbout = new System.Windows.Forms.MenuItem();
+            this.mUpdateAvailable = new System.Windows.Forms.MenuItem();
             this.mDebug = new System.Windows.Forms.MenuItem();
             this.mDebugTitle = new System.Windows.Forms.MenuItem();
             this.mDebugID = new System.Windows.Forms.MenuItem();
@@ -68,7 +69,6 @@
             this.mBoardsCopyL = new System.Windows.Forms.MenuItem();
             this.mBoardsSep = new System.Windows.Forms.MenuItem();
             this.mBoardsRemove = new System.Windows.Forms.MenuItem();
-            this.mUpdateAvailable = new System.Windows.Forms.MenuItem();
             this.tcApp.SuspendLayout();
             this.tpThreads.SuspendLayout();
             this.tpBoard.SuspendLayout();
@@ -82,7 +82,7 @@
             this.tcApp.Location = new System.Drawing.Point(0, 0);
             this.tcApp.Name = "tcApp";
             this.tcApp.SelectedIndex = 0;
-            this.tcApp.Size = new System.Drawing.Size(382, 210);
+            this.tcApp.Size = new System.Drawing.Size(382, 230);
             this.tcApp.TabIndex = 0;
             // 
             // tpThreads
@@ -91,7 +91,7 @@
             this.tpThreads.Location = new System.Drawing.Point(4, 22);
             this.tpThreads.Name = "tpThreads";
             this.tpThreads.Padding = new System.Windows.Forms.Padding(3);
-            this.tpThreads.Size = new System.Drawing.Size(374, 184);
+            this.tpThreads.Size = new System.Drawing.Size(374, 204);
             this.tpThreads.TabIndex = 0;
             this.tpThreads.Text = "Threads";
             this.tpThreads.UseVisualStyleBackColor = true;
@@ -103,7 +103,7 @@
             this.lbThreads.FormattingEnabled = true;
             this.lbThreads.Location = new System.Drawing.Point(3, 3);
             this.lbThreads.Name = "lbThreads";
-            this.lbThreads.Size = new System.Drawing.Size(368, 178);
+            this.lbThreads.Size = new System.Drawing.Size(368, 198);
             this.lbThreads.TabIndex = 3;
             this.lbThreads.MouseDown += new System.Windows.Forms.MouseEventHandler(this.lbThreads_MouseDown);
             // 
@@ -242,6 +242,14 @@
             this.mAbout.Index = 2;
             this.mAbout.Text = "About";
             this.mAbout.Click += new System.EventHandler(this.mAbout_Click);
+            // 
+            // mUpdateAvailable
+            // 
+            this.mUpdateAvailable.Enabled = false;
+            this.mUpdateAvailable.Index = 4;
+            this.mUpdateAvailable.Text = "Update available";
+            this.mUpdateAvailable.Visible = false;
+            this.mUpdateAvailable.Click += new System.EventHandler(this.mUpdateAvailable_Click);
             // 
             // mDebug
             // 
@@ -392,19 +400,11 @@
             this.mBoardsRemove.Text = "Remove";
             this.mBoardsRemove.Click += new System.EventHandler(this.mBoardsRemove_Click);
             // 
-            // mUpdateAvailable
-            // 
-            this.mUpdateAvailable.Enabled = false;
-            this.mUpdateAvailable.Index = 4;
-            this.mUpdateAvailable.Text = "Update available";
-            this.mUpdateAvailable.Visible = false;
-            this.mUpdateAvailable.Click += new System.EventHandler(this.mUpdateAvailable_Click);
-            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(382, 210);
+            this.ClientSize = new System.Drawing.Size(382, 230);
             this.Controls.Add(this.edtURL);
             this.Controls.Add(this.btnAdd);
             this.Controls.Add(this.tcApp);

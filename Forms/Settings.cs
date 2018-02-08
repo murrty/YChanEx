@@ -103,18 +103,17 @@ namespace YChanEx {
 
         #region Buttons (btnSSave_Click / btnSCan_Click / btnBrowse_Click / btnReset_Click)
         private void btnSSave_Click(object sender, EventArgs e) {
-            if(edtPath.Text != "") {
+            if (edtPath.Text != "") {
 
                 if (edtPath.Text != YCSettings.Default.downloadPath && YCSettings.Default.firstStart == false)
                     if (chkMove.Checked)
                         moveFolders = true;
 
                 saveSettings();
-            } 
+            }
         }
-        private void btnSCan_Click(object sender, EventArgs e) {   }
-        private void btnBrowse_Click(object sender, EventArgs e)
-        {
+        private void btnSCan_Click(object sender, EventArgs e) { }
+        private void btnBrowse_Click(object sender, EventArgs e) {
             FolderBrowserDialog FolD = new FolderBrowserDialog {
                 Description = "Select folder to save downloaded files.",
                 SelectedPath = @"C:\"
@@ -122,7 +121,7 @@ namespace YChanEx {
 
             if (FolD.ShowDialog() == DialogResult.OK)
                 edtPath.Text = FolD.SelectedPath;
-        }      
+        }
         private void btnReset_Click(object sender, EventArgs e) {
             if (rbRegular.Checked) {
                 if (MessageBox.Show("This will reset your regular settings (Downloads & Application). Continue?", "YChanEx", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes) {
@@ -151,18 +150,16 @@ namespace YChanEx {
         #endregion
 
         #region CheckBoxes (chkHTML_CheckChanged / chkShowTray_CheckedChanged / chkHistory_CheckedChanged / chkDisableErrors_CheckedChanged)
-        private void chkHTML_CheckedChanged(object sender, EventArgs e)
-        {
+        private void chkHTML_CheckedChanged(object sender, EventArgs e) {
             if (chkHTML.Checked) {
                 chkThumbnails.Enabled = true;
             }
-            else { 
+            else {
                 chkThumbnails.Enabled = false;
                 chkThumbnails.Checked = false;
             }
         }
-        private void chkShowTray_CheckedChanged(object sender, EventArgs e)
-        {
+        private void chkShowTray_CheckedChanged(object sender, EventArgs e) {
             if (chkShowTray.Checked) {
                 chkMinimizeToTray.Enabled = true;
             }
@@ -178,6 +175,5 @@ namespace YChanEx {
             chkLogErrors.Enabled = !chkDisableErrors.Checked;
         }
         #endregion
-
     }
 }

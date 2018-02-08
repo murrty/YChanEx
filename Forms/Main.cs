@@ -22,6 +22,7 @@ namespace YChanEx {
         public List<ImageBoard> clBoards  = new List<ImageBoard>();                 // list of monitored boards
         List<Thread> thrThreads    = new List<Thread>();                            // list of threads that download 
         Thread Scanner = null;                                                      // thread that addes stuff
+        Thread checkUpdates;
 
         int tPos = -1;                                                              // Item position in lbThreads
         int bPos = -1;                                                              // Item position in lbBoards
@@ -42,16 +43,16 @@ namespace YChanEx {
             tcApp.TabPages.RemoveAt(1);
 
             if (YCSettings.Default.updaterEnabled) {
-                Thread checkUpdates = new Thread(() => {
+                checkUpdates = new Thread(() => {
                     decimal cV = Updater.getCloudVersion();
 
                     if (Updater.isUpdateAvailable(cV)) {
                         if (MessageBox.Show("An update is available. \nNew verison: " + cV.ToString() + " | Your version: " + Properties.Settings.Default.currentVersion.ToString() + "\n\nWould you like to update?", "YChanEx", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes) {
                             Updater.createUpdaterStub(cV);
                             Updater.runUpdater();
-                            return;
                         }
                     }
+                    this.Invoke((MethodInvoker)(() => checkUpdates.Abort()));
                 });
                 checkUpdates.Start();
             }
@@ -662,18 +663,11 @@ namespace YChanEx {
 
         private void mLicenseAndSource_Click(object sender, EventArgs e) {
             LicenseSource frmLicenseSrc = new LicenseSource();
-            frmLicenseSrc.ShowDialog();
-            frmLicenseSrc.Close();
-            frmLicenseSrc.Dispose();
-            GC.Collect();
+            frmLicenseSrc.Show();
         }
         private void mAbout_Click(object sender, EventArgs e) {
             About tAbout = new About();
-            tAbout.ShowDialog();
-            tAbout.Close();
-            tAbout.Dispose();
-
-            GC.Collect();
+            tAbout.Show();
         }
 
         private void mUpdateAvailable_Click(object sender, EventArgs e) {

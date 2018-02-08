@@ -60,7 +60,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.ClientSize = new System.Drawing.Size(294, 182);
+            this.ClientSize = new System.Drawing.Size(302, 190);
             this.Controls.Add(this.btnClose);
             this.Controls.Add(this.rtbSrcLc);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -71,6 +71,7 @@
             this.ShowIcon = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "License and Sorce";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.LicenseSource_FormClosing);
             this.ResumeLayout(false);
 
         }

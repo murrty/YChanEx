@@ -106,6 +106,7 @@
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "About YChanEx";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.About_FormClosing);
             this.Shown += new System.EventHandler(this.About_Shown);
             ((System.ComponentModel.ISupportInitialize)(this.pbIcon)).EndInit();
             this.ResumeLayout(false);

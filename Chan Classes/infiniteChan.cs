@@ -159,15 +159,14 @@ namespace YChanEx
                 XmlNodeList xmlMd5 = doc.DocumentElement.SelectNodes("/root/posts/item/md5");
                 for (int i = 0; i < xmlExt.Count; i++) {
                     string tim = xmlTim[i].InnerText;
+                    string ext = xmlExt[i].InnerText;
+                    string md5 = xmlMd5[i].InnerText;
                     string filename;
 
                     if (YCSettings.Default.preventDupes)
-                        filename = xmlFilename[i].InnerText + " (" + xmlMd5[i].InnerText + ")";
+                        filename = tim + " (" + md5 + ")" + ext;
                     else
-                        filename = xmlFilename[i].InnerText;
-
-                    string ext = xmlExt[i].InnerText;
-                    string md5 = xmlMd5[i].InnerText;
+                        filename = tim + ext;
 
                     strThumbs = strThumbs + "https://8ch.net/file_store/thumb/" + tim + ext + "\n";
                     website = website.Replace("https://8ch.net/file_store/thumb/" + tim + ext, "thumb/" + tim + ext);

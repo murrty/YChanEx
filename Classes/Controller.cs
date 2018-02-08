@@ -27,11 +27,11 @@ namespace YChanEx {
         static string settingsDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\YChanEx";
 
         public static string loadURLs(bool board) {
-            //if (board && File.Exists(settingsDir + "\\boards.dat"))
-            //    return File.ReadAllText(settingsDir + "\\boards.dat");
-            //else if (!board && File.Exists(settingsDir + "\\threads.dat"))
-            //    return File.ReadAllText(settingsDir + "\\threads.dat");
-            //else
+            if (board && File.Exists(settingsDir + "\\boards.dat"))
+                return File.ReadAllText(settingsDir + "\\boards.dat");
+            else if (!board && File.Exists(settingsDir + "\\threads.dat"))
+                return File.ReadAllText(settingsDir + "\\threads.dat");
+            else
                 return "";
         }
         public static void saveURLs(List<ImageBoard> Boards, List<ImageBoard> Threads) {
@@ -52,7 +52,7 @@ namespace YChanEx {
         }
 
         public static ImageBoard createNewIMB(string url, bool board) {
-            if (!board){
+            if (!board) {
                 if (fourChan.isThread(url))
                     return new fourChan(url, board);
                 else if (fourtwentyChan.isThread(url))
@@ -136,7 +136,7 @@ namespace YChanEx {
                     return "null";
             }
         }
-        
+
         public static string getHTML(string url, bool requireCookie = false, string cookie = "") {
             using (WebClient wc = new WebClient()) {
                 wc.Headers.Add("User-Agent: " + Adv.Default.UserAgent);
@@ -169,7 +169,7 @@ namespace YChanEx {
                 ErrorLog.logError(WebE.ToString(), "FileController.downloadJSON");
                 return "null";
                 throw WebE;
-            } 
+            }
             catch (Exception ex) {
                 Debug.Print(ex.ToString());
                 ErrorLog.logError(ex.ToString(), "FileController.downloadJSON");
@@ -205,12 +205,14 @@ namespace YChanEx {
                     }
                 }
                 return true;
-            } catch (WebException WebE) {
+            }
+            catch (WebException WebE) {
                 Debug.Print(WebE.ToString());
                 ErrorLog.logError(WebE.ToString(), "FileControllerDownloadFile");
                 return false;
                 throw WebE;
-            } catch (Exception ex) {
+            }
+            catch (Exception ex) {
                 Debug.Print(ex.ToString());
                 ErrorLog.logError(ex.ToString(), "FileControllerDownloadFile");
                 return false;
@@ -226,7 +228,7 @@ namespace YChanEx {
             // If the download string, dir, or htmlDownload setting is nothing or set to false then exit
             if (dlStr == "" || dir == "" || YCSettings.Default.htmlDownload == false)
                 return false;
-            
+
             // Check if the dir ends with \Thread.html and add it, if it doesn't.
             if (!dir.EndsWith("\\Thread.html"))
                 dir = dir + "\\Thread.html";
@@ -238,24 +240,24 @@ namespace YChanEx {
                     if (fromURL) {
                         using (WebClient wc = new WebClient()) {
                             wc.Headers.Add("User-Agent: " + Adv.Default.UserAgent);
-                               sw.Write(wc.DownloadString(dlStr));
+                            sw.Write(wc.DownloadString(dlStr));
 
                             File.WriteAllText(dir, wc.DownloadString(dlStr));
                         }
                     }
                     else {
-                         sw.Write(dlStr);
+                        sw.Write(dlStr);
                     }
                 }
 
                 return true;
-            } 
+            }
             catch (WebException WebE) {
                 Debug.Print(WebE.ToString());
                 ErrorLog.logError(WebE.ToString(), "FileControllerDownloadHTML");
                 return false;
                 throw WebE;
-            } 
+            }
             catch (Exception ex) {
                 Debug.Print(ex.ToString());
                 ErrorLog.logError(ex.ToString(), "FileControllerDownloadHTML");
@@ -284,16 +286,16 @@ namespace YChanEx {
             if (YCSettings.Default.saveDate)
                 dateNow = DateTime.Now.ToString("(yyyy-MM-dd, HH-mm-ss) ");
 
-            if (!File.Exists(settingsDir + @"\" + channame +  "history.dat")) {
+            if (!File.Exists(settingsDir + @"\" + channame + "history.dat")) {
                 File.Create(settingsDir + @"\" + channame + "history.dat").Close();
                 File.AppendAllText(settingsDir + @"\" + channame + "history.dat", dateNow + historytext + "\n");
                 return true;
             }
             else {
-                string readHistory = File.ReadAllText(settingsDir + @"\" + channame +  "history.dat");
+                string readHistory = File.ReadAllText(settingsDir + @"\" + channame + "history.dat");
                 if (!readHistory.Contains(url))
                     File.AppendAllText(settingsDir + @"\" + channame + "history.dat", dateNow + historytext + "\n");
-                    return true;
+                return true;
             }
         }
     }

@@ -14,6 +14,7 @@ using System.Windows.Forms;
 
 namespace YChanEx {
     public partial class About : Form {
+        List<Thread> thr = new List<Thread>();
 
         public About() { InitializeComponent(); }
 
@@ -24,21 +25,28 @@ namespace YChanEx {
                 decimal cV = Updater.getCloudVersion();
 
                 if (Updater.isUpdateAvailable(cV)) {
-                    if (MessageBox.Show("An update is available. \nNew verison: " + cV.ToString() + " | Your version: " + Properties.Settings.Default.currentVersion.ToString() + "\n\nWould you like to update?", "YChanEx", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)  {
+                    if (MessageBox.Show("An update is available. \nNew verison: " + cV.ToString() + " | Your version: " + Properties.Settings.Default.currentVersion.ToString() + "\n\nWould you like to update?", "YChanEx", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes) {
                         Updater.createUpdaterStub(cV);
                         Updater.runUpdater();
-                        return;
                     }
                 }
                 else {
                     MessageBox.Show("No update is available at this time.");
                 }
+                foreach (Thread thd in thr) {
+                    thd.Abort();
+                }
             });
 
             checkUpdates.Start();
+            thr.Add(checkUpdates);
         }
 
         private void pbIcon_Click(object sender, EventArgs e) { Process.Start("https://github.com/murrty/ychanex/"); }
+
+        private void About_FormClosing(object sender, FormClosingEventArgs e) {
+            this.Dispose();
+        }
 
     }
 }

@@ -20,7 +20,8 @@ namespace YChanEx {
     class fourChan : ImageBoard {
         public static string regThread  = "boards.4chan.org/[a-zA-Z0-9]*?/thread/[0-9]*";
         public static string regBoard   = "boards.4chan.org/[a-zA-Z0-9]*?/$";
-        public static string regTitle = "(?<=<title>).*?(?= - 4chan</title>)";
+        public static string regTitle   = "(?<=<title>).*?(?= - 4chan</title>)";
+        public static string regOSS     = @"(?=<script type=""text/javascript"">\(function\(\){var).*?(?=</script>)";
 
         public fourChan(string url, bool isBoard) : base(url, isBoard) {
             this.Board     = isBoard;
@@ -203,6 +204,10 @@ namespace YChanEx {
                     for (int i = 0; i < thumbs.Length - 1; i++)
                         Controller.downloadFile(thumbs[i], this.SaveTo + "\\thumb");
                 }
+
+                Regex siteScript = new Regex(regOSS);
+                foreach (Match script in siteScript.Matches(website))
+                    website = website.Replace(script.ToString(), "");
 
                 if (YCSettings.Default.htmlDownload == true && website != "")
                     Controller.saveHTML(false, website.Replace("class=\"fileThumb\" href=\"thumb/", "class=\"fileThumb\" href=\""), this.SaveTo);

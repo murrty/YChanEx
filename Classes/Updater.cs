@@ -72,11 +72,12 @@ namespace YChanEx {
         }
         public static bool isUpdateAvailable(decimal cloudVersion) {
             try {
-                if (Properties.Settings.Default.currentVersion < cloudVersion)
-                {
+                if (Properties.Settings.Default.currentVersion < cloudVersion) {
                     return true;
-                } else { return false; }
-            } catch (Exception ex) {
+                }
+                else { return false; }
+            }
+            catch (Exception ex) {
                 Debug.Print(ex.ToString());
                 ErrorLog.logError(ex.ToString(), "UpdateCheckError");
                 return false;
@@ -115,13 +116,14 @@ namespace YChanEx {
                 writeApp.WriteLine("%programName%");
                 writeApp.WriteLine("eixt");
                 writeApp.Close();
-            } catch (Exception ex) {
+            }
+            catch (Exception ex) {
                 Debug.Print(ex.ToString());
                 ErrorLog.logError(ex.ToString(), "UpdaterError");
             }
         }
         public static void runUpdater() {
-            try { 
+            try {
                 Process Updater = new Process();
                 Updater.StartInfo.FileName = System.Windows.Forms.Application.StartupPath + updateFile;
                 Updater.StartInfo.UseShellExecute = false;
@@ -129,7 +131,8 @@ namespace YChanEx {
                 Properties.Settings.Default.runningUpdate = true;
                 Updater.Start();
                 Environment.Exit(0);
-            } catch (Exception ex) {
+            }
+            catch (Exception ex) {
                 Debug.Print(ex.ToString());
                 ErrorLog.logError(ex.ToString(), "UpdaterError");
                 return;

@@ -65,6 +65,8 @@ namespace YChanEx {
             u18ChHistory.Dispose();
 
             if (YCSettings.Default.sortHistory != chkSorted.Checked) { YCSettings.Default.sortHistory = chkSorted.Checked; YCSettings.Default.Save(); }
+
+            this.Dispose();
         }
 
         private void lbHistory_MouseDown(object sender, MouseEventArgs e) {
@@ -122,7 +124,7 @@ namespace YChanEx {
                                 lbHistory.Items.Add(lsItem);
                         }
                     }
-                } 
+                }
                 else if (cbSite.SelectedIndex == 3) {
                     if (eightChHistory.Items.Count != 0) {
                         foreach (var lsItem in eightChHistory.Items) {
@@ -132,7 +134,7 @@ namespace YChanEx {
                                 lbHistory.Items.Add(lsItem);
                         }
                     }
-                } 
+                }
                 else if (cbSite.SelectedIndex == 4) {
                     if (fChHistory.Items.Count != 0) {
                         foreach (var lsItem in fChHistory.Items) {
@@ -153,7 +155,8 @@ namespace YChanEx {
                         }
                     }
                 }
-            } else {
+            }
+            else {
                 loadHistory(cbSite.SelectedIndex);
             }
         }
@@ -166,33 +169,44 @@ namespace YChanEx {
             if (File.Exists(settingsDir + @"\4chanhistory.dat")) {
                 using (StreamReader readFile = new StreamReader(settingsDir + @"\4chanhistory.dat")) {
                     string readLine;
-                    while ((readLine = readFile.ReadLine()) != null) { fourChHistory.Items.Add(readLine); }}}
+                    while ((readLine = readFile.ReadLine()) != null) { fourChHistory.Items.Add(readLine); }
+                }
+            }
 
             if (File.Exists(settingsDir + @"\420chanhistory.dat")) {
                 using (StreamReader readFile = new StreamReader(settingsDir + @"\420chanhistory.dat")) {
                     string readLine;
-                    while ((readLine = readFile.ReadLine()) != null) { ftChHistory.Items.Add(readLine); }}}
+                    while ((readLine = readFile.ReadLine()) != null) { ftChHistory.Items.Add(readLine); }
+                }
+            }
 
             if (File.Exists(settingsDir + @"\7chanhistory.dat")) {
-                using (StreamReader readFile = new StreamReader(settingsDir + @"\7chanhistory.dat"))
-                {
+                using (StreamReader readFile = new StreamReader(settingsDir + @"\7chanhistory.dat")) {
                     string readLine;
-                    while ((readLine = readFile.ReadLine()) != null) { sevenChHistory.Items.Add(readLine); }}}
+                    while ((readLine = readFile.ReadLine()) != null) { sevenChHistory.Items.Add(readLine); }
+                }
+            }
 
             if (File.Exists(settingsDir + @"\8chanhistory.dat")) {
                 using (StreamReader readFile = new StreamReader(settingsDir + @"\8chanhistory.dat")) {
                     string readLine;
-                    while ((readLine = readFile.ReadLine()) != null) { eightChHistory.Items.Add(readLine); }}}
+                    while ((readLine = readFile.ReadLine()) != null) { eightChHistory.Items.Add(readLine); }
+                }
+            }
 
             if (File.Exists(settingsDir + @"\fchanhistory.dat")) {
                 using (StreamReader readFile = new StreamReader(settingsDir + @"\fchanhistory.dat")) {
                     string readLine;
-                    while ((readLine = readFile.ReadLine()) != null) { fChHistory.Items.Add(readLine); }}}
+                    while ((readLine = readFile.ReadLine()) != null) { fChHistory.Items.Add(readLine); }
+                }
+            }
 
             if (File.Exists(settingsDir + @"\u18chanhistory.dat")) {
                 using (StreamReader readFile = new StreamReader(settingsDir + @"\u18chanhistory.dat")) {
                     string readLine;
-                    while ((readLine = readFile.ReadLine()) != null) { u18ChHistory.Items.Add(readLine); }}}
+                    while ((readLine = readFile.ReadLine()) != null) { u18ChHistory.Items.Add(readLine); }
+                }
+            }
         }
 
         public void loadHistory(int chan) {
@@ -224,8 +238,7 @@ namespace YChanEx {
             }
         }
 
-        public void enumerateBoardsInHistory(int chan)
-        {
+        public void enumerateBoardsInHistory(int chan) {
             cbBoard.Items.Clear();
             cbBoard.Items.Add("All boards");
 
@@ -408,7 +421,7 @@ namespace YChanEx {
             string thrBoard = threadURL.Segments[1];
             threadURL = null;
 
-            if (cbSite.SelectedIndex == 0){
+            if (cbSite.SelectedIndex == 0) {
                 if (Directory.Exists(YCSettings.Default.downloadPath + @"\4chan\" + thrBoard + @"\" + thrID))
                     Process.Start(YCSettings.Default.downloadPath + @"\4chan\" + thrBoard + @"\" + thrID);
             }
@@ -425,8 +438,8 @@ namespace YChanEx {
                     Process.Start(YCSettings.Default.downloadPath + @"\8ch\" + thrBoard + @"\" + thrID);
             }
             else if (cbSite.SelectedIndex == 4) {
-                if (Directory.Exists(YCSettings.Default.downloadPath + @"\fchan\" + thrBoard + @"\" +thrID))
-                    Process.Start(YCSettings.Default.downloadPath + @"\fchan\" + thrBoard + @"\" +thrID);
+                if (Directory.Exists(YCSettings.Default.downloadPath + @"\fchan\" + thrBoard + @"\" + thrID))
+                    Process.Start(YCSettings.Default.downloadPath + @"\fchan\" + thrBoard + @"\" + thrID);
             }
             else if (cbSite.SelectedIndex == 5) {
                 if (Directory.Exists(YCSettings.Default.downloadPath + @"\u18chan\" + thrBoard + @"\" + thrID))
@@ -450,7 +463,7 @@ namespace YChanEx {
         }
         private void mRemove_Click(object sender, EventArgs e) {
             Uri threadURL = new UriBuilder(getURL(lbHistory.SelectedItem.ToString())).Uri;
-            if (MessageBox.Show("Do you want to remove thread " + threadURL.Segments[3].Replace(".html","") + " from the history?", "YChanEx", MessageBoxButtons.YesNo) == DialogResult.Yes) {
+            if (MessageBox.Show("Do you want to remove thread " + threadURL.Segments[3].Replace(".html", "") + " from the history?", "YChanEx", MessageBoxButtons.YesNo) == DialogResult.Yes) {
                 string itemToDelete = lbHistory.SelectedItem.ToString();
                 if (Properties.Settings.Default.debug)
                     MessageBox.Show(itemToDelete);

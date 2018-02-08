@@ -173,7 +173,6 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Adv.Designer.cs</LastGenOutput>
     </None>
-    <None Include="Resources\AppVersion" />
     <None Include="Resources\YCSettings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>YCSettings.Designer.cs</LastGenOutput>
