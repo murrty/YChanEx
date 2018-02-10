@@ -241,7 +241,7 @@ namespace YChanEx {
                             Controller.downloadFile(URLs[y], this.SaveTo, true, newfilename);
                         }
 
-                        website = website.Replace(xmlTim[y].InnerText + xmlExt[y].InnerText, newfilename + xmlExt[y].InnerText);
+                        website = website.Replace(xmlTim[y].InnerText + xmlExt[y].InnerText, newfilename);
                     }
                     else {
                         Controller.downloadFile(URLs[y], this.SaveTo);
