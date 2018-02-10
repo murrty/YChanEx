@@ -10,12 +10,14 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace YChanEx {
     class fChan  : ImageBoard {
         public static string regThread = "fchan.us/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*";
         public static string regTitle = "(?<=<title>).*?(?=</title>)";
+        public static string reqCookie = "disclaimer=seen"; //fchan requires a cookie.
 
         public fChan(string url, bool isBoard) : base(url, isBoard) {
             this.Board = isBoard;
@@ -29,6 +31,7 @@ namespace YChanEx {
                 this.URL = url;
                 this.SaveTo = YCSettings.Default.downloadPath + "\\" + this.imName + "\\" + getURL().Split('/')[3];
             }
+            this.checkedAt = DateTime.Now.AddYears(-20);
         }
 
         public new static bool isThread(string url) {
@@ -40,6 +43,31 @@ namespace YChanEx {
         }
         public new static bool isBoard(string url) { return false; } // Always return false for board downloading.
 
+        public bool isModified(string url) {
+            try {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.UserAgent = Adv.Default.UserAgent;
+                request.IfModifiedSince = this.checkedAt;
+                request.Method = "HEAD";
+                var resp = (HttpWebResponse)request.GetResponse();
+
+                this.checkedAt = resp.LastModified;
+
+                return true;
+            }
+            catch (WebException webEx) {
+                var response = (HttpWebResponse)webEx.Response;
+                if (webEx.Status != WebExceptionStatus.ProtocolError || response.StatusCode != HttpStatusCode.NotModified) {
+                    Debug.Print("========== WEBERROR OCCURED ==========");
+                    Debug.Print("URL: " + url);
+                    Debug.Print(webEx.ToString());
+                    throw (WebException)webEx;
+                }
+
+                return false;
+            }
+        }
+
         public override void download() {
             string[] images;                        // image urls array
             string[] thumbnails;                    // thumbnail url array
@@ -50,10 +78,10 @@ namespace YChanEx {
             string website;
 
             try {
-                if (!Directory.Exists(this.SaveTo))
-                    Directory.CreateDirectory(this.SaveTo);
-
-                website = Controller.getHTML(this.getURL(), true, "disclaimer=seen"); // Fchan uses a disclaimer cookie. Fun.
+                if (!isModified(this.getURL())) {
+                    return;
+                }
+                website = Controller.getHTML(this.getURL(), true, reqCookie);
 
                 string[] lines = website.Split('\n');
                 string foundURL;
@@ -94,6 +122,10 @@ namespace YChanEx {
                 lImages.Clear();
                 lOriginal.Clear();
 
+
+                if (!Directory.Exists(this.SaveTo))
+                    Directory.CreateDirectory(this.SaveTo);
+
                 for (int y = 0; y < images.Length; y++) {
                     string file = images[y].Split('/')[4];
                     string url = images[y];
@@ -104,14 +136,14 @@ namespace YChanEx {
                         for (int z = 0; z < badchars.Length - 1; z++)
                             newfilename = newfilename.Replace(badchars[z], "-");
 
-                        Controller.downloadFile(images[y], this.SaveTo, true, newfilename, true, "disclaimer=seen");
+                        Controller.downloadFile(images[y], this.SaveTo, true, newfilename, true, reqCookie);
                         website = website.Replace(url, newfilename);
                     }
                     else {
                         for (int z = 0; z < badchars.Length; z++)
                             newfilename = newfilename.Replace(badchars[z], "-");
 
-                        Controller.downloadFile(images[y], this.SaveTo, true, newfilename, true, "disclaimer=seen");
+                        Controller.downloadFile(images[y], this.SaveTo, true, newfilename, true, reqCookie);
                         website = website.Replace(url, newfilename);
                     }
                 }
@@ -126,24 +158,27 @@ namespace YChanEx {
                     for (int y = 0; y < thumbnails.Length; y++) {
                         string file = thumbnails[y].Split('/')[3];
                         string url = thumbnails[y];
-                        Controller.downloadFile(thumbnails[y], this.SaveTo + "\\thumb", false, string.Empty, true, "disclaimer=seen");
+                        Controller.downloadFile(thumbnails[y], this.SaveTo + "\\thumb", false, string.Empty, true, reqCookie);
                         website = website.Replace(url, "thumb\\" + file);
                     }
                 }
 
                 if (YCSettings.Default.htmlDownload == true && website != "")
                     Controller.saveHTML(false, website.Replace("type=\"text/javascript\" src=\"", "type=\"text/javascript\" src=\"http://fchan.us").Replace("type=\"text/css\" href=\"", "type=\"text/css\" href=\"http://fchan.us"), this.SaveTo);
-            
+
+            }
+            catch (ThreadAbortException) {
+                return;
             }
             catch (WebException webEx) {
                 Debug.Print(webEx.ToString());
                 if (((int)webEx.Status) == 7)
                     this.Gone = true;
                 else
-                    ErrorLog.logError(webEx.ToString(), "fchan.download");
+                    ErrorLog.reportWebError(webEx);
 
                 return;
-            } catch (Exception ex) { Debug.Print(ex.ToString()); ErrorLog.logError(ex.ToString(), "fchan.download"); }
+            } catch (Exception ex) { Debug.Print(ex.ToString()); ErrorLog.reportError(ex.ToString()); }
         }
 
         public static string getTopic(string board) {

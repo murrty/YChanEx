@@ -15,6 +15,7 @@ using System.Xml.Linq;
 using System.Runtime.Serialization.Json;
 using System.IO;
 using System.Diagnostics;
+using System.Threading;
 
 
 namespace YChanEx
@@ -35,7 +36,7 @@ namespace YChanEx
                 this.URL = url;
                 this.SaveTo = YCSettings.Default.downloadPath + "\\" + this.imName + "\\" + getURL().Split('/')[3];
             }
-
+            this.checkedAt = DateTime.Now.AddYears(-20);
         }
 
         public new static bool isThread(string url) {
@@ -61,6 +62,7 @@ namespace YChanEx
             XmlNodeList xmlFilename;
             XmlNodeList xmlExt;
             try {
+
                 string Content = new WebClient().DownloadString(JSONUrl);
 
                 byte[] bytes = Encoding.ASCII.GetBytes(Content);
@@ -96,7 +98,7 @@ namespace YChanEx
                 if (((int)webEx.Status) == 7)
                     this.Gone = true;
                 else
-                    ErrorLog.logError(webEx.ToString(), "InfiniteChan.getLinks");
+                    ErrorLog.reportWebError(webEx);
                 throw webEx;
             }
 
@@ -126,28 +128,50 @@ namespace YChanEx
                     Res = Res + "http://8ch.net/" + getURL().Split('/')[3] + "/res/" + tNo[i].InnerText + ".html\n";
                 }
             }
-            catch (WebException webEx) { ErrorLog.logError(webEx.ToString(), "InfiniteChan.getThreads"); }
-            catch (Exception ex) { ErrorLog.logError(ex.ToString(), "InfiniteChan.getThreads"); }
+            catch (WebException webEx) { ErrorLog.reportWebError(webEx); }
+            catch (Exception ex) { ErrorLog.reportError(ex.ToString()); }
             return Res;
         }
 
-        override public void download() {
-            if (!Directory.Exists(this.SaveTo))
-                        Directory.CreateDirectory(this.SaveTo);
+        public bool isModified(string url) {
+            try {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.UserAgent = Adv.Default.UserAgent;
+                request.IfModifiedSince = this.checkedAt;
+                request.Method = "GET";
+                var resp = (HttpWebResponse)request.GetResponse();
 
+                this.checkedAt = resp.LastModified;
+
+                return true;
+            }
+            catch (WebException webEx) {
+                var response = (HttpWebResponse)webEx.Response;
+                if (webEx.Status != WebExceptionStatus.ProtocolError || response.StatusCode != HttpStatusCode.NotModified) {
+                    Debug.Print("========== WEBERROR OCCURED ==========");
+                    Debug.Print("URL: " + url);
+                    Debug.Print(webEx.ToString());
+                    throw (WebException)webEx;
+                }
+
+                return false;
+            }
+        }
+
+        override public void download() {
             string[] thumbs;
             string[] thumbsExt;
             string strThumbs = "";
             string strThumbsExt = "";
             string website = "";
             try {
-                website = Controller.getHTML(this.getURL());
                 string JURL = this.getURL().Replace(".html", ".json");
-                
-                string str = Controller.getJSON(JURL);
-                if (str == "null") {
+                if (!isModified(JURL)) {
                     return;
                 }
+                string str = Controller.getJSON(JURL);
+                website = Controller.getHTML(this.getURL());
+
 
                 XmlDocument doc = new XmlDocument();
                 doc.LoadXml(str);
@@ -163,12 +187,19 @@ namespace YChanEx
                     string md5 = xmlMd5[i].InnerText;
                     string filename;
 
-                    if (YCSettings.Default.preventDupes)
-                        filename = tim + " (" + md5 + ")" + ext;
-                    else
+                    if (YCSettings.Default.originalName) {
+                        if (YCSettings.Default.preventDupes) {
+                            filename = xmlFilename[i].InnerText + " (" + md5 + ")" + ext;
+                        }
+                        else {
+                            filename = xmlFilename[i].InnerText + ext;
+                        }
+                    }
+                    else {
                         filename = tim + ext;
+                    }
 
-                    strThumbs = strThumbs + "https://8ch.net/file_store/thumb/" + tim + ext + "\n";
+                    strThumbs = strThumbs + "https://8ch.net/file_store/thumb/" + tim + ext.Replace("webm", "jpg").Replace("mp4", "jpg") +"\n";
                     website = website.Replace("https://8ch.net/file_store/thumb/" + tim + ext, "thumb/" + tim + ext);
                     website = website.Replace("=\"/file_store/thumb/" + tim + ext, "=\"thumb/" + tim + ext);
                     website = website.Replace("https://8ch.net/file_store/thumb/" + tim + ext, "thumb/" + tim + ext);
@@ -184,6 +215,10 @@ namespace YChanEx
                         website = website.Replace("https://media.8ch.net/file_store/" + tim + ext, tim + ext);
                         website = website.Replace("https://8ch.net/file_store/" + tim + ext, tim + ext);
                     }
+
+
+                    if (!Directory.Exists(this.SaveTo))
+                        Directory.CreateDirectory(this.SaveTo);
 
                     // Attempt download
                     string dlURL = "https://8ch.net/file_store/" + tim + ext;
@@ -223,7 +258,7 @@ namespace YChanEx
                     string ext = xmlExtExt[i].InnerText;
                     string md5 = xmlMd5Ext[i].InnerText;
 
-                    strThumbsExt = strThumbsExt + "https://8ch.net/file_store/thumb/" + tim + ext + "\n";
+                    strThumbsExt = strThumbsExt + "https://8ch.net/file_store/thumb/" + tim + ext.Replace("webm", "jpg").Replace("mp4", "jpg") + "\n";
                     website = website.Replace("https://8ch.net/file_store/thumb/" + tim + ext, "thumb/" + tim + ext);
                     website = website.Replace("=\"/file_store/thumb/" + tim + ext, "=\"thumb/" + tim + ext);
                     website = website.Replace("https://8ch.net/file_store/thumb/" + tim + ext, "thumb/" + tim + ext);
@@ -264,16 +299,20 @@ namespace YChanEx
 
                 if (YCSettings.Default.htmlDownload)
                     Controller.saveHTML(false, website, this.SaveTo);
-            } catch (WebException webEx) {
+            }
+            catch (ThreadAbortException) {
+                return;
+            }
+            catch (WebException webEx) {
                 if (((int)webEx.Status) == 7)
                     this.Gone = true;
                 else
-                    ErrorLog.logError(webEx.ToString(), "InfiniteChan.download");
+                    ErrorLog.reportWebError(webEx);
 
                 Debug.Print(webEx.ToString());
                 GC.Collect();
                 return;
-            } catch (Exception ex) { ErrorLog.logError(ex.ToString(), "InfiniteChan.download"); }
+            } catch (Exception ex) { ErrorLog.reportError(ex.ToString()); }
 
             GC.Collect();
         }

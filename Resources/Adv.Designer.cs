@@ -25,7 +25,7 @@ namespace YChanEx {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Mozilla/5.0 (Windows NT 6.1; WOW64; rv:55.0) Gecko/20100101 Firefox/55.0")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Mozilla/5.0 (X11; Linux x86_64; rv:55.0) Gecko/20100101 Firefox/55.0")]
         public string UserAgent {
             get {
                 return ((string)(this["UserAgent"]));

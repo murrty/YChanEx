@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -57,29 +58,24 @@ namespace YChanEx {
                 doc.LoadXml(xml);
                 XmlNodeList xmlTag = doc.DocumentElement.SelectNodes("/root/tag_name");
 
-                return decimal.Parse(xmlTag[0].InnerText);
-            }
-            catch (WebException wEx) {
-                Debug.Print(wEx.ToString());
-                ErrorLog.logError(wEx.ToString(), "UpdateCheckError");
-                return -1;
+                return decimal.Parse(xmlTag[0].InnerText.Replace(".", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator), NumberStyles.Any, CultureInfo.InvariantCulture);
             }
             catch (Exception ex) {
                 Debug.Print(ex.ToString());
-                ErrorLog.logError(ex.ToString(), "UpdateCheckError");
+                ErrorLog.reportError(ex.ToString());
                 return -1;
             }
         }
         public static bool isUpdateAvailable(decimal cloudVersion) {
             try {
-                if (Properties.Settings.Default.currentVersion < cloudVersion) {
+                if (Properties.Settings.Default.currentVersion < cloudVersion) 
                     return true;
-                }
-                else { return false; }
+                else 
+                    return false;
             }
             catch (Exception ex) {
                 Debug.Print(ex.ToString());
-                ErrorLog.logError(ex.ToString(), "UpdateCheckError");
+                ErrorLog.reportError(ex.ToString());
                 return false;
             }
         }
@@ -108,7 +104,7 @@ namespace YChanEx {
                 System.IO.StreamWriter writeApp = new System.IO.StreamWriter(Application.StartupPath + updateFile);
                 writeApp.WriteLine("@echo off");
                 writeApp.WriteLine("echo Updating YChanEx...");
-                writeApp.WriteLine("set upVersion=" + cloudVersion);
+                writeApp.WriteLine("set upVersion=" + cloudVersion.ToString());
                 writeApp.WriteLine("set programName=" + System.AppDomain.CurrentDomain.FriendlyName);
                 writeApp.WriteLine("timeout /t 5 /nobreak");
                 writeApp.WriteLine("del %programName%");
@@ -119,7 +115,7 @@ namespace YChanEx {
             }
             catch (Exception ex) {
                 Debug.Print(ex.ToString());
-                ErrorLog.logError(ex.ToString(), "UpdaterError");
+                ErrorLog.reportError(ex.ToString());
             }
         }
         public static void runUpdater() {
@@ -134,7 +130,7 @@ namespace YChanEx {
             }
             catch (Exception ex) {
                 Debug.Print(ex.ToString());
-                ErrorLog.logError(ex.ToString(), "UpdaterError");
+                ErrorLog.reportError(ex.ToString());
                 return;
             }
         }

@@ -25,6 +25,7 @@ namespace YChanEx {
         protected string URL;                            // Thread/Board URL
         protected string SaveTo;                         // Path to save to
         protected string imName;                         // Name of the IB
+        protected DateTime checkedAt;                       // Date that it was first downloaded
         protected bool Board;                            // Flag to distinguish Boards and Threads of an IB
         protected bool Gone = false;                     // Flag for 404 
 
@@ -38,6 +39,7 @@ namespace YChanEx {
         public string getURL() { return this.URL; }
         public string getImName() { return this.imName; }
         public string getPath() { return this.SaveTo; }
+        public DateTime getLastCheck() { return this.checkedAt; }
         static public bool isThread(string url) { return false; }
         static public bool isBoard(string url) { return false; }
         virtual public void download() { }

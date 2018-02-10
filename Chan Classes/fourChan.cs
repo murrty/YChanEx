@@ -1,4 +1,5 @@
 ﻿// 4chan.net
+// Supports IsModifiedSince
 
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ using System.Xml.Linq;
 using System.Runtime.Serialization.Json;
 using System.IO;
 using System.Diagnostics;
+using System.Threading;
 
 namespace YChanEx {
     class fourChan : ImageBoard {
@@ -35,6 +37,7 @@ namespace YChanEx {
                 this.URL = url;
                 this.SaveTo = YCSettings.Default.downloadPath + "\\" + this.imName + "\\" + getURL().Split('/')[3];
             }
+            this.checkedAt = DateTime.Now.AddYears(-20);
         }
 
         public new static bool isThread(string url) { 
@@ -98,9 +101,12 @@ namespace YChanEx {
                 if (((int)webEx.Status) == 7)
                     this.Gone = true;
                 else
-                    ErrorLog.logError(webEx.ToString(), "Fchan.getLinks");
-                throw webEx; }
-            catch (Exception ex) { ErrorLog.logError(ex.ToString(), "Fchan.getLinks"); throw ex; }
+                    ErrorLog.reportWebError(webEx);
+                throw webEx;
+            }
+            catch (Exception ex) { 
+                ErrorLog.reportError(ex.ToString()); throw ex;
+            }
         }
         override public string getThreads() {
             string URL = "http://a.4cdn.org/" + getURL().Split('/')[3] + "/catalog.json";
@@ -130,10 +136,38 @@ namespace YChanEx {
             }
             catch(WebException webEx) {
                 Debug.Print(webEx.ToString());
-                ErrorLog.logError(webEx.ToString(), "Fchan.getThreads"); }
-            catch (Exception ex) { ErrorLog.logError(ex.ToString(), "Fchan.getThreads"); }
+                ErrorLog.reportWebError(webEx);    
+            }
+            catch (Exception ex) {
+                ErrorLog.reportError(ex.ToString());
+            }
 
             return Res;
+        }
+
+        public bool isModified(string url) {
+            try {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.UserAgent = Adv.Default.UserAgent;
+                request.IfModifiedSince = this.checkedAt;
+                request.Method = "HEAD";
+                var resp = (HttpWebResponse)request.GetResponse();
+
+                this.checkedAt = resp.LastModified;
+
+                return true;
+            }
+            catch (WebException webEx) {
+                var response = (HttpWebResponse)webEx.Response;
+                if (webEx.Status != WebExceptionStatus.ProtocolError || response.StatusCode != HttpStatusCode.NotModified) {
+                    Debug.Print("========== WEBERROR OCCURED ==========");
+                    Debug.Print("URL: " + url);
+                    Debug.Print(webEx.ToString());
+                    throw (WebException)webEx;
+                }
+
+                return false;
+            }
         }
 
         override public void download() {
@@ -142,15 +176,17 @@ namespace YChanEx {
             string strThumbs = "";                                              // ?
             string baseURL = "//i.4cdn.org/" + getURL().Split('/')[3] + "/";    // Base URL used for downloading the files
             string website;                                                     // String that contains the source of the thread
+            string curl = "Not defined";
 
             try {
-                website = Controller.getHTML(this.getURL());
-
-                string JURL = "http://a.4cdn.org/" + getURL().Split('/')[3] + "/thread/" + getURL().Split('/')[5] + ".json";
-                string str = Controller.getJSON(JURL);
-                if (str == "null") {
+                string JURL = "https://a.4cdn.org/" + getURL().Split('/')[3] + "/thread/" + getURL().Split('/')[5] + ".json";
+                curl = JURL;
+                if (!isModified(JURL)) {
                     return;
                 }
+                string str = Controller.getJSON(JURL);
+                curl = this.getURL();
+                website = Controller.getHTML(this.getURL());
 
                 XmlDocument doc = new XmlDocument();
                 doc.LoadXml(str);
@@ -175,56 +211,106 @@ namespace YChanEx {
                     Directory.CreateDirectory(this.SaveTo);
                 URLs = Regex.Split(getLinks(), "\n");
 
-                for (int y = 0; y < URLs.Length - 1; y++)
+                string newfilename = string.Empty;
+
+                for (int y = 0; y < URLs.Length - 1; y++) {
                     if (YCSettings.Default.originalName) {
+                        curl = URLs[y];
                         string[] badchars = new string[] { "\\", "/", ":", "*", "?", "\"", "<", ">", "|" };
-                        string newfilename = xmlFilename[y].InnerText;
+                        newfilename = xmlFilename[y].InnerText;
 
-                        if (YCSettings.Default.preventDupes)
-                            newfilename = newfilename + " (" + xmlMd5[y].InnerText + ")" + xmlExt[y].InnerText;
-                        else
-                            newfilename = newfilename + xmlExt[y].InnerText;
-
-                        //if (File.Exists(this.SaveTo + newfilename + xmlExt[y].InnerText)) { 
-                            // TODO: Implement MD5 checking
-                        //}
                         for (int z = 0; z < badchars.Length - 1; z++)
                             newfilename = newfilename.Replace(badchars[z], "-");
-                        
-                        Controller.downloadFile(URLs[y], this.SaveTo, true, newfilename);
-                        website = website.Replace(URLs[y].Split('/')[4], newfilename + xmlExt[y].InnerText);
+
+                        if (YCSettings.Default.preventDupes) {
+                            if (File.Exists(this.SaveTo + "\\" + newfilename + xmlExt[y].InnerText)) {
+                                if (!thisFileExists(this.SaveTo + "\\" + newfilename + xmlExt[y].InnerText, xmlMd5[y].InnerText)) {
+                                    if (!thisFileExists(this.SaveTo + "\\" + newfilename + " (" + y + ")" + xmlExt[y].InnerText, xmlMd5[y].InnerText)) {
+                                        newfilename += " (" + y + ")" + xmlExt[y].InnerText;
+                                        Controller.downloadFile(URLs[y], this.SaveTo, true, newfilename);
+                                    }
+                                }
+                            }
+                            else {
+                                newfilename += xmlExt[y].InnerText;
+                                Controller.downloadFile(URLs[y], this.SaveTo, true, newfilename);
+                            }
+                        }
+                        else {
+                            newfilename += xmlExt[y].InnerText;
+                            Controller.downloadFile(URLs[y], this.SaveTo, true, newfilename);
+                        }
+
+                        website = website.Replace(xmlTim[y].InnerText + xmlExt[y].InnerText, newfilename + xmlExt[y].InnerText);
                     }
                     else {
                         Controller.downloadFile(URLs[y], this.SaveTo);
                     }
 
-                if (YCSettings.Default.downloadThumbnails) {
-                    thumbs = strThumbs.Split('\n');
+                    if (YCSettings.Default.downloadThumbnails) {
+                        thumbs = strThumbs.Split('\n');
 
-                    for (int i = 0; i < thumbs.Length - 1; i++)
-                        Controller.downloadFile(thumbs[i], this.SaveTo + "\\thumb");
+                        for (int i = 0; i < thumbs.Length - 1; i++) {
+                            curl = thumbs[i];
+                            Controller.downloadFile(thumbs[i], this.SaveTo + "\\thumb");
+                        }
+                    }
+
+                    Regex siteScript = new Regex(regOSS);
+                    foreach (Match script in siteScript.Matches(website))
+                        website = website.Replace(script.ToString(), string.Empty);
+
+                    if (YCSettings.Default.htmlDownload == true && website != "")
+                        Controller.saveHTML(false, website.Replace("class=\"fileThumb\" href=\"thumb/", "class=\"fileThumb\" href=\""), this.SaveTo);
                 }
-
-                Regex siteScript = new Regex(regOSS);
-                foreach (Match script in siteScript.Matches(website))
-                    website = website.Replace(script.ToString(), "");
-
-                if (YCSettings.Default.htmlDownload == true && website != "")
-                    Controller.saveHTML(false, website.Replace("class=\"fileThumb\" href=\"thumb/", "class=\"fileThumb\" href=\""), this.SaveTo);
+            }
+            catch (ThreadAbortException) {
+                return;
             }
             catch (WebException webEx) {
                 Debug.Print(webEx.ToString());
                 if (((int)webEx.Status) == 7)
                     this.Gone = true;
                 else
-                    ErrorLog.logError(webEx.ToString(), "Fchan.download");
+                    ErrorLog.reportWebError(webEx, curl);
 
                 GC.Collect();
                 return;
             }
-            catch (Exception ex) { ErrorLog.logError(ex.ToString(), "Fchan.download"); }
+            catch (Exception ex) {
+                ErrorLog.reportError(ex.ToString());
+                GC.Collect();
+                return;
+            }
 
             GC.Collect();
+        }
+
+        public static bool thisFileExists(string file, string hash) {
+            try {
+                string output;
+                using (System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create()) {
+                    using (var stream = File.OpenRead(file)) {
+                        var fhash = md5.ComputeHash(stream);
+                        output = BitConverter.ToString(fhash).Replace("-", string.Empty).ToLowerInvariant();
+                    }
+                }
+
+                byte[] raw = new byte[16];
+                for (int i = 0; i < 32; i += 2)
+                    raw[i / 2] = Convert.ToByte(output.Substring(i, 2), 16);
+                
+                output = Convert.ToBase64String(raw);
+
+                if (output == hash)
+                    return true;
+                else
+                    return false;
+            }
+            catch (Exception ex) {
+                ErrorLog.reportError(ex.ToString());
+                return false;
+            }
         }
 
         public static string getTopic(string board) {

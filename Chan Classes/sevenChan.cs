@@ -1,12 +1,7 @@
 ﻿// 7chan.org
 // API WHEN
-
-/*
- * This is because they do not have an api, much like 4ch & 4+4ch
- * This is the best way to download from u18chan, through source parsing.
- * 
- * I decided against board downloading for u18chan. It's just easier if entire boards don't get downloaded.
- */
+// Supports IsModifiedSince
+// Original file name is if-y, so I ommitted it.
 
 using System;
 using System.Collections.Generic;
@@ -16,24 +11,28 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace YChanEx {
     class sevenChan : ImageBoard {
         public static string regThread = "7chan.org/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*";
+        public static string regImage = "(?<=<a href=\").*?(?=\" id=\"expandimg_)";
 
-        public sevenChan(string url, bool isBoard) : base(url, isBoard) {
+        public sevenChan(string url, bool isBoard)
+            : base(url, isBoard) {
             this.Board = isBoard;
             this.imName = "7chan";
             if (!isBoard) {
                 Match match = Regex.Match(URL, @"7chan.org/[a-zA-Z0-9]*?/res/[0-9]\d*");
                 this.URL = "https://" + match.Groups[0].Value + ".html";
-                this.SaveTo = (YCSettings.Default.downloadPath + "\\" + this.imName + "\\" + getURL().Split('/')[3] + "\\" + getURL().Split('/')[5].Replace(".html",""));
+                this.SaveTo = (YCSettings.Default.downloadPath + "\\" + this.imName + "\\" + getURL().Split('/')[3] + "\\" + getURL().Split('/')[5].Replace(".html", ""));
             }
             else {
                 this.URL = url;
                 this.SaveTo = YCSettings.Default.downloadPath + "\\" + this.imName + "\\" + getURL().Split('/')[3];
             }
+            this.checkedAt = DateTime.Now.AddYears(-20);
         }
 
         public new static bool isThread(string url) {
@@ -44,6 +43,31 @@ namespace YChanEx {
                 return false;
         }
         public new static bool isBoard(string url) { return false; } // Always return false for board downloading.
+
+        public bool isModified(string url) {
+            try {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.UserAgent = Adv.Default.UserAgent;
+                request.IfModifiedSince = this.checkedAt;
+                request.Method = "HEAD";
+                var resp = (HttpWebResponse)request.GetResponse();
+
+                this.checkedAt = resp.LastModified;
+
+                return true;
+            }
+            catch (WebException webEx) {
+                var response = (HttpWebResponse)webEx.Response;
+                if (webEx.Status != WebExceptionStatus.ProtocolError || response.StatusCode != HttpStatusCode.NotModified) {
+                    Debug.Print("========== WEBERROR OCCURED ==========");
+                    Debug.Print("URL: " + url);
+                    Debug.Print(webEx.ToString());
+                    throw (WebException)webEx;
+                }
+
+                return false;
+            }
+        }
 
         public override void download() {
             string[] images;
@@ -56,22 +80,22 @@ namespace YChanEx {
             string website;
 
             try {
-                if (!Directory.Exists(this.SaveTo))
-                    Directory.CreateDirectory(this.SaveTo);
-
+                if (!isModified(this.getURL())) {
+                    return;
+                }
                 website = Controller.getHTML(this.getURL());
 
                 string[] lines = website.Split('\n');
                 string extension;
-                Regex href = new Regex("(?<=<a href=\").*?(?=\" id=\"expandimg_)");
+                Regex href = new Regex(regImage);
                 foreach (Match imageLinks in href.Matches(website)) {
                     lImages.Add(imageLinks.ToString());
                     if (YCSettings.Default.downloadThumbnails) {
                         extension = imageLinks.ToString().Split('.')[2];
                         lThumbnails.Add(imageLinks.ToString().Replace("." + extension, "s." + extension).Replace("/src/", "/thumb/"));
                     }
-                    if (YCSettings.Default.originalName)
-                        lOriginal.Add(lines[Array.FindIndex(lines, x => x.Contains(imageLinks.ToString())) + 8].Replace(", ", ""));
+                    //if (YCSettings.Default.originalName)
+                    //    lOriginal.Add(lines[Array.FindIndex(lines, x => x.Contains(imageLinks.ToString())) + 8].Replace(", ", ""));
                 }
 
                 images = lImages.ToArray();
@@ -80,26 +104,29 @@ namespace YChanEx {
                 lOriginal.Clear();
                 lwebsite.Clear();
 
+                if (!Directory.Exists(this.SaveTo))
+                    Directory.CreateDirectory(this.SaveTo);
+
                 for (int y = 0; y < images.Length; y++) {
                     string file = images[y].Split('/')[5];
                     string url = images[y];
                     string[] badchars = new string[] { "\\", "/", ":", "*", "?", "\"", "<", ">", "|" };
                     string newfilename = file;
-                    if (YCSettings.Default.originalName) {
-                        newfilename = original[y];
-                        for (int z = 0; z < badchars.Length - 1; z++)
-                            newfilename = newfilename.Replace(badchars[z], "-");
+                    //if (YCSettings.Default.originalName) {
+                    //    newfilename = original[y];
+                    //    for (int z = 0; z < badchars.Length - 1; z++)
+                    //        newfilename = newfilename.Replace(badchars[z], "-");
 
-                        Controller.downloadFile(images[y], this.SaveTo, true, newfilename);
-                        website = website.Replace(url, newfilename);
-                    }
-                    else {
+                    //    Controller.downloadFile(images[y], this.SaveTo, true, newfilename);
+                    //    website = website.Replace(url, newfilename);
+                    //}
+                    //else {
                         for (int z = 0; z < badchars.Length; z++)
                             newfilename = newfilename.Replace(badchars[z], "-");
 
                         Controller.downloadFile(images[y], this.SaveTo, true, newfilename);
                         website = website.Replace(url, newfilename);
-                    }
+                    //}
                 }
 
                 thumbnails = lThumbnails.ToArray();
@@ -119,20 +146,26 @@ namespace YChanEx {
 
                 if (YCSettings.Default.htmlDownload == true && website != "")
                     Controller.saveHTML(false, website.Replace("\"//7chan.org", "\"https://7chan.org"), this.SaveTo);
-            
+
+            }
+            catch (ThreadAbortException) {
+                return;
             }
             catch (WebException webEx) {
                 Debug.Print(webEx.ToString());
                 if (((int)webEx.Status) == 7)
                     this.Gone = true;
                 else
-                    ErrorLog.logError(webEx.ToString(), "Schan.download");
+                    ErrorLog.reportWebError(webEx);
 
                 return;
-            } catch (Exception ex) { Debug.Print(ex.ToString()); ErrorLog.logError(ex.ToString(), "Schan.download"); }
+            }
+            catch (Exception ex) {
+                Debug.Print(ex.ToString()); ErrorLog.reportError(ex.ToString());
+            }
         }
 
-        public static string getTopic (string board) {
+        public static string getTopic(string board) {
             // 7chan & Related services
             if (board == "7ch") return "Site Discussion";
             else if (board == "ch7") return "Channel7 & Radio 7";

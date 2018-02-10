@@ -103,7 +103,6 @@ namespace YChanEx {
 
             return fileName;
         }
-
         public static string getHTMLTitle(int chan, string url, bool requireCookie = false, string cookie = "") {
             string threadTitle = "";
             string threadBoard = "";
@@ -122,7 +121,7 @@ namespace YChanEx {
             //    boardTopic = uEighteenChan.getTopic("/" + url.Split('/')[3] + "/"); threadBoard = url.Split('/')[3]; // Redundant for u18chan.
 
             using (WebClient wc = new WebClient()) {
-                wc.Headers.Add("User-Agent: " + Adv.Default.UserAgent);
+                wc.Headers.Add("user-agent", Adv.Default.UserAgent);
 
                 if (requireCookie)
                     wc.Headers.Add(HttpRequestHeader.Cookie, cookie);
@@ -136,7 +135,6 @@ namespace YChanEx {
                     return "null";
             }
         }
-
         public static string getHTML(string url, bool requireCookie = false, string cookie = "") {
             using (WebClient wc = new WebClient()) {
                 wc.Headers.Add("User-Agent: " + Adv.Default.UserAgent);
@@ -147,7 +145,6 @@ namespace YChanEx {
                 return wc.DownloadString(url);
             }
         }
-
         public static string getJSON(string url) {
             try {
                 using (WebClient wc = new WebClient()) {
@@ -165,15 +162,11 @@ namespace YChanEx {
                 }
             }
             catch (WebException WebE) {
-                Debug.Print(WebE.ToString());
-                ErrorLog.logError(WebE.ToString(), "FileController.downloadJSON");
-                return "null";
+                Debug.Print("========== WEBERROR OCCURED ==========");
+                Debug.Print("URL: " + url);
                 throw WebE;
             }
             catch (Exception ex) {
-                Debug.Print(ex.ToString());
-                ErrorLog.logError(ex.ToString(), "FileController.downloadJSON");
-                return "null";
                 throw ex;
             }
         }
@@ -207,15 +200,20 @@ namespace YChanEx {
                 return true;
             }
             catch (WebException WebE) {
-                Debug.Print(WebE.ToString());
-                ErrorLog.logError(WebE.ToString(), "FileControllerDownloadFile");
+                Debug.Print("========== WEBERROR OCCURED ==========");
+                Debug.Print("URL: " + url);
+                var resp = WebE.Response as HttpWebResponse;
+                int respID = (int)resp.StatusCode;
+                if (resp != null) {
+                    if (respID == 404) {
+                        Debug.Print("========== 404 ITEM!!! SKIPPING ==========");
+                        if (!Adv.Default.disableErrors) 
+                            MessageBox.Show("File " + url + " has returned 404. Manual download required.");
+                    }
+                }
                 return false;
-                throw WebE;
             }
             catch (Exception ex) {
-                Debug.Print(ex.ToString());
-                ErrorLog.logError(ex.ToString(), "FileControllerDownloadFile");
-                return false;
                 throw ex;
             }
         }
@@ -253,19 +251,14 @@ namespace YChanEx {
                 return true;
             }
             catch (WebException WebE) {
-                Debug.Print(WebE.ToString());
-                ErrorLog.logError(WebE.ToString(), "FileControllerDownloadHTML");
-                return false;
+                Debug.Print("========== WEBERROR OCCURED ==========");
+                Debug.Print("URL: " + dlStr);
                 throw WebE;
             }
             catch (Exception ex) {
-                Debug.Print(ex.ToString());
-                ErrorLog.logError(ex.ToString(), "FileControllerDownloadHTML");
-                return false;
                 throw ex;
             }
         }
-
         public static bool saveHistory(int chan, string historytext, string url) {
             string channame = "unknownchan";
             string dateNow = "";

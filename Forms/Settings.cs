@@ -175,5 +175,14 @@ namespace YChanEx {
             chkLogErrors.Enabled = !chkDisableErrors.Checked;
         }
         #endregion
+
+        private void chkOriginalNames_CheckedChanged(object sender, EventArgs e) {
+            if (chkOriginalNames.Checked)
+                chkPreventDupes.Enabled = true;
+            else 
+                chkPreventDupes.Enabled = false;
+
+            chkPreventDupes.Checked = false;
+        }
     }
 }

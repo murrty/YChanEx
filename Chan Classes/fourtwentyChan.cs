@@ -15,6 +15,7 @@ using System.Xml.Linq;
 using System.Runtime.Serialization.Json;
 using System.IO;
 using System.Diagnostics;
+using System.Threading;
 
 namespace YChanEx {
     class fourtwentyChan : ImageBoard {
@@ -34,6 +35,7 @@ namespace YChanEx {
                 this.URL = url;
                 this.SaveTo = YCSettings.Default.downloadPath + "\\" + this.imName + "\\" + getURL().Split('/')[3];
             }
+            this.checkedAt = DateTime.Now.AddYears(-20);
         }
 
         public new static bool isThread(string url) {
@@ -45,6 +47,31 @@ namespace YChanEx {
         }
         public new static bool isBoard(string url) { return false; }
 
+        public bool isModified(string url) {
+            try {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.UserAgent = Adv.Default.UserAgent;
+                request.IfModifiedSince = this.checkedAt;
+                request.Method = "HEAD";
+                var resp = (HttpWebResponse)request.GetResponse();
+
+                this.checkedAt = resp.LastModified;
+
+                return true;
+            }
+            catch (WebException webEx) {
+                var response = (HttpWebResponse)webEx.Response;
+                if (webEx.Status != WebExceptionStatus.ProtocolError || response.StatusCode != HttpStatusCode.NotModified) {
+                    Debug.Print("========== WEBERROR OCCURED ==========");
+                    Debug.Print("URL: " + url);
+                    Debug.Print(webEx.ToString());
+                    throw (WebException)webEx;
+                }
+
+                return false;
+            }
+        }
+
         public override void download() {
             string[] URLs;
             string[] thumbs;
@@ -55,12 +82,21 @@ namespace YChanEx {
             string website;
 
             try {
-                website = Controller.getHTML(this.getURL());
-
-                string str = Controller.getJSON(JURL);
-                if (str == "null") {
+                if (!isModified(this.getURL())) {
                     return;
                 }
+                string str = Controller.getJSON(JURL);
+                website = Controller.getHTML(this.getURL());
+
+                if (string.IsNullOrWhiteSpace(str)) {
+                    MessageBox.Show("Thread " + getURL().Split('/')[5] + " may be invald, or your requests may be timing out.");
+                    return;
+                }
+                else if (str == "Not modified") {
+                    return;
+                }
+
+                this.checkedAt = DateTime.Now;
 
                 XmlDocument doc = new XmlDocument();
                 doc.LoadXml(str);
@@ -104,17 +140,22 @@ namespace YChanEx {
                     Controller.saveHTML(false, website, this.SaveTo);
 
             }
+            catch (ThreadAbortException) {
+                return;
+            }
             catch (WebException webEx) {
                 Debug.Print(webEx.ToString());
                 if (((int)webEx.Status) == 7)
                     this.Gone = true;
                 else
-                    ErrorLog.logError(webEx.ToString(), "FTchan.download");
+                    ErrorLog.reportWebError(webEx);
 
                 GC.Collect();
                 return;
             }
-            catch (Exception ex) { ErrorLog.logError(ex.ToString(), "FTchan.download"); }
+            catch (Exception ex) {
+                ErrorLog.reportError(ex.ToString());
+            }
         }
 
         public static string getTopic(string board) {

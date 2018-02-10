@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="UserAgent" Type="System.String" Scope="User">
-      <Value Profile="(Default)">Mozilla/5.0 (Windows NT 6.1; WOW64; rv:55.0) Gecko/20100101 Firefox/55.0</Value>
+      <Value Profile="(Default)">Mozilla/5.0 (X11; Linux x86_64; rv:55.0) Gecko/20100101 Firefox/55.0</Value>
     </Setting>
     <Setting Name="settingsDisableScan" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>

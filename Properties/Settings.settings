@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="currentVersion" Type="System.Decimal" Scope="Application">
-      <Value Profile="(Default)">1.683</Value>
+      <Value Profile="(Default)">1.69</Value>
     </Setting>
     <Setting Name="debug" Type="System.Boolean" Scope="Application">
       <Value Profile="(Default)">False</Value>

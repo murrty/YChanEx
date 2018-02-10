@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace YChanEx {
@@ -28,7 +29,7 @@ namespace YChanEx {
                 this.URL = url;
                 this.SaveTo = YCSettings.Default.downloadPath + "\\" + this.imName + "\\" + getURL().Split('/')[3];
             }
-
+            this.checkedAt = DateTime.Now.AddYears(-20);
         }
 
         public new static bool isThread(string url) {
@@ -38,6 +39,31 @@ namespace YChanEx {
         }
         public new static bool isBoard(string url) { return false; } // Always return false for board downloading.
 
+        public bool isModified(string url) {
+            try {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.UserAgent = Adv.Default.UserAgent;
+                request.IfModifiedSince = this.checkedAt;
+                request.Method = "HEAD";
+                var resp = (HttpWebResponse)request.GetResponse();
+
+                this.checkedAt = resp.LastModified;
+
+                return true;
+            }
+            catch (WebException webEx) {
+                var response = (HttpWebResponse)webEx.Response;
+                if (webEx.Status != WebExceptionStatus.ProtocolError || response.StatusCode != HttpStatusCode.NotModified) {
+                    Debug.Print("========== WEBERROR OCCURED ==========");
+                    Debug.Print("URL: " + url);
+                    Debug.Print(webEx.ToString());
+                    throw (WebException)webEx;
+                }
+
+                return false;
+            }
+        }
+
         public override void download() {
             string[] images;                    // Array that contains direct URLs to the image files
             string[] thumbnails;                // Array that contains direct URLs to the thumbnails
@@ -46,9 +72,10 @@ namespace YChanEx {
             string website;                // The string that contains the source for HTML saving.
 
             try {
-                // Create the directory to save files in.
-                if (!Directory.Exists(this.SaveTo))
-                    Directory.CreateDirectory(this.SaveTo);
+                if (!isModified(this.getURL())) {
+                    return;
+                }
+                website = Controller.getHTML(this.getURL());
 
                 // Download the HTML source
                 website = Controller.getHTML(this.getURL());
@@ -61,6 +88,10 @@ namespace YChanEx {
                 // Convert the images to an array & clear the useless lists (save RAM)
                 images = limages.ToArray();
                 limages.Clear();
+
+                // Create the directory to save files in.
+                if (!Directory.Exists(this.SaveTo))
+                    Directory.CreateDirectory(this.SaveTo);
 
                 // Downloads images from the lists
                 for (int y = 0; y < images.Length; y++) {
@@ -109,15 +140,22 @@ namespace YChanEx {
                 if (YCSettings.Default.htmlDownload == true && website != "")
                     Controller.saveHTML(false, website, this.SaveTo);
 
-            } catch (WebException webEx) {
+            }
+            catch (ThreadAbortException) {
+                return;
+            }
+            catch (WebException webEx) {
                 Debug.Print(webEx.ToString());
                 if (((int)webEx.Status) == 7)
                     this.Gone = true;
                 else
-                    ErrorLog.logError(webEx.ToString(), "U18chan.download");
+                    ErrorLog.reportWebError(webEx);
 
                 return;
-            } catch (Exception ex) { ErrorLog.logError(ex.ToString(), "U18chan.download"); }
+            }
+            catch (Exception ex) {
+                ErrorLog.reportError(ex.ToString()); 
+            }
 
             GC.Collect();
         }

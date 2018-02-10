@@ -67,9 +67,9 @@
   <ItemGroup>
     <Compile Include="Chan Classes\fChan.cs" />
     <Compile Include="Chan Classes\fourtwentyChan.cs" />
-    <Compile Include="Classes\ErrorLog.cs" />
     <Compile Include="Chan Classes\fourChan.cs" />
     <Compile Include="Classes\Controller.cs" />
+    <Compile Include="Classes\ErrorLog.cs" />
     <Compile Include="Classes\ImageBoard.cs" />
     <Compile Include="Chan Classes\infiniteChan.cs" />
     <Compile Include="Chan Classes\sevenChan.cs" />

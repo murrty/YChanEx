@@ -25,7 +25,7 @@ namespace YChanEx.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1.683")]
+        [global::System.Configuration.DefaultSettingValueAttribute("1.69")]
         public decimal currentVersion {
             get {
                 return ((decimal)(this["currentVersion"]));

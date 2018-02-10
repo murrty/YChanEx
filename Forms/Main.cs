@@ -44,13 +44,15 @@ namespace YChanEx {
 
             if (YCSettings.Default.updaterEnabled) {
                 checkUpdates = new Thread(() => {
-                    decimal cV = Updater.getCloudVersion();
+                    var cV = Updater.getCloudVersion();
 
                     if (Updater.isUpdateAvailable(cV)) {
                         if (MessageBox.Show("An update is available. \nNew verison: " + cV.ToString() + " | Your version: " + Properties.Settings.Default.currentVersion.ToString() + "\n\nWould you like to update?", "YChanEx", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes) {
                             Updater.createUpdaterStub(cV);
                             Updater.runUpdater();
                         }
+                        this.Invoke((MethodInvoker)(() => mUpdateAvailable.Enabled = true));
+                        this.Invoke((MethodInvoker)(() => mUpdateAvailable.Visible = true));
                     }
                     this.Invoke((MethodInvoker)(() => checkUpdates.Abort()));
                 });
@@ -137,9 +139,6 @@ namespace YChanEx {
         private void frmMain_Shown(object sender, EventArgs e) {
             if (Properties.Settings.Default.debug)
                 mDebug.Visible = true; mDebug.Enabled = true;
-
-            if (Properties.Settings.Default.currentVersion < Properties.Settings.Default.cloudVersion)
-                mUpdateAvailable.Visible = true; mUpdateAvailable.Enabled = true;
 
             // Download url if it is a website
             for (int i = 0; i < Environment.GetCommandLineArgs().Length; i++) {
@@ -673,7 +672,7 @@ namespace YChanEx {
         private void mUpdateAvailable_Click(object sender, EventArgs e) {
             if (Properties.Settings.Default.cloudVersion > Properties.Settings.Default.currentVersion)
                 if (MessageBox.Show("Would you like to update YChanEx?", "YChanEx", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
-                    Updater.createUpdaterStub(Properties.Settings.Default.cloudVersion); Updater.runUpdater(); this.Close();
+                    Updater.createUpdaterStub(Convert.ToInt32(Properties.Settings.Default.cloudVersion)); Updater.runUpdater(); this.Close();
         }
         #endregion
         #region mTray (mTrayShow / mTrayOpen / mTrayClipboard  / mTrayExit) Click

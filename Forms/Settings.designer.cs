@@ -326,6 +326,7 @@
             this.ttInfo.SetToolTip(this.chkOriginalNames, "Saves the files with the original file names. (4chan only, for now)\r\n\r\nDownloaded" +
         " HTML will be broken unless you replace the URLs in the HTMLs.");
             this.chkOriginalNames.UseVisualStyleBackColor = true;
+            this.chkOriginalNames.CheckedChanged += new System.EventHandler(this.chkOriginalNames_CheckedChanged);
             // 
             // chkSaveDate
             // 
@@ -371,14 +372,14 @@
             this.txtUserAgent.Name = "txtUserAgent";
             this.txtUserAgent.Size = new System.Drawing.Size(297, 20);
             this.txtUserAgent.TabIndex = 8;
-            this.txtUserAgent.Text = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:55.0) Gecko/20100101 Firefox/55.0";
+            this.txtUserAgent.Text = "Mozilla/5.0 (X11; Linux x86_64; rv:55.0) Gecko/20100101 Firefox/55.0";
             this.ttInfo.SetToolTip(this.txtUserAgent, "The User-Agent used when downloading.");
             // 
             // chkLogErrors
             // 
             this.chkLogErrors.AutoSize = true;
-            this.chkLogErrors.Checked = true;
-            this.chkLogErrors.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkLogErrors.Cursor = System.Windows.Forms.Cursors.Default;
+            this.chkLogErrors.Enabled = false;
             this.chkLogErrors.Location = new System.Drawing.Point(273, 76);
             this.chkLogErrors.Name = "chkLogErrors";
             this.chkLogErrors.Size = new System.Drawing.Size(105, 17);
@@ -408,9 +409,8 @@
             this.chkPreventDupes.Size = new System.Drawing.Size(113, 17);
             this.chkPreventDupes.TabIndex = 20;
             this.chkPreventDupes.Text = "Prevent duplicates";
-            this.ttInfo.SetToolTip(this.chkPreventDupes, "Prevent duplicate file names by appending the MD5 of the file to the end of the f" +
-        "ile name.\r\nThis is a niche problem, so it may make original file names end with " +
-        "text that isn\'t required.");
+            this.ttInfo.SetToolTip(this.chkPreventDupes, "Prevents duplicates by embedding the position of the post in the file name of the" +
+        " duplicate file.\r\nChecks for dupes via hashes. This may impact performance.");
             this.chkPreventDupes.UseVisualStyleBackColor = true;
             // 
             // tabControl1
