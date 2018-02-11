@@ -226,7 +226,7 @@ namespace YChanEx {
                             if (File.Exists(this.SaveTo + "\\" + newfilename + xmlExt[y].InnerText)) {
                                 if (!thisFileExists(this.SaveTo + "\\" + newfilename + xmlExt[y].InnerText, xmlMd5[y].InnerText)) {
                                     if (!thisFileExists(this.SaveTo + "\\" + newfilename + " (" + y + ")" + xmlExt[y].InnerText, xmlMd5[y].InnerText)) {
-                                        newfilename += " (" + y + ")" + xmlExt[y].InnerText;
+                                        newfilename += " (" + y.ToString() + ")" + xmlExt[y].InnerText;
                                         Controller.downloadFile(URLs[y], this.SaveTo, true, newfilename);
                                     }
                                 }
@@ -241,28 +241,29 @@ namespace YChanEx {
                             Controller.downloadFile(URLs[y], this.SaveTo, true, newfilename);
                         }
 
-                        website = website.Replace(xmlTim[y].InnerText + xmlExt[y].InnerText, newfilename + xmlExt[y].InnerText);
+                        website = website.Replace(xmlTim[y].InnerText + xmlExt[y].InnerText, newfilename);
                     }
                     else {
                         Controller.downloadFile(URLs[y], this.SaveTo);
                     }
-
-                    if (YCSettings.Default.downloadThumbnails) {
-                        thumbs = strThumbs.Split('\n');
-
-                        for (int i = 0; i < thumbs.Length - 1; i++) {
-                            curl = thumbs[i];
-                            Controller.downloadFile(thumbs[i], this.SaveTo + "\\thumb");
-                        }
-                    }
-
-                    Regex siteScript = new Regex(regOSS);
-                    foreach (Match script in siteScript.Matches(website))
-                        website = website.Replace(script.ToString(), string.Empty);
-
-                    if (YCSettings.Default.htmlDownload == true && website != "")
-                        Controller.saveHTML(false, website.Replace("class=\"fileThumb\" href=\"thumb/", "class=\"fileThumb\" href=\""), this.SaveTo);
                 }
+
+
+                if (YCSettings.Default.downloadThumbnails) {
+                    thumbs = strThumbs.Split('\n');
+
+                    for (int i = 0; i < thumbs.Length - 1; i++) {
+                        curl = thumbs[i];
+                        Controller.downloadFile(thumbs[i], this.SaveTo + "\\thumb");
+                    }
+                }
+
+                Regex siteScript = new Regex(regOSS);
+                foreach (Match script in siteScript.Matches(website))
+                    website = website.Replace(script.ToString(), string.Empty);
+
+                if (YCSettings.Default.htmlDownload == true && website != "")
+                    Controller.saveHTML(false, website.Replace("class=\"fileThumb\" href=\"thumb/", "class=\"fileThumb\" href=\""), this.SaveTo);
             }
             catch (ThreadAbortException) {
                 return;
