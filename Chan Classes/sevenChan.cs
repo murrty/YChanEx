@@ -54,6 +54,8 @@ namespace YChanEx {
 
                 this.checkedAt = resp.LastModified;
 
+                Thread.Sleep(5000);
+
                 return true;
             }
             catch (WebException webEx) {

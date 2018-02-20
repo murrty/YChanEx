@@ -1,23 +1,35 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Security.Principal;
 using System.Text;
 using System.Windows.Forms;
 
 namespace YChanEx {
     public partial class Settings : Form {
-
         #region Variables
         public bool moveFolders = false;
+        bool isAdmin = false;
         #endregion
 
-        #region Settings (Settings_Shown)
+        #region Form Methods
         public Settings() {
             InitializeComponent();
+
+            RegistryKey regKey = Registry.ClassesRoot.OpenSubKey("ychanex\\shell\\open\\command", false);
+            if (regKey == null) {
+                btnProtocol.Visible = true;
+                btnProtocol.Enabled = true;
+                if (!(new WindowsPrincipal(WindowsIdentity.GetCurrent())).IsInRole(WindowsBuiltInRole.Administrator))
+                    UACShield(btnProtocol);
+            }
 
             btnSSave.DialogResult = DialogResult.OK;
             btnSCan.DialogResult = DialogResult.Cancel;
@@ -25,10 +37,11 @@ namespace YChanEx {
 
         private void Settings_Shown(object sender, EventArgs e) {
             loadSettings();
+
         }
         #endregion
 
-        #region Custom (loadSettings)
+        #region Custom Methods
         private void loadSettings() {
             edtPath.Text = YCSettings.Default.downloadPath;
             edtTimer.Value = (YCSettings.Default.scannerTimer / 1000);
@@ -99,9 +112,17 @@ namespace YChanEx {
             YCSettings.Default.Save();
             Adv.Default.Save();
         }
+
+        [DllImport("user32.dll")]
+        public static extern int SendMessage(IntPtr hWnd, uint Msg, int wParam, int lParam);
+        public static void UACShield(Button btn) {
+            const Int32 BCM_SETSHIELD = 0x160C;
+            btn.FlatStyle = System.Windows.Forms.FlatStyle.System;
+            SendMessage(btn.Handle, BCM_SETSHIELD, 0, 1);
+        }
         #endregion
 
-        #region Buttons (btnSSave_Click / btnSCan_Click / btnBrowse_Click / btnReset_Click)
+        #region Buttons
         private void btnSSave_Click(object sender, EventArgs e) {
             if (edtPath.Text != "") {
 
@@ -147,9 +168,31 @@ namespace YChanEx {
                 }
             }
         }
+
+        private void btnUserScript_Click(object sender, EventArgs e) {
+            if (MessageBox.Show("This program supports a userscript to add a download button to the *chan boards, would you like to install it? You do need to install the protocol before this will fully function.", "YChanEx", MessageBoxButtons.YesNo) == DialogResult.Yes) {
+                Process.Start("https://github.com/murrty/YChanEx/raw/master/Plugin/YChanEx.user.js");
+            }
+        }
+        private void btnProtocol_Click(object sender, EventArgs e) {
+            if (!isAdmin) {
+                if (MessageBox.Show("This task requires re-running as administrator. Restart elevated?", "YChanEx", MessageBoxButtons.YesNo) == DialogResult.Yes) {
+                    var exeName = Process.GetCurrentProcess().MainModule.FileName;
+                    ProcessStartInfo startInfo = new ProcessStartInfo(exeName);
+                    startInfo.Verb = "runas";
+                    startInfo.Arguments = "installProtocol";
+                    Process.Start(startInfo);
+                    Environment.Exit(0);
+                }
+                return;
+            }
+            else {
+                Controller.installProtocol();
+            }
+        }
         #endregion
 
-        #region CheckBoxes (chkHTML_CheckChanged / chkShowTray_CheckedChanged / chkHistory_CheckedChanged / chkDisableErrors_CheckedChanged)
+        #region CheckBoxes
         private void chkHTML_CheckedChanged(object sender, EventArgs e) {
             if (chkHTML.Checked) {
                 chkThumbnails.Enabled = true;
@@ -174,15 +217,14 @@ namespace YChanEx {
         private void chkDisableErrors_CheckedChanged(object sender, EventArgs e) {
             chkLogErrors.Enabled = !chkDisableErrors.Checked;
         }
-        #endregion
-
         private void chkOriginalNames_CheckedChanged(object sender, EventArgs e) {
             if (chkOriginalNames.Checked)
                 chkPreventDupes.Enabled = true;
-            else 
+            else
                 chkPreventDupes.Enabled = false;
 
             chkPreventDupes.Checked = false;
         }
+        #endregion
     }
 }

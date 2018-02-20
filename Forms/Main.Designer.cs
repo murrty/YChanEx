@@ -34,21 +34,12 @@
             this.edtURL = new System.Windows.Forms.TextBox();
             this.nfTray = new System.Windows.Forms.NotifyIcon(this.components);
             this.MenuBar = new System.Windows.Forms.MainMenu(this.components);
-            this.mFile = new System.Windows.Forms.MenuItem();
-            this.mReload = new System.Windows.Forms.MenuItem();
-            this.mSave = new System.Windows.Forms.MenuItem();
-            this.mFileSep = new System.Windows.Forms.MenuItem();
-            this.mUpdates = new System.Windows.Forms.MenuItem();
             this.mHistory = new System.Windows.Forms.MenuItem();
             this.mSettings = new System.Windows.Forms.MenuItem();
             this.mHelp = new System.Windows.Forms.MenuItem();
             this.mLicenseAndSource = new System.Windows.Forms.MenuItem();
             this.mHelpSep = new System.Windows.Forms.MenuItem();
             this.mAbout = new System.Windows.Forms.MenuItem();
-            this.mUpdateAvailable = new System.Windows.Forms.MenuItem();
-            this.mDebug = new System.Windows.Forms.MenuItem();
-            this.mDebugTitle = new System.Windows.Forms.MenuItem();
-            this.mDebugID = new System.Windows.Forms.MenuItem();
             this.mTray = new System.Windows.Forms.ContextMenu();
             this.mTrayShow = new System.Windows.Forms.MenuItem();
             this.mTraySep1 = new System.Windows.Forms.MenuItem();
@@ -69,6 +60,7 @@
             this.mBoardsCopyL = new System.Windows.Forms.MenuItem();
             this.mBoardsSep = new System.Windows.Forms.MenuItem();
             this.mBoardsRemove = new System.Windows.Forms.MenuItem();
+            this.mUpdateAvailable = new System.Windows.Forms.MenuItem();
             this.tcApp.SuspendLayout();
             this.tpThreads.SuspendLayout();
             this.tpBoard.SuspendLayout();
@@ -82,7 +74,7 @@
             this.tcApp.Location = new System.Drawing.Point(0, 0);
             this.tcApp.Name = "tcApp";
             this.tcApp.SelectedIndex = 0;
-            this.tcApp.Size = new System.Drawing.Size(382, 230);
+            this.tcApp.Size = new System.Drawing.Size(382, 250);
             this.tcApp.TabIndex = 0;
             // 
             // tpThreads
@@ -91,7 +83,7 @@
             this.tpThreads.Location = new System.Drawing.Point(4, 22);
             this.tpThreads.Name = "tpThreads";
             this.tpThreads.Padding = new System.Windows.Forms.Padding(3);
-            this.tpThreads.Size = new System.Drawing.Size(374, 204);
+            this.tpThreads.Size = new System.Drawing.Size(374, 224);
             this.tpThreads.TabIndex = 0;
             this.tpThreads.Text = "Threads";
             this.tpThreads.UseVisualStyleBackColor = true;
@@ -103,7 +95,7 @@
             this.lbThreads.FormattingEnabled = true;
             this.lbThreads.Location = new System.Drawing.Point(3, 3);
             this.lbThreads.Name = "lbThreads";
-            this.lbThreads.Size = new System.Drawing.Size(368, 198);
+            this.lbThreads.Size = new System.Drawing.Size(368, 218);
             this.lbThreads.TabIndex = 3;
             this.lbThreads.MouseDown += new System.Windows.Forms.MouseEventHandler(this.lbThreads_MouseDown);
             // 
@@ -164,46 +156,10 @@
             // MenuBar
             // 
             this.MenuBar.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
-            this.mFile,
             this.mHistory,
             this.mSettings,
             this.mHelp,
-            this.mUpdateAvailable,
-            this.mDebug});
-            // 
-            // mFile
-            // 
-            this.mFile.Index = 0;
-            this.mFile.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
-            this.mReload,
-            this.mSave,
-            this.mFileSep,
-            this.mUpdates});
-            this.mFile.Text = "File";
-            this.mFile.Visible = false;
-            // 
-            // mReload
-            // 
-            this.mReload.Index = 0;
-            this.mReload.Text = "Reload threads";
-            this.mReload.Click += new System.EventHandler(this.mReload_Click);
-            // 
-            // mSave
-            // 
-            this.mSave.Index = 1;
-            this.mSave.Text = "Save history";
-            this.mSave.Click += new System.EventHandler(this.mSave_Click);
-            // 
-            // mFileSep
-            // 
-            this.mFileSep.Index = 2;
-            this.mFileSep.Text = "-";
-            // 
-            // mUpdates
-            // 
-            this.mUpdates.Index = 3;
-            this.mUpdates.Text = "Check for updates";
-            this.mUpdates.Click += new System.EventHandler(this.mUpdates_Click);
+            this.mUpdateAvailable});
             // 
             // mHistory
             // 
@@ -242,36 +198,6 @@
             this.mAbout.Index = 2;
             this.mAbout.Text = "About";
             this.mAbout.Click += new System.EventHandler(this.mAbout_Click);
-            // 
-            // mUpdateAvailable
-            // 
-            this.mUpdateAvailable.Enabled = false;
-            this.mUpdateAvailable.Index = 4;
-            this.mUpdateAvailable.Text = "Update available";
-            this.mUpdateAvailable.Visible = false;
-            this.mUpdateAvailable.Click += new System.EventHandler(this.mUpdateAvailable_Click);
-            // 
-            // mDebug
-            // 
-            this.mDebug.Enabled = false;
-            this.mDebug.Index = 5;
-            this.mDebug.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
-            this.mDebugTitle,
-            this.mDebugID});
-            this.mDebug.Text = "Debug";
-            this.mDebug.Visible = false;
-            // 
-            // mDebugTitle
-            // 
-            this.mDebugTitle.Index = 0;
-            this.mDebugTitle.Text = "Get Thread Title from Clipboard";
-            this.mDebugTitle.Click += new System.EventHandler(this.mDebugTitle_Click);
-            // 
-            // mDebugID
-            // 
-            this.mDebugID.Index = 1;
-            this.mDebugID.Text = "Get Thread ID";
-            this.mDebugID.Click += new System.EventHandler(this.mDebugID_Click);
             // 
             // mTray
             // 
@@ -400,11 +326,19 @@
             this.mBoardsRemove.Text = "Remove";
             this.mBoardsRemove.Click += new System.EventHandler(this.mBoardsRemove_Click);
             // 
+            // mUpdateAvailable
+            // 
+            this.mUpdateAvailable.Enabled = false;
+            this.mUpdateAvailable.Index = 3;
+            this.mUpdateAvailable.Text = "Update available";
+            this.mUpdateAvailable.Visible = false;
+            this.mUpdateAvailable.Click += new System.EventHandler(this.mUpdateAvailable_Click);
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(382, 230);
+            this.ClientSize = new System.Drawing.Size(382, 250);
             this.Controls.Add(this.edtURL);
             this.Controls.Add(this.btnAdd);
             this.Controls.Add(this.tcApp);
@@ -461,15 +395,7 @@
         private System.Windows.Forms.MenuItem mTraySep1;
         private System.Windows.Forms.MenuItem mThreadsCopyL;
         private System.Windows.Forms.MenuItem mBoardsCopyL;
-        private System.Windows.Forms.MenuItem mDebug;
-        private System.Windows.Forms.MenuItem mDebugTitle;
-        private System.Windows.Forms.MenuItem mDebugID;
         private System.Windows.Forms.MenuItem mHistory;
-        private System.Windows.Forms.MenuItem mFile;
-        private System.Windows.Forms.MenuItem mReload;
-        private System.Windows.Forms.MenuItem mSave;
-        private System.Windows.Forms.MenuItem mFileSep;
-        private System.Windows.Forms.MenuItem mUpdates;
         private System.Windows.Forms.MenuItem mUpdateAvailable;
     }
 }

@@ -12,11 +12,11 @@ using System.Threading;
 using System.IO;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using System.Runtime.InteropServices;
 
 
 namespace YChanEx {
     public partial class frmMain : Form {
-
         #region Variables
         public List<ImageBoard> clThreads = new List<ImageBoard>();                 // list of monitored threads
         public List<ImageBoard> clBoards  = new List<ImageBoard>();                 // list of monitored boards
@@ -33,10 +33,17 @@ namespace YChanEx {
         bool is404;                                                                 // If a 404 has occured, used when clicking on the nfTray balloon text.
         bool hasUpdated = false;                                                    // If application was updated recently.
         string OldPath;                                                             // Old path var for opening the settings, for restarting timer
+        //TextBox Hint
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wp, string lp);
         #endregion
 
-        #region frmMain (Load / Shown / SizeChanged / FormClosing) / edtURL (Enter / Leave) / btnAdd (Click)
-        public frmMain() { InitializeComponent(); }
+        #region Form Methods
+        public frmMain() {
+            InitializeComponent();
+            SetTextBoxHint(edtURL.Handle, "Enter a thread URL...");
+        }
 
         private void frmMain_Load(object sender, EventArgs e) {
             Properties.Settings.Default.runningUpdate = false;
@@ -137,9 +144,6 @@ namespace YChanEx {
             }
         }
         private void frmMain_Shown(object sender, EventArgs e) {
-            if (Properties.Settings.Default.debug)
-                mDebug.Visible = true; mDebug.Enabled = true;
-
             // Download url if it is a website
             for (int i = 0; i < Environment.GetCommandLineArgs().Length; i++) {
                 string arg = Environment.GetCommandLineArgs()[i];
@@ -229,27 +233,50 @@ namespace YChanEx {
         private void btnAdd_Click(object sender, EventArgs e) {
             string dlURL;
 
-            if (edtURL.Text.StartsWith("fchan.us/")) edtURL.Text = edtURL.Text.Replace("fchan.us/", "http://fchan.us/");
+            if (edtURL.Text.StartsWith("fchan.us/"))
+                edtURL.Text = edtURL.Text.Replace("fchan.us/", "http://fchan.us/");
 
-            if (!edtURL.Text.StartsWith("http://fchan.us") || edtURL.Text.StartsWith("http://www.fchan.us"))
+            if (!edtURL.Text.StartsWith("http://fchan.us") || !edtURL.Text.StartsWith("http://www.fchan.us"))
                 dlURL = edtURL.Text.Replace("http://", "https://").Replace("board/u18chan/", "");
             else
                 dlURL = edtURL.Text;
 
             downloadURL(dlURL, false);
 
+            if (YCSettings.Default.saveOnClose)
+                Controller.saveURLs(clBoards, clThreads);
+
             edtURL.Clear();
         }
         #endregion
 
-        #region Custom (downloadURL / addToHistory / getTitle / isUnique / getPlace / scan)
+        #region Custom Methods
+        protected override void WndProc(ref Message m) {
+            if (m.Msg == Controller.WM_ADDDOWNLOAD) {
+                downloadURL(File.ReadAllText(Controller.settingsDir + "\\Arg.nfo"), true);
+                File.Delete(Controller.settingsDir + "\\Arg.nfo");
+            }
+            else if (m.Msg == Controller.WM_SHOWFORM) {
+                if (this.WindowState != FormWindowState.Normal)
+                    this.WindowState = FormWindowState.Normal;
+
+                this.Show();
+                this.Activate();
+            }
+            base.WndProc(ref m);
+        }
+
+        private void SetTextBoxHint(IntPtr TextboxHandle, string Hint) {
+            SendMessage(TextboxHandle, 0x1501, (IntPtr)1, Hint);
+        }
+
         private void downloadURL(string url, bool silentDownload) {
             if (!Controller.isSupported(url)) {
                 MessageBox.Show("Please enter a supported site URL (Check the Github page for a list)");
                 return;
             }
 
-            bool board = (tcApp.SelectedIndex == 1);                             // Board Tab is open -> board=true; Thread tab -> board=false 
+            bool board = false; //(tcApp.SelectedIndex == 1);
             ImageBoard newImageboard = Controller.createNewIMB(url.Trim(), board);
             if (url.StartsWith("fchan.us/"))
                 url = url.Replace("fchan.us/", "http://fchan.us/");
@@ -491,7 +518,7 @@ namespace YChanEx {
         }
         #endregion
 
-        #region lbThreads / lbBoards (MouseDown)
+        #region Listboxes
         private void lbThreads_MouseDown(object sender, MouseEventArgs e) {
             if (e.Button == System.Windows.Forms.MouseButtons.Right) {
                 tPos = -1;
@@ -513,7 +540,7 @@ namespace YChanEx {
             }
         }
         #endregion
-        #region nfTray (MouseDoubleClick / MouseMove / BalloonTipClicked / BalloonTipClosed)
+        #region nfTray
         private void nfTray_MouseDoubleClick(object sender, MouseEventArgs e) {
             if (this.Visible) {
                 mTrayShow.Text = "Show";
@@ -607,7 +634,7 @@ namespace YChanEx {
                 nfTray.Icon = Properties.Resources.YChanEx;
         }
         #endregion
-        #region MenuBar (mSettings / mHistory / mLicenseAndSource / mAbout) Click
+        #region MenuBar
         private void mHistory_Click(object sender, EventArgs e) {
             History thHistory = new History();
             thHistory.Show();
@@ -675,7 +702,7 @@ namespace YChanEx {
                     Updater.createUpdaterStub(Convert.ToInt32(Properties.Settings.Default.cloudVersion)); Updater.runUpdater(); this.Close();
         }
         #endregion
-        #region mTray (mTrayShow / mTrayOpen / mTrayClipboard  / mTrayExit) Click
+        #region mTray
         private void mTrayShow_Click(object sender, EventArgs e) {
             if (this.Visible) {
                 mTrayShow.Text = "Show";
@@ -702,7 +729,7 @@ namespace YChanEx {
             this.Close();
         }
         #endregion
-        #region mThreads (mThreadsOpenF / mThreadsOpenB / mThreadsCopyL / mThreadsRemove) Click
+        #region mThreads
         private void mThreadsOpenF_Click(object sender, EventArgs e) {
             if (tPos != -1) {
                 string sPath = clThreads[tPos].getPath();
@@ -732,7 +759,7 @@ namespace YChanEx {
             }
         }
         #endregion
-        #region mBoards (mBoardsOpenF / mBoardsOpenB / mBoardsCopyL / mBoardsRemove) Click
+        #region mBoards
         private void mBoardsOpenF_Click(object sender, EventArgs e) {
             if (bPos != -1) {
                 string sPath = clBoards[bPos].getPath();
@@ -760,26 +787,5 @@ namespace YChanEx {
             }
         }
         #endregion
-
-        #region Debug (mDebugTitle / mDebugID) Click
-        private void mDebugTitle_Click(object sender, EventArgs e) {
-            if (Clipboard.GetText().StartsWith("https://4chan.org/") || Clipboard.GetText().StartsWith("https://www.4chan.org/") || Clipboard.GetText().StartsWith("https://boards.4chan.org/"))
-                MessageBox.Show(getTitle(true, Clipboard.GetText()));
-            else if (Clipboard.GetText().StartsWith("https://8ch.net/") || Clipboard.GetText().StartsWith("https://www.8ch.net/") || Clipboard.GetText().StartsWith("https://8chan.co/") || Clipboard.GetText().StartsWith("https://www.8chan.co/"))
-                MessageBox.Show(getTitle(false, Clipboard.GetText()));
-        }
-        private void mDebugID_Click(object sender, EventArgs e) { }
-        #endregion
-
-        private void mReload_Click(object sender, EventArgs e) {
-
-        }
-        private void mSave_Click(object sender, EventArgs e) {
-
-        }
-        private void mUpdates_Click(object sender, EventArgs e) {
-
-        }
-
     }
 }

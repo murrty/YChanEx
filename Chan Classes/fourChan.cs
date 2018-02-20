@@ -155,6 +155,8 @@ namespace YChanEx {
 
                 this.checkedAt = resp.LastModified;
 
+                Thread.Sleep(5000);
+
                 return true;
             }
             catch (WebException webEx) {
@@ -185,6 +187,8 @@ namespace YChanEx {
                     return;
                 }
                 string str = Controller.getJSON(JURL);
+                if (string.IsNullOrEmpty(str))
+                    return;
                 curl = this.getURL();
                 website = Controller.getHTML(this.getURL());
 

@@ -11,6 +11,8 @@ using System.Diagnostics;
 using System.Runtime.Serialization.Json;
 using System.Xml.Linq;
 using System.Text.RegularExpressions;
+using System.Runtime.InteropServices;
+using Microsoft.Win32;
 
 namespace YChanEx {
     class Controller {
@@ -24,9 +26,22 @@ namespace YChanEx {
          * 5 = u18chan
         */
 
-        static string settingsDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\YChanEx";
+        /// <summary>
+        /// The directory where the settings is stored (AppData/Local)
+        /// </summary>
+        public static readonly string settingsDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\YChanEx";
+        /// <summary>
+        /// Empty XML template. Not used for anything other than detecting pages that are empty.
+        /// </summary>
+        public static readonly string emptyXML = "<root type=\"array\"></root>";
 
+        /// <summary>
+        /// Load the saved urls to resume downloading.
+        /// </summary>
+        /// <param name="board">Load the boards from the board list.</param>
+        /// <returns></returns>
         public static string loadURLs(bool board) {
+            board = false;
             if (board && File.Exists(settingsDir + "\\boards.dat"))
                 return File.ReadAllText(settingsDir + "\\boards.dat");
             else if (!board && File.Exists(settingsDir + "\\threads.dat"))
@@ -34,23 +49,85 @@ namespace YChanEx {
             else
                 return "";
         }
+        /// <summary>
+        /// Saves the urls being downloaded to be resumed when opened next.
+        /// </summary>
+        /// <param name="Boards">The list that contains the boards.</param>
+        /// <param name="Threads">The list that contains the threads.</param>
         public static void saveURLs(List<ImageBoard> Boards, List<ImageBoard> Threads) {
-            string Buffer = "";
-            for (int i = 0; i < Boards.Count; i++)
-                Buffer = Buffer + Boards[i].getURL() + "\n";
-            if (!File.Exists(settingsDir + "\\boards.dat"))
-                File.Create(settingsDir + "\\boards.dat").Dispose();
-            File.WriteAllText(settingsDir + "\\boards.dat", Buffer);
+            try {
+                string Buffer = string.Empty;
+                //for (int i = 0; i < Boards.Count; i++)
+                //    Buffer = Buffer + Boards[i].getURL() + "\n";
 
-            Buffer = "";
+                //MessageBox.Show(Buffer);
+                //if (!File.Exists(settingsDir + "\\boards.dat"))
+                //    File.Create(settingsDir + "\\boards.dat").Dispose();
+                //File.WriteAllText(settingsDir + "\\boards.dat", Buffer);
 
-            for (int i = 0; i < Threads.Count; i++)
-                Buffer = Buffer + Threads[i].getURL() + "\n";
-            if (!File.Exists(settingsDir + "\\threads.dat"))
-                File.Create(settingsDir + "\\threads.dat").Dispose();
-            File.WriteAllText(settingsDir + "\\threads.dat", Buffer);
+                Buffer = string.Empty;
+
+                for (int i = 0; i < Threads.Count; i++)
+                    Buffer = Buffer + Threads[i].getURL() + "\n";
+                MessageBox.Show(Buffer);
+                if (!File.Exists(settingsDir + "\\threads.dat"))
+                    File.Create(settingsDir + "\\threads.dat").Dispose();
+                File.WriteAllText(settingsDir + "\\threads.dat", Buffer);
+            }
+            catch (Exception ex) {
+                MessageBox.Show(ex.ToString());
+            }
+        }
+        public static bool installProtocol() {
+            string directory = Environment.CurrentDirectory;
+            string filename = AppDomain.CurrentDomain.FriendlyName;
+            switch (MessageBox.Show("Would you like to specifiy a location to store YChanEx? Select no to use current directory.\n\nThis is required for the plugin to work properly, and is recommended that you select a place that won't be messed with AND have permission to write files to.", "YChanEx", MessageBoxButtons.YesNoCancel)) {
+                case DialogResult.Yes:
+                    using (FolderBrowserDialog fbd = new FolderBrowserDialog() { Description = "Select a directory to store YChanEx.exe", SelectedPath = Environment.CurrentDirectory, ShowNewFolderButton = true }) {
+                        if (fbd.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
+                            directory = fbd.SelectedPath;
+                        }
+                        else {
+                            return false;
+                        }
+                    }
+                    break;
+                case DialogResult.Cancel:
+                    return false;
+            }
+            if (File.Exists(directory + "\\YChanEx.exe"))
+                File.Delete(directory + "\\YChanEx.exe");
+
+            File.Copy(Environment.CurrentDirectory + "\\" + filename, directory + "\\YChanEx.exe");
+
+            Registry.ClassesRoot.CreateSubKey("ychanex");
+            RegistryKey setIdentifier = Registry.ClassesRoot.OpenSubKey("ychanex", true);
+            setIdentifier.SetValue("URL Protocol", "");
+            Registry.ClassesRoot.CreateSubKey("ychanex\\shell");
+            Registry.ClassesRoot.CreateSubKey("ychanex\\shell\\open");
+            Registry.ClassesRoot.CreateSubKey("ychanex\\shell\\open\\command");
+            RegistryKey setProtocol = Registry.ClassesRoot.OpenSubKey("ychanex\\shell\\open\\command", true);
+            setProtocol.SetValue("", "\"" + directory + "\\YChanEx.exe\" \"%1\"");
+            Registry.ClassesRoot.CreateSubKey("ychanex\\DefaultIcon");
+            RegistryKey setIcon = Registry.ClassesRoot.OpenSubKey("ychanex\\DefaultIcon", true);
+            setIcon.SetValue("", "\"" + directory + "\\YChanEx.exe\",1");
+
+            if (MessageBox.Show("Protocol information set. Would you like to install the plugin? Requires Greasemonkey/Tampermonkey add-on for your browser.", "YChanEx", MessageBoxButtons.YesNo) == DialogResult.Yes) {
+                Process.Start("https://github.com/murrty/YChanEx/raw/master/Plugin/YChanEx.user.js");
+            }
+
+            Process.Start(directory + "\\YChanEx.exe");
+            Environment.Exit(0);
+            return true;
         }
 
+        public const int HWND_BROADCAST = 0xffff;
+        public static readonly int WM_ADDDOWNLOAD = RegisterWindowMessage("WM_ADDDOWNLOAD");
+        public static readonly int WM_SHOWFORM = RegisterWindowMessage("WM_SHOWFORM");
+        [DllImport("user32")]
+        public static extern bool PostMessage(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam, bool download = false, string url = null);
+        [DllImport("user32")]
+        public static extern int RegisterWindowMessage(string message);
         public static ImageBoard createNewIMB(string url, bool board) {
             if (!board) {
                 if (fourChan.isThread(url))
@@ -68,14 +145,19 @@ namespace YChanEx {
                         return new uEighteenChan(url, false);
             }
             //} else {
-            //        if (Fchan.isBoard(url))
-            //            return new Fchan(url, board);
-            //        else if (InfiniteChan.isBoard(url))
-            //            return new InfiniteChan(url, board);
+            //        if (fourChan.isBoard(url))
+            //            return new fourChan(url, board);
+            //        else if (infiniteChan.isBoard(url))
+            //            return new infiniteChan(url, board);
             //    }
             return null;
         }
 
+        /// <summary>
+        /// Checks the URL if it is supported for downloading.
+        /// </summary>
+        /// <param name="URL">The URL that will be checked.</param>
+        /// <returns></returns>
         public static bool isSupported(string URL) {
             if (URL.StartsWith("https://4chan.org/")) return true;
             else if (URL.StartsWith("https://www.4chan.org/")) return true;
@@ -157,7 +239,10 @@ namespace YChanEx {
                         var xml = XDocument.Load(jsonReader);
                         stream.Flush();
                         stream.Close();
-                        return xml.ToString();
+                        if (xml.ToString() == emptyXML)
+                            return null;
+                        else
+                            return xml.ToString();
                     }
                 }
             }

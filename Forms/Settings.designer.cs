@@ -64,6 +64,8 @@
             this.rbAdvanced = new System.Windows.Forms.RadioButton();
             this.rbRegular = new System.Windows.Forms.RadioButton();
             this.label1 = new System.Windows.Forms.Label();
+            this.btnProtocol = new System.Windows.Forms.Button();
+            this.btnUserScript = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.edtTimer)).BeginInit();
             this.tabControl1.SuspendLayout();
             this.tabDownloads.SuspendLayout();
@@ -557,12 +559,36 @@
             this.label1.TabIndex = 13;
             this.label1.Text = "This will reset the settings you choose to reset!";
             // 
+            // btnProtocol
+            // 
+            this.btnProtocol.Enabled = false;
+            this.btnProtocol.Location = new System.Drawing.Point(91, 181);
+            this.btnProtocol.Name = "btnProtocol";
+            this.btnProtocol.Size = new System.Drawing.Size(116, 24);
+            this.btnProtocol.TabIndex = 20;
+            this.btnProtocol.Text = "Install protocol";
+            this.btnProtocol.UseVisualStyleBackColor = true;
+            this.btnProtocol.Visible = false;
+            this.btnProtocol.Click += new System.EventHandler(this.btnProtocol_Click);
+            // 
+            // btnUserScript
+            // 
+            this.btnUserScript.Location = new System.Drawing.Point(10, 182);
+            this.btnUserScript.Name = "btnUserScript";
+            this.btnUserScript.Size = new System.Drawing.Size(75, 23);
+            this.btnUserScript.TabIndex = 21;
+            this.btnUserScript.Text = "Userscript";
+            this.btnUserScript.UseVisualStyleBackColor = true;
+            this.btnUserScript.Click += new System.EventHandler(this.btnUserScript_Click);
+            // 
             // Settings
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.ClientSize = new System.Drawing.Size(402, 212);
+            this.Controls.Add(this.btnUserScript);
+            this.Controls.Add(this.btnProtocol);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.btnSCan);
             this.Controls.Add(this.btnSSave);
@@ -632,5 +658,7 @@
         private System.Windows.Forms.RadioButton rbAdvanced;
         private System.Windows.Forms.RadioButton rbRegular;
         private System.Windows.Forms.CheckBox chkPreventDupes;
+        private System.Windows.Forms.Button btnProtocol;
+        private System.Windows.Forms.Button btnUserScript;
     }
 }
