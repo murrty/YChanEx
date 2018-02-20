@@ -69,7 +69,6 @@ namespace YChanEx {
 
                 for (int i = 0; i < Threads.Count; i++)
                     Buffer = Buffer + Threads[i].getURL() + "\n";
-                MessageBox.Show(Buffer);
                 if (!File.Exists(settingsDir + "\\threads.dat"))
                     File.Create(settingsDir + "\\threads.dat").Dispose();
                 File.WriteAllText(settingsDir + "\\threads.dat", Buffer);
@@ -79,26 +78,29 @@ namespace YChanEx {
             }
         }
         public static bool installProtocol() {
-            string directory = Environment.CurrentDirectory;
+            string directory = string.Empty;
             string filename = AppDomain.CurrentDomain.FriendlyName;
             switch (MessageBox.Show("Would you like to specifiy a location to store YChanEx? Select no to use current directory.\n\nThis is required for the plugin to work properly, and is recommended that you select a place that won't be messed with AND have permission to write files to.", "YChanEx", MessageBoxButtons.YesNoCancel)) {
                 case DialogResult.Yes:
                     using (FolderBrowserDialog fbd = new FolderBrowserDialog() { Description = "Select a directory to store YChanEx.exe", SelectedPath = Environment.CurrentDirectory, ShowNewFolderButton = true }) {
                         if (fbd.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
                             directory = fbd.SelectedPath;
+                            if (File.Exists(directory + "\\YChanEx.exe"))
+                                File.Delete(directory + "\\YChanEx.exe");
+
+                            File.Copy(Environment.CurrentDirectory + "\\" + filename, directory + "\\YChanEx.exe");
                         }
                         else {
                             return false;
                         }
                     }
                     break;
+                case DialogResult.No:
+                    directory = Environment.CurrentDirectory;
+                    break;
                 case DialogResult.Cancel:
                     return false;
             }
-            if (File.Exists(directory + "\\YChanEx.exe"))
-                File.Delete(directory + "\\YChanEx.exe");
-
-            File.Copy(Environment.CurrentDirectory + "\\" + filename, directory + "\\YChanEx.exe");
 
             Registry.ClassesRoot.CreateSubKey("ychanex");
             RegistryKey setIdentifier = Registry.ClassesRoot.OpenSubKey("ychanex", true);

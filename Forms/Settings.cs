@@ -27,8 +27,12 @@ namespace YChanEx {
             if (regKey == null) {
                 btnProtocol.Visible = true;
                 btnProtocol.Enabled = true;
-                if (!(new WindowsPrincipal(WindowsIdentity.GetCurrent())).IsInRole(WindowsBuiltInRole.Administrator))
+                if (!(new WindowsPrincipal(WindowsIdentity.GetCurrent())).IsInRole(WindowsBuiltInRole.Administrator)) {
                     UACShield(btnProtocol);
+                }
+                else {
+                    isAdmin = true;
+                }
             }
 
             btnSSave.DialogResult = DialogResult.OK;
@@ -37,7 +41,6 @@ namespace YChanEx {
 
         private void Settings_Shown(object sender, EventArgs e) {
             loadSettings();
-
         }
         #endregion
 
