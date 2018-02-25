@@ -24,12 +24,12 @@ namespace YChanEx {
         /// </summary>
         /// <param name="webEx">The caught web exception.</param>
         /// <param name="url">(Optional) The URL attempting to be downloaded.</param>
-        public static void reportWebError(WebException webEx, string url = "Not defined") {
+        public static void reportWebError(WebException webEx, string url = "Not defined", string method = "Not defined") {
             if (Adv.Default.disableErrors)
                 return;
 
             if (webEx.Status.ToString() == "Timeout") {
-                MessageBox.Show("Downloading " + url + " caused a timeout.\nIt may be temporary. Try downloading later.");
+                MessageBox.Show("Downloading " + url + " caused a timeout.\nIt may be temporary. Try downloading later.\n\nTimeout in " + method);
                 return;
             }
 

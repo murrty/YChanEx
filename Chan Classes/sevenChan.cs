@@ -54,8 +54,6 @@ namespace YChanEx {
 
                 this.checkedAt = resp.LastModified;
 
-                Thread.Sleep(5000);
-
                 return true;
             }
             catch (WebException webEx) {
@@ -82,9 +80,9 @@ namespace YChanEx {
             string website;
 
             try {
-                if (!isModified(this.getURL())) {
-                    return;
-                }
+                //if (!isModified(this.getURL())) {
+                //    return;
+                //}
                 website = Controller.getHTML(this.getURL());
 
                 string[] lines = website.Split('\n');

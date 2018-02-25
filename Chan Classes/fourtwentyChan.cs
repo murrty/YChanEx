@@ -82,9 +82,9 @@ namespace YChanEx {
             string website;
 
             try {
-                if (!isModified(this.getURL())) {
-                    return;
-                }
+                //if (!isModified(this.getURL())) {
+                //    return;
+                //}
                 string str = Controller.getJSON(JURL);
                 website = Controller.getHTML(this.getURL());
 

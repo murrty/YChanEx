@@ -78,9 +78,9 @@ namespace YChanEx {
             string website;
 
             try {
-                if (!isModified(this.getURL())) {
-                    return;
-                }
+                //if (!isModified(this.getURL())) {
+                //    return;
+                //}
                 website = Controller.getHTML(this.getURL(), true, reqCookie);
 
                 string[] lines = website.Split('\n');

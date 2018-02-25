@@ -72,9 +72,9 @@ namespace YChanEx {
             string website;                // The string that contains the source for HTML saving.
 
             try {
-                if (!isModified(this.getURL())) {
-                    return;
-                }
+                //if (!isModified(this.getURL())) {
+                //    return;
+                //}
                 website = Controller.getHTML(this.getURL());
 
                 // Download the HTML source

@@ -40,6 +40,7 @@
             this.mLicenseAndSource = new System.Windows.Forms.MenuItem();
             this.mHelpSep = new System.Windows.Forms.MenuItem();
             this.mAbout = new System.Windows.Forms.MenuItem();
+            this.mUpdateAvailable = new System.Windows.Forms.MenuItem();
             this.mTray = new System.Windows.Forms.ContextMenu();
             this.mTrayShow = new System.Windows.Forms.MenuItem();
             this.mTraySep1 = new System.Windows.Forms.MenuItem();
@@ -60,7 +61,6 @@
             this.mBoardsCopyL = new System.Windows.Forms.MenuItem();
             this.mBoardsSep = new System.Windows.Forms.MenuItem();
             this.mBoardsRemove = new System.Windows.Forms.MenuItem();
-            this.mUpdateAvailable = new System.Windows.Forms.MenuItem();
             this.tcApp.SuspendLayout();
             this.tpThreads.SuspendLayout();
             this.tpBoard.SuspendLayout();
@@ -105,7 +105,7 @@
             this.tpBoard.Location = new System.Drawing.Point(4, 22);
             this.tpBoard.Name = "tpBoard";
             this.tpBoard.Padding = new System.Windows.Forms.Padding(3);
-            this.tpBoard.Size = new System.Drawing.Size(374, 204);
+            this.tpBoard.Size = new System.Drawing.Size(374, 224);
             this.tpBoard.TabIndex = 1;
             this.tpBoard.Text = "Boards";
             this.tpBoard.UseVisualStyleBackColor = true;
@@ -117,7 +117,7 @@
             this.lbBoards.FormattingEnabled = true;
             this.lbBoards.Location = new System.Drawing.Point(3, 3);
             this.lbBoards.Name = "lbBoards";
-            this.lbBoards.Size = new System.Drawing.Size(368, 198);
+            this.lbBoards.Size = new System.Drawing.Size(368, 218);
             this.lbBoards.TabIndex = 4;
             this.lbBoards.MouseDown += new System.Windows.Forms.MouseEventHandler(this.lbBoards_MouseDown);
             // 
@@ -163,19 +163,19 @@
             // 
             // mHistory
             // 
-            this.mHistory.Index = 1;
+            this.mHistory.Index = 0;
             this.mHistory.Text = "History";
             this.mHistory.Click += new System.EventHandler(this.mHistory_Click);
             // 
             // mSettings
             // 
-            this.mSettings.Index = 2;
+            this.mSettings.Index = 1;
             this.mSettings.Text = "Settings";
             this.mSettings.Click += new System.EventHandler(this.mSettings_Click);
             // 
             // mHelp
             // 
-            this.mHelp.Index = 3;
+            this.mHelp.Index = 2;
             this.mHelp.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.mLicenseAndSource,
             this.mHelpSep,
@@ -198,6 +198,14 @@
             this.mAbout.Index = 2;
             this.mAbout.Text = "About";
             this.mAbout.Click += new System.EventHandler(this.mAbout_Click);
+            // 
+            // mUpdateAvailable
+            // 
+            this.mUpdateAvailable.Enabled = false;
+            this.mUpdateAvailable.Index = 3;
+            this.mUpdateAvailable.Text = "Update available";
+            this.mUpdateAvailable.Visible = false;
+            this.mUpdateAvailable.Click += new System.EventHandler(this.mUpdateAvailable_Click);
             // 
             // mTray
             // 
@@ -325,14 +333,6 @@
             this.mBoardsRemove.Index = 4;
             this.mBoardsRemove.Text = "Remove";
             this.mBoardsRemove.Click += new System.EventHandler(this.mBoardsRemove_Click);
-            // 
-            // mUpdateAvailable
-            // 
-            this.mUpdateAvailable.Enabled = false;
-            this.mUpdateAvailable.Index = 3;
-            this.mUpdateAvailable.Text = "Update available";
-            this.mUpdateAvailable.Visible = false;
-            this.mUpdateAvailable.Click += new System.EventHandler(this.mUpdateAvailable_Click);
             // 
             // frmMain
             // 

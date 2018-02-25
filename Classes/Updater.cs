@@ -23,6 +23,7 @@ namespace YChanEx {
 
         public static string getJSON(string url) {
             try {
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
                 using (WebClient wc = new WebClient()) {
                     wc.Headers.Add("User-Agent: " + Adv.Default.UserAgent);
                     string json = wc.DownloadString(url);

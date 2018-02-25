@@ -155,8 +155,6 @@ namespace YChanEx {
 
                 this.checkedAt = resp.LastModified;
 
-                Thread.Sleep(5000);
-
                 return true;
             }
             catch (WebException webEx) {
@@ -183,9 +181,9 @@ namespace YChanEx {
             try {
                 string JURL = "https://a.4cdn.org/" + getURL().Split('/')[3] + "/thread/" + getURL().Split('/')[5] + ".json";
                 curl = JURL;
-                if (!isModified(JURL)) {
-                    return;
-                }
+                //if (!isModified(JURL)) {
+                //    return;
+                //}
                 string str = Controller.getJSON(JURL);
                 if (string.IsNullOrEmpty(str))
                     return;
@@ -266,8 +264,9 @@ namespace YChanEx {
                 foreach (Match script in siteScript.Matches(website))
                     website = website.Replace(script.ToString(), string.Empty);
 
-                if (YCSettings.Default.htmlDownload == true && website != "")
+                if (YCSettings.Default.htmlDownload == true && website != "") {
                     Controller.saveHTML(false, website.Replace("class=\"fileThumb\" href=\"thumb/", "class=\"fileThumb\" href=\""), this.SaveTo);
+                }
             }
             catch (ThreadAbortException) {
                 return;

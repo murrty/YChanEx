@@ -166,9 +166,9 @@ namespace YChanEx
             string website = "";
             try {
                 string JURL = this.getURL().Replace(".html", ".json");
-                if (!isModified(JURL)) {
-                    return;
-                }
+                //if (!isModified(JURL)) {
+                //    return;
+                //}
                 string str = Controller.getJSON(JURL);
                 website = Controller.getHTML(this.getURL());
 

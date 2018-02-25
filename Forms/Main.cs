@@ -51,7 +51,7 @@ namespace YChanEx {
 
             if (YCSettings.Default.updaterEnabled) {
                 checkUpdates = new Thread(() => {
-                    var cV = Updater.getCloudVersion();
+                    Decimal cV = Updater.getCloudVersion();
 
                     if (Updater.isUpdateAvailable(cV)) {
                         if (MessageBox.Show("An update is available. \nNew verison: " + cV.ToString() + " | Your version: " + Properties.Settings.Default.currentVersion.ToString() + "\n\nWould you like to update?", "YChanEx", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes) {
@@ -204,7 +204,6 @@ namespace YChanEx {
             }
 
             if (YCSettings.Default.warnOnClose && clThreads.Count > 0) {
-                e.Cancel = true;
                 CloseWarn clw = new CloseWarn();
                 if (clw.ShowDialog() == DialogResult.OK) {
                     foreach (string thrItem in lbThreads.Items)
@@ -214,10 +213,18 @@ namespace YChanEx {
                     Environment.Exit(0);
                 }
                 else {
+                    e.Cancel = true;
                     scnTimer.Start();
                 }
                 clw.Close();
                 clw.Dispose();
+            }
+            else if (clThreads.Count > 0) {
+                foreach (string thrItem in lbThreads.Items)
+                    thrThreads[lbThreads.Items.IndexOf(thrItem)].Abort();
+
+                YCSettings.Default.Save();
+                Environment.Exit(0);
             }
         }
 

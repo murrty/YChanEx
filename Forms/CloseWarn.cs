@@ -31,6 +31,10 @@ namespace YChanEx {
         #region Buttons
         private void BtnClose_Click(object sender, EventArgs e) {
             // this.DialogResult = DialogResult.OK;
+            if (chkWarning.Checked) {
+                YCSettings.Default.warnOnClose = false;
+            }
+            YCSettings.Default.Save();
         }
         private void BtnNoClose_Click(object sender, EventArgs e) {
             // this.Close();
