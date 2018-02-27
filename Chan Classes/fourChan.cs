@@ -55,136 +55,43 @@ namespace YChanEx {
             return false;
         }
 
-        override protected string getLinks() {
-            string exed = "";
-            string JSONUrl = "http://a.4cdn.org/" + getURL().Split('/')[3] +"/thread/" + getURL().Split('/')[5] +".json";
-            string baseURL = "http://i.4cdn.org/" + getURL().Split('/')[3] + "/";
-            string str = "";
-            XmlNodeList xmlTim;
-            XmlNodeList xmlExt;
-            XmlNodeList xmlFilename;
-            try {
-                string Content;
-                using(WebClient wc = new WebClient()){
-                    wc.Headers.Add("User-Agent: " + Adv.Default.UserAgent);
-                    Content = wc.DownloadString(JSONUrl);
-                }
-
-                byte[] bytes = Encoding.ASCII.GetBytes(Content);
-                using(var stream = new MemoryStream(bytes)) {
-                    var quotas = new XmlDictionaryReaderQuotas();
-                    var jsonReader = JsonReaderWriterFactory.CreateJsonReader(stream, quotas);
-                    var xml = XDocument.Load(jsonReader);
-                    str = xml.ToString();
-                    stream.Flush();
-                    stream.Close();
-                }
-
-                XmlDocument doc = new XmlDocument();
-                doc.LoadXml(str);
-                if (getURL().Split('/')[3] == "f")
-                    xmlTim = doc.DocumentElement.SelectNodes("/root/posts/item/filename");
-                else
-                    xmlTim = doc.DocumentElement.SelectNodes("/root/posts/item/tim");
-
-                xmlFilename = doc.DocumentElement.SelectNodes("/root/posts/item/filename");
-
-                xmlExt     = doc.DocumentElement.SelectNodes("/root/posts/item/ext");
-                for(int i = 0; i < xmlExt.Count; i++) {
-                    exed = exed + baseURL + xmlTim[i].InnerText + xmlExt[i].InnerText + "\n";
-                    // MessageBox.Show(exed);
-                }
-
-                return exed;
-            }
-            catch(WebException webEx) {
-                if (((int)webEx.Status) == 7)
-                    this.Gone = true;
-                else
-                    ErrorLog.reportWebError(webEx);
-                throw webEx;
-            }
-            catch (Exception ex) { 
-                ErrorLog.reportError(ex.ToString()); throw ex;
-            }
-        }
-        override public string getThreads() {
-            string URL = "http://a.4cdn.org/" + getURL().Split('/')[3] + "/catalog.json";
-            string Res = "";
-            string str = "";
-            XmlNodeList tNa;
-            XmlNodeList tNo;
-            try {
-                string json = new WebClient().DownloadString(URL);
-                byte[] bytes = Encoding.ASCII.GetBytes(json);
-                using(var stream = new MemoryStream(bytes)) {
-                    var quotas = new XmlDictionaryReaderQuotas();
-                    var jsonReader = JsonReaderWriterFactory.CreateJsonReader(stream, quotas);
-                    var xml = XDocument.Load(jsonReader);
-                    str = xml.ToString();
-                    stream.Flush();
-                    stream.Close();
-                }
-
-                XmlDocument doc = new XmlDocument();
-                doc.LoadXml(str);
-                tNo     = doc.DocumentElement.SelectNodes("/root/item/threads/item/no");
-                tNa     = doc.DocumentElement.SelectNodes("/root/item/threads/item/semantic_url");
-                for(int i = 0; i < tNo.Count; i++) {
-                    Res = Res + "http://boards.4chan.org/" + getURL().Split('/')[3] + "/thread/" + tNo[i].InnerText + "/" + tNa[i].InnerText + "\n";
-                }
-            }
-            catch(WebException webEx) {
-                Debug.Print(webEx.ToString());
-                ErrorLog.reportWebError(webEx);    
-            }
-            catch (Exception ex) {
-                ErrorLog.reportError(ex.ToString());
-            }
-
-            return Res;
-        }
-
-        public bool isModified(string url) {
-            try {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-                request.UserAgent = Adv.Default.UserAgent;
-                request.IfModifiedSince = this.checkedAt;
-                request.Method = "HEAD";
-                var resp = (HttpWebResponse)request.GetResponse();
-
-                this.checkedAt = resp.LastModified;
-
-                return true;
-            }
-            catch (WebException webEx) {
-                var response = (HttpWebResponse)webEx.Response;
-                if (webEx.Status != WebExceptionStatus.ProtocolError || response.StatusCode != HttpStatusCode.NotModified) {
-                    Debug.Print("========== WEBERROR OCCURED ==========");
-                    Debug.Print("URL: " + url);
-                    Debug.Print(webEx.ToString());
-                    throw (WebException)webEx;
-                }
-
-                return false;
-            }
-        }
-
         override public void download() {
-            string[] URLs;                                                      // Array of the image URLs
-            string[] thumbs;                                                    // Array of the thumbnail URLs
-            string strThumbs = "";                                              // ?
+            List<string> urls = new List<string>();
+            List<string> thumbs = new List<string>();
             string baseURL = "//i.4cdn.org/" + getURL().Split('/')[3] + "/";    // Base URL used for downloading the files
             string website;                                                     // String that contains the source of the thread
             string curl = "Not defined";
+            string JURL = "https://a.4cdn.org/" + getURL().Split('/')[3] + "/thread/" + getURL().Split('/')[5] + ".json";
 
             try {
-                string JURL = "https://a.4cdn.org/" + getURL().Split('/')[3] + "/thread/" + getURL().Split('/')[5] + ".json";
                 curl = JURL;
-                //if (!isModified(JURL)) {
-                //    return;
-                //}
-                string str = Controller.getJSON(JURL);
+
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(JURL);
+                request.UserAgent = Adv.Default.UserAgent;
+                request.IfModifiedSince = this.checkedAt;
+                request.Method = "GET";
+                var resp = (HttpWebResponse)request.GetResponse();
+                this.checkedAt = resp.LastModified;
+                var respstream = resp.GetResponseStream();
+                string str = string.Empty;
+                using (StreamReader reader = new StreamReader(respstream)) {
+                    string json = reader.ReadToEnd();
+                    byte[] bytes = Encoding.ASCII.GetBytes(json);
+                    using (var stream = new MemoryStream(bytes)) {
+                        var quotas = new XmlDictionaryReaderQuotas();
+                        var jsonReader = JsonReaderWriterFactory.CreateJsonReader(stream, quotas);
+                        var xml = XDocument.Load(jsonReader);
+                        stream.Flush();
+                        stream.Close();
+                        if (xml.ToString() == Controller.emptyXML)
+                            str = null;
+                        else
+                            str =  xml.ToString();
+                    }
+                }
+                resp.Dispose();
+                respstream.Dispose();
+
                 if (string.IsNullOrEmpty(str))
                     return;
                 curl = this.getURL();
@@ -202,8 +109,10 @@ namespace YChanEx {
                     string rep = xmlTim[i].InnerText + xmlExt[i].InnerText;
                     website = website.Replace(old, rep);
 
+                    urls.Add("https:" + baseURL + xmlTim[i].InnerText + xmlExt[i].InnerText);
+                    thumbs.Add("https:" + baseURL + xmlTim[i].InnerText + "s.jpg");
+
                     old = "//t.4cdn.org/" + getURL().Split('/')[3] + "/" + xmlTim[i].InnerText + "s.jpg";
-                    strThumbs = strThumbs + "https:" + old + "\n";
                     website = website.Replace("//i.4cdn.org/" + getURL().Split('/')[3], "thumb");
                 }
 
@@ -211,13 +120,12 @@ namespace YChanEx {
 
                 if (!Directory.Exists(this.SaveTo))
                     Directory.CreateDirectory(this.SaveTo);
-                URLs = Regex.Split(getLinks(), "\n");
 
                 string newfilename = string.Empty;
 
-                for (int y = 0; y < URLs.Length - 1; y++) {
+                for (int y = 0; y < urls.Count; y++) {
                     if (YCSettings.Default.originalName) {
-                        curl = URLs[y];
+                        curl = urls[y];
                         string[] badchars = new string[] { "\\", "/", ":", "*", "?", "\"", "<", ">", "|" };
                         newfilename = xmlFilename[y].InnerText;
 
@@ -229,32 +137,30 @@ namespace YChanEx {
                                 if (!thisFileExists(this.SaveTo + "\\" + newfilename + xmlExt[y].InnerText, xmlMd5[y].InnerText)) {
                                     if (!thisFileExists(this.SaveTo + "\\" + newfilename + " (" + y + ")" + xmlExt[y].InnerText, xmlMd5[y].InnerText)) {
                                         newfilename += " (" + y.ToString() + ")" + xmlExt[y].InnerText;
-                                        Controller.downloadFile(URLs[y], this.SaveTo, true, newfilename);
+                                        Controller.downloadFile(urls[y], this.SaveTo, true, newfilename);
                                     }
                                 }
                             }
                             else {
                                 newfilename += xmlExt[y].InnerText;
-                                Controller.downloadFile(URLs[y], this.SaveTo, true, newfilename);
+                                Controller.downloadFile(urls[y], this.SaveTo, true, newfilename);
                             }
                         }
                         else {
                             newfilename += xmlExt[y].InnerText;
-                            Controller.downloadFile(URLs[y], this.SaveTo, true, newfilename);
+                            Controller.downloadFile(urls[y], this.SaveTo, true, newfilename);
                         }
 
                         website = website.Replace(xmlTim[y].InnerText + xmlExt[y].InnerText, newfilename);
                     }
                     else {
-                        Controller.downloadFile(URLs[y], this.SaveTo);
+                        Controller.downloadFile(urls[y], this.SaveTo);
                     }
                 }
 
 
                 if (YCSettings.Default.downloadThumbnails) {
-                    thumbs = strThumbs.Split('\n');
-
-                    for (int i = 0; i < thumbs.Length - 1; i++) {
+                    for (int i = 0; i < thumbs.Count; i++) {
                         curl = thumbs[i];
                         Controller.downloadFile(thumbs[i], this.SaveTo + "\\thumb");
                     }
@@ -273,10 +179,13 @@ namespace YChanEx {
             }
             catch (WebException webEx) {
                 Debug.Print(webEx.ToString());
-                if (((int)webEx.Status) == 7)
-                    this.Gone = true;
-                else
-                    ErrorLog.reportWebError(webEx, curl);
+                var response = (HttpWebResponse)webEx.Response;
+                if (webEx.Status != WebExceptionStatus.ProtocolError || response.StatusCode != HttpStatusCode.NotModified) {
+                    if (((int)webEx.Status) == 7)
+                        this.Gone = true;
+                    else
+                        ErrorLog.reportWebError(webEx, curl);
+                }
 
                 GC.Collect();
                 return;
@@ -292,6 +201,9 @@ namespace YChanEx {
 
         public static bool thisFileExists(string file, string hash) {
             try {
+                if (!File.Exists(file)) {
+                    return false;
+                }
                 string output;
                 using (System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create()) {
                     using (var stream = File.OpenRead(file)) {
