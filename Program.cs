@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ namespace YChanEx {
 
         [STAThread]
         static void Main() {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             if ((new WindowsPrincipal(WindowsIdentity.GetCurrent())).IsInRole(WindowsBuiltInRole.Administrator)) {
                 for (int i = 1; i < Environment.GetCommandLineArgs().Length; i++) {
                     string arg = Environment.GetCommandLineArgs()[i];
@@ -34,13 +36,13 @@ namespace YChanEx {
                     string arg = Environment.GetCommandLineArgs()[i].Replace("ychanex:", "");
                     if (Controller.isSupported(arg)) {
                         File.WriteAllText(Controller.settingsDir + "\\Arg.nfo", arg);
-                        Controller.PostMessage((IntPtr)Controller.HWND_BROADCAST, Controller.WM_ADDDOWNLOAD, IntPtr.Zero, IntPtr.Zero);
+                        Controller.PostMessage((IntPtr)Controller.HWND_YCXBROADCAST, Controller.WM_ADDYCXDOWNLOAD, IntPtr.Zero, IntPtr.Zero);
                         isDownload = true;
                         break;
                     }
                 }
                 if (!isDownload) {
-                    Controller.PostMessage((IntPtr)Controller.HWND_BROADCAST, Controller.WM_SHOWFORM, IntPtr.Zero, IntPtr.Zero);
+                    Controller.PostMessage((IntPtr)Controller.HWND_YCXBROADCAST, Controller.WM_SHOWYCXFORM, IntPtr.Zero, IntPtr.Zero);
                 }
             }
         }

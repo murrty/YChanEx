@@ -61,6 +61,7 @@
             this.mBoardsCopyL = new System.Windows.Forms.MenuItem();
             this.mBoardsSep = new System.Windows.Forms.MenuItem();
             this.mBoardsRemove = new System.Windows.Forms.MenuItem();
+            this.lbNotice = new System.Windows.Forms.Label();
             this.tcApp.SuspendLayout();
             this.tpThreads.SuspendLayout();
             this.tpBoard.SuspendLayout();
@@ -74,7 +75,7 @@
             this.tcApp.Location = new System.Drawing.Point(0, 0);
             this.tcApp.Name = "tcApp";
             this.tcApp.SelectedIndex = 0;
-            this.tcApp.Size = new System.Drawing.Size(382, 250);
+            this.tcApp.Size = new System.Drawing.Size(382, 209);
             this.tcApp.TabIndex = 0;
             // 
             // tpThreads
@@ -83,7 +84,7 @@
             this.tpThreads.Location = new System.Drawing.Point(4, 22);
             this.tpThreads.Name = "tpThreads";
             this.tpThreads.Padding = new System.Windows.Forms.Padding(3);
-            this.tpThreads.Size = new System.Drawing.Size(374, 224);
+            this.tpThreads.Size = new System.Drawing.Size(374, 183);
             this.tpThreads.TabIndex = 0;
             this.tpThreads.Text = "Threads";
             this.tpThreads.UseVisualStyleBackColor = true;
@@ -95,7 +96,7 @@
             this.lbThreads.FormattingEnabled = true;
             this.lbThreads.Location = new System.Drawing.Point(3, 3);
             this.lbThreads.Name = "lbThreads";
-            this.lbThreads.Size = new System.Drawing.Size(368, 218);
+            this.lbThreads.Size = new System.Drawing.Size(368, 177);
             this.lbThreads.TabIndex = 3;
             this.lbThreads.MouseDown += new System.Windows.Forms.MouseEventHandler(this.lbThreads_MouseDown);
             // 
@@ -334,11 +335,23 @@
             this.mBoardsRemove.Text = "Remove";
             this.mBoardsRemove.Click += new System.EventHandler(this.mBoardsRemove_Click);
             // 
+            // lbNotice
+            // 
+            this.lbNotice.AutoSize = true;
+            this.lbNotice.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lbNotice.Location = new System.Drawing.Point(58, 2);
+            this.lbNotice.Name = "lbNotice";
+            this.lbNotice.Size = new System.Drawing.Size(319, 15);
+            this.lbNotice.TabIndex = 3;
+            this.lbNotice.Text = "The application may not be responding, please be patient";
+            this.lbNotice.Visible = false;
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(382, 250);
+            this.ClientSize = new System.Drawing.Size(382, 209);
+            this.Controls.Add(this.lbNotice);
             this.Controls.Add(this.edtURL);
             this.Controls.Add(this.btnAdd);
             this.Controls.Add(this.tcApp);
@@ -397,6 +410,7 @@
         private System.Windows.Forms.MenuItem mBoardsCopyL;
         private System.Windows.Forms.MenuItem mHistory;
         private System.Windows.Forms.MenuItem mUpdateAvailable;
+        private System.Windows.Forms.Label lbNotice;
     }
 }
 

@@ -21,40 +21,35 @@ namespace YChanEx {
         public static string downloadURL = "https://github.com/murrty/YChanEx/releases/download/%upVersion%/YChanEx.exe";
         public static string updateFile = @"\ycxu.bat";
 
-        public static string getJSON(string url) {
-            try {
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
-                using (WebClient wc = new WebClient()) {
-                    wc.Headers.Add("User-Agent: " + Adv.Default.UserAgent);
-                    string json = wc.DownloadString(url);
-                    byte[] bytes = Encoding.ASCII.GetBytes(json);
-                    using (var stream = new MemoryStream(bytes)) {
-                        var quotas = new XmlDictionaryReaderQuotas();
-                        var jsonReader = JsonReaderWriterFactory.CreateJsonReader(stream, quotas);
-                        var xml = XDocument.Load(jsonReader);
-                        stream.Flush();
-                        stream.Close();
-                        return xml.ToString();
-                    }
-                }
-            }
-            catch (WebException WebE) {
-                Debug.Print(WebE.ToString());
-                MessageBox.Show(WebE.ToString());
-                return null;
-                throw WebE;
-            }
-            catch (Exception ex) {
-                Debug.Print(ex.ToString());
-                MessageBox.Show(ex.ToString());
-                return null;
-                throw ex;
-            }
-        }
-
         public static decimal getCloudVersion() {
             try {
-                string xml = getJSON(githubJSON);
+                string xml = string.Empty;
+                HttpWebRequest requestJSON = (HttpWebRequest)WebRequest.Create(githubJSON);
+                requestJSON.UserAgent = Adv.Default.UserAgent;
+                requestJSON.Method = "GET";
+                var reqResponse = (HttpWebResponse)requestJSON.GetResponse();
+                var responseStream = reqResponse.GetResponseStream();
+                string str = string.Empty;
+                using (StreamReader strReader = new StreamReader(responseStream)) {
+                    string json = strReader.ReadToEnd();
+                    byte[] jBytes = Encoding.ASCII.GetBytes(json);
+                    using (var memStream = new MemoryStream(jBytes)) {
+                        var quotas = new XmlDictionaryReaderQuotas();
+                        var jsonReader = JsonReaderWriterFactory.CreateJsonReader(memStream, quotas);
+                        var rxml = XDocument.Load(jsonReader);
+                        memStream.Flush();
+                        memStream.Close();
+                        if (rxml.ToString() == Controller.emptyXML)
+                            xml = null;
+                        else
+                            xml = rxml.ToString();
+                    }
+                }
+                reqResponse.Dispose();
+                responseStream.Dispose();
+                if (xml == null)
+                    return -1;
+
                 XmlDocument doc = new XmlDocument();
                 doc.LoadXml(xml);
                 XmlNodeList xmlTag = doc.DocumentElement.SelectNodes("/root/tag_name");
@@ -81,59 +76,34 @@ namespace YChanEx {
             }
         }
 
-        public static void createUpdaterStub(decimal cloudVersion) {
-            /*
-             * This is the entire code for the updater, it is designed to be light-weight and so is batch-based.
-             
-                "@echo off"
-                "echo Updating YChanEx..."
-                "set upVersion=" + updVersion
-                "set programName=" + System.AppDomain.CurrentDomain.FriendlyName;
-                "timeout /t 5 /nobreak"
-                "del %programName%"
-                "powershell -Command "(New-Object Net.WebClient).DownloadFile(upateURL + '/%upVersion%/YChanEx.exe', '%programName%')""
-                "%programName%"
-                 "exit"
-             
-             */
-
+        public static bool downloadNewVersion(decimal cloudVersion) {
             try {
-                if (File.Exists(Application.StartupPath + updateFile))
-                    File.Delete(Application.StartupPath + updateFile);
-
-                File.Create(Application.StartupPath + updateFile).Dispose();
-                System.IO.StreamWriter writeApp = new System.IO.StreamWriter(Application.StartupPath + updateFile);
-                writeApp.WriteLine("@echo off");
-                writeApp.WriteLine("echo Updating YChanEx...");
-                writeApp.WriteLine("set upVersion=" + cloudVersion.ToString());
-                writeApp.WriteLine("set programName=" + System.AppDomain.CurrentDomain.FriendlyName);
-                writeApp.WriteLine("timeout /t 5 /nobreak");
-                writeApp.WriteLine("del %programName%");
-                writeApp.WriteLine("powershell -Command \"(New-Object Net.WebClient).DownloadFile('" + downloadURL + "', '%programName%')\"");
-                writeApp.WriteLine("%programName%");
-                writeApp.WriteLine("eixt");
-                writeApp.Close();
+                using (WebClient wc = new WebClient()) {
+                    wc.Headers.Add("User-Agent: " + Adv.Default.UserAgent);
+                    wc.DownloadFile("https://github.com/murrty/YChanEx/releases/download/" + (cloudVersion) + "/YChanEx.exe", Environment.CurrentDirectory + "\\ycx.exe");
+                    return true;
+                }
             }
-            catch (Exception ex) {
-                Debug.Print(ex.ToString());
-                ErrorLog.reportError(ex.ToString());
+            catch (WebException webe){
+                return false;
+            }
+            catch (Exception ex){
+                return false;
             }
         }
-        public static void runUpdater() {
-            try {
-                Process Updater = new Process();
-                Updater.StartInfo.FileName = System.Windows.Forms.Application.StartupPath + updateFile;
-                Updater.StartInfo.UseShellExecute = false;
-                Updater.StartInfo.CreateNoWindow = false;
-                Properties.Settings.Default.runningUpdate = true;
-                Updater.Start();
-                Environment.Exit(0);
-            }
-            catch (Exception ex) {
-                Debug.Print(ex.ToString());
-                ErrorLog.reportError(ex.ToString());
-                return;
-            }
+        public static void runMerge() {
+            if (File.Exists(Application.StartupPath + updateFile))
+                File.Delete(Application.StartupPath + updateFile);
+
+            File.Create(Application.StartupPath + updateFile).Dispose();
+            System.IO.StreamWriter writeApp = new System.IO.StreamWriter(Application.StartupPath + updateFile);
+            writeApp.WriteLine("@echo off");
+            writeApp.WriteLine("set programName=" + System.AppDomain.CurrentDomain.FriendlyName);
+            writeApp.WriteLine("del %programName%");
+            writeApp.WriteLine("REN " + Environment.CurrentDirectory + "\\ycx.exe %programName%");
+            writeApp.WriteLine("%programName%");
+            writeApp.WriteLine("eixt");
+            writeApp.Close();
         }
     }
 }

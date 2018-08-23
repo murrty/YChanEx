@@ -22,12 +22,13 @@ using System.Text.RegularExpressions;
 
 namespace YChanEx {
     public class ImageBoard {
-        protected string URL;                            // Thread/Board URL
-        protected string SaveTo;                         // Path to save to
-        protected string imName;                         // Name of the IB
-        protected DateTime checkedAt;                       // Date that it was first downloaded
-        protected bool Board;                            // Flag to distinguish Boards and Threads of an IB
-        protected bool Gone = false;                     // Flag for 404 
+        protected string URL;                           // Thread/Board URL
+        protected string SaveTo;                        // Path to save to
+        protected string imName;                        // Name of the IB
+        protected DateTime checkedAt;                   // Date that it was first downloaded
+        protected bool Board;                           // Flag to distinguish Boards and Threads of an IB
+        protected bool Gone = false;                    // Flag for 404 
+        protected int fileCount;                        // File count of downloaded files
 
 
         public ImageBoard(string url, bool isBoard) {

@@ -26,8 +26,10 @@ namespace YChanEx {
 
                 if (Updater.isUpdateAvailable(cV)) {
                     if (MessageBox.Show("An update is available. \nNew verison: " + cV.ToString() + " | Your version: " + Properties.Settings.Default.currentVersion.ToString() + "\n\nWould you like to update?", "YChanEx", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes) {
-                        Updater.createUpdaterStub(cV);
-                        Updater.runUpdater();
+                        if (Updater.downloadNewVersion(cV)) {
+                            Updater.runMerge();
+                            Environment.Exit(0);
+                        }
                     }
                 }
                 else {

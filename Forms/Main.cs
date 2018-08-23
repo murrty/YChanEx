@@ -55,8 +55,10 @@ namespace YChanEx {
 
                     if (Updater.isUpdateAvailable(cV)) {
                         if (MessageBox.Show("An update is available. \nNew verison: " + cV.ToString() + " | Your version: " + Properties.Settings.Default.currentVersion.ToString() + "\n\nWould you like to update?", "YChanEx", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes) {
-                            Updater.createUpdaterStub(cV);
-                            Updater.runUpdater();
+                            if (Updater.downloadNewVersion(cV)) {
+                                Updater.runMerge();
+                                Environment.Exit(0);
+                            }
                         }
                         this.Invoke((MethodInvoker)(() => mUpdateAvailable.Enabled = true));
                         this.Invoke((MethodInvoker)(() => mUpdateAvailable.Visible = true));
@@ -67,7 +69,7 @@ namespace YChanEx {
             }
 
             if (YCSettings.Default.firstStart) {
-                FirstStart tFirstStart = new FirstStart();                        // if first start, show first start message
+                FirstStart tFirstStart = new FirstStart();
                 if (tFirstStart.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
                     Settings tSettings = new Settings();
                     tSettings.ShowDialog();
@@ -105,23 +107,23 @@ namespace YChanEx {
             if (YCSettings.Default.saveOnClose) {                           // if enabled load URLs from file 
                 string[] URLs;
 
-                string boards = Controller.loadURLs(true);
-                if (boards != "") {
-                    URLs = boards.Split('\n');
-                    for (int i = 0; i < URLs.Length - 1; i++) {
-                        ImageBoard newImageboard = Controller.createNewIMB(URLs[i], true); // and add them 
-                        lbBoards.Items.Add(URLs[i]);
-                        clBoards.Add(newImageboard);
-                    }
-                    scnTimer.Enabled = true;                                       // activate the timer
-                    scan(null, null);                                              // and start scanning
-                }
+                //string boards = Controller.loadURLs(true);
+                //if (boards != "") {
+                //    URLs = boards.Split('\n');
+                //    for (int i = 0; i < URLs.Length - 1; i++) {
+                //        ImageBoard newImageboard = Controller.createNewIMB(URLs[i], true); // and add them 
+                //        lbBoards.Items.Add(URLs[i]);
+                //        clBoards.Add(newImageboard);
+                //    }
+                //    scnTimer.Enabled = true;                                       // activate the timer
+                //    scan(null, null);                                              // and start scanning
+                //}
 
 
-                string threads = Controller.loadURLs(false);                         // load threads
+                string threads = Controller.loadURLs();                         // load threads
                 if (threads != "") {
                     URLs = threads.Split('\n');
-                    for (int i = 0; i < URLs.Length - 1; i++) {
+                    for (int i = 0; i < URLs.Length; i++) {
                         ImageBoard newImageboard = Controller.createNewIMB(URLs[i], false);
                         if (newImageboard == null) {
                             MessageBox.Show(URLs[i]);
@@ -146,14 +148,14 @@ namespace YChanEx {
         private void frmMain_Shown(object sender, EventArgs e) {
             // Download url if it is a website
             for (int i = 0; i < Environment.GetCommandLineArgs().Length; i++) {
-                string arg = Environment.GetCommandLineArgs()[i];
-                if (i != 0) {
-                    if (!arg.StartsWith("http://fchan.us") || arg.StartsWith("http://www.fchan.us") || arg.StartsWith("fchan.us/"))
-                        arg = arg.Replace("http://", "https://"); // Always use a secure download if available.
+                if (!Environment.GetCommandLineArgs()[i].StartsWith("ychanex:"))
+                    continue;
 
-                    Uri testURL;
-                    if (Uri.TryCreate(arg, UriKind.Absolute, out testURL) && (testURL.Scheme == Uri.UriSchemeHttp || testURL.Scheme == Uri.UriSchemeHttps))
-                        downloadURL(arg, true);
+                string arg = Environment.GetCommandLineArgs()[i].Substring(8);
+
+                if (Controller.isSupported(arg)) {
+                    lbNotice.Visible = true;
+                    downloadURL(arg, true);
                 }
             }
 
@@ -196,7 +198,7 @@ namespace YChanEx {
             YCSettings.Default.formSizeW = this.Width;
 
             if (YCSettings.Default.saveOnClose)
-                Controller.saveURLs(clBoards, clThreads);
+                Controller.saveURLs(clThreads);
 
             if (Properties.Settings.Default.runningUpdate) {
                 YCSettings.Default.Save();
@@ -208,9 +210,6 @@ namespace YChanEx {
                 if (clw.ShowDialog() == DialogResult.OK) {
                     foreach (string thrItem in lbThreads.Items)
                         thrThreads[lbThreads.Items.IndexOf(thrItem)].Abort();
-
-                    YCSettings.Default.Save();
-                    Environment.Exit(0);
                 }
                 else {
                     e.Cancel = true;
@@ -223,9 +222,10 @@ namespace YChanEx {
                 foreach (string thrItem in lbThreads.Items)
                     thrThreads[lbThreads.Items.IndexOf(thrItem)].Abort();
 
-                YCSettings.Default.Save();
-                Environment.Exit(0);
             }
+            nfTray.Dispose();
+            YCSettings.Default.Save();
+            Environment.Exit(0);
         }
 
         private void edtURL_Enter(object sender, EventArgs e) {
@@ -250,20 +250,29 @@ namespace YChanEx {
 
             downloadURL(dlURL, false);
 
-            if (YCSettings.Default.saveOnClose)
-                Controller.saveURLs(clBoards, clThreads);
-
             edtURL.Clear();
         }
         #endregion
 
         #region Custom Methods
         protected override void WndProc(ref Message m) {
-            if (m.Msg == Controller.WM_ADDDOWNLOAD) {
-                downloadURL(File.ReadAllText(Controller.settingsDir + "\\Arg.nfo"), true);
-                File.Delete(Controller.settingsDir + "\\Arg.nfo");
+            if (m.Msg == Controller.WM_ADDYCXDOWNLOAD) {
+                if (!File.Exists(Controller.settingsDir + "\\Arg.nfo"))
+                    return;
+
+                string url = File.ReadAllText(Controller.settingsDir + "\\Arg.nfo");
+                if (url.Length > 0) {
+                    if (url.Contains("#"))
+                        url = url.Split('#')[0];
+                    downloadURL(url, true);
+
+                    if (YCSettings.Default.saveOnClose)
+                        Controller.saveURLs(clThreads);
+
+                    File.Delete(Controller.settingsDir + "\\Arg.nfo");
+                }
             }
-            else if (m.Msg == Controller.WM_SHOWFORM) {
+            else if (m.Msg == Controller.WM_SHOWYCXFORM) {
                 if (this.WindowState != FormWindowState.Normal)
                     this.WindowState = FormWindowState.Normal;
 
@@ -301,12 +310,12 @@ namespace YChanEx {
                     }
                 }
                 else {
-                    MessageBox.Show("URL is already in queue!");
+                    MessageBox.Show("URL is already in queue");
                     return;
                 }
             }
             else {
-                MessageBox.Show("Corrupt URL, unsupported website or not a board/thread!");
+                MessageBox.Show("Corrupt URL, unsupported website or not a thread");
                 return;
             }
 
@@ -317,41 +326,48 @@ namespace YChanEx {
                 thrThreads[thrThreads.Count - 1].Start();
             }
 
+
+            if (YCSettings.Default.saveOnClose) {
+                Controller.saveURLs(clThreads);
+            }
+
             if (!scnTimer.Enabled)
                 scnTimer.Enabled = true;
 
             scan(null, null);
 
-            if (YCSettings.Default.saveOnClose)
-                Controller.saveURLs(clBoards, clThreads);
+            if (lbNotice.Visible)
+                lbNotice.Visible = false;
         }
 
         private void addToHistory(string URL) {
             if (YCSettings.Default.saveHistory) {
-                if (URL.StartsWith("https://boards.4chan.org/")) {
-                    //Controller.saveHistory(0, URL + " // " + getTitle(true, URL), URL);
-                    Controller.saveHistory(0, URL + " // " + Controller.getHTMLTitle(0, URL), URL);
-                }
-                else if (URL.StartsWith("https://boards.420chan.org/")) {
-                    //Controller.saveHistory(1, URL + " // " + getTitle(false, URL), URL);
-                    Controller.saveHistory(1, URL + " // " + Controller.getHTMLTitle(1, URL), URL);
-                }
-                else if (URL.StartsWith("https://7chan.org/")) {
-                    //Controller.saveHistory(2, URL + " // " + getTitle(false, URL), URL);
-                    Controller.saveHistory(2, URL, URL);// + " // " + Controller.getHTMLTitle(2, URL), URL);
-                }
-                else if (URL.StartsWith("https://8ch.net/")) {
-                    //Controller.saveHistory(3, URL + " // " + getTitle(false, URL), URL);
-                    Controller.saveHistory(3, URL + " // " + Controller.getHTMLTitle(3, URL), URL);
-                }
-                else if (URL.StartsWith("http://fchan.us/")) {
-                    //Controller.saveHistory(4, URL + " // " + getTitle(false, URL), URL);
-                    Controller.saveHistory(4, URL + " // " + Controller.getHTMLTitle(4, URL), URL);
-                }
-                else if (URL.StartsWith("https://u18chan.com/")) {
-                    //Controller.saveHistory(5, URL + " // " + getTitle(false, URL), URL);
-                    Controller.saveHistory(5, URL, URL);// + " // " + Controller.getHTMLTitle(5, URL), URL);
-                }
+                Task.Factory.StartNew(() => {
+                    if (URL.StartsWith("https://boards.4chan.org/")) {
+                        //Controller.saveHistory(0, URL + " // " + getTitle(true, URL), URL);
+                        Controller.saveHistory(0, URL + " // " + Controller.getHTMLTitle(0, URL), URL);
+                    }
+                    else if (URL.StartsWith("https://boards.420chan.org/")) {
+                        //Controller.saveHistory(1, URL + " // " + getTitle(false, URL), URL);
+                        Controller.saveHistory(1, URL, URL);// + " // " + Controller.getHTMLTitle(1, URL), URL);
+                    }
+                    else if (URL.StartsWith("https://7chan.org/")) {
+                        //Controller.saveHistory(2, URL + " // " + getTitle(false, URL), URL);
+                        Controller.saveHistory(2, URL, URL);// + " // " + Controller.getHTMLTitle(2, URL), URL);
+                    }
+                    else if (URL.StartsWith("https://8ch.net/")) {
+                        //Controller.saveHistory(3, URL + " // " + getTitle(false, URL), URL);
+                        Controller.saveHistory(3, URL, URL);// + " // " + Controller.getHTMLTitle(3, URL), URL);
+                    }
+                    else if (URL.StartsWith("http://fchan.us/")) {
+                        //Controller.saveHistory(4, URL + " // " + getTitle(false, URL), URL);
+                        Controller.saveHistory(4, URL, URL);// + " // " + Controller.getHTMLTitle(4, URL), URL);
+                    }
+                    else if (URL.StartsWith("https://u18chan.com/")) {
+                        //Controller.saveHistory(5, URL + " // " + getTitle(false, URL), URL);
+                        Controller.saveHistory(5, URL, URL);// + " // " + Controller.getHTMLTitle(5, URL), URL);
+                    }
+                }).Wait();
             }
         }
 
@@ -473,6 +489,7 @@ namespace YChanEx {
                             clThreads.RemoveAt(k);
                             thrThreads.RemoveAt(k);
                             lbThreads.Invoke((MethodInvoker)delegate { lbThreads.Items.RemoveAt(k); });
+                            Controller.saveURLs(clThreads);
                         }
                     }
 
@@ -556,10 +573,12 @@ namespace YChanEx {
             else {
                 mTrayShow.Text = "Hide";
                 this.Show();
+                this.Activate();
             }
         }
         private void nfTray_MouseMove(object sender, MouseEventArgs e) {
-            nfTray.Text = "YChanEx\n\nBoard count: " + lbBoards.Items.Count.ToString() + "\nThread count: " + lbThreads.Items.Count.ToString();
+            //nfTray.Text = "YChanEx\n\nBoard count: " + lbBoards.Items.Count.ToString() + "\nThread count: " + lbThreads.Items.Count.ToString();
+            nfTray.Text = "YChanEx\n\nThread count: " + (lbThreads.Items.Count);
         }
         private void nfTray_BalloonTipClicked(object sender, EventArgs e) {
             if (is404) {
@@ -705,8 +724,12 @@ namespace YChanEx {
 
         private void mUpdateAvailable_Click(object sender, EventArgs e) {
             if (Properties.Settings.Default.cloudVersion > Properties.Settings.Default.currentVersion)
-                if (MessageBox.Show("Would you like to update YChanEx?", "YChanEx", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes)
-                    Updater.createUpdaterStub(Convert.ToInt32(Properties.Settings.Default.cloudVersion)); Updater.runUpdater(); this.Close();
+                if (MessageBox.Show("Would you like to update YChanEx?", "YChanEx", MessageBoxButtons.YesNo) == System.Windows.Forms.DialogResult.Yes) {
+                    if (Updater.downloadNewVersion(Properties.Settings.Default.cloudVersion)) {
+                        Updater.runMerge();
+                        Environment.Exit(0);
+                    }
+                }
         }
         #endregion
         #region mTray
@@ -733,7 +756,11 @@ namespace YChanEx {
                 MessageBox.Show("Clipboard does not contain text.");
         }
         private void mTrayExit_Click(object sender, EventArgs e) {
-            this.Close();
+            if (YCSettings.Default.saveOnClose)
+                Controller.saveURLs(clThreads);
+
+            nfTray.Dispose();
+            Environment.Exit(0);
         }
         #endregion
         #region mThreads
@@ -764,6 +791,8 @@ namespace YChanEx {
                 thrThreads.RemoveAt(tPos);
                 lbThreads.Items.RemoveAt(tPos);
             }
+
+            Controller.saveURLs(clThreads);
         }
         #endregion
         #region mBoards

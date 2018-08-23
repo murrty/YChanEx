@@ -40,12 +40,12 @@ namespace YChanEx {
         /// </summary>
         /// <param name="board">Load the boards from the board list.</param>
         /// <returns></returns>
-        public static string loadURLs(bool board) {
-            board = false;
-            if (board && File.Exists(settingsDir + "\\boards.dat"))
-                return File.ReadAllText(settingsDir + "\\boards.dat");
-            else if (!board && File.Exists(settingsDir + "\\threads.dat"))
-                return File.ReadAllText(settingsDir + "\\threads.dat");
+        public static string loadURLs() {//(bool board) {
+            //board = false;
+            //if (board && File.Exists(settingsDir + "\\boards.dat"))
+            //    return File.ReadAllText(settingsDir + "\\boards.dat").TrimEnd('\n');
+            if (File.Exists(settingsDir + "\\threads.dat"))
+                return File.ReadAllText(settingsDir + "\\threads.dat").TrimEnd('\n');
             else
                 return "";
         }
@@ -54,7 +54,7 @@ namespace YChanEx {
         /// </summary>
         /// <param name="Boards">The list that contains the boards.</param>
         /// <param name="Threads">The list that contains the threads.</param>
-        public static void saveURLs(List<ImageBoard> Boards, List<ImageBoard> Threads) {
+        public static void saveURLs(List<ImageBoard> Threads) { //, List<ImageBoard> Threads = null) {
             try {
                 string Buffer = string.Empty;
                 //for (int i = 0; i < Boards.Count; i++)
@@ -65,12 +65,12 @@ namespace YChanEx {
                 //    File.Create(settingsDir + "\\boards.dat").Dispose();
                 //File.WriteAllText(settingsDir + "\\boards.dat", Buffer);
 
-                Buffer = string.Empty;
+                //Buffer = string.Empty;
 
                 for (int i = 0; i < Threads.Count; i++)
                     Buffer = Buffer + Threads[i].getURL() + "\n";
-                if (!File.Exists(settingsDir + "\\threads.dat"))
-                    File.Create(settingsDir + "\\threads.dat").Dispose();
+
+                Buffer = Buffer.TrimEnd('\n');
                 File.WriteAllText(settingsDir + "\\threads.dat", Buffer);
             }
             catch (Exception ex) {
@@ -123,9 +123,10 @@ namespace YChanEx {
             return true;
         }
 
-        public const int HWND_BROADCAST = 0xffff;
-        public static readonly int WM_ADDDOWNLOAD = RegisterWindowMessage("WM_ADDDOWNLOAD");
-        public static readonly int WM_SHOWFORM = RegisterWindowMessage("WM_SHOWFORM");
+        public const int HWND_YCXBROADCAST = 0xffff;
+        public static readonly int WM_ADDYCXDOWNLOAD = RegisterWindowMessage("WM_ADDYCXDOWNLOAD");
+        public static readonly int WM_SHOWYCXFORM = RegisterWindowMessage("WM_SHOWYCXFORM");
+
         [DllImport("user32")]
         public static extern bool PostMessage(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam, bool download = false, string url = null);
         [DllImport("user32")]
@@ -161,18 +162,20 @@ namespace YChanEx {
         /// <param name="URL">The URL that will be checked.</param>
         /// <returns></returns>
         public static bool isSupported(string URL) {
+            URL = URL.Replace("http://", "https://").Replace("https://www.","");
+
             if (URL.StartsWith("https://4chan.org/")) return true;
-            else if (URL.StartsWith("https://www.4chan.org/")) return true;
+            else if (URL.StartsWith("https://4chan.org/")) return true;
             else if (URL.StartsWith("https://boards.4chan.org/")) return true;
             else if (URL.StartsWith("https://boards.420chan.org")) return true;
             else if (URL.StartsWith("https://7chan.org")) return true;
-            else if (URL.StartsWith("https://www.7chan.org")) return true;
+            else if (URL.StartsWith("https://7chan.org")) return true;
             else if (URL.StartsWith("https://8ch.net/")) return true;
-            else if (URL.StartsWith("https://www.8ch.net/")) return true;
+            else if (URL.StartsWith("https://8ch.net/")) return true;
             else if (URL.StartsWith("http://fchan.us")) return true;
-            else if (URL.StartsWith("http://www.fchan.us")) return true;
+            else if (URL.StartsWith("http://fchan.us")) return true;
             else if (URL.StartsWith("https://u18chan.com/")) return true;
-            else if (URL.StartsWith("https://www.u18chan.com/")) return true;
+            else if (URL.StartsWith("https://u18chan.com/")) return true;
             else return false;
         }
 
@@ -192,9 +195,23 @@ namespace YChanEx {
             string threadBoard = "";
             string boardTopic = "";
             Regex findTitle = new Regex("(?<=<title>).*?(?=</title>)");
+            MatchCollection matchLine;
 
-            //if (chan == 0)
-            //    boardTopic = fourChan.getTopic("/" + url.Split('/')[3] + "/"); threadBoard = url.Split('/')[3]; findTitle = new Regex(fourChan.regTitle);
+            using (WebClient wc = new WebClient()) {
+                wc.Headers.Add("user-agent", Adv.Default.UserAgent);
+
+                if (requireCookie)
+                    wc.Headers.Add(HttpRequestHeader.Cookie, cookie);
+
+                string tempSource = wc.DownloadString(url);
+                matchLine = findTitle.Matches(tempSource);
+            }
+
+            if (chan == 0) {
+                boardTopic = fourChan.getTopic("/" + url.Split('/')[3] + "/");
+                threadBoard = url.Split('/')[3];
+                threadTitle = matchLine[0].Value.Split('-')[1].TrimStart(' ').TrimEnd(' ');
+            }
             //if (chan == 1)
             //    boardTopic = "";
             //if (chan == 2)
@@ -204,20 +221,11 @@ namespace YChanEx {
             //if (chan == 5)
             //    boardTopic = uEighteenChan.getTopic("/" + url.Split('/')[3] + "/"); threadBoard = url.Split('/')[3]; // Redundant for u18chan.
 
-            using (WebClient wc = new WebClient()) {
-                wc.Headers.Add("user-agent", Adv.Default.UserAgent);
 
-                if (requireCookie)
-                    wc.Headers.Add(HttpRequestHeader.Cookie, cookie);
-
-                string tempSource = wc.DownloadString(url);
-                MatchCollection matchLine = findTitle.Matches(tempSource);
-
-                if (matchLine.Count > 0 && matchLine.Count < 1)
-                    return matchLine[0].Value;
-                else
-                    return "null";
-            }
+            if (threadTitle.Length > -1)
+                return threadTitle;
+            else
+                return "null";
         }
         public static string getHTML(string url, bool requireCookie = false, string cookie = "") {
             using (WebClient wc = new WebClient()) {

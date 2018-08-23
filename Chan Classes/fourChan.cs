@@ -38,6 +38,7 @@ namespace YChanEx {
                 this.SaveTo = YCSettings.Default.downloadPath + "\\" + this.imName + "\\" + getURL().Split('/')[3];
             }
             this.checkedAt = DateTime.Now.AddYears(-20);
+            this.fileCount = 0;
         }
 
         public new static bool isThread(string url) { 
@@ -56,123 +57,163 @@ namespace YChanEx {
         }
 
         override public void download() {
-            List<string> urls = new List<string>();
-            List<string> thumbs = new List<string>();
-            string baseURL = "//i.4cdn.org/" + getURL().Split('/')[3] + "/";    // Base URL used for downloading the files
-            string website;                                                     // String that contains the source of the thread
-            string curl = "Not defined";
-            string JURL = "https://a.4cdn.org/" + getURL().Split('/')[3] + "/thread/" + getURL().Split('/')[5] + ".json";
+            List<string> downloadURLs = new List<string>();                                                                     // List of images
+            List<string> downloadThumbs = new List<string>();                                                                   // List of thumbnails
+            string baseURL = "//i.4cdn.org/" + getURL().Split('/')[3] + "/";                                                    // Base URL used for downloading & html
+            string threadSrc;                                                                                                   // String that contains the source of the thread
+            string currentURL = string.Empty;                                                                                   // String for deciding which URL is being used
+            string jsonURL = "https://a.4cdn.org/" + getURL().Split('/')[3] + "/thread/" + getURL().Split('/')[5] + ".json";    // API url of current thread
 
             try {
-                curl = JURL;
+                currentURL = jsonURL;
 
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(JURL);
-                request.UserAgent = Adv.Default.UserAgent;
-                request.IfModifiedSince = this.checkedAt;
-                request.Method = "GET";
-                var resp = (HttpWebResponse)request.GetResponse();
-                this.checkedAt = resp.LastModified;
-                var respstream = resp.GetResponseStream();
+            // Get JSON with IfModifiedSince status, dispose afterwards
+                HttpWebRequest requestJSON = (HttpWebRequest)WebRequest.Create(jsonURL);
+                requestJSON.UserAgent = Adv.Default.UserAgent;
+                requestJSON.IfModifiedSince = this.checkedAt;
+                requestJSON.Method = "GET";
+                var reqResponse = (HttpWebResponse)requestJSON.GetResponse();
+                var responseStream = reqResponse.GetResponseStream();
                 string str = string.Empty;
-                using (StreamReader reader = new StreamReader(respstream)) {
-                    string json = reader.ReadToEnd();
-                    byte[] bytes = Encoding.ASCII.GetBytes(json);
-                    using (var stream = new MemoryStream(bytes)) {
+                using (StreamReader strReader = new StreamReader(responseStream)) {
+                    string json = strReader.ReadToEnd();
+                    byte[] jBytes = Encoding.ASCII.GetBytes(json);
+                    using (var memStream = new MemoryStream(jBytes)) {
                         var quotas = new XmlDictionaryReaderQuotas();
-                        var jsonReader = JsonReaderWriterFactory.CreateJsonReader(stream, quotas);
+                        var jsonReader = JsonReaderWriterFactory.CreateJsonReader(memStream, quotas);
                         var xml = XDocument.Load(jsonReader);
-                        stream.Flush();
-                        stream.Close();
+                        memStream.Flush();
+                        memStream.Close();
                         if (xml.ToString() == Controller.emptyXML)
                             str = null;
                         else
-                            str =  xml.ToString();
+                            str = xml.ToString();
                     }
                 }
-                resp.Dispose();
-                respstream.Dispose();
+                reqResponse.Dispose();
+                responseStream.Dispose();
 
+            // Check XML and prepare html source
                 if (string.IsNullOrEmpty(str))
                     return;
-                curl = this.getURL();
-                website = Controller.getHTML(this.getURL());
+                currentURL = this.getURL();
+                threadSrc = Controller.getHTML(this.getURL());
 
-                XmlDocument doc = new XmlDocument();
-                doc.LoadXml(str);
-                XmlNodeList xmlTim = doc.DocumentElement.SelectNodes("/root/posts/item/tim");
-                XmlNodeList xmlFilename = doc.DocumentElement.SelectNodes("/root/posts/item/filename");
-                XmlNodeList xmlExt = doc.DocumentElement.SelectNodes("/root/posts/item/ext");
-                XmlNodeList xmlMd5 = doc.DocumentElement.SelectNodes("/root/posts/item/md5");
+            // Start creating XmlDocument and get required information.
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(str);
+                XmlNodeList xmlTim = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/tim");                // File ID
+                XmlNodeList xmlFileName = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/filename");      // Original file name
+                XmlNodeList xmlExt = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/ext");                // File extension
+                XmlNodeList xmlMd5 = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/md5");                // Base64 MD5 of the file.
 
+            // Count the files and do source maintenance
                 for (int i = 0; i < xmlExt.Count; i++) {
-                    string old = baseURL + xmlTim[i].InnerText + xmlExt[i].InnerText;
-                    string rep = xmlTim[i].InnerText + xmlExt[i].InnerText;
-                    website = website.Replace(old, rep);
+                    downloadURLs.Add("https:" + baseURL + xmlTim[i].InnerText + xmlExt[i].InnerText);
+                    downloadThumbs.Add("https:" + baseURL + xmlTim[i].InnerText + "s.jpg");
 
-                    urls.Add("https:" + baseURL + xmlTim[i].InnerText + xmlExt[i].InnerText);
-                    thumbs.Add("https:" + baseURL + xmlTim[i].InnerText + "s.jpg");
-
-                    old = "//t.4cdn.org/" + getURL().Split('/')[3] + "/" + xmlTim[i].InnerText + "s.jpg";
-                    website = website.Replace("//i.4cdn.org/" + getURL().Split('/')[3], "thumb");
+                    string oldURL = baseURL + xmlTim[i].InnerText + xmlExt[i].InnerText;                                        // Old URL of the files
+                    string oldThumbURL = "//t.4cdn.org/" + getURL().Split('/')[3] + "/" + xmlTim[i].InnerText + "s.jpg";        // Old URL of the thumbnail
+                    string newURL = xmlTim[i].InnerText + xmlExt[i].InnerText;                                                  // New URL of the files
+                    threadSrc = threadSrc.Replace(oldURL, newURL);
+                    threadSrc = threadSrc.Replace(oldThumbURL, "thumb");
                 }
 
-                website = website.Replace("=\"//", "=\"http://");
-
+            // Create save directory
                 if (!Directory.Exists(this.SaveTo))
                     Directory.CreateDirectory(this.SaveTo);
+                else {
+                    if (YCSettings.Default.htmlDownload && this.fileCount == 0) {
+                        this.fileCount = Directory.GetFiles(this.SaveTo, "*", SearchOption.TopDirectoryOnly).Length - 1;
+                    }
+                    else if (this.fileCount == 0) {
+                        this.fileCount = Directory.GetFiles(this.SaveTo, "*", SearchOption.TopDirectoryOnly).Length;
+                    }
+                }
 
-                string newfilename = string.Empty;
-
-                for (int y = 0; y < urls.Count; y++) {
+            // Begin download
+                string fileName = string.Empty;
+                for (int i = 0; i < downloadURLs.Count; i++) {
                     if (YCSettings.Default.originalName) {
-                        curl = urls[y];
-                        string[] badchars = new string[] { "\\", "/", ":", "*", "?", "\"", "<", ">", "|" };
-                        newfilename = xmlFilename[y].InnerText;
+                        currentURL = downloadURLs[i];
 
-                        for (int z = 0; z < badchars.Length - 1; z++)
-                            newfilename = newfilename.Replace(badchars[z], "-");
+                    // Replace illegal characters in file names that aren't allowed on Windows machines
+                        string[] invalidCharacters = new string[] { "\\", "/", ":", "*", "?", "\"", "<", ">", "|" };
+                        fileName = xmlFileName[i].InnerText;
 
+                        for (int y = 0; y < invalidCharacters.Length; y++)
+                            fileName = fileName.Replace(invalidCharacters[y], "_");
+
+                    // Check for duplicates based on the FileCount
                         if (YCSettings.Default.preventDupes) {
-                            if (File.Exists(this.SaveTo + "\\" + newfilename + xmlExt[y].InnerText)) {
-                                if (!thisFileExists(this.SaveTo + "\\" + newfilename + xmlExt[y].InnerText, xmlMd5[y].InnerText)) {
-                                    if (!thisFileExists(this.SaveTo + "\\" + newfilename + " (" + y + ")" + xmlExt[y].InnerText, xmlMd5[y].InnerText)) {
-                                        newfilename += " (" + y.ToString() + ")" + xmlExt[y].InnerText;
-                                        Controller.downloadFile(urls[y], this.SaveTo, true, newfilename);
-                                    }
+                            //if (File.Exists(this.SaveTo + "\\" + fileName + xmlExt[i].InnerText)) {
+                            //    //if ((i + 1) > this.fileCount) { // If the count is greater than current file count, then it's unique.
+                            //    if (!thisFileExists(this.SaveTo + "\\" + fileName + xmlExt[i].InnerText, xmlMd5[i].InnerText)) {
+                            //        if (!thisFileExists(this.SaveTo + "\\" + fileName + " (" + i + ")" + xmlExt[i].InnerText, xmlMd5[i].InnerText)) {
+                            //            fileName += " (" + i + ")" + xmlExt[i].InnerText;
+                            //            Controller.downloadFile(downloadURLs[i], this.SaveTo, true, fileName);
+                            //            this.fileCount++;
+                            //        }
+                            //    }
+                            //    else {
+                            //        continue;
+                            //    }
+                            //}
+                            //else {
+                            //    fileName += xmlExt[i].InnerText;
+                            //    Controller.downloadFile(downloadURLs[i], this.SaveTo, true, fileName);
+                            //    this.fileCount++;
+                            //}
+                            if (File.Exists(this.SaveTo + "\\" + fileName + xmlExt[i].InnerText)) {
+                                string fileCount = string.Empty;
+                                if (i < 10)
+                                    fileCount += "0" + i.ToString();
+
+                                if (!File.Exists("(" + fileCount + ") " + fileName + xmlExt[i].InnerText)) {
+                                    fileName = "(" + fileCount + ") " + fileName + xmlExt[i].InnerText;
+                                    Controller.downloadFile(downloadURLs[i], this.SaveTo, true, fileName);
+                                    this.fileCount++;
+                                }
+                                else {
+                                    continue;
                                 }
                             }
                             else {
-                                newfilename += xmlExt[y].InnerText;
-                                Controller.downloadFile(urls[y], this.SaveTo, true, newfilename);
+                                fileName += xmlExt[i].InnerText;
+                                Controller.downloadFile(downloadURLs[i], this.SaveTo, true, fileName);
+                                this.fileCount++;
                             }
                         }
                         else {
-                            newfilename += xmlExt[y].InnerText;
-                            Controller.downloadFile(urls[y], this.SaveTo, true, newfilename);
-                        }
+                            if (File.Exists(this.SaveTo + "\\" + fileName + xmlExt[i].InnerText))
+                                continue;
 
-                        website = website.Replace(xmlTim[y].InnerText + xmlExt[y].InnerText, newfilename);
+                            fileName += xmlExt[i].InnerText;
+                            Controller.downloadFile(downloadURLs[i], this.SaveTo, true, fileName);
+                            this.fileCount++;
+                        }
                     }
                     else {
-                        Controller.downloadFile(urls[y], this.SaveTo);
+                        Controller.downloadFile(downloadURLs[i], this.SaveTo);
                     }
                 }
 
-
+            // Download thumbnails
                 if (YCSettings.Default.downloadThumbnails) {
-                    for (int i = 0; i < thumbs.Count; i++) {
-                        curl = thumbs[i];
-                        Controller.downloadFile(thumbs[i], this.SaveTo + "\\thumb");
+                    for (int i = 0; i < downloadThumbs.Count; i++) {
+                        currentURL = downloadThumbs[i];
+                        Controller.downloadFile(downloadThumbs[i], this.SaveTo + "\\thumb");
                     }
                 }
 
+            // Get rid of Off-site scripts (New bullshit scripts introduced by 4channel
                 Regex siteScript = new Regex(regOSS);
-                foreach (Match script in siteScript.Matches(website))
-                    website = website.Replace(script.ToString(), string.Empty);
+                foreach (Match foundScript in siteScript.Matches(threadSrc))
+                    threadSrc = threadSrc.Replace(foundScript.ToString(), string.Empty);
 
-                if (YCSettings.Default.htmlDownload == true && website != "") {
-                    Controller.saveHTML(false, website.Replace("class=\"fileThumb\" href=\"thumb/", "class=\"fileThumb\" href=\""), this.SaveTo);
-                }
+            // Save HTML
+                if (YCSettings.Default.htmlDownload && threadSrc != string.Empty)
+                    Controller.saveHTML(false, threadSrc.Replace("class=\"fileThumb\" href=\"thumb/", "class=\"fileThumb\" href=\""), this.SaveTo);
             }
             catch (ThreadAbortException) {
                 return;
@@ -184,11 +225,14 @@ namespace YChanEx {
                     if (((int)webEx.Status) == 7)
                         this.Gone = true;
                     else
-                        ErrorLog.reportWebError(webEx, curl);
+                        ErrorLog.reportWebError(webEx, currentURL);
                 }
 
                 GC.Collect();
                 return;
+            }
+            catch (IOException) {
+                // It seems to be in use
             }
             catch (Exception ex) {
                 ErrorLog.reportError(ex.ToString());
@@ -208,6 +252,7 @@ namespace YChanEx {
                 using (System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create()) {
                     using (var stream = File.OpenRead(file)) {
                         var fhash = md5.ComputeHash(stream);
+                        Thread.Sleep(100);
                         output = BitConverter.ToString(fhash).Replace("-", string.Empty).ToLowerInvariant();
                     }
                 }
