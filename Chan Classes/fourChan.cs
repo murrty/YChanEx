@@ -164,33 +164,31 @@ namespace YChanEx {
                             //    Controller.downloadFile(downloadURLs[i], this.SaveTo, true, fileName);
                             //    this.fileCount++;
                             //}
-                            if (File.Exists(this.SaveTo + "\\" + fileName + xmlExt[i].InnerText)) {
-                                string fileCount = string.Empty;
-                                if (i < 10)
-                                    fileCount += "0" + i.ToString();
-
-                                if (!File.Exists("(" + fileCount + ") " + fileName + xmlExt[i].InnerText)) {
-                                    fileName = "(" + fileCount + ") " + fileName + xmlExt[i].InnerText;
-                                    Controller.downloadFile(downloadURLs[i], this.SaveTo, true, fileName);
-                                    this.fileCount++;
+                            string fileCount = string.Empty;
+                            if (i >= 10) {
+                                if (i >= 100) {
+                                    fileCount += i.ToString();
                                 }
                                 else {
-                                    continue;
+                                    fileCount += "0" + i.ToString();
                                 }
                             }
                             else {
-                                fileName += xmlExt[i].InnerText;
+                                fileCount += "00" + i.ToString();
+                            }
+                            fileName = "(" + fileCount + ") " + fileName + xmlExt[i].InnerText;
+
+                            if (!File.Exists(this.SaveTo + "\\" + fileName)) {
                                 Controller.downloadFile(downloadURLs[i], this.SaveTo, true, fileName);
                                 this.fileCount++;
                             }
                         }
                         else {
-                            if (File.Exists(this.SaveTo + "\\" + fileName + xmlExt[i].InnerText))
-                                continue;
-
-                            fileName += xmlExt[i].InnerText;
-                            Controller.downloadFile(downloadURLs[i], this.SaveTo, true, fileName);
-                            this.fileCount++;
+                            if (!File.Exists(this.SaveTo + "\\" + fileName)) {
+                                fileName += xmlExt[i].InnerText;
+                                Controller.downloadFile(downloadURLs[i], this.SaveTo, true, fileName);
+                                this.fileCount++;
+                            }
                         }
                     }
                     else {
