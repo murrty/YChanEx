@@ -110,6 +110,7 @@
             // 
             // mOpenArchive
             // 
+            this.mOpenArchive.Enabled = false;
             this.mOpenArchive.Index = 1;
             this.mOpenArchive.Text = "Open archive link";
             this.mOpenArchive.Click += new System.EventHandler(this.mOpenArchive_Click);

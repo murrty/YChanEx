@@ -86,9 +86,51 @@ namespace YChanEx {
             loadHistory(cbSite.SelectedIndex);
 
             if (cbSite.SelectedIndex == 0) {
+                if (!Directory.Exists(YCSettings.Default.downloadPath + @"\4chan"))
+                    btnOpenDownloads.Enabled = false;
+                else
+                    btnOpenDownloads.Enabled = true;
+
                 mOpenArchive.Enabled = true;
             }
-            else {
+            else if (cbSite.SelectedIndex == 1){
+                if (!Directory.Exists(YCSettings.Default.downloadPath + @"\420chan"))
+                    btnOpenDownloads.Enabled = false;
+                else
+                    btnOpenDownloads.Enabled = true;
+
+                mOpenArchive.Enabled = false;
+            }
+            else if (cbSite.SelectedIndex == 2) {
+                if (!Directory.Exists(YCSettings.Default.downloadPath + @"\7chan"))
+                    btnOpenDownloads.Enabled = false;
+                else
+                    btnOpenDownloads.Enabled = true;
+
+                mOpenArchive.Enabled = false;
+            }
+            else if (cbSite.SelectedIndex == 3) {
+                if (!Directory.Exists(YCSettings.Default.downloadPath + @"\8ch"))
+                    btnOpenDownloads.Enabled = false;
+                else
+                    btnOpenDownloads.Enabled = true;
+
+                mOpenArchive.Enabled = false;
+            }
+            else if (cbSite.SelectedIndex == 4) {
+                if (!Directory.Exists(YCSettings.Default.downloadPath + @"\fchan"))
+                    btnOpenDownloads.Enabled = false;
+                else
+                    btnOpenDownloads.Enabled = true;
+
+                mOpenArchive.Enabled = false;
+            }
+            else if (cbSite.SelectedIndex == 5) {
+                if (!Directory.Exists(YCSettings.Default.downloadPath + @"\u18chan"))
+                    btnOpenDownloads.Enabled = false;
+                else
+                    btnOpenDownloads.Enabled = true;
+
                 mOpenArchive.Enabled = false;
             }
         }
@@ -348,18 +390,30 @@ namespace YChanEx {
 
         #region btnOpen / btnClear / btnClose
         private void btnOpenDownloads_Click(object sender, EventArgs e) {
-            if (cbSite.SelectedIndex == 0)
-                Process.Start(YCSettings.Default.downloadPath + @"\4chan");
-            else if (cbSite.SelectedIndex == 1)
-                Process.Start(YCSettings.Default.downloadThumbnails + @"\420chan");
-            else if (cbSite.SelectedIndex == 2)
-                Process.Start(YCSettings.Default.downloadThumbnails + @"\7chan");
-            else if (cbSite.SelectedIndex == 3)
-                Process.Start(YCSettings.Default.downloadPath + @"\8ch");
-            else if (cbSite.SelectedIndex == 4)
-                Process.Start(YCSettings.Default.downloadThumbnails + @"\fchan");
-            else if (cbSite.SelectedIndex == 5)
-                Process.Start(YCSettings.Default.downloadPath + @"\u18chan");
+            if (cbSite.SelectedIndex == 0) {
+                if (Directory.Exists(YCSettings.Default.downloadPath + @"\4chan"))
+                    Process.Start(YCSettings.Default.downloadPath + @"\4chan");
+            }
+            else if (cbSite.SelectedIndex == 1){
+                if (Directory.Exists(YCSettings.Default.downloadPath + @"\420chan"))
+                    Process.Start(YCSettings.Default.downloadPath + @"\420chan");
+            }
+            else if (cbSite.SelectedIndex == 2) {
+                if (Directory.Exists(YCSettings.Default.downloadPath + @"\7chan"))
+                    Process.Start(YCSettings.Default.downloadPath + @"\7chan");
+            }
+            else if (cbSite.SelectedIndex == 3) {
+                if (Directory.Exists(YCSettings.Default.downloadPath + @"\8ch"))
+                    Process.Start(YCSettings.Default.downloadPath + @"\8ch");
+            }
+            else if (cbSite.SelectedIndex == 4) {
+                if (Directory.Exists(YCSettings.Default.downloadPath + @"\fchan"))
+                    Process.Start(YCSettings.Default.downloadPath + @"\fchan");
+            }
+            else if (cbSite.SelectedIndex == 5) {
+                if (Directory.Exists(YCSettings.Default.downloadPath + @"\u18chan"))
+                    Process.Start(YCSettings.Default.downloadPath + @"\u18chan");
+            }
         }
         private void btnClear_Click(object sender, EventArgs e) {
             switch (MessageBox.Show("Are you sure you want to clear your history?", "YChanEx", MessageBoxButtons.YesNo)) {
