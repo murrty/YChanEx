@@ -66,6 +66,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.btnProtocol = new System.Windows.Forms.Button();
             this.btnUserScript = new System.Windows.Forms.Button();
+            this.btnLocal = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.edtTimer)).BeginInit();
             this.tabControl1.SuspendLayout();
             this.tabDownloads.SuspendLayout();
@@ -151,7 +152,7 @@
             // chkMinimizeToTray
             // 
             this.chkMinimizeToTray.AutoSize = true;
-            this.chkMinimizeToTray.Location = new System.Drawing.Point(141, 55);
+            this.chkMinimizeToTray.Location = new System.Drawing.Point(141, 44);
             this.chkMinimizeToTray.Name = "chkMinimizeToTray";
             this.chkMinimizeToTray.Size = new System.Drawing.Size(101, 17);
             this.chkMinimizeToTray.TabIndex = 7;
@@ -162,7 +163,7 @@
             // chkWarn
             // 
             this.chkWarn.AutoSize = true;
-            this.chkWarn.Location = new System.Drawing.Point(248, 55);
+            this.chkWarn.Location = new System.Drawing.Point(248, 44);
             this.chkWarn.Name = "chkWarn";
             this.chkWarn.Size = new System.Drawing.Size(115, 17);
             this.chkWarn.TabIndex = 8;
@@ -172,7 +173,7 @@
             // 
             // btnBrowse
             // 
-            this.btnBrowse.Location = new System.Drawing.Point(271, 10);
+            this.btnBrowse.Location = new System.Drawing.Point(269, 10);
             this.btnBrowse.Name = "btnBrowse";
             this.btnBrowse.Size = new System.Drawing.Size(24, 20);
             this.btnBrowse.TabIndex = 1;
@@ -207,7 +208,7 @@
             // chkUpdates
             // 
             this.chkUpdates.AutoSize = true;
-            this.chkUpdates.Location = new System.Drawing.Point(18, 76);
+            this.chkUpdates.Location = new System.Drawing.Point(18, 65);
             this.chkUpdates.Name = "chkUpdates";
             this.chkUpdates.Size = new System.Drawing.Size(101, 17);
             this.chkUpdates.TabIndex = 10;
@@ -293,7 +294,7 @@
             // chkShowTray
             // 
             this.chkShowTray.AutoSize = true;
-            this.chkShowTray.Location = new System.Drawing.Point(34, 55);
+            this.chkShowTray.Location = new System.Drawing.Point(34, 44);
             this.chkShowTray.Name = "chkShowTray";
             this.chkShowTray.Size = new System.Drawing.Size(95, 17);
             this.chkShowTray.TabIndex = 4;
@@ -306,7 +307,7 @@
             // 
             this.chkUpdateInfo.AutoSize = true;
             this.chkUpdateInfo.Enabled = false;
-            this.chkUpdateInfo.Location = new System.Drawing.Point(125, 76);
+            this.chkUpdateInfo.Location = new System.Drawing.Point(125, 65);
             this.chkUpdateInfo.Name = "chkUpdateInfo";
             this.chkUpdateInfo.Size = new System.Drawing.Size(142, 17);
             this.chkUpdateInfo.TabIndex = 11;
@@ -382,7 +383,7 @@
             this.chkLogErrors.AutoSize = true;
             this.chkLogErrors.Cursor = System.Windows.Forms.Cursors.Default;
             this.chkLogErrors.Enabled = false;
-            this.chkLogErrors.Location = new System.Drawing.Point(273, 76);
+            this.chkLogErrors.Location = new System.Drawing.Point(273, 65);
             this.chkLogErrors.Name = "chkLogErrors";
             this.chkLogErrors.Size = new System.Drawing.Size(105, 17);
             this.chkLogErrors.TabIndex = 12;
@@ -470,6 +471,7 @@
             // 
             // tabAdvanced
             // 
+            this.tabAdvanced.Controls.Add(this.btnLocal);
             this.tabAdvanced.Controls.Add(this.chkDisableErrors);
             this.tabAdvanced.Controls.Add(this.lbAdv);
             this.tabAdvanced.Controls.Add(this.chkDisableScan);
@@ -581,6 +583,16 @@
             this.btnUserScript.UseVisualStyleBackColor = true;
             this.btnUserScript.Click += new System.EventHandler(this.btnUserScript_Click);
             // 
+            // btnLocal
+            // 
+            this.btnLocal.Location = new System.Drawing.Point(146, 113);
+            this.btnLocal.Name = "btnLocal";
+            this.btnLocal.Size = new System.Drawing.Size(105, 23);
+            this.btnLocal.TabIndex = 14;
+            this.btnLocal.Text = "Open local files";
+            this.btnLocal.UseVisualStyleBackColor = true;
+            this.btnLocal.Click += new System.EventHandler(this.btnLocal_Click);
+            // 
             // Settings
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -660,5 +672,6 @@
         private System.Windows.Forms.CheckBox chkPreventDupes;
         private System.Windows.Forms.Button btnProtocol;
         private System.Windows.Forms.Button btnUserScript;
+        private System.Windows.Forms.Button btnLocal;
     }
 }

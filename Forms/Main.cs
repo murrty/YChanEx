@@ -270,6 +270,11 @@ namespace YChanEx {
                         Controller.saveURLs(clThreads);
 
                     File.Delete(Controller.settingsDir + "\\Arg.nfo");
+
+                    nfTray.BalloonTipTitle = "Thread added to download queue";
+                    nfTray.BalloonTipText = "Thread " + url.Split('#')[0].Split('/')[5] + " on /" + url.Split('#')[0].Split('/')[3] + "/.";
+                    nfTray.BalloonTipIcon = ToolTipIcon.Info;
+                    nfTray.ShowBalloonTip(5000);
                 }
             }
             else if (m.Msg == Controller.WM_SHOWYCXFORM) {

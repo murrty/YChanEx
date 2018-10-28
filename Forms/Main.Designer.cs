@@ -75,7 +75,7 @@
             this.tcApp.Location = new System.Drawing.Point(0, 0);
             this.tcApp.Name = "tcApp";
             this.tcApp.SelectedIndex = 0;
-            this.tcApp.Size = new System.Drawing.Size(382, 209);
+            this.tcApp.Size = new System.Drawing.Size(382, 233);
             this.tcApp.TabIndex = 0;
             // 
             // tpThreads
@@ -84,7 +84,7 @@
             this.tpThreads.Location = new System.Drawing.Point(4, 22);
             this.tpThreads.Name = "tpThreads";
             this.tpThreads.Padding = new System.Windows.Forms.Padding(3);
-            this.tpThreads.Size = new System.Drawing.Size(374, 183);
+            this.tpThreads.Size = new System.Drawing.Size(374, 207);
             this.tpThreads.TabIndex = 0;
             this.tpThreads.Text = "Threads";
             this.tpThreads.UseVisualStyleBackColor = true;
@@ -96,7 +96,7 @@
             this.lbThreads.FormattingEnabled = true;
             this.lbThreads.Location = new System.Drawing.Point(3, 3);
             this.lbThreads.Name = "lbThreads";
-            this.lbThreads.Size = new System.Drawing.Size(368, 177);
+            this.lbThreads.Size = new System.Drawing.Size(368, 201);
             this.lbThreads.TabIndex = 3;
             this.lbThreads.MouseDown += new System.Windows.Forms.MouseEventHandler(this.lbThreads_MouseDown);
             // 
@@ -106,7 +106,7 @@
             this.tpBoard.Location = new System.Drawing.Point(4, 22);
             this.tpBoard.Name = "tpBoard";
             this.tpBoard.Padding = new System.Windows.Forms.Padding(3);
-            this.tpBoard.Size = new System.Drawing.Size(374, 224);
+            this.tpBoard.Size = new System.Drawing.Size(374, 207);
             this.tpBoard.TabIndex = 1;
             this.tpBoard.Text = "Boards";
             this.tpBoard.UseVisualStyleBackColor = true;
@@ -118,7 +118,7 @@
             this.lbBoards.FormattingEnabled = true;
             this.lbBoards.Location = new System.Drawing.Point(3, 3);
             this.lbBoards.Name = "lbBoards";
-            this.lbBoards.Size = new System.Drawing.Size(368, 218);
+            this.lbBoards.Size = new System.Drawing.Size(368, 201);
             this.lbBoards.TabIndex = 4;
             this.lbBoards.MouseDown += new System.Windows.Forms.MouseEventHandler(this.lbBoards_MouseDown);
             // 
@@ -350,7 +350,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(382, 209);
+            this.ClientSize = new System.Drawing.Size(382, 233);
             this.Controls.Add(this.lbNotice);
             this.Controls.Add(this.edtURL);
             this.Controls.Add(this.btnAdd);

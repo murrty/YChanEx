@@ -339,6 +339,7 @@ namespace YChanEx {
                 foreach (Match m in linkParser.Matches(inputString)) {
                     retURL = m.Value;
                     spacer += 1;
+                    break;
                 }
 
             return retURL;

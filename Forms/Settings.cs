@@ -229,5 +229,12 @@ namespace YChanEx {
             chkPreventDupes.Checked = false;
         }
         #endregion
+
+        private void btnLocal_Click(object sender, EventArgs e) {
+            if (!Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\YChanEx"))
+                Directory.CreateDirectory(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\YChanEx");
+
+            Process.Start(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\YChanEx");
+        }
     }
 }

@@ -372,7 +372,7 @@ namespace YChanEx {
                 channame = "u18chan";
 
             if (YCSettings.Default.saveDate)
-                dateNow = DateTime.Now.ToString("(yyyy-MM-dd, HH-mm-ss) ");
+                dateNow = DateTime.Now.ToString("(yyyy-MM-dd, HH:mm:ss) ");
 
             if (!File.Exists(settingsDir + @"\" + channame + "history.dat")) {
                 File.Create(settingsDir + @"\" + channame + "history.dat").Close();
