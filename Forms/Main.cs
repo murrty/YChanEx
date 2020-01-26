@@ -360,9 +360,10 @@ namespace YChanEx {
                         //Controller.saveHistory(2, URL + " // " + getTitle(false, URL), URL);
                         Controller.saveHistory(2, URL, URL);// + " // " + Controller.getHTMLTitle(2, URL), URL);
                     }
-                    else if (URL.StartsWith("https://8ch.net/")) {
+                    else if (URL.StartsWith("https://8kun.top/")) {
                         //Controller.saveHistory(3, URL + " // " + getTitle(false, URL), URL);
-                        Controller.saveHistory(3, URL, URL);// + " // " + Controller.getHTMLTitle(3, URL), URL);
+                        //Controller.saveHistory(3, URL, URL);// + " // " + Controller.getHTMLTitle(3, URL), URL);
+                        // just ignore this.
                     }
                     else if (URL.StartsWith("http://fchan.us/")) {
                         //Controller.saveHistory(4, URL + " // " + getTitle(false, URL), URL);
@@ -598,7 +599,7 @@ namespace YChanEx {
                 else if (YCSettings.Default.threadDeadAction == 1) {
                     if (DeadThreadURL.ToString().StartsWith("https://boards.4chan.org/"))
                         Clipboard.SetText("https://archived.moe/" + ReturnBoard + "/threads/" + ReturnID);
-                    // else if (DeadThreadURL.ToString().StartsWith("https://8ch.net/") || DeadThreadURL.ToString().StartsWith("https://www.8ch.net/") || DeadThreadURL.ToString().StartsWith("https://8chan.co/") || DeadThreadURL.ToString().StartsWith("https://www.8chan.co/"))
+                    // else if (DeadThreadURL.ToString().StartsWith("https://8kun.top/") || DeadThreadURL.ToString().StartsWith("https://www.8kun.top/") || DeadThreadURL.ToString().StartsWith("https://8chan.co/") || DeadThreadURL.ToString().StartsWith("https://www.8chan.co/"))
                     // 8CHAN does not have an archiving site yet, do they? idk.
 
                     is404 = false;
@@ -606,7 +607,7 @@ namespace YChanEx {
                 else if (YCSettings.Default.threadDeadAction == 2) {
                     if (DeadThreadURL.ToString().StartsWith("https://boards.4chan.org/"))
                         Process.Start("https://archived.moe/" + ReturnBoard + "/threads/" + ReturnID);
-                    // else if (DeadThreadURL.ToString().StartsWith("https://8ch.net/") || DeadThreadURL.ToString().StartsWith("https://www.8ch.net/") || DeadThreadURL.ToString().StartsWith("https://8chan.co/") || DeadThreadURL.ToString().StartsWith("https://www.8chan.co/"))
+                    // else if (DeadThreadURL.ToString().StartsWith("https://8kun.top/") || DeadThreadURL.ToString().StartsWith("https://www.8kun.top/") || DeadThreadURL.ToString().StartsWith("https://8chan.co/") || DeadThreadURL.ToString().StartsWith("https://www.8chan.co/"))
                     // read above.
 
                     is404 = false;
@@ -614,16 +615,16 @@ namespace YChanEx {
                 else if (YCSettings.Default.threadDeadAction == 3) {
                     if (DeadThreadURL.ToString().StartsWith("https://boards.4chan.org/"))
                         Clipboard.SetText("https://4chan.org/" + ReturnBoard + "/threads/" + ReturnID);
-                    else if (DeadThreadURL.ToString().StartsWith("https://8ch.net/") || DeadThreadURL.ToString().StartsWith("https://www.8ch.net/") || DeadThreadURL.ToString().StartsWith("https://8chan.co/") || DeadThreadURL.ToString().StartsWith("https://www.8chan.co/"))
-                        Clipboard.SetText("https://8ch.net/" + ReturnBoard + "/res/" + ReturnID + ".html");
+                    else if (DeadThreadURL.ToString().StartsWith("https://8kun.top/") || DeadThreadURL.ToString().StartsWith("https://www.8kun.top/") || DeadThreadURL.ToString().StartsWith("https://8chan.co/") || DeadThreadURL.ToString().StartsWith("https://www.8chan.co/"))
+                        Clipboard.SetText("https://8kun.top/" + ReturnBoard + "/res/" + ReturnID + ".html");
 
                     is404 = false;
                 }
                 else if (YCSettings.Default.threadDeadAction == 4) {
                     if (DeadThreadURL.ToString().StartsWith("https://boards.4chan.org/"))
                         Process.Start("https://4chan.org/" + ReturnBoard + "/threads/" + ReturnID);
-                    else if (DeadThreadURL.ToString().StartsWith("https://8ch.net/") || DeadThreadURL.ToString().StartsWith("https://www.8ch.net/") || DeadThreadURL.ToString().StartsWith("https://8chan.co/") || DeadThreadURL.ToString().StartsWith("https://www.8chan.co/"))
-                        Process.Start("https://8ch.net/" + ReturnBoard + "/res/" + ReturnID + ".html");
+                    else if (DeadThreadURL.ToString().StartsWith("https://8kun.top/") || DeadThreadURL.ToString().StartsWith("https://www.8kun.top/") || DeadThreadURL.ToString().StartsWith("https://8chan.co/") || DeadThreadURL.ToString().StartsWith("https://www.8chan.co/"))
+                        Process.Start("https://8kun.top/" + ReturnBoard + "/res/" + ReturnID + ".html");
 
                     is404 = false;
                 }
@@ -634,7 +635,7 @@ namespace YChanEx {
                 else if (YCSettings.Default.threadDeadAction == 6) {
                     if (DeadThreadURL.ToString().StartsWith("https://boards.4chan.org/"))
                         Clipboard.SetText(YCSettings.Default.downloadPath + @"\4chan\" + ReturnBoard + @"\" + ReturnID);
-                    else if (DeadThreadURL.ToString().StartsWith("https://8ch.net/") || DeadThreadURL.ToString().StartsWith("https://www.8ch.net/") || DeadThreadURL.ToString().StartsWith("https://8chan.co/") || DeadThreadURL.ToString().StartsWith("https://www.8chan.co/"))
+                    else if (DeadThreadURL.ToString().StartsWith("https://8kun.top/") || DeadThreadURL.ToString().StartsWith("https://www.8kun.top/") || DeadThreadURL.ToString().StartsWith("https://8chan.co/") || DeadThreadURL.ToString().StartsWith("https://www.8chan.co/"))
                         Clipboard.SetText(YCSettings.Default.downloadPath + @"\8ch\" + ReturnBoard + @"\" + ReturnID);
 
                     is404 = false;
@@ -642,7 +643,7 @@ namespace YChanEx {
                 else if (YCSettings.Default.threadDeadAction == 7) {
                     if (DeadThreadURL.ToString().StartsWith("https://boards.4chan.org/"))
                         Process.Start(YCSettings.Default.downloadPath + @"\4chan\" + ReturnBoard + @"\" + ReturnID);
-                    else if (DeadThreadURL.ToString().StartsWith("https://8ch.net/") || DeadThreadURL.ToString().StartsWith("https://www.8ch.net/") || DeadThreadURL.ToString().StartsWith("https://8chan.co/") || DeadThreadURL.ToString().StartsWith("https://www.8chan.co/"))
+                    else if (DeadThreadURL.ToString().StartsWith("https://8kun.top/") || DeadThreadURL.ToString().StartsWith("https://www.8kun.top/") || DeadThreadURL.ToString().StartsWith("https://8chan.co/") || DeadThreadURL.ToString().StartsWith("https://www.8chan.co/"))
                         Process.Start(YCSettings.Default.downloadPath + @"\8ch\" + ReturnBoard + @"\" + ReturnID);
 
                     is404 = false;

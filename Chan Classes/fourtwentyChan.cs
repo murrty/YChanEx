@@ -23,13 +23,14 @@ namespace YChanEx {
         public static string regBoard = "boards.420chan.org/[a-zA-Z0-9]*?/$";
         public static string regTitle = "(?<=<title>).*?(?= - 420chan </title>)";
 
-        public fourtwentyChan(string url, bool isBoard) : base(url, isBoard) {
+        public fourtwentyChan(string url, bool isBoard)
+            : base(url, isBoard) {
             this.Board = isBoard;
             this.imName = "420chan";
             if (!isBoard) {
                 Match match = Regex.Match(url, @"boards.420chan.org/[a-zA-Z0-9]*?/res/\d*");
                 this.URL = "https://" + match.Groups[0].Value + ".php";
-                this.SaveTo = YCSettings.Default.downloadPath + "\\" + this.imName + "\\" + getURL().Split('/')[3] + "\\" + getURL().Split('/')[5].Replace(".php","");
+                this.SaveTo = YCSettings.Default.downloadPath + "\\" + this.imName + "\\" + getURL().Split('/')[3] + "\\" + getURL().Split('/')[5].Replace(".php", "");
             }
             else {
                 this.URL = url;
@@ -108,7 +109,7 @@ namespace YChanEx {
                 website = website.Replace("href=\"/static/", "href=\"https://420chan.org/static/");
 
                 for (int i = 0; i < xmlExt.Count; i++) {
-                    if (xmlExt[i].InnerText == ".gif")  website.Replace("href=\"/thumb/" + xmlFilename[i].InnerText + xmlExt[i].InnerText, xmlFilename[i].InnerText + xmlExt[i].InnerText);
+                    if (xmlExt[i].InnerText == ".gif") website.Replace("href=\"/thumb/" + xmlFilename[i].InnerText + xmlExt[i].InnerText, xmlFilename[i].InnerText + xmlExt[i].InnerText);
                     else strThumbs = strThumbs + thumbURL + xmlFilename[i].InnerText + "s.jpg\n";
                 }
 

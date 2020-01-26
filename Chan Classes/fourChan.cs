@@ -57,8 +57,8 @@ namespace YChanEx {
         }
 
         override public void download() {
-            List<string> downloadURLs = new List<string>();                                                                     // List of images
-            List<string> downloadThumbs = new List<string>();                                                                   // List of thumbnails
+            List<string> imageFiles = new List<string>();                                                                       // List of images
+            List<string> thumbFiles = new List<string>();                                                                       // List of thumbnails
             string baseURL = "//i.4cdn.org/" + getURL().Split('/')[3] + "/";                                                    // Base URL used for downloading & html
             string threadSrc;                                                                                                   // String that contains the source of the thread
             string currentURL = string.Empty;                                                                                   // String for deciding which URL is being used
@@ -109,8 +109,8 @@ namespace YChanEx {
 
             // Count the files and do source maintenance
                 for (int i = 0; i < xmlExt.Count; i++) {
-                    downloadURLs.Add("https:" + baseURL + xmlTim[i].InnerText + xmlExt[i].InnerText);
-                    downloadThumbs.Add("https:" + baseURL + xmlTim[i].InnerText + "s.jpg");
+                    imageFiles.Add("https:" + baseURL + xmlTim[i].InnerText + xmlExt[i].InnerText);
+                    thumbFiles.Add("https:" + baseURL + xmlTim[i].InnerText + "s.jpg");
 
                     string oldURL = baseURL + xmlTim[i].InnerText + xmlExt[i].InnerText;                                        // Old URL of the files
                     string oldThumbURL = "//t.4cdn.org/" + getURL().Split('/')[3] + "/" + xmlTim[i].InnerText + "s.jpg";        // Old URL of the thumbnail
@@ -133,9 +133,9 @@ namespace YChanEx {
 
             // Begin download
                 string fileName = string.Empty;
-                for (int i = 0; i < downloadURLs.Count; i++) {
+                for (int i = 0; i < imageFiles.Count; i++) {
                     if (YCSettings.Default.originalName) {
-                        currentURL = downloadURLs[i];
+                        currentURL = imageFiles[i];
 
                     // Replace illegal characters in file names that aren't allowed on Windows machines
                         string[] invalidCharacters = new string[] { "\\", "/", ":", "*", "?", "\"", "<", ">", "|" };
@@ -179,28 +179,28 @@ namespace YChanEx {
                             fileName = "(" + fileCount + ") " + fileName + xmlExt[i].InnerText;
 
                             if (!File.Exists(this.SaveTo + "\\" + fileName)) {
-                                Controller.downloadFile(downloadURLs[i], this.SaveTo, true, fileName);
+                                Controller.downloadFile(imageFiles[i], this.SaveTo, true, fileName);
                                 this.fileCount++;
                             }
                         }
                         else {
                             if (!File.Exists(this.SaveTo + "\\" + fileName)) {
                                 fileName += xmlExt[i].InnerText;
-                                Controller.downloadFile(downloadURLs[i], this.SaveTo, true, fileName);
+                                Controller.downloadFile(imageFiles[i], this.SaveTo, true, fileName);
                                 this.fileCount++;
                             }
                         }
                     }
                     else {
-                        Controller.downloadFile(downloadURLs[i], this.SaveTo);
+                        Controller.downloadFile(imageFiles[i], this.SaveTo);
                     }
                 }
 
             // Download thumbnails
                 if (YCSettings.Default.downloadThumbnails) {
-                    for (int i = 0; i < downloadThumbs.Count; i++) {
-                        currentURL = downloadThumbs[i];
-                        Controller.downloadFile(downloadThumbs[i], this.SaveTo + "\\thumb");
+                    for (int i = 0; i < thumbFiles.Count; i++) {
+                        currentURL = thumbFiles[i];
+                        Controller.downloadFile(thumbFiles[i], this.SaveTo + "\\thumb");
                     }
                 }
 

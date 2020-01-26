@@ -18,6 +18,7 @@ namespace YChanEx {
     class sevenChan : ImageBoard {
         public static string regThread = "7chan.org/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*";
         public static string regImage = "(?<=<a href=\").*?(?=\" id=\"expandimg_)";
+        public static string regImageB = "http(?:s)?:\\/\\/(?:www\\.)?7chan.org\\/([a-zA-Z0-9]+)\\/src\\/([0-9]+)\\.(?:jpg|jpeg|gif|png|webm|mp4)?";
 
         public sevenChan(string url, bool isBoard)
             : base(url, isBoard) {
@@ -70,48 +71,38 @@ namespace YChanEx {
         }
 
         public override void download() {
-            string[] images;
-            string[] thumbnails; // .Split('.")[2] = Extension
-            string[] original;
-            var lwebsite = new List<string>();
-            var lImages = new List<string>();
-            var lThumbnails = new List<string>();
-            var lOriginal = new List<string>();
-            string website;
+            string[] badchars = new string[] { "\\", "/", ":", "*", "?", "\"", "<", ">", "|" };
+            List<string> imageFiles = new List<string>();
+            List<string> thumbFiles = new List<string>();
+            string threadSrc = null;
 
             try {
-                //if (!isModified(this.getURL())) {
+                //if (!isModified(this.getURL())) {   todo: more research in isModifiedSince
                 //    return;
                 //}
-                website = Controller.getHTML(this.getURL());
 
-                string[] lines = website.Split('\n');
+                threadSrc = Controller.getHTML(this.getURL());
+
                 string extension;
-                Regex href = new Regex(regImage);
-                foreach (Match imageLinks in href.Matches(website)) {
-                    lImages.Add(imageLinks.ToString());
+                Regex href = new Regex(regImageB);
+                foreach (Match imageLinks in href.Matches(threadSrc)) {
+                    imageFiles.Add(imageLinks.ToString());
                     if (YCSettings.Default.downloadThumbnails) {
                         extension = imageLinks.ToString().Split('.')[2];
-                        lThumbnails.Add(imageLinks.ToString().Replace("." + extension, "s." + extension).Replace("/src/", "/thumb/"));
+                        thumbFiles.Add(imageLinks.ToString().Replace("." + extension, "s." + extension).Replace("/src/", "/thumb/"));
                     }
-                    //if (YCSettings.Default.originalName)
+                    //if (YCSettings.Default.originalName)   todo: more regex memes
                     //    lOriginal.Add(lines[Array.FindIndex(lines, x => x.Contains(imageLinks.ToString())) + 8].Replace(", ", ""));
                 }
-
-                images = lImages.ToArray();
-                original = lOriginal.ToArray();
-                lImages.Clear();
-                lOriginal.Clear();
-                lwebsite.Clear();
 
                 if (!Directory.Exists(this.SaveTo))
                     Directory.CreateDirectory(this.SaveTo);
 
-                for (int y = 0; y < images.Length; y++) {
-                    string file = images[y].Split('/')[5];
-                    string url = images[y];
-                    string[] badchars = new string[] { "\\", "/", ":", "*", "?", "\"", "<", ">", "|" };
+                for (int y = 0; y < imageFiles.Count; y++) {
+                    string file = imageFiles[y].Split('/')[5];
+                    string url = imageFiles[y];
                     string newfilename = file;
+
                     //if (YCSettings.Default.originalName) {
                     //    newfilename = original[y];
                     //    for (int z = 0; z < badchars.Length - 1; z++)
@@ -124,28 +115,25 @@ namespace YChanEx {
                         for (int z = 0; z < badchars.Length; z++)
                             newfilename = newfilename.Replace(badchars[z], "-");
 
-                        Controller.downloadFile(images[y], this.SaveTo, true, newfilename);
-                        website = website.Replace(url, newfilename);
+                        Controller.downloadFile(imageFiles[y], this.SaveTo, true, newfilename);
+                        threadSrc = threadSrc.Replace(url, newfilename);
                     //}
                 }
-
-                thumbnails = lThumbnails.ToArray();
-                lThumbnails.Clear();
 
                 if (YCSettings.Default.downloadThumbnails) {
                     if (!Directory.Exists(this.SaveTo + "\\thumb"))
                         Directory.CreateDirectory(this.SaveTo + "\\thumb");
 
-                    for (int y = 0; y < thumbnails.Length; y++) {
-                        string file = thumbnails[y].Split('/')[5];
-                        string url = thumbnails[y];
-                        Controller.downloadFile(thumbnails[y], this.SaveTo + "\\thumb");
-                        website = website.Replace(url, "thumb\\" + file);
+                    for (int y = 0; y < thumbFiles.Count; y++) {
+                        string file = thumbFiles[y].Split('/')[5];
+                        string url = thumbFiles[y];
+                        Controller.downloadFile(thumbFiles[y], this.SaveTo + "\\thumb");
+                        threadSrc = threadSrc.Replace(url, "thumb\\" + file);
                     }
                 }
 
-                if (YCSettings.Default.htmlDownload == true && website != "")
-                    Controller.saveHTML(false, website.Replace("\"//7chan.org", "\"https://7chan.org"), this.SaveTo);
+                if (YCSettings.Default.htmlDownload == true && threadSrc != "")
+                    Controller.saveHTML(false, threadSrc.Replace("\"//7chan.org", "\"https://7chan.org"), this.SaveTo);
 
             }
             catch (ThreadAbortException) {

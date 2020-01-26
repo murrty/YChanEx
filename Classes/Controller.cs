@@ -21,7 +21,7 @@ namespace YChanEx {
          * 0 = 4chan
          * 1 = 420chan
          * 2 = 7chan
-         * 3 = 8chan
+         * 3 = 8chan / 8kun
          * 4 = fchan
          * 5 = u18chan
         */
@@ -170,8 +170,8 @@ namespace YChanEx {
             else if (URL.StartsWith("https://boards.420chan.org")) return true;
             else if (URL.StartsWith("https://7chan.org")) return true;
             else if (URL.StartsWith("https://7chan.org")) return true;
-            else if (URL.StartsWith("https://8ch.net/")) return true;
-            else if (URL.StartsWith("https://8ch.net/")) return true;
+            else if (URL.StartsWith("https://8kun.top/")) return true;
+            else if (URL.StartsWith("https://8kun.top/")) return true;
             else if (URL.StartsWith("http://fchan.us")) return true;
             else if (URL.StartsWith("http://fchan.us")) return true;
             else if (URL.StartsWith("https://u18chan.com/")) return true;
@@ -279,6 +279,19 @@ namespace YChanEx {
                     wc.Headers.Add(HttpRequestHeader.Cookie, cookie);
 
                 if (orig) {
+                    string ext = name.Substring(name.Length - 4);
+
+                    if (!ext.StartsWith(".")) {
+                        ext = "." + ext;
+                    }
+
+                    if (name.Length > 100) {
+                        string oldName = name;
+                        name = name.Substring(0, 100) + ext;
+                        if (!File.Exists(dir + "\\" + name + ".txt"))
+                            File.WriteAllText(dir + "\\" + name + ".txt", "Original name: " + oldName + "\n\n(This file was created from a file name that exceeded 100 characters. You may need to move the file to a new directory to keep the full original name, as even NTFS only supports files up to 256 characters (including the drive and path).");
+                    }
+
                     dir = dir + "\\" + name;
 
                     if (!File.Exists(dir))
@@ -365,7 +378,7 @@ namespace YChanEx {
             else if (chan == 2)
                 channame = "7chan";
             else if (chan == 3)
-                channame = "8chan";
+                channame = "8kun";
             else if (chan == 4)
                 channame = "fchan";
             else if (chan == 5)

@@ -1,4 +1,4 @@
-﻿// 8ch.net
+﻿// 8kun.top
 
 using System;
 using System.Collections.Generic;
@@ -21,14 +21,16 @@ using System.Threading;
 namespace YChanEx
 {
     class infiniteChan : ImageBoard {
-        public static string regThread = "8ch.net/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*";  // Regex to check whether is Thread or not
-        public static string regBoard = "8ch.net/[a-zA-Z0-9]*?/";                    // Regex to check whether is Board or not
+        //public static string regThread = "8kun.top/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*";  // Regex to check whether is Thread or not
+        //public static string regBoard = "8kun.top/[a-zA-Z0-9]*?/";                    // Regex to check whether is Board or not
+        public static string regThread = "8kun.top/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*";
+        public static string regBoard = "8kun.top/[a-zA-Z0-9]*?/";
 
         public infiniteChan(string url, bool isBoard) : base(url, isBoard) {
             this.Board = isBoard;
-            this.imName = "8ch";
+            this.imName = "8kun";
             if (!isBoard) {
-                Match match = Regex.Match(url, @"8ch.net/[a-zA-Z0-9]*?/res/[0-9]*");
+                Match match = Regex.Match(url, @"8kun.top/[a-zA-Z0-9]*?/res/[0-9]*");
                 this.URL = "https://" + match.Groups[0].Value + ".html";      // simplify thread url
                 this.SaveTo = (YCSettings.Default.downloadPath + "\\" + this.imName + "\\" + getURL().Split('/')[3] + "\\" + getURL().Split('/')[5]).Replace(".html", "");
             }
@@ -56,7 +58,7 @@ namespace YChanEx
 
         override protected string getLinks() {
             string exed = "";
-            string JSONUrl = ("http://8ch.net/" + getURL().Split('/')[3] + "/res/" + getURL().Split('/')[5] + ".json").Replace(".html", "");
+            string JSONUrl = ("http://8kun.top/" + getURL().Split('/')[3] + "/res/" + getURL().Split('/')[5] + ".json").Replace(".html", "");
             string str;
             XmlNodeList xmlTim;
             XmlNodeList xmlFilename;
@@ -82,14 +84,14 @@ namespace YChanEx
                 xmlExt = doc.DocumentElement.SelectNodes("/root/posts/item/ext");
 
                 for (int i = 0; i < xmlExt.Count; i++) {
-                    exed = exed + "https://8ch.net/file_store/" + xmlTim[i].InnerText + xmlExt[i].InnerText + "\n";
+                    exed = exed + "https://8kun.top/file_store/" + xmlTim[i].InnerText + xmlExt[i].InnerText + "\n";
                 }
 
                 xmlTim = doc.DocumentElement.SelectNodes("/root/posts/item/extra_files/item/tim");
                 xmlFilename = doc.DocumentElement.SelectNodes("/root/posts/item/extra_files/item/filename");
                 xmlExt = doc.DocumentElement.SelectNodes("/root/posts/item/extra_files/item/ext");
                 for (int i = 0; i < xmlExt.Count; i++) {
-                    exed = exed + "https://8ch.net/file_store/" + xmlTim[i].InnerText + xmlExt[i].InnerText + "\n";
+                    exed = exed + "https://8kun.top/file_store/" + xmlTim[i].InnerText + xmlExt[i].InnerText + "\n";
                 }
 
 
@@ -105,7 +107,7 @@ namespace YChanEx
             return exed;
         }
         override public string getThreads() {
-            string URL = "http://8ch.net/" + getURL().Split('/')[3] + "/catalog.json";
+            string URL = "http://8kun.top/" + getURL().Split('/')[3] + "/catalog.json";
             string Res = "";
             string str = "";
             XmlNodeList tNo;
@@ -125,7 +127,7 @@ namespace YChanEx
                 doc.LoadXml(str);
                 tNo = doc.DocumentElement.SelectNodes("/root/item/threads/item/no");
                 for (int i = 0; i < tNo.Count; i++) {
-                    Res = Res + "http://8ch.net/" + getURL().Split('/')[3] + "/res/" + tNo[i].InnerText + ".html\n";
+                    Res = Res + "http://8kun.top/" + getURL().Split('/')[3] + "/res/" + tNo[i].InnerText + ".html\n";
                 }
             }
             catch (WebException webEx) { ErrorLog.reportWebError(webEx); }
@@ -199,21 +201,21 @@ namespace YChanEx
                         filename = tim + ext;
                     }
 
-                    strThumbs = strThumbs + "https://8ch.net/file_store/thumb/" + tim + ext.Replace("webm", "jpg").Replace("mp4", "jpg") +"\n";
-                    website = website.Replace("https://8ch.net/file_store/thumb/" + tim + ext, "thumb/" + tim + ext);
+                    strThumbs = strThumbs + "https://8kun.top/file_store/thumb/" + tim + ext.Replace("webm", "jpg").Replace("mp4", "jpg") +"\n";
+                    website = website.Replace("https://8kun.top/file_store/thumb/" + tim + ext, "thumb/" + tim + ext);
                     website = website.Replace("=\"/file_store/thumb/" + tim + ext, "=\"thumb/" + tim + ext);
-                    website = website.Replace("https://8ch.net/file_store/thumb/" + tim + ext, "thumb/" + tim + ext);
-                    website = website.Replace("https://media.8ch.net/file_store/thumb/" + tim + ext, "thumb/" + tim + ext);
+                    website = website.Replace("https://8kun.top/file_store/thumb/" + tim + ext, "thumb/" + tim + ext);
+                    website = website.Replace("https://media.8kun.top/file_store/thumb/" + tim + ext, "thumb/" + tim + ext);
 
                     if (YCSettings.Default.originalName) {
                         website = website.Replace("=\"/file_store/" + tim + ext, "=\"" + filename + ext);
-                        website = website.Replace("https://media.8ch.net/file_store/" + tim + ext, filename + ext);
-                        website = website.Replace("https://8ch.net/file_store/" + tim + ext, filename + ext);
+                        website = website.Replace("https://media.8kun.top/file_store/" + tim + ext, filename + ext);
+                        website = website.Replace("https://8kun.top/file_store/" + tim + ext, filename + ext);
                     }
                     else {
                         website = website.Replace("=\"/file_store/" + tim + ext, "=\"" + tim + ext);
-                        website = website.Replace("https://media.8ch.net/file_store/" + tim + ext, tim + ext);
-                        website = website.Replace("https://8ch.net/file_store/" + tim + ext, tim + ext);
+                        website = website.Replace("https://media.8kun.top/file_store/" + tim + ext, tim + ext);
+                        website = website.Replace("https://8kun.top/file_store/" + tim + ext, tim + ext);
                     }
 
 
@@ -221,7 +223,7 @@ namespace YChanEx
                         Directory.CreateDirectory(this.SaveTo);
 
                     // Attempt download
-                    string dlURL = "https://8ch.net/file_store/" + tim + ext;
+                    string dlURL = "https://8kun.top/file_store/" + tim + ext;
                     if (YCSettings.Default.originalName) {
                         string[] badchars = new string[] { "\\", "/", ":", "*", "?", "\"", "<", ">", "|" };
                         string newfilename = filename;
@@ -258,25 +260,25 @@ namespace YChanEx
                     string ext = xmlExtExt[i].InnerText;
                     string md5 = xmlMd5Ext[i].InnerText;
 
-                    strThumbsExt = strThumbsExt + "https://8ch.net/file_store/thumb/" + tim + ext.Replace("webm", "jpg").Replace("mp4", "jpg") + "\n";
-                    website = website.Replace("https://8ch.net/file_store/thumb/" + tim + ext, "thumb/" + tim + ext);
+                    strThumbsExt = strThumbsExt + "https://8kun.top/file_store/thumb/" + tim + ext.Replace("webm", "jpg").Replace("mp4", "jpg") + "\n";
+                    website = website.Replace("https://8kun.top/file_store/thumb/" + tim + ext, "thumb/" + tim + ext);
                     website = website.Replace("=\"/file_store/thumb/" + tim + ext, "=\"thumb/" + tim + ext);
-                    website = website.Replace("https://8ch.net/file_store/thumb/" + tim + ext, "thumb/" + tim + ext);
-                    website = website.Replace("https://media.8ch.net/file_store/thumb/" + tim + ext, "thumb/" + tim + ext);
+                    website = website.Replace("https://8kun.top/file_store/thumb/" + tim + ext, "thumb/" + tim + ext);
+                    website = website.Replace("https://media.8kun.top/file_store/thumb/" + tim + ext, "thumb/" + tim + ext);
 
                     if (YCSettings.Default.originalName) {
                         website = website.Replace("=\"/file_store/" + tim + ext, "=\"" + filename + ext);
-                        website = website.Replace("https://media.8ch.net/file_store/" + tim + ext, filename + ext);
-                        website = website.Replace("https://8ch.net/file_store/" + tim + ext, filename + ext);
+                        website = website.Replace("https://media.8kun.top/file_store/" + tim + ext, filename + ext);
+                        website = website.Replace("https://8kun.top/file_store/" + tim + ext, filename + ext);
                     }
                     else {
                         website = website.Replace("=\"/file_store/" + tim + ext, "=\"" + tim + ext);
-                        website = website.Replace("https://media.8ch.net/file_store/" + tim + ext, tim + ext);
-                        website = website.Replace("https://8ch.net/file_store/" + tim + ext, tim + ext);
+                        website = website.Replace("https://media.8kun.top/file_store/" + tim + ext, tim + ext);
+                        website = website.Replace("https://8kun.top/file_store/" + tim + ext, tim + ext);
                     }
 
                     // Attempt download
-                    string dlURL = "https://8ch.net/file_store/" + tim + ext;
+                    string dlURL = "https://8kun.top/file_store/" + tim + ext;
                     if (YCSettings.Default.originalName) {
                         string[] badchars = new string[] { "\\", "/", ":", "*", "?", "\"", "<", ">", "|" };
                         string newfilename = filename + ext;
@@ -295,7 +297,7 @@ namespace YChanEx
                     }
                 }
 
-                website = website.Replace("=\"/", "=\"https://8ch.net/");
+                website = website.Replace("=\"/", "=\"https://8kun.top/");
 
                 if (YCSettings.Default.htmlDownload)
                     Controller.saveHTML(false, website, this.SaveTo);

@@ -14,18 +14,19 @@ using System.Threading;
 using System.Windows.Forms;
 
 namespace YChanEx {
-    class fChan  : ImageBoard {
+    class fChan : ImageBoard {
         public static string regThread = "fchan.us/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*";
         public static string regTitle = "(?<=<title>).*?(?=</title>)";
         public static string reqCookie = "disclaimer=seen"; //fchan requires a cookie.
 
-        public fChan(string url, bool isBoard) : base(url, isBoard) {
+        public fChan(string url, bool isBoard)
+            : base(url, isBoard) {
             this.Board = isBoard;
             this.imName = "fchan";
             if (!isBoard) {
                 Match match = Regex.Match(URL, @"fchan.us/[a-zA-Z0-9]*?/res/[0-9]\d*");
                 this.URL = "http://" + match.Groups[0].Value + ".html";
-                this.SaveTo = (YCSettings.Default.downloadPath + "\\" + this.imName + "\\" + getURL().Split('/')[3] + "\\" + getURL().Split('/')[5].Replace(".html",""));
+                this.SaveTo = (YCSettings.Default.downloadPath + "\\" + this.imName + "\\" + getURL().Split('/')[3] + "\\" + getURL().Split('/')[5].Replace(".html", ""));
             }
             else {
                 this.URL = url;
@@ -178,7 +179,8 @@ namespace YChanEx {
                     ErrorLog.reportWebError(webEx);
 
                 return;
-            } catch (Exception ex) { Debug.Print(ex.ToString()); ErrorLog.reportError(ex.ToString()); }
+            }
+            catch (Exception ex) { Debug.Print(ex.ToString()); ErrorLog.reportError(ex.ToString()); }
         }
 
         public static string getTopic(string board) {
