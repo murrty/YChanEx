@@ -32,6 +32,7 @@
             this.lbScanTimer = new System.Windows.Forms.Label();
             this.lbLastModified = new System.Windows.Forms.Label();
             this.ttDownloader = new System.Windows.Forms.ToolTip(this.components);
+            this.lbNotModified = new System.Windows.Forms.Label();
             this.lvImages = new YChanEx.VistaListView();
             this.clID = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clExt = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -92,9 +93,9 @@
             this.lbScanTimer.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lbScanTimer.Location = new System.Drawing.Point(131, 293);
             this.lbScanTimer.Name = "lbScanTimer";
-            this.lbScanTimer.Size = new System.Drawing.Size(96, 17);
+            this.lbScanTimer.Size = new System.Drawing.Size(110, 17);
             this.lbScanTimer.TabIndex = 5;
-            this.lbScanTimer.Text = "scanning now...";
+            this.lbScanTimer.Text = "scanning thread...";
             this.ttDownloader.SetToolTip(this.lbScanTimer, "haha");
             // 
             // lbLastModified
@@ -108,6 +109,18 @@
             this.lbLastModified.Text = "last modified: never";
             this.ttDownloader.SetToolTip(this.lbLastModified, "The last time the thread was updated.\r\nIf the thread hasn\'t been posted to since " +
         "this time, it won\'t download any files.");
+            // 
+            // lbNotModified
+            // 
+            this.lbNotModified.AutoSize = true;
+            this.lbNotModified.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lbNotModified.Location = new System.Drawing.Point(203, 293);
+            this.lbNotModified.Name = "lbNotModified";
+            this.lbNotModified.Size = new System.Drawing.Size(83, 17);
+            this.lbNotModified.TabIndex = 7;
+            this.lbNotModified.Text = "not modified";
+            this.ttDownloader.SetToolTip(this.lbNotModified, "The thread has not been modified since last download.");
+            this.lbNotModified.Visible = false;
             // 
             // lvImages
             // 
@@ -156,8 +169,11 @@
             this.Controls.Add(this.lbTimeToRescan);
             this.Controls.Add(this.lbTotal);
             this.Controls.Add(this.lvImages);
+            this.Controls.Add(this.lbNotModified);
             this.MinimumSize = new System.Drawing.Size(500, 350);
             this.Name = "frmDownloader";
+            this.Opacity = 0D;
+            this.ShowInTaskbar = false;
             this.Text = "unknown chan download";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmDownloader_FormClosing);
             this.ResumeLayout(false);
@@ -180,6 +196,7 @@
         private System.Windows.Forms.Label lbScanTimer;
         private System.Windows.Forms.Label lbLastModified;
         private System.Windows.Forms.ToolTip ttDownloader;
+        private System.Windows.Forms.Label lbNotModified;
 
     }
 }

@@ -26,34 +26,40 @@
             this.components = new System.ComponentModel.Container();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabDownloads = new System.Windows.Forms.TabPage();
-            this.checkBox5 = new System.Windows.Forms.CheckBox();
-            this.checkBox4 = new System.Windows.Forms.CheckBox();
-            this.checkBox2 = new System.Windows.Forms.CheckBox();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
-            this.edtTimer = new System.Windows.Forms.NumericUpDown();
+            this.chkSaveDownloadQueueOnExit = new System.Windows.Forms.CheckBox();
+            this.txtSavePath = new YChanEx.HintTextBox();
+            this.chkPreventDuplicates = new System.Windows.Forms.CheckBox();
+            this.chkSaveOriginalFileNames = new System.Windows.Forms.CheckBox();
+            this.chkDownloadThumbnails = new System.Windows.Forms.CheckBox();
+            this.chkDownloadHTML = new System.Windows.Forms.CheckBox();
+            this.numTimer = new System.Windows.Forms.NumericUpDown();
             this.lbTimer = new System.Windows.Forms.Label();
             this.lbSavePath = new System.Windows.Forms.Label();
             this.btnBrowse = new System.Windows.Forms.Button();
             this.chkMove = new System.Windows.Forms.CheckBox();
             this.tabApplication = new System.Windows.Forms.TabPage();
+            this.idk = new System.Windows.Forms.CheckBox();
+            this.chkEnableUpdates = new System.Windows.Forms.CheckBox();
+            this.chkShowExitWarning = new System.Windows.Forms.CheckBox();
+            this.chkMinimizeToTray = new System.Windows.Forms.CheckBox();
+            this.chkShowTrayIcon = new System.Windows.Forms.CheckBox();
             this.tabAdvanced = new System.Windows.Forms.TabPage();
+            this.btnOpenLocalFiles = new System.Windows.Forms.Button();
+            this.chkSilenceErrors = new System.Windows.Forms.CheckBox();
+            this.chkDisableScannerWhenOpeningSettings = new System.Windows.Forms.CheckBox();
+            this.txtUserAgent = new YChanEx.HintTextBox();
+            this.lbUserAgent = new System.Windows.Forms.Label();
             this.tabReset = new System.Windows.Forms.TabPage();
             this.btnUserScript = new System.Windows.Forms.Button();
             this.btnProtocol = new System.Windows.Forms.Button();
             this.btnSCan = new System.Windows.Forms.Button();
             this.btnSSave = new System.Windows.Forms.Button();
-            this.hintTextBox1 = new YChanEx.HintTextBox();
-            this.checkBox6 = new System.Windows.Forms.CheckBox();
-            this.checkBox7 = new System.Windows.Forms.CheckBox();
-            this.checkBox8 = new System.Windows.Forms.CheckBox();
-            this.checkBox9 = new System.Windows.Forms.CheckBox();
-            this.checkBox10 = new System.Windows.Forms.CheckBox();
             this.ttSettings = new System.Windows.Forms.ToolTip(this.components);
-            this.checkBox3 = new System.Windows.Forms.CheckBox();
             this.tabControl1.SuspendLayout();
             this.tabDownloads.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.edtTimer)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numTimer)).BeginInit();
             this.tabApplication.SuspendLayout();
+            this.tabAdvanced.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -71,13 +77,13 @@
             // 
             // tabDownloads
             // 
-            this.tabDownloads.Controls.Add(this.checkBox3);
-            this.tabDownloads.Controls.Add(this.hintTextBox1);
-            this.tabDownloads.Controls.Add(this.checkBox5);
-            this.tabDownloads.Controls.Add(this.checkBox4);
-            this.tabDownloads.Controls.Add(this.checkBox2);
-            this.tabDownloads.Controls.Add(this.checkBox1);
-            this.tabDownloads.Controls.Add(this.edtTimer);
+            this.tabDownloads.Controls.Add(this.chkSaveDownloadQueueOnExit);
+            this.tabDownloads.Controls.Add(this.txtSavePath);
+            this.tabDownloads.Controls.Add(this.chkPreventDuplicates);
+            this.tabDownloads.Controls.Add(this.chkSaveOriginalFileNames);
+            this.tabDownloads.Controls.Add(this.chkDownloadThumbnails);
+            this.tabDownloads.Controls.Add(this.chkDownloadHTML);
+            this.tabDownloads.Controls.Add(this.numTimer);
             this.tabDownloads.Controls.Add(this.lbTimer);
             this.tabDownloads.Controls.Add(this.lbSavePath);
             this.tabDownloads.Controls.Add(this.btnBrowse);
@@ -90,64 +96,91 @@
             this.tabDownloads.Text = "Downloads";
             this.tabDownloads.UseVisualStyleBackColor = true;
             // 
-            // checkBox5
+            // chkSaveDownloadQueueOnExit
             // 
-            this.checkBox5.AutoSize = true;
-            this.checkBox5.Location = new System.Drawing.Point(147, 89);
-            this.checkBox5.Name = "checkBox5";
-            this.checkBox5.Size = new System.Drawing.Size(113, 17);
-            this.checkBox5.TabIndex = 27;
-            this.checkBox5.Text = "Prevent duplicates";
-            this.checkBox5.UseVisualStyleBackColor = true;
+            this.chkSaveDownloadQueueOnExit.AutoSize = true;
+            this.chkSaveDownloadQueueOnExit.Location = new System.Drawing.Point(11, 112);
+            this.chkSaveDownloadQueueOnExit.Name = "chkSaveDownloadQueueOnExit";
+            this.chkSaveDownloadQueueOnExit.Size = new System.Drawing.Size(166, 17);
+            this.chkSaveDownloadQueueOnExit.TabIndex = 29;
+            this.chkSaveDownloadQueueOnExit.Text = "Save download queue on exit";
+            this.ttSettings.SetToolTip(this.chkSaveDownloadQueueOnExit, "Saves the download queue on exit.");
+            this.chkSaveDownloadQueueOnExit.UseVisualStyleBackColor = true;
             // 
-            // checkBox4
+            // txtSavePath
             // 
-            this.checkBox4.AutoSize = true;
-            this.checkBox4.Location = new System.Drawing.Point(147, 66);
-            this.checkBox4.Name = "checkBox4";
-            this.checkBox4.Size = new System.Drawing.Size(136, 17);
-            this.checkBox4.TabIndex = 26;
-            this.checkBox4.Text = "Save original file names";
-            this.checkBox4.UseVisualStyleBackColor = true;
+            this.txtSavePath.Location = new System.Drawing.Point(68, 11);
+            this.txtSavePath.Name = "txtSavePath";
+            this.txtSavePath.ReadOnly = true;
+            this.txtSavePath.Size = new System.Drawing.Size(194, 20);
+            this.txtSavePath.TabIndex = 28;
+            this.txtSavePath.Text = "C:\\";
+            this.txtSavePath.TextHint = "C:\\";
+            this.ttSettings.SetToolTip(this.txtSavePath, "The directory where downloads will be saved to");
             // 
-            // checkBox2
+            // chkPreventDuplicates
             // 
-            this.checkBox2.AutoSize = true;
-            this.checkBox2.Location = new System.Drawing.Point(11, 89);
-            this.checkBox2.Name = "checkBox2";
-            this.checkBox2.Size = new System.Drawing.Size(130, 17);
-            this.checkBox2.TabIndex = 24;
-            this.checkBox2.Text = "Download Thumbnails";
-            this.checkBox2.UseVisualStyleBackColor = true;
+            this.chkPreventDuplicates.AutoSize = true;
+            this.chkPreventDuplicates.Location = new System.Drawing.Point(147, 89);
+            this.chkPreventDuplicates.Name = "chkPreventDuplicates";
+            this.chkPreventDuplicates.Size = new System.Drawing.Size(113, 17);
+            this.chkPreventDuplicates.TabIndex = 27;
+            this.chkPreventDuplicates.Text = "Prevent duplicates";
+            this.ttSettings.SetToolTip(this.chkPreventDuplicates, "Prevents duplicates of original file names.");
+            this.chkPreventDuplicates.UseVisualStyleBackColor = true;
             // 
-            // checkBox1
+            // chkSaveOriginalFileNames
             // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(11, 66);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(106, 17);
-            this.checkBox1.TabIndex = 23;
-            this.checkBox1.Text = "Download HTML";
-            this.checkBox1.UseVisualStyleBackColor = true;
+            this.chkSaveOriginalFileNames.AutoSize = true;
+            this.chkSaveOriginalFileNames.Location = new System.Drawing.Point(147, 66);
+            this.chkSaveOriginalFileNames.Name = "chkSaveOriginalFileNames";
+            this.chkSaveOriginalFileNames.Size = new System.Drawing.Size(136, 17);
+            this.chkSaveOriginalFileNames.TabIndex = 26;
+            this.chkSaveOriginalFileNames.Text = "Save original file names";
+            this.ttSettings.SetToolTip(this.chkSaveOriginalFileNames, "Saves files as their uploaded file names, instead of generated file IDs");
+            this.chkSaveOriginalFileNames.UseVisualStyleBackColor = true;
             // 
-            // edtTimer
+            // chkDownloadThumbnails
             // 
-            this.edtTimer.Location = new System.Drawing.Point(73, 37);
-            this.edtTimer.Maximum = new decimal(new int[] {
+            this.chkDownloadThumbnails.AutoSize = true;
+            this.chkDownloadThumbnails.Location = new System.Drawing.Point(11, 89);
+            this.chkDownloadThumbnails.Name = "chkDownloadThumbnails";
+            this.chkDownloadThumbnails.Size = new System.Drawing.Size(130, 17);
+            this.chkDownloadThumbnails.TabIndex = 24;
+            this.chkDownloadThumbnails.Text = "Download Thumbnails";
+            this.ttSettings.SetToolTip(this.chkDownloadThumbnails, "Downloads thumbnails for files in the thumb folder.");
+            this.chkDownloadThumbnails.UseVisualStyleBackColor = true;
+            // 
+            // chkDownloadHTML
+            // 
+            this.chkDownloadHTML.AutoSize = true;
+            this.chkDownloadHTML.Location = new System.Drawing.Point(11, 66);
+            this.chkDownloadHTML.Name = "chkDownloadHTML";
+            this.chkDownloadHTML.Size = new System.Drawing.Size(106, 17);
+            this.chkDownloadHTML.TabIndex = 23;
+            this.chkDownloadHTML.Text = "Download HTML";
+            this.ttSettings.SetToolTip(this.chkDownloadHTML, "Downloads thread HTML files as Thread.html in the thread folder");
+            this.chkDownloadHTML.UseVisualStyleBackColor = true;
+            // 
+            // numTimer
+            // 
+            this.numTimer.Location = new System.Drawing.Point(73, 37);
+            this.numTimer.Maximum = new decimal(new int[] {
             99999,
             0,
             0,
             0});
-            this.edtTimer.Minimum = new decimal(new int[] {
+            this.numTimer.Minimum = new decimal(new int[] {
             10,
             0,
             0,
             0});
-            this.edtTimer.Name = "edtTimer";
-            this.edtTimer.Size = new System.Drawing.Size(56, 20);
-            this.edtTimer.TabIndex = 21;
-            this.edtTimer.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.edtTimer.Value = new decimal(new int[] {
+            this.numTimer.Name = "numTimer";
+            this.numTimer.Size = new System.Drawing.Size(56, 20);
+            this.numTimer.TabIndex = 21;
+            this.numTimer.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.ttSettings.SetToolTip(this.numTimer, "The time (in seconds) that will be delayed before each scan");
+            this.numTimer.Value = new decimal(new int[] {
             60,
             0,
             0,
@@ -179,6 +212,7 @@
             this.btnBrowse.TabIndex = 18;
             this.btnBrowse.Text = "...";
             this.btnBrowse.UseVisualStyleBackColor = true;
+            this.btnBrowse.Click += new System.EventHandler(this.btnBrowse_Click);
             // 
             // chkMove
             // 
@@ -190,15 +224,16 @@
             this.chkMove.Size = new System.Drawing.Size(93, 30);
             this.chkMove.TabIndex = 19;
             this.chkMove.Text = "Move existing \r\ndownloads";
+            this.ttSettings.SetToolTip(this.chkMove, "Moves existing downloads to the new directory.");
             this.chkMove.UseVisualStyleBackColor = true;
             // 
             // tabApplication
             // 
-            this.tabApplication.Controls.Add(this.checkBox10);
-            this.tabApplication.Controls.Add(this.checkBox9);
-            this.tabApplication.Controls.Add(this.checkBox8);
-            this.tabApplication.Controls.Add(this.checkBox7);
-            this.tabApplication.Controls.Add(this.checkBox6);
+            this.tabApplication.Controls.Add(this.idk);
+            this.tabApplication.Controls.Add(this.chkEnableUpdates);
+            this.tabApplication.Controls.Add(this.chkShowExitWarning);
+            this.tabApplication.Controls.Add(this.chkMinimizeToTray);
+            this.tabApplication.Controls.Add(this.chkShowTrayIcon);
             this.tabApplication.Location = new System.Drawing.Point(4, 22);
             this.tabApplication.Name = "tabApplication";
             this.tabApplication.Padding = new System.Windows.Forms.Padding(3);
@@ -207,8 +242,67 @@
             this.tabApplication.Text = "Application";
             this.tabApplication.UseVisualStyleBackColor = true;
             // 
+            // idk
+            // 
+            this.idk.AutoSize = true;
+            this.idk.Location = new System.Drawing.Point(225, 75);
+            this.idk.Name = "idk";
+            this.idk.Size = new System.Drawing.Size(49, 17);
+            this.idk.TabIndex = 31;
+            this.idk.Text = "????";
+            this.idk.UseVisualStyleBackColor = true;
+            // 
+            // chkEnableUpdates
+            // 
+            this.chkEnableUpdates.AutoSize = true;
+            this.chkEnableUpdates.Location = new System.Drawing.Point(120, 75);
+            this.chkEnableUpdates.Name = "chkEnableUpdates";
+            this.chkEnableUpdates.Size = new System.Drawing.Size(99, 17);
+            this.chkEnableUpdates.TabIndex = 30;
+            this.chkEnableUpdates.Text = "Enable updates";
+            this.ttSettings.SetToolTip(this.chkEnableUpdates, "Enables updates for the application");
+            this.chkEnableUpdates.UseVisualStyleBackColor = true;
+            // 
+            // chkShowExitWarning
+            // 
+            this.chkShowExitWarning.AutoSize = true;
+            this.chkShowExitWarning.Location = new System.Drawing.Point(244, 52);
+            this.chkShowExitWarning.Name = "chkShowExitWarning";
+            this.chkShowExitWarning.Size = new System.Drawing.Size(111, 17);
+            this.chkShowExitWarning.TabIndex = 29;
+            this.chkShowExitWarning.Text = "Show exit warning";
+            this.ttSettings.SetToolTip(this.chkShowExitWarning, "Shows a warning before exiting");
+            this.chkShowExitWarning.UseVisualStyleBackColor = true;
+            // 
+            // chkMinimizeToTray
+            // 
+            this.chkMinimizeToTray.AutoSize = true;
+            this.chkMinimizeToTray.Location = new System.Drawing.Point(141, 52);
+            this.chkMinimizeToTray.Name = "chkMinimizeToTray";
+            this.chkMinimizeToTray.Size = new System.Drawing.Size(97, 17);
+            this.chkMinimizeToTray.TabIndex = 28;
+            this.chkMinimizeToTray.Text = "Minimize to tray";
+            this.ttSettings.SetToolTip(this.chkMinimizeToTray, "Minimizes the program to the system\'s tray");
+            this.chkMinimizeToTray.UseVisualStyleBackColor = true;
+            // 
+            // chkShowTrayIcon
+            // 
+            this.chkShowTrayIcon.AutoSize = true;
+            this.chkShowTrayIcon.Location = new System.Drawing.Point(40, 52);
+            this.chkShowTrayIcon.Name = "chkShowTrayIcon";
+            this.chkShowTrayIcon.Size = new System.Drawing.Size(95, 17);
+            this.chkShowTrayIcon.TabIndex = 27;
+            this.chkShowTrayIcon.Text = "Show tray icon";
+            this.ttSettings.SetToolTip(this.chkShowTrayIcon, "Shows the ychanex icon in the system tray");
+            this.chkShowTrayIcon.UseVisualStyleBackColor = true;
+            // 
             // tabAdvanced
             // 
+            this.tabAdvanced.Controls.Add(this.btnOpenLocalFiles);
+            this.tabAdvanced.Controls.Add(this.chkSilenceErrors);
+            this.tabAdvanced.Controls.Add(this.chkDisableScannerWhenOpeningSettings);
+            this.tabAdvanced.Controls.Add(this.txtUserAgent);
+            this.tabAdvanced.Controls.Add(this.lbUserAgent);
             this.tabAdvanced.Location = new System.Drawing.Point(4, 22);
             this.tabAdvanced.Name = "tabAdvanced";
             this.tabAdvanced.Padding = new System.Windows.Forms.Padding(3);
@@ -216,6 +310,57 @@
             this.tabAdvanced.TabIndex = 2;
             this.tabAdvanced.Text = "Advanced";
             this.tabAdvanced.UseVisualStyleBackColor = true;
+            // 
+            // btnOpenLocalFiles
+            // 
+            this.btnOpenLocalFiles.Location = new System.Drawing.Point(148, 102);
+            this.btnOpenLocalFiles.Name = "btnOpenLocalFiles";
+            this.btnOpenLocalFiles.Size = new System.Drawing.Size(98, 24);
+            this.btnOpenLocalFiles.TabIndex = 4;
+            this.btnOpenLocalFiles.Text = "Open local files";
+            this.ttSettings.SetToolTip(this.btnOpenLocalFiles, "Browse locally saved program data.\r\nThis is not your threads directory, unless yo" +
+        "u chose to save threads here.");
+            this.btnOpenLocalFiles.UseVisualStyleBackColor = true;
+            // 
+            // chkSilenceErrors
+            // 
+            this.chkSilenceErrors.AutoSize = true;
+            this.chkSilenceErrors.Location = new System.Drawing.Point(261, 72);
+            this.chkSilenceErrors.Name = "chkSilenceErrors";
+            this.chkSilenceErrors.Size = new System.Drawing.Size(89, 17);
+            this.chkSilenceErrors.TabIndex = 3;
+            this.chkSilenceErrors.Text = "Silence errors";
+            this.ttSettings.SetToolTip(this.chkSilenceErrors, "Silences any errors that may occur.");
+            this.chkSilenceErrors.UseVisualStyleBackColor = true;
+            // 
+            // chkDisableScannerWhenOpeningSettings
+            // 
+            this.chkDisableScannerWhenOpeningSettings.AutoSize = true;
+            this.chkDisableScannerWhenOpeningSettings.Location = new System.Drawing.Point(45, 72);
+            this.chkDisableScannerWhenOpeningSettings.Name = "chkDisableScannerWhenOpeningSettings";
+            this.chkDisableScannerWhenOpeningSettings.Size = new System.Drawing.Size(210, 17);
+            this.chkDisableScannerWhenOpeningSettings.TabIndex = 2;
+            this.chkDisableScannerWhenOpeningSettings.Text = "Disable scanner when opening settings";
+            this.ttSettings.SetToolTip(this.chkDisableScannerWhenOpeningSettings, "Pauses the scanner timer.\r\nThis does not stop in-progress scans/downloads.");
+            this.chkDisableScannerWhenOpeningSettings.UseVisualStyleBackColor = true;
+            // 
+            // txtUserAgent
+            // 
+            this.txtUserAgent.Location = new System.Drawing.Point(74, 34);
+            this.txtUserAgent.Name = "txtUserAgent";
+            this.txtUserAgent.Size = new System.Drawing.Size(312, 20);
+            this.txtUserAgent.TabIndex = 1;
+            this.txtUserAgent.TextHint = "Mozilla/5.0 (X11; Linux i686; rv:64.0) Gecko/20100101 Firefox/64.0";
+            this.ttSettings.SetToolTip(this.txtUserAgent, "The user-agent for the webclients to use");
+            // 
+            // lbUserAgent
+            // 
+            this.lbUserAgent.AutoSize = true;
+            this.lbUserAgent.Location = new System.Drawing.Point(8, 37);
+            this.lbUserAgent.Name = "lbUserAgent";
+            this.lbUserAgent.Size = new System.Drawing.Size(60, 13);
+            this.lbUserAgent.TabIndex = 0;
+            this.lbUserAgent.Text = "User-Agent";
             // 
             // tabReset
             // 
@@ -234,6 +379,7 @@
             this.btnUserScript.Size = new System.Drawing.Size(75, 24);
             this.btnUserScript.TabIndex = 25;
             this.btnUserScript.Text = "Userscript";
+            this.ttSettings.SetToolTip(this.btnUserScript, "Install the userscript for the application");
             this.btnUserScript.UseVisualStyleBackColor = true;
             // 
             // btnProtocol
@@ -244,100 +390,34 @@
             this.btnProtocol.Size = new System.Drawing.Size(116, 24);
             this.btnProtocol.TabIndex = 24;
             this.btnProtocol.Text = "Install protocol";
+            this.ttSettings.SetToolTip(this.btnProtocol, "Install the protocol for the userscript");
             this.btnProtocol.UseVisualStyleBackColor = true;
             this.btnProtocol.Visible = false;
             // 
             // btnSCan
             // 
-            this.btnSCan.Location = new System.Drawing.Point(315, 176);
+            this.btnSCan.Location = new System.Drawing.Point(234, 176);
             this.btnSCan.Name = "btnSCan";
             this.btnSCan.Size = new System.Drawing.Size(75, 24);
             this.btnSCan.TabIndex = 23;
             this.btnSCan.Text = "Cancel";
+            this.ttSettings.SetToolTip(this.btnSCan, "Does not save any settings changed");
             this.btnSCan.UseVisualStyleBackColor = true;
             // 
             // btnSSave
             // 
-            this.btnSSave.Location = new System.Drawing.Point(234, 176);
+            this.btnSSave.Location = new System.Drawing.Point(315, 176);
             this.btnSSave.Name = "btnSSave";
             this.btnSSave.Size = new System.Drawing.Size(75, 24);
             this.btnSSave.TabIndex = 22;
             this.btnSSave.Text = "Save";
+            this.ttSettings.SetToolTip(this.btnSSave, "Saves the settings");
             this.btnSSave.UseVisualStyleBackColor = true;
-            // 
-            // hintTextBox1
-            // 
-            this.hintTextBox1.Location = new System.Drawing.Point(68, 11);
-            this.hintTextBox1.Name = "hintTextBox1";
-            this.hintTextBox1.ReadOnly = true;
-            this.hintTextBox1.Size = new System.Drawing.Size(194, 20);
-            this.hintTextBox1.TabIndex = 28;
-            this.hintTextBox1.Text = "C:\\";
-            this.hintTextBox1.TextHint = "C:\\";
-            // 
-            // checkBox6
-            // 
-            this.checkBox6.AutoSize = true;
-            this.checkBox6.Location = new System.Drawing.Point(28, 29);
-            this.checkBox6.Name = "checkBox6";
-            this.checkBox6.Size = new System.Drawing.Size(79, 17);
-            this.checkBox6.TabIndex = 27;
-            this.checkBox6.Text = "checkBox6";
-            this.checkBox6.UseVisualStyleBackColor = true;
-            // 
-            // checkBox7
-            // 
-            this.checkBox7.AutoSize = true;
-            this.checkBox7.Location = new System.Drawing.Point(126, 29);
-            this.checkBox7.Name = "checkBox7";
-            this.checkBox7.Size = new System.Drawing.Size(79, 17);
-            this.checkBox7.TabIndex = 28;
-            this.checkBox7.Text = "checkBox7";
-            this.checkBox7.UseVisualStyleBackColor = true;
-            // 
-            // checkBox8
-            // 
-            this.checkBox8.AutoSize = true;
-            this.checkBox8.Location = new System.Drawing.Point(247, 29);
-            this.checkBox8.Name = "checkBox8";
-            this.checkBox8.Size = new System.Drawing.Size(79, 17);
-            this.checkBox8.TabIndex = 29;
-            this.checkBox8.Text = "checkBox8";
-            this.checkBox8.UseVisualStyleBackColor = true;
-            // 
-            // checkBox9
-            // 
-            this.checkBox9.AutoSize = true;
-            this.checkBox9.Location = new System.Drawing.Point(126, 52);
-            this.checkBox9.Name = "checkBox9";
-            this.checkBox9.Size = new System.Drawing.Size(79, 17);
-            this.checkBox9.TabIndex = 30;
-            this.checkBox9.Text = "checkBox9";
-            this.checkBox9.UseVisualStyleBackColor = true;
-            // 
-            // checkBox10
-            // 
-            this.checkBox10.AutoSize = true;
-            this.checkBox10.Location = new System.Drawing.Point(247, 52);
-            this.checkBox10.Name = "checkBox10";
-            this.checkBox10.Size = new System.Drawing.Size(85, 17);
-            this.checkBox10.TabIndex = 31;
-            this.checkBox10.Text = "checkBox10";
-            this.checkBox10.UseVisualStyleBackColor = true;
+            this.btnSSave.Click += new System.EventHandler(this.btnSSave_Click);
             // 
             // ttSettings
             // 
             this.ttSettings.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Info;
-            // 
-            // checkBox3
-            // 
-            this.checkBox3.AutoSize = true;
-            this.checkBox3.Location = new System.Drawing.Point(11, 112);
-            this.checkBox3.Name = "checkBox3";
-            this.checkBox3.Size = new System.Drawing.Size(166, 17);
-            this.checkBox3.TabIndex = 29;
-            this.checkBox3.Text = "Save download queue on exit";
-            this.checkBox3.UseVisualStyleBackColor = true;
             // 
             // frmSettings
             // 
@@ -345,10 +425,10 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.ClientSize = new System.Drawing.Size(402, 212);
+            this.Controls.Add(this.btnSSave);
             this.Controls.Add(this.btnUserScript);
             this.Controls.Add(this.btnProtocol);
             this.Controls.Add(this.btnSCan);
-            this.Controls.Add(this.btnSSave);
             this.Controls.Add(this.tabControl1);
             this.MaximizeBox = false;
             this.MaximumSize = new System.Drawing.Size(410, 242);
@@ -358,9 +438,11 @@
             this.tabControl1.ResumeLayout(false);
             this.tabDownloads.ResumeLayout(false);
             this.tabDownloads.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.edtTimer)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numTimer)).EndInit();
             this.tabApplication.ResumeLayout(false);
             this.tabApplication.PerformLayout();
+            this.tabAdvanced.ResumeLayout(false);
+            this.tabAdvanced.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -369,7 +451,7 @@
 
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabDownloads;
-        private System.Windows.Forms.NumericUpDown edtTimer;
+        private System.Windows.Forms.NumericUpDown numTimer;
         private System.Windows.Forms.Label lbTimer;
         private System.Windows.Forms.Label lbSavePath;
         private System.Windows.Forms.Button btnBrowse;
@@ -381,17 +463,22 @@
         private System.Windows.Forms.Button btnProtocol;
         private System.Windows.Forms.Button btnSCan;
         private System.Windows.Forms.Button btnSSave;
-        private System.Windows.Forms.CheckBox checkBox5;
-        private System.Windows.Forms.CheckBox checkBox4;
-        private System.Windows.Forms.CheckBox checkBox2;
-        private System.Windows.Forms.CheckBox checkBox1;
-        private HintTextBox hintTextBox1;
-        private System.Windows.Forms.CheckBox checkBox10;
-        private System.Windows.Forms.CheckBox checkBox9;
-        private System.Windows.Forms.CheckBox checkBox8;
-        private System.Windows.Forms.CheckBox checkBox7;
-        private System.Windows.Forms.CheckBox checkBox6;
+        private System.Windows.Forms.CheckBox chkPreventDuplicates;
+        private System.Windows.Forms.CheckBox chkSaveOriginalFileNames;
+        private System.Windows.Forms.CheckBox chkDownloadThumbnails;
+        private System.Windows.Forms.CheckBox chkDownloadHTML;
+        private HintTextBox txtSavePath;
+        private System.Windows.Forms.CheckBox idk;
+        private System.Windows.Forms.CheckBox chkEnableUpdates;
+        private System.Windows.Forms.CheckBox chkShowExitWarning;
+        private System.Windows.Forms.CheckBox chkMinimizeToTray;
+        private System.Windows.Forms.CheckBox chkShowTrayIcon;
         private System.Windows.Forms.ToolTip ttSettings;
-        private System.Windows.Forms.CheckBox checkBox3;
+        private System.Windows.Forms.CheckBox chkSaveDownloadQueueOnExit;
+        private System.Windows.Forms.Label lbUserAgent;
+        private System.Windows.Forms.CheckBox chkSilenceErrors;
+        private System.Windows.Forms.CheckBox chkDisableScannerWhenOpeningSettings;
+        private HintTextBox txtUserAgent;
+        private System.Windows.Forms.Button btnOpenLocalFiles;
     }
 }

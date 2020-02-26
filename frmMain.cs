@@ -38,7 +38,6 @@ namespace YChanEx {
             
         }
 
-
         private void btnAdd_Click(object sender, EventArgs e) {
             frmDownloader newThread = new frmDownloader();
             newThread.ThreadURL = txtThreadURL.Text;
@@ -56,7 +55,15 @@ namespace YChanEx {
             int ClickedIndex = lbThreads.IndexFromPoint(e.Location);
             if (ClickedIndex != ListBox.NoMatches) {
                 Threads[ClickedIndex].Show();
+                Threads[ClickedIndex].Opacity = 100;
+                Threads[ClickedIndex].ShowInTaskbar = true;
             }
+        }
+
+        private void mSettings_Click(object sender, EventArgs e) {
+            frmSettings Settings = new frmSettings();
+            Settings.ShowDialog();
+            Settings.Dispose();
         }
     }
 }

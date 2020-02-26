@@ -94,5 +94,17 @@ namespace YChanEx {
                 this["ScannerDelay"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool SaveQueueOnExit {
+            get {
+                return ((bool)(this["SaveQueueOnExit"]));
+            }
+            set {
+                this["SaveQueueOnExit"] = value;
+            }
+        }
     }
 }

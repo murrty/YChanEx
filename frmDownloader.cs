@@ -12,16 +12,18 @@ using System.Xml.Linq;
 
 namespace YChanEx {
     public partial class frmDownloader : Form {
-        public string ThreadURL = null;
         public string DownloadPath = null;
+        public string ThreadURL = null;
         public int ChanType = -1;
         public DateTime LastModified = default(DateTime);
 
         private List<string> ImageFiles = new List<string>();
         private List<string> ThumbnailFiles = new List<string>();
+        private List<string> FileIDs = new List<string>();
         private List<string> FileNames = new List<string>();
         private List<string> FileHashes = new List<string>();
         private int ImageCount = 0;
+        private bool HasScanned = false;
         private bool Is404 = false;
         private bool IsAborting = false;
         private int CountDown = 0;
@@ -54,6 +56,9 @@ namespace YChanEx {
             }
         }
         private void tmrScan_Tick(object sender, EventArgs e) {
+            if (Program.SettingsOpen) {
+                return;
+            }
             if (Is404) {
                 lbScanTimer.Text = "404'd";
                 this.Icon = Properties.Resources.YChanEx404;
@@ -61,7 +66,12 @@ namespace YChanEx {
                 m.Announce404(ThreadURL);
                 tmrScan.Stop();
             }
-            if (CountDown == 0) {
+            else if (CountDown == 50) {
+                lbNotModified.Visible = false;
+                lbScanTimer.Text = CountDown.ToString();
+                CountDown--;
+            }
+            else if (CountDown == 0) {
                 StartDownload();
                 lbScanTimer.Text = "scanning now...";
                 tmrScan.Stop();
@@ -78,9 +88,15 @@ namespace YChanEx {
         public void StartDownload() {
             switch (ChanType) {
                 case (int)ChanTypes.Types.fourChan:
-                    string RegThread = "boards.4chan.org/[a-zA-Z0-9]*?/thread[0-9]*";
-                    Match match = Regex.Match(ThreadURL, @"https://boards.4chan.org/[a-zA-Z0-9]*?/thread/\d*");
+                    if (!HasScanned) {
+                        this.Text = "4chan thread - " + ThreadURL.Split('/')[3] + " - " + ThreadURL.Split('/')[5];
+                        ThreadID = ThreadURL.Split('/')[5];
+                    }
+                    DownloadPath = Downloads.Default.DownloadPath + "\\" + ThreadID;
                     BeginFourChanDownload();
+                    break;
+                default:
+                    this.Dispose();
                     break;
             }
         }
@@ -93,16 +109,18 @@ namespace YChanEx {
         }
         public void AfterDownload() {
             this.BeginInvoke(new MethodInvoker(() => {
+                lbScanTimer.Text = "soon (tm)";
                 CountDown = Downloads.Default.ScannerDelay;
                 tmrScan.Start();
             }));
         }
 
         #region 4chan
+        void IdkYet() {
+            string RegThread = "boards.4chan.org/[a-zA-Z0-9]*?/thread[0-9]*";
+            Match match = Regex.Match(ThreadURL, @"https://boards.4chan.org/[a-zA-Z0-9]*?/thread/\d*");
+        }
         private void BeginFourChanDownload() {
-            this.Text = "4chan thread - " + ThreadURL.Split('/')[3] + " - " + ThreadURL.Split('/')[5];
-            ThreadID = ThreadURL.Split('/')[5];
-            DownloadPath += "\\" + ThreadID;
             DownloadThread = new Thread(() => {
                 string FileBaseURL = "https://i.4cdn.org/" + ThreadURL.Split('/')[3] + "/";
                 string ThreadJSON = null;
@@ -155,12 +173,13 @@ namespace YChanEx {
                         if (xmlFileID[i] == null) {
                             continue;
                         }
+                        FileIDs.Add(xmlFileID[i].InnerText);
                         ImageFiles.Add(FileBaseURL + xmlFileID[i].InnerText + xmlExt[i].InnerText);
-                        ThumbnailFiles.Add(FileBaseURL + xmlFileID[i] + "s.jpg");
+                        ThumbnailFiles.Add(FileBaseURL + xmlFileID[i].InnerText + "s.jpg");
                         if (YChanEx.Downloads.Default.SaveOriginalFilenames) {
                             string FileName = xmlFileName[i].InnerText;
                             for (int j = 0; j < Chans.InvalidFileCharacters.Length; j++) {
-                                FileName = FileName.Replace(Chans.InvalidFileCharacters[i], "_");
+                                FileName = FileName.Replace(Chans.InvalidFileCharacters[j], "_");
                             }
                             FileNames.Add(FileName + xmlExt[i].InnerText);
                         }
@@ -170,20 +189,20 @@ namespace YChanEx {
                         FileHashes.Add(xmlHash[i].InnerText);
 
                         if (YChanEx.Downloads.Default.SaveHTML) {
-                            string OldHTMLLinks = string.Empty;
+                            string OldHTMLLinks = null;
+
                             if (YChanEx.Downloads.Default.SaveThumbnails) {
                                 OldHTMLLinks = "//i.4cdn.org/" + ThreadURL.Split('/')[3] + "/" + xmlFileID[i].InnerText + "s.jpg";
                                 ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, "thumb\\" + xmlFileID[i].InnerText + "s.jpg");
                             }
-
+                            // NEEDS FIXING
+                            OldHTMLLinks = "//i.4cdn.org/" + ThreadURL.Split('/')[3] + "/" + xmlFileID[i].InnerText;
                             if (YChanEx.Downloads.Default.SaveOriginalFilenames) {
-                                OldHTMLLinks = "//i.4cdn.org/" + this.ThreadURL.Split('/')[3] + "/" + xmlFileName[i].InnerText;
+                                ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, xmlFileName[i].InnerText);
                             }
                             else {
-                                OldHTMLLinks = "//i.4cdn.org/" + this.ThreadURL.Split('/')[3] + "/" + xmlFileID[i].InnerText;
+                                ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, xmlFileID[i].InnerText);
                             }
-                            OldHTMLLinks += xmlExt[i].InnerText;
-                            ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, xmlFileID[i].InnerText);
                         }
 
                         ListViewItem lvi = new ListViewItem();
@@ -203,9 +222,13 @@ namespace YChanEx {
                     this.BeginInvoke(new MethodInvoker(() => {
                         lbTotal.Text = "number of files: " + ImageCount.ToString();
                         lbLastModified.Text = "last modified: " + LastModified.ToString();
+                        lbScanTimer.Text = "Downloading files";
                     }));
 
                     for (int i = 0; i < ImageFiles.Count; i++) {
+                        if (ImageFiles[i] == null) {
+                            continue;
+                        }
                         string FileName = FileNames[i];
                         CurrentURL = ImageFiles[i];
                         if (YChanEx.Downloads.Default.SaveOriginalFilenames && YChanEx.Downloads.Default.PreventDuplicates) {
@@ -226,7 +249,7 @@ namespace YChanEx {
 
                         if (YChanEx.Downloads.Default.SaveThumbnails) {
                             CurrentURL = ThumbnailFiles[i];
-                            Chans.DownloadFile(CurrentURL, DownloadPath, "");
+                            Chans.DownloadFile(CurrentURL, DownloadPath + "\\thumb", FileIDs[i] + "s.jpg");
                         }
 
                         if (YChanEx.Downloads.Default.SaveHTML) {
@@ -234,7 +257,8 @@ namespace YChanEx {
                         }
                     }
 
-                    //AfterDownload();
+                    HasScanned = true;
+                    AfterDownload();
                 }
                 catch (ThreadAbortException ThreadEx) {
                     return;
@@ -242,7 +266,10 @@ namespace YChanEx {
                 catch (WebException WebEx) {
                     var Response = (HttpWebResponse)WebEx.Response;
                     if (Response.StatusCode == HttpStatusCode.NotModified) {
-                        //not modified
+                        this.BeginInvoke(new MethodInvoker(() => {
+                            lbNotModified.Visible = true;
+                        }));
+                        AfterDownload();
                     }
                     else {
                         if (((int)WebEx.Status) == 7) {
@@ -252,10 +279,6 @@ namespace YChanEx {
                             //error log
                         }
                     }
-                }
-                catch (Exception ex) {
-                    System.Diagnostics.Debug.Print(ex.ToString());
-                    //error log
                 }
             });
             DownloadThread.Start();
@@ -458,9 +481,6 @@ namespace YChanEx {
                 return "";
         }
         #endregion
-
-
-
 
     }
 }

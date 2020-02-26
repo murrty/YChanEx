@@ -28,8 +28,8 @@
             this.btnAdd = new System.Windows.Forms.Button();
             this.txtThreadURL = new System.Windows.Forms.TextBox();
             this.mainMenu1 = new System.Windows.Forms.MainMenu(this.components);
-            this.menuItem1 = new System.Windows.Forms.MenuItem();
-            this.menuItem2 = new System.Windows.Forms.MenuItem();
+            this.mSettings = new System.Windows.Forms.MenuItem();
+            this.mAbout = new System.Windows.Forms.MenuItem();
             this.niTray = new System.Windows.Forms.NotifyIcon(this.components);
             this.SuspendLayout();
             // 
@@ -63,18 +63,19 @@
             // mainMenu1
             // 
             this.mainMenu1.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
-            this.menuItem1,
-            this.menuItem2});
+            this.mSettings,
+            this.mAbout});
             // 
-            // menuItem1
+            // mSettings
             // 
-            this.menuItem1.Index = 0;
-            this.menuItem1.Text = "Settings";
+            this.mSettings.Index = 0;
+            this.mSettings.Text = "Settings";
+            this.mSettings.Click += new System.EventHandler(this.mSettings_Click);
             // 
-            // menuItem2
+            // mAbout
             // 
-            this.menuItem2.Index = 1;
-            this.menuItem2.Text = "About";
+            this.mAbout.Index = 1;
+            this.mAbout.Text = "About";
             // 
             // niTray
             // 
@@ -107,8 +108,8 @@
         private System.Windows.Forms.Button btnAdd;
         private System.Windows.Forms.TextBox txtThreadURL;
         private System.Windows.Forms.MainMenu mainMenu1;
-        private System.Windows.Forms.MenuItem menuItem1;
-        private System.Windows.Forms.MenuItem menuItem2;
+        private System.Windows.Forms.MenuItem mSettings;
+        private System.Windows.Forms.MenuItem mAbout;
         private System.Windows.Forms.NotifyIcon niTray;
     }
 }
