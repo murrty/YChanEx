@@ -195,10 +195,23 @@ namespace YChanEx {
                                 OldHTMLLinks = "//i.4cdn.org/" + ThreadURL.Split('/')[3] + "/" + xmlFileID[i].InnerText + "s.jpg";
                                 ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, "thumb\\" + xmlFileID[i].InnerText + "s.jpg");
                             }
-                            // NEEDS FIXING
                             OldHTMLLinks = "//i.4cdn.org/" + ThreadURL.Split('/')[3] + "/" + xmlFileID[i].InnerText;
                             if (YChanEx.Downloads.Default.SaveOriginalFilenames) {
-                                ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, xmlFileName[i].InnerText);
+                                string FileNamePrefix = "";
+                                if (YChanEx.Downloads.Default.PreventDuplicates) {
+                                    if (i >= 10) {
+                                        if (i >= 100) {
+                                            FileNamePrefix = "(" + i.ToString() + ") ";
+                                        }
+                                        else {
+                                            FileNamePrefix = "(0" + i.ToString() + ") ";
+                                        }
+                                    }
+                                    else {
+                                        FileNamePrefix = "(00" + i.ToString() + ") ";
+                                    }
+                                }
+                                ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, FileNamePrefix + xmlFileName[i].InnerText);
                             }
                             else {
                                 ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, xmlFileID[i].InnerText);
@@ -211,7 +224,7 @@ namespace YChanEx {
                         lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
                         lvi.Name = xmlFileID[i].InnerText;
                         lvi.SubItems[0].Text = xmlFileID[i].InnerText;
-                        lvi.SubItems[1].Text = xmlExt[i].InnerText;
+                        lvi.SubItems[1].Text = xmlExt[i].InnerText.Trim('.');
                         lvi.SubItems[2].Text = xmlFileName[i].InnerText;
                         lvi.SubItems[3].Text = xmlHash[i].InnerText;
                         this.BeginInvoke(new MethodInvoker(() => {
