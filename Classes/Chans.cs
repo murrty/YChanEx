@@ -65,10 +65,12 @@ class Chans {
         }
         catch (WebException WebEx) {
             //error log
+            System.Windows.Forms.MessageBox.Show(WebEx.ToString());
             return null;
         }
         catch (Exception ex) {
             //error log
+            System.Windows.Forms.MessageBox.Show(ex.ToString());
             return null;
         }
     }
@@ -86,10 +88,12 @@ class Chans {
         }
         catch (WebException WebEx) {
             //error log
+            System.Windows.Forms.MessageBox.Show(WebEx.ToString());
             return null;
         }
         catch (Exception Ex) {
             //error log
+            System.Windows.Forms.MessageBox.Show(Ex.ToString());
             return null;
         }
     }
@@ -119,10 +123,12 @@ class Chans {
         }
         catch (WebException WebEx) {
             //error log
+            System.Windows.Forms.MessageBox.Show(WebEx.ToString());
             return false;
         }
         catch (Exception Ex) {
             //error log
+            System.Windows.Forms.MessageBox.Show(Ex.ToString());
             return false;
         }
     }

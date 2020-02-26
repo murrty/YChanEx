@@ -77,6 +77,11 @@
     <Compile Include="frmSettings.Designer.cs">
       <DependentUpon>frmSettings.cs</DependentUpon>
     </Compile>
+    <Compile Include="General.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>General.settings</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="frmMain.resx">
@@ -105,6 +110,10 @@
     <None Include="Downloads.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Downloads.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="General.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>General.Designer.cs</LastGenOutput>
     </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

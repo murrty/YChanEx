@@ -140,17 +140,17 @@
             // clID
             // 
             this.clID.Text = "ID";
-            this.clID.Width = 102;
+            this.clID.Width = 98;
             // 
             // clExt
             // 
             this.clExt.Text = "Ext";
-            this.clExt.Width = 64;
+            this.clExt.Width = 52;
             // 
             // clFileName
             // 
             this.clFileName.Text = "Original filename";
-            this.clFileName.Width = 181;
+            this.clFileName.Width = 185;
             // 
             // clHash
             // 

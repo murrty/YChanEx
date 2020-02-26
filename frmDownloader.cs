@@ -151,7 +151,6 @@ namespace YChanEx {
                     Response.Dispose();
                     ResponseStream.Dispose();
 
-
                     CurrentURL = this.ThreadURL;
                     if (YChanEx.Downloads.Default.SaveHTML) {
                         ThreadHTML = Chans.GetHTML(CurrentURL);
@@ -289,9 +288,12 @@ namespace YChanEx {
                             Is404 = true;
                         }
                         else {
-                            //error log
+                            MessageBox.Show(WebEx.ToString());
                         }
                     }
+                }
+                catch (Exception ex) {
+                    MessageBox.Show(ex.ToString());
                 }
             });
             DownloadThread.Start();
