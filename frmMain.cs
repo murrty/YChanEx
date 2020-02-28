@@ -12,9 +12,7 @@ using System.Windows.Forms;
 namespace YChanEx {
     public partial class frmMain : Form {
         List<Form> Threads = new List<Form>();
-        List<frmDownloader> FCThreads = new List<frmDownloader>();
         List<string> ThreadURLS = new List<string>();
-        List<int> ThreadType = new List<int>();
         public frmMain() {
             InitializeComponent();
             niTray.Icon = Properties.Resources.YChanEx;
@@ -40,24 +38,26 @@ namespace YChanEx {
 
         private void btnAdd_Click(object sender, EventArgs e) {
             frmDownloader newThread = new frmDownloader();
+            newThread.Name = txtThreadURL.Text;
             newThread.ThreadURL = txtThreadURL.Text;
-            newThread.ChanType = 0;
-            newThread.DownloadPath = "";
             newThread.StartDownload();
             Threads.Add(newThread);
-            lbThreads.Items.Add(txtThreadURL.Text);
+            ListViewItem lvi = new ListViewItem();
+            lvi.SubItems[0].Text = txtThreadURL.Text;
+            lvi.Name = txtThreadURL.Text;
+            lvThreads.Items.Add(lvi);
             ThreadURLS.Add(txtThreadURL.Text);
             newThread.Show();
-            newThread.Hide();
+            //newThread.Hide();
         }
 
         private void lbThreads_MouseDoubleClick(object sender, MouseEventArgs e) {
-            int ClickedIndex = lbThreads.IndexFromPoint(e.Location);
-            if (ClickedIndex != ListBox.NoMatches) {
-                Threads[ClickedIndex].Show();
-                Threads[ClickedIndex].Opacity = 100;
-                Threads[ClickedIndex].ShowInTaskbar = true;
-            }
+            //int ClickedIndex = lbThreads.IndexFromPoint(e.Location);
+            //if (ClickedIndex != ListBox.NoMatches) {
+            //    Threads[ClickedIndex].Show();
+            //    Threads[ClickedIndex].Opacity = 100;
+            //    Threads[ClickedIndex].ShowInTaskbar = true;
+            //}
         }
 
         private void mSettings_Click(object sender, EventArgs e) {

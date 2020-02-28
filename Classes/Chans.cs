@@ -133,13 +133,39 @@ class Chans {
         }
     }
 
+    public static bool IsModified(string ThreadURL, DateTime LastCheck) {
+        try {
+            HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(ThreadURL);
+            Request.UserAgent = YChanEx.Advanced.Default.UserAgent;
+            Request.IfModifiedSince = LastCheck;
+            Request.Method = "HEAD";
+            var Response = (HttpWebResponse)Request.GetResponse();
+            return true;
+        }
+        catch (WebException WebEx) {
+            var Response = (HttpWebResponse)WebEx.Response;
+            if (Response.StatusCode != HttpStatusCode.NotModified) {
+                //error log
+            }
+            return false;
+        }
+    }
 }
 class ChanTypes {
     public enum Types : int {
         fourChan = 0,
-        sevenChan = 1,
-        eightChan = 2
+        fourTwentyChan = 1,
+        sevenChan = 2,
+        eightChan = 3,
+        fchan = 4,
+        uEighteenChan = 5
     }
+
     public static int fourChan { get { return 0; } }
+    public static int fourTwentyChan { get { return 1; } }
+    public static int sevenChan { get { return 2; } }
+    public static int eightChan { get { return 3; } }
+    public static int fchan { get { return 4; } }
+    public static int uEighteenChan { get { return 5; } }
 }
 #endregion

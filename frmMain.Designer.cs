@@ -24,24 +24,15 @@
         /// </summary>
         private void InitializeComponent() {
             this.components = new System.ComponentModel.Container();
-            this.lbThreads = new System.Windows.Forms.ListBox();
             this.btnAdd = new System.Windows.Forms.Button();
             this.txtThreadURL = new System.Windows.Forms.TextBox();
             this.mainMenu1 = new System.Windows.Forms.MainMenu(this.components);
             this.mSettings = new System.Windows.Forms.MenuItem();
             this.mAbout = new System.Windows.Forms.MenuItem();
             this.niTray = new System.Windows.Forms.NotifyIcon(this.components);
+            this.lvThreads = new YChanEx.VistaListView();
+            this.clThread = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.SuspendLayout();
-            // 
-            // lbThreads
-            // 
-            this.lbThreads.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.lbThreads.FormattingEnabled = true;
-            this.lbThreads.Location = new System.Drawing.Point(0, 39);
-            this.lbThreads.Name = "lbThreads";
-            this.lbThreads.Size = new System.Drawing.Size(342, 160);
-            this.lbThreads.TabIndex = 0;
-            this.lbThreads.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.lbThreads_MouseDoubleClick);
             // 
             // btnAdd
             // 
@@ -82,14 +73,33 @@
             this.niTray.Text = "YChanEx";
             this.niTray.Visible = true;
             // 
+            // lvThreads
+            // 
+            this.lvThreads.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.clThread});
+            this.lvThreads.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.lvThreads.EnableVistaView = true;
+            this.lvThreads.FullRowSelect = true;
+            this.lvThreads.Location = new System.Drawing.Point(0, 49);
+            this.lvThreads.Name = "lvThreads";
+            this.lvThreads.Size = new System.Drawing.Size(342, 171);
+            this.lvThreads.TabIndex = 3;
+            this.lvThreads.UseCompatibleStateImageBehavior = false;
+            this.lvThreads.View = System.Windows.Forms.View.Details;
+            // 
+            // clThread
+            // 
+            this.clThread.Text = "Threads";
+            this.clThread.Width = 310;
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(342, 199);
+            this.ClientSize = new System.Drawing.Size(342, 220);
+            this.Controls.Add(this.lvThreads);
             this.Controls.Add(this.txtThreadURL);
             this.Controls.Add(this.btnAdd);
-            this.Controls.Add(this.lbThreads);
             this.MaximumSize = new System.Drawing.Size(350, 250);
             this.Menu = this.mainMenu1;
             this.MinimumSize = new System.Drawing.Size(350, 250);
@@ -104,13 +114,14 @@
 
         #endregion
 
-        private System.Windows.Forms.ListBox lbThreads;
         private System.Windows.Forms.Button btnAdd;
         private System.Windows.Forms.TextBox txtThreadURL;
         private System.Windows.Forms.MainMenu mainMenu1;
         private System.Windows.Forms.MenuItem mSettings;
         private System.Windows.Forms.MenuItem mAbout;
         private System.Windows.Forms.NotifyIcon niTray;
+        private VistaListView lvThreads;
+        private System.Windows.Forms.ColumnHeader clThread;
     }
 }
 

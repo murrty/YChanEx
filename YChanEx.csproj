@@ -87,6 +87,11 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RegexStrings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>RegexStrings.settings</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="frmMain.resx">
       <DependentUpon>frmMain.cs</DependentUpon>
     </EmbeddedResource>
@@ -132,6 +137,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="RegexStrings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>RegexStrings.Designer.cs</LastGenOutput>
+    </None>
     <None Include="Resources\YChanEx.ico" />
   </ItemGroup>
   <ItemGroup>

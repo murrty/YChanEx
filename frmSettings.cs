@@ -1,11 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace YChanEx {
@@ -37,6 +30,10 @@ namespace YChanEx {
             txtUserAgent.Text = Advanced.Default.UserAgent;
             chkDisableScannerWhenOpeningSettings.Checked = Advanced.Default.DisableScanWhenOpeningSettings;
             chkSilenceErrors.Checked = Advanced.Default.SilenceErrors;
+
+            if (!string.IsNullOrEmpty(RegexStrings.Default.u18chanUrl)) {
+                txtU18ChanRegex.Text = RegexStrings.Default.u18chanUrl;
+            }
         }
         void SaveSettings() {
             if (txtSavePath.Text != Downloads.Default.DownloadPath) {
@@ -63,9 +60,14 @@ namespace YChanEx {
             Advanced.Default.DisableScanWhenOpeningSettings = chkDisableScannerWhenOpeningSettings.Checked;
             Advanced.Default.SilenceErrors = chkSilenceErrors.Checked;
 
+            if (!string.IsNullOrEmpty(txtU18ChanRegex.Text)) {
+                RegexStrings.Default.u18chanUrl = txtU18ChanRegex.Text;
+            }
+
             Downloads.Default.Save();
             General.Default.Save();
             Advanced.Default.Save();
+            RegexStrings.Default.Save();
         }
 
         private void btnBrowse_Click(object sender, EventArgs e) {
