@@ -25,6 +25,7 @@ namespace YChanEx {
         private List<string> FileIDs = new List<string>();
         private List<string> FileNames = new List<string>();
         private List<string> FileHashes = new List<string>();
+        private List<string> FileExtensions = new List<string>();
         private int ThreadImageCount = 0;
         private bool ThreadHasScanned = false;
         private bool ThreadHas404 = false;
@@ -114,11 +115,6 @@ namespace YChanEx {
                         this.Text = "u18chan thread - " + ThreadBoard + " - " + ThreadID;
                         DownloadPath = Downloads.Default.DownloadPath + "\\u18chan\\" + ThreadBoard + "\\" + ThreadID;
                     }
-                    lvImages.Items.Clear(); // Need to clear :(
-                    ThreadImageCount = 0;
-                    ImageFiles.Clear();
-                    ThumbnailFiles.Clear();
-                    FileNames.Clear();
                     BeginUEighteenChanDownlad();
                     break;
                 default:
@@ -611,34 +607,53 @@ namespace YChanEx {
                         ImageMatch = new Regex("(?<=File: <a href=\").*?(?=\" target=\"_blank\">)");
                     }
 
+                    List<string> IDs = new List<string>();
+                    Regex IDMatch = new Regex("(?<=No.<a class=\"AltLink\" href=\"javascript:QuotePost\\().*?(?<=\\);\">)");
+                    foreach (Match IDNumber in IDMatch.Matches(ThreadHTML)) {
+                        IDs.Add(IDNumber.ToString().Replace(");\">", ""));
+                    }
+
+                    List<string> FilesBuffer = new List<string>();
                     string HTMLBuffer = ThreadHTML; // This will be saved instead of ThreadHTML
                     foreach (Match ImageLink in ImageMatch.Matches(ThreadHTML)) {
-                        ImageFiles.Add(ImageLink.ToString());
-                        string FileName = ImageLink.ToString().Split('/')[ImageLink.ToString().Split('/').Length - 1];
-                        if (Downloads.Default.SaveThumbnails) {
-                            string Ext = ImageLink.ToString().Split('.')[ImageLink.ToString().Split('.').Length - 1];
-                            string ThumbFileBuffer = ImageLink.ToString().Replace("_u18chan." + Ext, "s_u18chan." + Ext);
-                            ThumbnailFiles.Add(ThumbFileBuffer);
-                            if (Downloads.Default.SaveHTML) {
-                                HTMLBuffer = HTMLBuffer.Replace("src=\"//u18chan.com/uploads/user/lazyLoadPlaceholder_u18chan.gif\" data-original=", "src=");
-                                HTMLBuffer = HTMLBuffer.Replace(ThumbFileBuffer, "thumb/" + ThumbFileBuffer.Split('/')[ThumbFileBuffer.Split('/').Length - 1]);
+                        FilesBuffer.Add(ImageLink.ToString());
+                    }
+
+                    if (FilesBuffer.Count > ImageFiles.Count) {
+                        for (int i = ImageFiles.Count; i < FilesBuffer.Count; i++) {
+                            string FileName = FilesBuffer[i].Split('/')[FilesBuffer[i].Split('/').Length - 1];
+                            string Extension = FilesBuffer[i].Split('.')[FilesBuffer[i].Split('.').Length - 1];
+                            ImageFiles.Add(FilesBuffer[i]);
+                            FileIDs.Add(IDs[i]);
+                            FileNames.Add(FileName.Replace(FileName, FileName.Substring(0, (FileName.Length - (Extension.Length + 9)))));
+                            FileExtensions.Add(Extension);
+                            
+                            if (Downloads.Default.SaveThumbnails) {
+                                string Ext = FilesBuffer[i].Split('.')[FilesBuffer[i].Split('.').Length - 1];
+                                string ThumbFileBuffer = FilesBuffer[i].Replace("_u18chan." + Ext, "s_u18chan." + Ext);
+                                ThumbnailFiles.Add(ThumbFileBuffer);
+                                if (Downloads.Default.SaveHTML) {
+                                    HTMLBuffer = HTMLBuffer.Replace("src=\"//u18chan.com/uploads/user/lazyLoadPlaceholder_u18chan.gif\" data-original=", "src=");
+                                    HTMLBuffer = HTMLBuffer.Replace(ThumbFileBuffer, "thumb/" + ThumbFileBuffer.Split('/')[ThumbFileBuffer.Split('/').Length - 1]);
+                                }
                             }
-                        }
 
-                        if (Downloads.Default.SaveHTML) {
-                            HTMLBuffer = HTMLBuffer.Replace(ImageLink.ToString(), FileName);
-                        }
+                            if (Downloads.Default.SaveHTML) {
+                                HTMLBuffer = HTMLBuffer.Replace(FilesBuffer[i], FileName);
+                            }
 
-                        ListViewItem lvi = new ListViewItem();
-                        lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                        lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                        lvi.Name = ImageLink.ToString();
-                        lvi.SubItems[0].Text = ImageLink.ToString();
-                        lvi.SubItems[1].Text = FileName;
-                        lvi.SubItems[2].Text = ImageLink.ToString().Split('.')[ImageLink.ToString().Split('.').Length - 1];
-                        this.BeginInvoke(new MethodInvoker(() => {
-                            lvImages.Items.Add(lvi);
-                        }));
+                            ListViewItem lvi = new ListViewItem();
+                            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                            lvi.Name = FilesBuffer[i];
+                            lvi.SubItems[0].Text = IDs[i];
+                            lvi.SubItems[1].Text = FileExtensions[i];
+                            lvi.SubItems[2].Text = FileNames[i];
+                            this.BeginInvoke(new MethodInvoker(() => {
+                                lvImages.Items.Add(lvi);
+                            }));
+
+                        }
                     }
 
                     this.BeginInvoke(new MethodInvoker(() => {
