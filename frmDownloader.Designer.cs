@@ -10,6 +10,9 @@
         /// </summary>
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing) {
+            if (DownloadThread.IsAlive) {
+                DownloadThread.Abort();
+            }
             if (disposing && (components != null)) {
                 components.Dispose();
             }
@@ -38,6 +41,7 @@
             this.clExt = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clFileName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clHash = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.btnForce404 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // tmrScan
@@ -91,6 +95,7 @@
             // 
             this.lbScanTimer.AutoSize = true;
             this.lbScanTimer.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lbScanTimer.ForeColor = System.Drawing.SystemColors.ControlText;
             this.lbScanTimer.Location = new System.Drawing.Point(131, 293);
             this.lbScanTimer.Name = "lbScanTimer";
             this.lbScanTimer.Size = new System.Drawing.Size(110, 17);
@@ -157,11 +162,22 @@
             this.clHash.Text = "MD5 Hash";
             this.clHash.Width = 114;
             // 
+            // btnForce404
+            // 
+            this.btnForce404.Location = new System.Drawing.Point(308, 256);
+            this.btnForce404.Name = "btnForce404";
+            this.btnForce404.Size = new System.Drawing.Size(91, 24);
+            this.btnForce404.TabIndex = 8;
+            this.btnForce404.Text = "404";
+            this.btnForce404.UseVisualStyleBackColor = true;
+            this.btnForce404.Click += new System.EventHandler(this.btnForce404_Click);
+            // 
             // frmDownloader
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(492, 320);
+            this.Controls.Add(this.btnForce404);
             this.Controls.Add(this.lbLastModified);
             this.Controls.Add(this.lbScanTimer);
             this.Controls.Add(this.btnStopDownload);
@@ -195,6 +211,7 @@
         private System.Windows.Forms.Label lbLastModified;
         private System.Windows.Forms.ToolTip ttDownloader;
         private System.Windows.Forms.Label lbNotModified;
+        private System.Windows.Forms.Button btnForce404;
 
     }
 }

@@ -1,23 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Xml;
 using System.Xml.Linq;
-
-#region Chan classes
-#endregion
-
-
-class fourChanTTT  {
-
-
-
-}
+using YChanEx;
 
 #region Chan controllers
 /// <summary>
@@ -150,6 +139,45 @@ class Chans {
             return false;
         }
     }
+
+    public static bool SupportedChan(string URL) {
+        Regex Matcher = new Regex("boards.4chan(nel)?.org/[a-zA-Z0-9]*?/thread[0-9]*");
+        if (Matcher.IsMatch(URL)) {
+            return true;
+        }
+
+        Matcher = new Regex("boards.420chan.org/[a-zA-Z0-9]*?/res/[0-9]*");
+        if (Matcher.IsMatch(URL)) {
+            return true;
+        }
+
+        Matcher = new Regex("7chan.org/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*");
+        if (Matcher.IsMatch(URL)) {
+            return true;
+        }
+
+        Matcher = new Regex("8kun.top/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*");
+        if (Matcher.IsMatch(URL)) {
+            return true;
+        }
+
+        Matcher = new Regex("fchan.us/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*");
+        if (Matcher.IsMatch(URL)) {
+            return true;
+        }
+
+        if (!string.IsNullOrEmpty(RegexStrings.Default.u18chanUrl)) {
+            Matcher = new Regex(RegexStrings.Default.u18chanUrl);
+        }
+        else {
+            Matcher = new Regex("u18chan.com/(.*?)[a-zA-Z0-9]*?/topic/[0-9]*");
+        }
+        if (Matcher.IsMatch(URL)) {
+            return true;
+        }
+
+        return false;
+    }
 }
 class ChanTypes {
     public enum Types : int {
@@ -167,5 +195,18 @@ class ChanTypes {
     public static int eightChan { get { return 3; } }
     public static int fchan { get { return 4; } }
     public static int uEighteenChan { get { return 5; } }
+}
+
+class ThreadIconIndex {
+    public static int Waiting { get { return 0; } }
+    public static int Downloading { get { return 1; } }
+    public static int Has404 { get { return 2; } }
+    public static int HasAbort { get { return 2; } }
+}
+class ThreadStatuses {
+    public static string Downloading { get { return "Downloading"; } }
+    public static string Waiting { get { return "Waiting"; } }
+    public static string Has404 { get { return "404'd"; } }
+    public static string HasAborted { get { return "Aborted"; } }
 }
 #endregion

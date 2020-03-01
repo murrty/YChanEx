@@ -31,11 +31,14 @@
             this.mAbout = new System.Windows.Forms.MenuItem();
             this.niTray = new System.Windows.Forms.NotifyIcon(this.components);
             this.lvThreads = new YChanEx.VistaListView();
+            this.clStatus = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clThread = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.changeTray = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // btnAdd
             // 
+            this.btnAdd.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnAdd.Location = new System.Drawing.Point(282, 2);
             this.btnAdd.Name = "btnAdd";
             this.btnAdd.Size = new System.Drawing.Size(48, 25);
@@ -46,6 +49,8 @@
             // 
             // txtThreadURL
             // 
+            this.txtThreadURL.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtThreadURL.Location = new System.Drawing.Point(12, 5);
             this.txtThreadURL.Name = "txtThreadURL";
             this.txtThreadURL.Size = new System.Drawing.Size(264, 20);
@@ -70,27 +75,43 @@
             // 
             // niTray
             // 
+            this.niTray.BalloonTipIcon = System.Windows.Forms.ToolTipIcon.Error;
             this.niTray.Text = "YChanEx";
             this.niTray.Visible = true;
             // 
             // lvThreads
             // 
+            this.lvThreads.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.lvThreads.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.clStatus,
             this.clThread});
-            this.lvThreads.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.lvThreads.EnableVistaView = true;
             this.lvThreads.FullRowSelect = true;
-            this.lvThreads.Location = new System.Drawing.Point(0, 49);
+            this.lvThreads.Location = new System.Drawing.Point(0, 33);
+            this.lvThreads.MultiSelect = false;
             this.lvThreads.Name = "lvThreads";
-            this.lvThreads.Size = new System.Drawing.Size(342, 171);
+            this.lvThreads.Size = new System.Drawing.Size(342, 187);
             this.lvThreads.TabIndex = 3;
             this.lvThreads.UseCompatibleStateImageBehavior = false;
             this.lvThreads.View = System.Windows.Forms.View.Details;
+            this.lvThreads.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.lvThreads_MouseDoubleClick);
+            // 
+            // clStatus
+            // 
+            this.clStatus.Text = "Status";
+            this.clStatus.Width = 74;
             // 
             // clThread
             // 
             this.clThread.Text = "Threads";
-            this.clThread.Width = 310;
+            this.clThread.Width = 260;
+            // 
+            // changeTray
+            // 
+            this.changeTray.Interval = 5000;
+            this.changeTray.Tick += new System.EventHandler(this.changeTray_Tick);
             // 
             // frmMain
             // 
@@ -100,7 +121,6 @@
             this.Controls.Add(this.lvThreads);
             this.Controls.Add(this.txtThreadURL);
             this.Controls.Add(this.btnAdd);
-            this.MaximumSize = new System.Drawing.Size(350, 250);
             this.Menu = this.mainMenu1;
             this.MinimumSize = new System.Drawing.Size(350, 250);
             this.Name = "frmMain";
@@ -122,6 +142,8 @@
         private System.Windows.Forms.NotifyIcon niTray;
         private VistaListView lvThreads;
         private System.Windows.Forms.ColumnHeader clThread;
+        private System.Windows.Forms.Timer changeTray;
+        private System.Windows.Forms.ColumnHeader clStatus;
     }
 }
 

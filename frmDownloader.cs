@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Net;
 using System.Runtime.Serialization.Json;
@@ -12,6 +13,8 @@ using System.Xml.Linq;
 
 namespace YChanEx {
     public partial class frmDownloader : Form {
+        frmMain MainFormInstance = Program.GetMainFormInstance();
+
         public string DownloadPath = null;
         public string ThreadURL = null;
         public int ChanType = -1;
@@ -19,6 +22,7 @@ namespace YChanEx {
 
         private string ThreadBoard = null;
         private string ThreadID = null;
+        private string LastThreadHTML = null;
 
         private List<string> ImageFiles = new List<string>();
         private List<string> ThumbnailFiles = new List<string>();
@@ -38,24 +42,23 @@ namespace YChanEx {
             this.Icon = Properties.Resources.YChanEx;
         }
         private void frmDownloader_FormClosing(object sender, FormClosingEventArgs e) {
-            if (!ThreadHas404 && !IsAbortingDownload) {
-                e.Cancel = true;
-                this.Hide();
-            }
-            else {
-                this.Dispose();
-            }
+            e.Cancel = true;
+            this.Hide();
         }
         private void btnStopDownload_Click(object sender, EventArgs e) {
-            
+            IsAbortingDownload = true;
+            tmrScan.Stop();
+            if (DownloadThread.IsAlive) {
+                DownloadThread.Abort();
+            }
+            lbScanTimer.Text = "aborted download";
+            lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
+            btnStopDownload.Enabled = false;
+            MainFormInstance.AnnounceAbort(ThreadURL);
+            MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.HasAborted);
         }
         private void btnClose_Click(object sender, EventArgs e) {
-            if (ThreadHas404) {
-                this.Dispose();
-            }
-            else {
-                this.Hide();
-            }
+            this.Hide();
         }
         private void tmrScan_Tick(object sender, EventArgs e) {
             if (Program.SettingsOpen) {
@@ -63,11 +66,13 @@ namespace YChanEx {
             }
             if (ThreadHas404) {
                 lbScanTimer.Text = "404'd";
+                lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
                 this.Icon = Properties.Resources.YChanEx404;
-                frmMain m = Program.GetMainFormInstance();
-                m.Announce404(ThreadURL);
-                tmrScan.Stop();
+                MainFormInstance.Announce404(ThreadID, ThreadBoard, ThreadURL);
+                MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Has404);
                 btnStopDownload.Enabled = false;
+                tmrScan.Stop();
+                return;
             }
             else if (CountdownToNextScan == 50) {
                 lbNotModified.Visible = false;
@@ -83,9 +88,6 @@ namespace YChanEx {
                 lbScanTimer.Text = CountdownToNextScan.ToString();
                 CountdownToNextScan--;
             }
-            //ListViewItem lvi = new ListViewItem();
-            //lvi.Text = "tesT";
-            //lvImages.Items.Add(lvi);
         }
 
         public void StartDownload() {
@@ -118,9 +120,10 @@ namespace YChanEx {
                     BeginUEighteenChanDownlad();
                     break;
                 default:
-                    this.Dispose();
-                    break;
+                    return;
             }
+
+            MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Downloading);
         }
         public void StopDownload() {
             if (DownloadThread.IsAlive) {
@@ -129,10 +132,17 @@ namespace YChanEx {
             }
         }
         public void AfterDownload() {
+            if (IsAbortingDownload) {
+                return;
+            }
             this.BeginInvoke(new MethodInvoker(() => {
                 lbScanTimer.Text = "soon (tm)";
+                MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Waiting);
                 CountdownToNextScan = Downloads.Default.ScannerDelay;
                 tmrScan.Start();
+                if (ChanType == (int)ChanTypes.Types.uEighteenChan) {
+                    GC.Collect();
+                }
             }));
         }
         public void DetectChanType() {
@@ -332,13 +342,14 @@ namespace YChanEx {
                             Chans.DownloadFile(CurrentURL, DownloadPath + "\\thumb", FileIDs[i] + "s.jpg");
                         }
 
-                        if (YChanEx.Downloads.Default.SaveHTML) {
-                            File.WriteAllText(DownloadPath + "\\Thread.html", ThreadHTML);
-                        }
+
+
                     }
 
+                    if (YChanEx.Downloads.Default.SaveHTML) {
+                        File.WriteAllText(DownloadPath + "\\Thread.html", ThreadHTML);
+                    }
                     ThreadHasScanned = true;
-                    AfterDownload();
                 }
                 catch (ThreadAbortException) {
                     IsAbortingDownload = true;
@@ -362,6 +373,9 @@ namespace YChanEx {
                 }
                 catch (Exception ex) {
                     MessageBox.Show(ex.ToString());
+                }
+                finally {
+                    AfterDownload();
                 }
             });
             DownloadThread.Start();
@@ -588,7 +602,6 @@ namespace YChanEx {
                     Response.Dispose();
                     ResponseStream.Dispose();
 
-
                     if (string.IsNullOrEmpty(ThreadHTML)) {
                         TryCount++;
                         if (TryCount == 5) {
@@ -598,6 +611,13 @@ namespace YChanEx {
                         Thread.Sleep(5000);
                         goto retryThread;
                     }
+
+                    if (ThreadHTML == LastThreadHTML) {
+                        AfterDownload();
+                        return;
+                    }
+
+                    LastThreadHTML = ThreadHTML;
 
                     Regex ImageMatch;
                     if (!string.IsNullOrEmpty(RegexStrings.Default.u18chanFiles)){
@@ -749,6 +769,11 @@ namespace YChanEx {
                 return string.Empty;
         }
         #endregion
+
+        private void btnForce404_Click(object sender, EventArgs e) {
+            ThreadHas404 = true;
+            AfterDownload();
+        }
 
     }
 }
