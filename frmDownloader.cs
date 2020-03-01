@@ -136,7 +136,7 @@ namespace YChanEx {
             }));
         }
         public void DetectChanType() {
-            Regex Matcher = new Regex("boards.4chan.org/[a-zA-Z0-9]*?/thread[0-9]*");
+            Regex Matcher = new Regex("boards.4chan(nel)?.org/[a-zA-Z0-9]*?/thread[0-9]*");
             if (Matcher.IsMatch(ThreadURL)) {
                 ChanType = ChanTypes.fourChan;
                 return;
