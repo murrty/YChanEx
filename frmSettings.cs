@@ -11,6 +11,7 @@ namespace YChanEx {
 
         private void btnSSave_Click(object sender, EventArgs e) {
             SaveSettings();
+            this.DialogResult = System.Windows.Forms.DialogResult.OK;
         }
 
         void LoadSettings() {
@@ -77,6 +78,10 @@ namespace YChanEx {
                     txtSavePath.Text = fbd.SelectedPath;
                 }
             }
+        }
+
+        private void btnSCan_Click(object sender, EventArgs e) {
+            this.DialogResult = System.Windows.Forms.DialogResult.Cancel;
         }
     }
 }

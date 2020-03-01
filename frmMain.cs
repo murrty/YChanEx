@@ -1,27 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace YChanEx {
     public partial class frmMain : Form {
         List<frmDownloader> Threads = new List<frmDownloader>();
         List<string> ThreadURLS = new List<string>();
+        List<bool> ThreadIsGone = new List<bool>();
         bool Show404 = false;
 
         public frmMain() {
             InitializeComponent();
             niTray.Icon = Properties.Resources.YChanEx;
             this.Icon = Properties.Resources.YChanEx;
+            lvThreads.ContextMenu = cmItems;
         }
         public void Announce404(string ThreadID, string ThreadBoard, string URL) {
             int ThreadIndex = ThreadURLS.IndexOf(URL);
+            ThreadIsGone[ThreadIndex] = true;
             niTray.BalloonTipText = ThreadID + " on board " + ThreadBoard + " has 404'd";
             niTray.BalloonTipTitle = "404";
             if (changeTray.Enabled) {
@@ -34,7 +30,8 @@ namespace YChanEx {
             GC.Collect();
         }
         public void AnnounceAbort(string URL) {
-
+            int ThreadIndex = ThreadURLS.IndexOf(URL);
+            ThreadIsGone[ThreadIndex] = true;
         }
         public void SetItemImage(string URL, int ImageIndex) {
             int ItemIndex = ThreadURLS.IndexOf(URL);
@@ -70,15 +67,6 @@ namespace YChanEx {
             txtThreadURL.Clear();
         }
 
-        private void lbThreads_MouseDoubleClick(object sender, MouseEventArgs e) {
-            //int ClickedIndex = lbThreads.IndexFromPoint(e.Location);
-            //if (ClickedIndex != ListBox.NoMatches) {
-            //    Threads[ClickedIndex].Show();
-            //    Threads[ClickedIndex].Opacity = 100;
-            //    Threads[ClickedIndex].ShowInTaskbar = true;
-            //}
-        }
-
         private void mSettings_Click(object sender, EventArgs e) {
             frmSettings Settings = new frmSettings();
             Settings.ShowDialog();
@@ -88,14 +76,36 @@ namespace YChanEx {
         private void changeTray_Tick(object sender, EventArgs e) {
             if (!Show404) {
                 niTray.Icon = Properties.Resources.YChanEx;
-                Show404 = false;
                 changeTray.Stop();
+            }
+            else {
+                Show404 = false;
             }
         }
 
         private void lvThreads_MouseDoubleClick(object sender, MouseEventArgs e) {
             if (lvThreads.SelectedItems.Count > 0) {
                 Threads[lvThreads.SelectedIndices[0]].Show();
+            }
+        }
+
+        private void mStatus_Click(object sender, EventArgs e) {
+            if (lvThreads.SelectedIndices.Count > 0) {
+                Threads[lvThreads.SelectedIndices[0]].Show();
+            }
+        }
+
+        private void mRemove_Click(object sender, EventArgs e) {
+            if (lvThreads.SelectedIndices.Count > 0) {
+                int SelectedIndex = lvThreads.SelectedIndices[0];
+                if (!ThreadIsGone[SelectedIndex]) {
+                    Threads[SelectedIndex].StopDownload();
+                }
+                Threads[SelectedIndex].Dispose();
+                Threads.RemoveAt(SelectedIndex);
+                ThreadURLS.RemoveAt(SelectedIndex);
+                ThreadIsGone.RemoveAt(SelectedIndex);
+                lvThreads.Items.RemoveAt(SelectedIndex);
             }
         }
     }
