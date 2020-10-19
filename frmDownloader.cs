@@ -63,16 +63,16 @@ namespace YChanEx {
                 Thread.Sleep(500);
                 return;
             }
-            //if (ThreadHas404) {
-            //    lbScanTimer.Text = "404'd";
-            //    lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
-            //    this.Icon = Properties.Resources.YChanEx404;
-            //    MainFormInstance.Announce404(ThreadID, ThreadBoard, ThreadURL, ChanType);
-            //    MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Has404);
-            //    btnStopDownload.Enabled = false;
-            //    tmrScan.Stop();
-            //    return;
-            //}
+            if (ThreadHas404) {
+                lbScanTimer.Text = "404'd";
+                lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
+                this.Icon = Properties.Resources.YChanEx404;
+                MainFormInstance.Announce404(ThreadID, ThreadBoard, ThreadURL, ChanType);
+                MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Has404);
+                btnStopDownload.Enabled = false;
+                tmrScan.Stop();
+                return;
+            }
             if (CountdownToNextScan == 50) {
                 lbNotModified.Visible = false;
                 lbScanTimer.Text = CountdownToNextScan.ToString();
@@ -182,14 +182,6 @@ namespace YChanEx {
         public void AfterDownload() {
             if (IsAbortingDownload) {
                 return;
-            }
-            else if (ThreadHas404) {
-                lbScanTimer.Text = "404'd";
-                lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
-                this.Icon = Properties.Resources.YChanEx404;
-                MainFormInstance.Announce404(ThreadID, ThreadBoard, ThreadURL, ChanType);
-                MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Has404);
-                btnStopDownload.Enabled = false;
             }
             else {
                 this.BeginInvoke(new MethodInvoker(() => {
