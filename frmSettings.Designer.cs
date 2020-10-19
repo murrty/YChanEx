@@ -50,15 +50,15 @@
             this.txtUserAgent = new YChanEx.HintTextBox();
             this.lbUserAgent = new System.Windows.Forms.Label();
             this.tabReset = new System.Windows.Forms.TabPage();
+            this.tabRegex = new System.Windows.Forms.TabPage();
+            this.lbu18chan = new System.Windows.Forms.Label();
+            this.txtU18ChanRegex = new YChanEx.HintTextBox();
+            this.label1 = new System.Windows.Forms.Label();
             this.btnUserScript = new System.Windows.Forms.Button();
             this.btnProtocol = new System.Windows.Forms.Button();
             this.btnSCan = new System.Windows.Forms.Button();
             this.btnSSave = new System.Windows.Forms.Button();
             this.ttSettings = new System.Windows.Forms.ToolTip(this.components);
-            this.tabRegex = new System.Windows.Forms.TabPage();
-            this.label1 = new System.Windows.Forms.Label();
-            this.txtU18ChanRegex = new YChanEx.HintTextBox();
-            this.lbu18chan = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabDownloads.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numTimer)).BeginInit();
@@ -378,6 +378,47 @@
             this.tabReset.Text = "Reset";
             this.tabReset.UseVisualStyleBackColor = true;
             // 
+            // tabRegex
+            // 
+            this.tabRegex.Controls.Add(this.lbu18chan);
+            this.tabRegex.Controls.Add(this.txtU18ChanRegex);
+            this.tabRegex.Controls.Add(this.label1);
+            this.tabRegex.Location = new System.Drawing.Point(4, 22);
+            this.tabRegex.Name = "tabRegex";
+            this.tabRegex.Padding = new System.Windows.Forms.Padding(3);
+            this.tabRegex.Size = new System.Drawing.Size(394, 144);
+            this.tabRegex.TabIndex = 4;
+            this.tabRegex.Text = "Regex";
+            this.tabRegex.UseVisualStyleBackColor = true;
+            // 
+            // lbu18chan
+            // 
+            this.lbu18chan.AutoSize = true;
+            this.lbu18chan.Location = new System.Drawing.Point(29, 47);
+            this.lbu18chan.Name = "lbu18chan";
+            this.lbu18chan.Size = new System.Drawing.Size(49, 13);
+            this.lbu18chan.TabIndex = 2;
+            this.lbu18chan.Text = "u18chan";
+            // 
+            // txtU18ChanRegex
+            // 
+            this.txtU18ChanRegex.Location = new System.Drawing.Point(84, 44);
+            this.txtU18ChanRegex.Name = "txtU18ChanRegex";
+            this.txtU18ChanRegex.Size = new System.Drawing.Size(281, 20);
+            this.txtU18ChanRegex.TabIndex = 1;
+            this.txtU18ChanRegex.TextHint = "(?<=File: <a href=\\\").*?(?=\\\" target=\\\"_blank\\\">)";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.Location = new System.Drawing.Point(42, 8);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(310, 26);
+            this.label1.TabIndex = 0;
+            this.label1.Text = "This tab is for regex matches for non-api supported boards\r\nYou can change them h" +
+    "ere, but it may break downloading.";
+            // 
             // btnUserScript
             // 
             this.btnUserScript.Location = new System.Drawing.Point(12, 176);
@@ -409,6 +450,7 @@
             this.btnSCan.Text = "Cancel";
             this.ttSettings.SetToolTip(this.btnSCan, "Does not save any settings changed");
             this.btnSCan.UseVisualStyleBackColor = true;
+            this.btnSCan.Click += new System.EventHandler(this.btnSCan_Click);
             // 
             // btnSSave
             // 
@@ -424,47 +466,6 @@
             // ttSettings
             // 
             this.ttSettings.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Info;
-            // 
-            // tabRegex
-            // 
-            this.tabRegex.Controls.Add(this.lbu18chan);
-            this.tabRegex.Controls.Add(this.txtU18ChanRegex);
-            this.tabRegex.Controls.Add(this.label1);
-            this.tabRegex.Location = new System.Drawing.Point(4, 22);
-            this.tabRegex.Name = "tabRegex";
-            this.tabRegex.Padding = new System.Windows.Forms.Padding(3);
-            this.tabRegex.Size = new System.Drawing.Size(394, 144);
-            this.tabRegex.TabIndex = 4;
-            this.tabRegex.Text = "Regex";
-            this.tabRegex.UseVisualStyleBackColor = true;
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(42, 8);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(310, 26);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "This tab is for regex matches for non-api supported boards\r\nYou can change them h" +
-    "ere, but it may break downloading.";
-            // 
-            // txtU18ChanRegex
-            // 
-            this.txtU18ChanRegex.Location = new System.Drawing.Point(84, 44);
-            this.txtU18ChanRegex.Name = "txtU18ChanRegex";
-            this.txtU18ChanRegex.Size = new System.Drawing.Size(281, 20);
-            this.txtU18ChanRegex.TabIndex = 1;
-            this.txtU18ChanRegex.TextHint = "(?<=File: <a href=\\\").*?(?=\\\" target=\\\"_blank\\\">)";
-            // 
-            // lbu18chan
-            // 
-            this.lbu18chan.AutoSize = true;
-            this.lbu18chan.Location = new System.Drawing.Point(29, 47);
-            this.lbu18chan.Name = "lbu18chan";
-            this.lbu18chan.Size = new System.Drawing.Size(49, 13);
-            this.lbu18chan.TabIndex = 2;
-            this.lbu18chan.Text = "u18chan";
             // 
             // frmSettings
             // 

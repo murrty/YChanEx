@@ -15,14 +15,14 @@ namespace YChanEx {
     public partial class frmDownloader : Form {
         frmMain MainFormInstance = Program.GetMainFormInstance();
 
-        public string DownloadPath = null;
-        public string ThreadURL = null;
-        public int ChanType = -1;
-        public DateTime LastModified = default(DateTime);
+        public string DownloadPath = null; // all
+        public string ThreadURL = null; // all
+        public ChanTypes.Types ChanType = ChanTypes.Types.None; // all
+        public DateTime LastModified = default(DateTime); // if supported
 
-        private string ThreadBoard = null;
-        private string ThreadID = null;
-        private string LastThreadHTML = null;
+        private string ThreadBoard = null; // all
+        private string ThreadID = null; // all
+        private string LastThreadHTML = null; // u18chan
 
         private List<string> ImageFiles = new List<string>();
         private List<string> ThumbnailFiles = new List<string>();
@@ -35,7 +35,7 @@ namespace YChanEx {
         private bool ThreadHas404 = false;
         private bool IsAbortingDownload = false;
         private int CountdownToNextScan = 0;
-        private Thread DownloadThread = new Thread(() => { });
+        private Thread DownloadThread;
 
         public frmDownloader() {
             InitializeComponent();
@@ -46,16 +46,7 @@ namespace YChanEx {
             this.Hide();
         }
         private void btnStopDownload_Click(object sender, EventArgs e) {
-            IsAbortingDownload = true;
-            tmrScan.Stop();
-            if (DownloadThread.IsAlive) {
-                DownloadThread.Abort();
-            }
-            lbScanTimer.Text = "aborted download";
-            lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
-            btnStopDownload.Enabled = false;
-            MainFormInstance.AnnounceAbort(ThreadURL);
-            MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.HasAborted);
+            StopDownload();
         }
         private void btnClose_Click(object sender, EventArgs e) {
             this.Hide();
@@ -91,7 +82,7 @@ namespace YChanEx {
         }
 
         public void StartDownload() {
-            DetectChanType();
+            ChanType = Chans.GetChanType(ThreadURL);
             switch (ChanType) {
                 case (int)ChanTypes.Types.fourChan:
                     if (!ThreadHasScanned) {
@@ -99,23 +90,26 @@ namespace YChanEx {
                         ThreadID = ThreadURL.Split('/')[ThreadURL.Split('/').Length - 1];
                         this.Text = "4chan thread - " + ThreadBoard + " - " + ThreadID;
                         DownloadPath = Downloads.Default.DownloadPath + "\\4chan\\" + ThreadBoard + "\\" + ThreadID;
+
                     }
-                    BeginFourChanDownload();
+                    SetFourChanThread();
+                    DownloadThread.Start();
                     break;
-                case (int)ChanTypes.Types.fourTwentyChan:
+                case ChanTypes.Types.fourTwentyChan:
                     break;
-                case (int)ChanTypes.Types.sevenChan:
+                case ChanTypes.Types.sevenChan:
                     break;
-                case (int)ChanTypes.Types.eightChan:
+                case ChanTypes.Types.eightChan:
                     break;
-                case (int)ChanTypes.Types.fchan:
+                case ChanTypes.Types.fchan:
                     break;
-                case (int)ChanTypes.Types.uEighteenChan:
+                case ChanTypes.Types.uEighteenChan:
                     if (!ThreadHasScanned) {
                         ThreadBoard = ThreadURL.Split('/')[ThreadURL.Split('/').Length - 3];
                         ThreadID = ThreadURL.Split('/')[ThreadURL.Split('/').Length - 1];
                         this.Text = "u18chan thread - " + ThreadBoard + " - " + ThreadID;
                         DownloadPath = Downloads.Default.DownloadPath + "\\u18chan\\" + ThreadBoard + "\\" + ThreadID;
+                        SetUEighteenChanThread();
                     }
                     BeginUEighteenChanDownlad();
                     break;
@@ -126,70 +120,44 @@ namespace YChanEx {
             MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Downloading);
         }
         public void StopDownload() {
+            IsAbortingDownload = true;
+            tmrScan.Stop();
             if (DownloadThread.IsAlive) {
                 DownloadThread.Abort();
-                tmrScan.Stop();
             }
+            lbScanTimer.Text = "aborted download";
+            lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
+            btnStopDownload.Enabled = false;
+            MainFormInstance.AnnounceAbort(ThreadURL);
+            MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.HasAborted);
         }
         public void AfterDownload() {
             if (IsAbortingDownload) {
                 return;
             }
-            this.BeginInvoke(new MethodInvoker(() => {
-                lbScanTimer.Text = "soon (tm)";
-                MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Waiting);
-                CountdownToNextScan = Downloads.Default.ScannerDelay;
-                tmrScan.Start();
-                if (ChanType == (int)ChanTypes.Types.uEighteenChan) {
-                    GC.Collect();
-                }
-            }));
-        }
-        public void DetectChanType() {
-            Regex Matcher = new Regex("boards.4chan(nel)?.org/[a-zA-Z0-9]*?/thread[0-9]*");
-            if (Matcher.IsMatch(ThreadURL)) {
-                ChanType = ChanTypes.fourChan;
-                return;
-            }
-
-            Matcher = new Regex("boards.420chan.org/[a-zA-Z0-9]*?/res/[0-9]*");
-            if (Matcher.IsMatch(ThreadURL)) {
-                ChanType = ChanTypes.fourTwentyChan;
-                return;
-            }
-
-            Matcher = new Regex("7chan.org/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*");
-            if (Matcher.IsMatch(ThreadURL)) {
-                ChanType = ChanTypes.sevenChan;
-                return;
-            }
-
-            Matcher = new Regex("8kun.top/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*");
-            if (Matcher.IsMatch(ThreadURL)) {
-                ChanType = ChanTypes.eightChan;
-                return;
-            }
-
-            Matcher = new Regex("fchan.us/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*");
-            if (Matcher.IsMatch(ThreadURL)) {
-                ChanType = ChanTypes.fchan;
-                return;
-            }
-
-            if (!string.IsNullOrEmpty(RegexStrings.Default.u18chanUrl)) {
-                Matcher = new Regex(RegexStrings.Default.u18chanUrl);
+            else if (ThreadHas404) {
+                lbScanTimer.Text = "404'd";
+                lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
+                this.Icon = Properties.Resources.YChanEx404;
+                MainFormInstance.Announce404(ThreadID, ThreadBoard, ThreadURL);
+                MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Has404);
+                btnStopDownload.Enabled = false;
             }
             else {
-                Matcher = new Regex("u18chan.com/(.*?)[a-zA-Z0-9]*?/topic/[0-9]*");
-            }
-            if (Matcher.IsMatch(ThreadURL)) {
-                ChanType = ChanTypes.uEighteenChan;
-                return;
+                this.BeginInvoke(new MethodInvoker(() => {
+                    lbScanTimer.Text = "soon (tm)";
+                    MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Waiting);
+                    CountdownToNextScan = Downloads.Default.ScannerDelay;
+                    tmrScan.Start();
+                    if (ChanType == ChanTypes.Types.uEighteenChan) {
+                        GC.Collect();
+                    }
+                }));
             }
         }
 
         #region 4chan
-        private void BeginFourChanDownload() {
+        private void SetFourChanThread() {
             DownloadThread = new Thread(() => {
                 string FileBaseURL = "https://i.4cdn.org/" + ThreadURL.Split('/')[3] + "/";
                 string ThreadJSON = null;
@@ -378,7 +346,6 @@ namespace YChanEx {
                     AfterDownload();
                 }
             });
-            DownloadThread.Start();
         }
         private static bool GenerateFourChanMD5(string InputFile, string InputFileHash) {
             // Attempts to convert existing file to 4chan's hash type
@@ -580,13 +547,13 @@ namespace YChanEx {
         #endregion
 
         #region u18chan
-        private void BeginUEighteenChanDownlad() {
+        private void SetUEighteenChanThread() {
             DownloadThread = new Thread(() => {
                 string ThreadHTML = null;
                 string CurrentURL = null;
                 try {
                     int TryCount = 0;
-                    retryThread:
+retryThread:
 
                     CurrentURL = ThreadURL;
                     HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(CurrentURL);
@@ -620,7 +587,7 @@ namespace YChanEx {
                     LastThreadHTML = ThreadHTML;
 
                     Regex ImageMatch;
-                    if (!string.IsNullOrEmpty(RegexStrings.Default.u18chanFiles)){
+                    if (!string.IsNullOrEmpty(RegexStrings.Default.u18chanFiles)) {
                         ImageMatch = new Regex(RegexStrings.Default.u18chanFiles);
                     }
                     else {
@@ -647,7 +614,7 @@ namespace YChanEx {
                             FileIDs.Add(IDs[i]);
                             FileNames.Add(FileName.Replace(FileName, FileName.Substring(0, (FileName.Length - (Extension.Length + 9)))));
                             FileExtensions.Add(Extension);
-                            
+
                             if (Downloads.Default.SaveThumbnails) {
                                 string Ext = FilesBuffer[i].Split('.')[FilesBuffer[i].Split('.').Length - 1];
                                 string ThumbFileBuffer = FilesBuffer[i].Replace("_u18chan." + Ext, "s_u18chan." + Ext);
@@ -719,6 +686,8 @@ namespace YChanEx {
                     MessageBox.Show(ex.ToString());
                 }
             });
+        }
+        private void BeginUEighteenChanDownlad() {
             DownloadThread.Start();
         }
         public static string GetU18ChanTopic(string board) {

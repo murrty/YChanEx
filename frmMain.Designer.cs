@@ -30,10 +30,13 @@
             this.mSettings = new System.Windows.Forms.MenuItem();
             this.mAbout = new System.Windows.Forms.MenuItem();
             this.niTray = new System.Windows.Forms.NotifyIcon(this.components);
+            this.changeTray = new System.Windows.Forms.Timer(this.components);
+            this.cmItems = new System.Windows.Forms.ContextMenu();
+            this.mStatus = new System.Windows.Forms.MenuItem();
+            this.mRemove = new System.Windows.Forms.MenuItem();
             this.lvThreads = new YChanEx.VistaListView();
             this.clStatus = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clThread = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.changeTray = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // btnAdd
@@ -79,6 +82,29 @@
             this.niTray.Text = "YChanEx";
             this.niTray.Visible = true;
             // 
+            // changeTray
+            // 
+            this.changeTray.Interval = 5000;
+            this.changeTray.Tick += new System.EventHandler(this.changeTray_Tick);
+            // 
+            // cmItems
+            // 
+            this.cmItems.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
+            this.mStatus,
+            this.mRemove});
+            // 
+            // mStatus
+            // 
+            this.mStatus.Index = 0;
+            this.mStatus.Text = "View Status";
+            this.mStatus.Click += new System.EventHandler(this.mStatus_Click);
+            // 
+            // mRemove
+            // 
+            this.mRemove.Index = 1;
+            this.mRemove.Text = "Remove";
+            this.mRemove.Click += new System.EventHandler(this.mRemove_Click);
+            // 
             // lvThreads
             // 
             this.lvThreads.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -107,11 +133,6 @@
             // 
             this.clThread.Text = "Threads";
             this.clThread.Width = 260;
-            // 
-            // changeTray
-            // 
-            this.changeTray.Interval = 5000;
-            this.changeTray.Tick += new System.EventHandler(this.changeTray_Tick);
             // 
             // frmMain
             // 
@@ -144,6 +165,9 @@
         private System.Windows.Forms.ColumnHeader clThread;
         private System.Windows.Forms.Timer changeTray;
         private System.Windows.Forms.ColumnHeader clStatus;
+        private System.Windows.Forms.ContextMenu cmItems;
+        private System.Windows.Forms.MenuItem mStatus;
+        private System.Windows.Forms.MenuItem mRemove;
     }
 }
 

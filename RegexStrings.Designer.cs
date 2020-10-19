@@ -74,6 +74,18 @@ namespace YChanEx {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string EightKunURL {
+            get {
+                return ((string)(this["EightKunURL"]));
+            }
+            set {
+                this["EightKunURL"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string fchanURL {
             get {
                 return ((string)(this["fchanURL"]));

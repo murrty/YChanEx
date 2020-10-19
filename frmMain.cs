@@ -57,6 +57,7 @@ namespace YChanEx {
             lvi.Name = txtThreadURL.Text;
             lvThreads.Items.Add(lvi);
             ThreadURLS.Add(txtThreadURL.Text);
+            ThreadIsGone.Add(false);
             frmDownloader newThread = new frmDownloader();
             newThread.Name = txtThreadURL.Text;
             newThread.ThreadURL = txtThreadURL.Text;

@@ -8,9 +8,8 @@ using System.Xml;
 using System.Xml.Linq;
 using YChanEx;
 
-#region Chan controllers
 /// <summary>
-/// This class contains methods for translating and managing threads.
+/// This class contains methods for translating and managing chan threads.
 /// Most backend is here, except for individual chan apis and parsing.
 /// </summary>
 class Chans {
@@ -141,72 +140,191 @@ class Chans {
     }
 
     public static bool SupportedChan(string URL) {
-        Regex Matcher = new Regex("boards.4chan(nel)?.org/[a-zA-Z0-9]*?/thread[0-9]*");
+        Regex Matcher = new Regex(ChanRegex.fourChan);
         if (Matcher.IsMatch(URL)) {
             return true;
         }
 
-        Matcher = new Regex("boards.420chan.org/[a-zA-Z0-9]*?/res/[0-9]*");
+        Matcher = new Regex(ChanRegex.fourTwentyChan);
         if (Matcher.IsMatch(URL)) {
             return true;
         }
 
-        Matcher = new Regex("7chan.org/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*");
+        Matcher = new Regex(ChanRegex.sevenChan);
         if (Matcher.IsMatch(URL)) {
             return true;
         }
 
-        Matcher = new Regex("8kun.top/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*");
+        Matcher = new Regex(ChanRegex.eightChan);
         if (Matcher.IsMatch(URL)) {
             return true;
         }
 
-        Matcher = new Regex("fchan.us/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*");
+        Matcher = new Regex(ChanRegex.eightKun);
         if (Matcher.IsMatch(URL)) {
             return true;
         }
 
-        if (!string.IsNullOrEmpty(RegexStrings.Default.u18chanUrl)) {
-            Matcher = new Regex(RegexStrings.Default.u18chanUrl);
+        Matcher = new Regex(ChanRegex.fchan);
+        if (Matcher.IsMatch(URL)) {
+            return true;
         }
-        else {
-            Matcher = new Regex("u18chan.com/(.*?)[a-zA-Z0-9]*?/topic/[0-9]*");
-        }
+
+        Matcher = new Regex(ChanRegex.uEighteenChan);
         if (Matcher.IsMatch(URL)) {
             return true;
         }
 
         return false;
     }
+
+    public static ChanTypes.Types GetChanType(string URL) {
+        Regex Matcher = new Regex(ChanRegex.fourChan);
+        if (Matcher.IsMatch(URL)) {
+            return ChanTypes.Types.fourChan;
+        }
+
+        Matcher = new Regex(ChanRegex.fourTwentyChan);
+        if (Matcher.IsMatch(URL)) {
+            return ChanTypes.Types.fourTwentyChan;
+        }
+
+        Matcher = new Regex(ChanRegex.sevenChan);
+        if (Matcher.IsMatch(URL)) {
+            return ChanTypes.Types.sevenChan;
+        }
+
+        Matcher = new Regex(ChanRegex.eightChan);
+        if (Matcher.IsMatch(URL)) {
+            return ChanTypes.Types.eightChan;
+        }
+
+        Matcher = new Regex(ChanRegex.eightKun);
+        if (Matcher.IsMatch(URL)) {
+            return ChanTypes.Types.eightKun;
+        }
+
+        Matcher = new Regex(ChanRegex.fchan);
+        if (Matcher.IsMatch(URL)) {
+            return ChanTypes.Types.fchan;
+        }
+
+        Matcher = new Regex(ChanRegex.uEighteenChan);
+        if (Matcher.IsMatch(URL)) {
+            return ChanTypes.Types.uEighteenChan;
+        }
+
+        return ChanTypes.Types.None;
+    }
 }
+/// <summary>
+/// The Regex strings for detecting the chans.
+/// </summary>
+class ChanRegex {
+    public static string fourChan {
+        get {
+            return "boards.4chan(nel)?.org/[a-zA-Z0-9]*?/thread[0-9]*";
+        }
+    }
+    public static string fourTwentyChan {
+        get {
+            if (!string.IsNullOrEmpty(RegexStrings.Default.FourChanURL)) {
+                return RegexStrings.Default.FourChanURL;
+            }
+            else {
+                return "boards.420chan.org/[a-zA-Z0-9]*?/res/[0-9]*";
+            }
+        }
+    }
+    public static string sevenChan {
+        get {
+            if (!string.IsNullOrEmpty(RegexStrings.Default.SevenChanURL)) {
+                return RegexStrings.Default.SevenChanURL;
+            }
+            else {
+                return "7chan.org/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*";
+            }
+        }
+    }
+    public static string eightChan {
+        get {
+            if (!string.IsNullOrEmpty(RegexStrings.Default.EightChanURL)) {
+                return RegexStrings.Default.EightChanURL;
+            }
+            else {
+                return "8chan.moe/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*";
+            }
+        }
+    }
+    public static string eightKun {
+        get {
+            if (!string.IsNullOrEmpty(RegexStrings.Default.EightKunURL)) {
+                return RegexStrings.Default.EightKunURL;
+            }
+            else {
+                return "8kun.top/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*";
+            }
+        }
+    }
+    public static string fchan {
+        get {
+            if (!string.IsNullOrEmpty(RegexStrings.Default.fchanURL)) {
+                return RegexStrings.Default.fchanURL;
+            }
+            else {
+                return "fchan.us/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*";
+            }
+        }
+    }
+    public static string uEighteenChan {
+        get {
+            if (!string.IsNullOrEmpty(RegexStrings.Default.u18chanUrl)) {
+                return RegexStrings.Default.u18chanUrl;
+            }
+            else {
+                return "u18chan.com/(.*?)[a-zA-Z0-9]*?/topic/[0-9]*";
+            }
+        }
+    }
+}
+/// <summary>
+/// Enumerations of the int-value of the supported chans.
+/// </summary>
 class ChanTypes {
     public enum Types : int {
+        None = -1,
         fourChan = 0,
         fourTwentyChan = 1,
         sevenChan = 2,
         eightChan = 3,
-        fchan = 4,
-        uEighteenChan = 5
+        eightKun = 4,
+        fchan = 5,
+        uEighteenChan = 6
     }
 
     public static int fourChan { get { return 0; } }
     public static int fourTwentyChan { get { return 1; } }
     public static int sevenChan { get { return 2; } }
     public static int eightChan { get { return 3; } }
-    public static int fchan { get { return 4; } }
-    public static int uEighteenChan { get { return 5; } }
+    public static int eightKun { get { return 4; } }
+    public static int fchan { get { return 5; } }
+    public static int uEighteenChan { get { return 6; } }
 }
-
+/// <summary>
+/// Enumeration of the ThreadIconIndex used for icons in-forms.
+/// </summary>
 class ThreadIconIndex {
     public static int Waiting { get { return 0; } }
     public static int Downloading { get { return 1; } }
     public static int Has404 { get { return 2; } }
     public static int HasAbort { get { return 2; } }
 }
+/// <summary>
+/// Strings of the thread statuses. If this will be kept is TBD.
+/// </summary>
 class ThreadStatuses {
     public static string Downloading { get { return "Downloading"; } }
     public static string Waiting { get { return "Waiting"; } }
     public static string Has404 { get { return "404'd"; } }
     public static string HasAborted { get { return "Aborted"; } }
 }
-#endregion

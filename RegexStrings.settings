@@ -1,5 +1,5 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="YChanEx" GeneratedClassName="Regex">
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="YChanEx" GeneratedClassName="RegexStrings">
   <Profiles />
   <Settings>
     <Setting Name="FourChanURL" Type="System.String" Scope="User">
@@ -21,6 +21,9 @@
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="u18chanFiles" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="EightKunURL" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
   </Settings>
