@@ -63,17 +63,17 @@ namespace YChanEx {
                 Thread.Sleep(500);
                 return;
             }
-            if (ThreadHas404) {
-                lbScanTimer.Text = "404'd";
-                lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
-                this.Icon = Properties.Resources.YChanEx404;
-                MainFormInstance.Announce404(ThreadID, ThreadBoard, ThreadURL);
-                MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Has404);
-                btnStopDownload.Enabled = false;
-                tmrScan.Stop();
-                return;
-            }
-            else if (CountdownToNextScan == 50) {
+            //if (ThreadHas404) {
+            //    lbScanTimer.Text = "404'd";
+            //    lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
+            //    this.Icon = Properties.Resources.YChanEx404;
+            //    MainFormInstance.Announce404(ThreadID, ThreadBoard, ThreadURL, ChanType);
+            //    MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Has404);
+            //    btnStopDownload.Enabled = false;
+            //    tmrScan.Stop();
+            //    return;
+            //}
+            if (CountdownToNextScan == 50) {
                 lbNotModified.Visible = false;
                 lbScanTimer.Text = CountdownToNextScan.ToString();
                 CountdownToNextScan--;
@@ -187,7 +187,7 @@ namespace YChanEx {
                 lbScanTimer.Text = "404'd";
                 lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
                 this.Icon = Properties.Resources.YChanEx404;
-                MainFormInstance.Announce404(ThreadID, ThreadBoard, ThreadURL);
+                MainFormInstance.Announce404(ThreadID, ThreadBoard, ThreadURL, ChanType);
                 MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Has404);
                 btnStopDownload.Enabled = false;
             }
@@ -195,9 +195,9 @@ namespace YChanEx {
                 this.BeginInvoke(new MethodInvoker(() => {
                     lbScanTimer.Text = "soon (tm)";
                     MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Waiting);
-                    CountdownToNextScan = Downloads.Default.ScannerDelay;
+                    CountdownToNextScan = Downloads.Default.ScannerDelay - 1;
                     if (Program.IsDebug) {
-                        CountdownToNextScan = 10;
+                        CountdownToNextScan = 9;
                     }
                     tmrScan.Start();
                     if (ChanType == (int)ChanTypes.Types.uEighteenChan) {
@@ -449,7 +449,7 @@ namespace YChanEx {
                     CurrentURL = string.Format(ChanApiLinks.FourTwentyChan, ThreadBoard, ThreadID);
                     HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(CurrentURL);
                     Request.UserAgent = Advanced.Default.UserAgent;
-                    //Request.IfModifiedSince = LastModified;
+                    Request.IfModifiedSince = LastModified;
                     Request.Method = "GET";
                     var Response = (HttpWebResponse)Request.GetResponse();
                     var ResponseStream = Response.GetResponseStream();
@@ -465,7 +465,7 @@ namespace YChanEx {
                             ThreadJSON = xml.ToString();
                         }
                     }
-                    //LastModified = Response.LastModified;
+                    LastModified = Response.LastModified;
                     Response.Dispose();
                     ResponseStream.Dispose();
 
@@ -559,8 +559,7 @@ namespace YChanEx {
                 }
             });
             DownloadThread.Name = "420chan thread /" + ThreadBoard + "/" + ThreadID;
-        }
-        
+        }   
     #endregion
 
     #region u18chan
