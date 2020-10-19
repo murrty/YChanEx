@@ -70,5 +70,17 @@ namespace YChanEx {
                 this["EnableUpdates"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool UseFullBoardNameForTitle {
+            get {
+                return ((bool)(this["UseFullBoardNameForTitle"]));
+            }
+            set {
+                this["UseFullBoardNameForTitle"] = value;
+            }
+        }
     }
 }

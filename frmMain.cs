@@ -47,25 +47,23 @@ namespace YChanEx {
         }
 
         private void btnAdd_Click(object sender, EventArgs e) {
-            if (!Chans.SupportedChan(txtThreadURL.Text)) {
-                return;
+            if (Chans.SupportedChan(txtThreadURL.Text)) {
+                ListViewItem lvi = new ListViewItem();
+                lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                lvi.SubItems[0].Text = ThreadStatuses.Downloading;
+                lvi.SubItems[1].Text = txtThreadURL.Text;
+                lvi.Name = txtThreadURL.Text;
+                lvThreads.Items.Add(lvi);
+                ThreadURLS.Add(txtThreadURL.Text);
+                ThreadIsGone.Add(false);
+                frmDownloader newThread = new frmDownloader();
+                newThread.Name = txtThreadURL.Text;
+                newThread.ThreadURL = txtThreadURL.Text;
+                newThread.StartDownload();
+                Threads.Add(newThread);
+                newThread.Show();
+                txtThreadURL.Clear();
             }
-            ListViewItem lvi = new ListViewItem();
-            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-            lvi.SubItems[0].Text = ThreadStatuses.Downloading;
-            lvi.SubItems[1].Text = txtThreadURL.Text;
-            lvi.Name = txtThreadURL.Text;
-            lvThreads.Items.Add(lvi);
-            ThreadURLS.Add(txtThreadURL.Text);
-            ThreadIsGone.Add(false);
-            frmDownloader newThread = new frmDownloader();
-            newThread.Name = txtThreadURL.Text;
-            newThread.ThreadURL = txtThreadURL.Text;
-            newThread.StartDownload();
-            Threads.Add(newThread);
-            newThread.Show();
-            //newThread.Hide();
-            txtThreadURL.Clear();
         }
 
         private void mSettings_Click(object sender, EventArgs e) {
@@ -75,12 +73,12 @@ namespace YChanEx {
         }
 
         private void changeTray_Tick(object sender, EventArgs e) {
-            if (!Show404) {
-                niTray.Icon = Properties.Resources.YChanEx;
-                changeTray.Stop();
+            if (Show404) {
+                Show404 = false;
             }
             else {
-                Show404 = false;
+                niTray.Icon = Properties.Resources.YChanEx;
+                changeTray.Stop();
             }
         }
 
@@ -108,6 +106,11 @@ namespace YChanEx {
                 ThreadIsGone.RemoveAt(SelectedIndex);
                 lvThreads.Items.RemoveAt(SelectedIndex);
             }
+        }
+
+        private void mAbout_Click(object sender, EventArgs e) {
+            frmAbout About = new frmAbout();
+            About.ShowDialog();
         }
     }
 }

@@ -38,7 +38,7 @@
             this.btnBrowse = new System.Windows.Forms.Button();
             this.chkMove = new System.Windows.Forms.CheckBox();
             this.tabApplication = new System.Windows.Forms.TabPage();
-            this.idk = new System.Windows.Forms.CheckBox();
+            this.chkUseFullBoardNameForTitle = new System.Windows.Forms.CheckBox();
             this.chkEnableUpdates = new System.Windows.Forms.CheckBox();
             this.chkShowExitWarning = new System.Windows.Forms.CheckBox();
             this.chkMinimizeToTray = new System.Windows.Forms.CheckBox();
@@ -78,7 +78,7 @@
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(402, 170);
+            this.tabControl1.Size = new System.Drawing.Size(394, 170);
             this.tabControl1.TabIndex = 0;
             // 
             // tabDownloads
@@ -97,7 +97,7 @@
             this.tabDownloads.Location = new System.Drawing.Point(4, 22);
             this.tabDownloads.Name = "tabDownloads";
             this.tabDownloads.Padding = new System.Windows.Forms.Padding(3);
-            this.tabDownloads.Size = new System.Drawing.Size(394, 144);
+            this.tabDownloads.Size = new System.Drawing.Size(386, 144);
             this.tabDownloads.TabIndex = 0;
             this.tabDownloads.Text = "Downloads";
             this.tabDownloads.UseVisualStyleBackColor = true;
@@ -107,7 +107,7 @@
             this.chkSaveDownloadQueueOnExit.AutoSize = true;
             this.chkSaveDownloadQueueOnExit.Location = new System.Drawing.Point(11, 112);
             this.chkSaveDownloadQueueOnExit.Name = "chkSaveDownloadQueueOnExit";
-            this.chkSaveDownloadQueueOnExit.Size = new System.Drawing.Size(166, 17);
+            this.chkSaveDownloadQueueOnExit.Size = new System.Drawing.Size(167, 17);
             this.chkSaveDownloadQueueOnExit.TabIndex = 29;
             this.chkSaveDownloadQueueOnExit.Text = "Save download queue on exit";
             this.ttSettings.SetToolTip(this.chkSaveDownloadQueueOnExit, "Saves the download queue on exit.");
@@ -129,7 +129,7 @@
             this.chkPreventDuplicates.AutoSize = true;
             this.chkPreventDuplicates.Location = new System.Drawing.Point(147, 89);
             this.chkPreventDuplicates.Name = "chkPreventDuplicates";
-            this.chkPreventDuplicates.Size = new System.Drawing.Size(113, 17);
+            this.chkPreventDuplicates.Size = new System.Drawing.Size(114, 17);
             this.chkPreventDuplicates.TabIndex = 27;
             this.chkPreventDuplicates.Text = "Prevent duplicates";
             this.ttSettings.SetToolTip(this.chkPreventDuplicates, "Prevents duplicates of original file names.");
@@ -140,7 +140,7 @@
             this.chkSaveOriginalFileNames.AutoSize = true;
             this.chkSaveOriginalFileNames.Location = new System.Drawing.Point(147, 66);
             this.chkSaveOriginalFileNames.Name = "chkSaveOriginalFileNames";
-            this.chkSaveOriginalFileNames.Size = new System.Drawing.Size(136, 17);
+            this.chkSaveOriginalFileNames.Size = new System.Drawing.Size(137, 17);
             this.chkSaveOriginalFileNames.TabIndex = 26;
             this.chkSaveOriginalFileNames.Text = "Save original file names";
             this.ttSettings.SetToolTip(this.chkSaveOriginalFileNames, "Saves files as their uploaded file names, instead of generated file IDs");
@@ -151,7 +151,7 @@
             this.chkDownloadThumbnails.AutoSize = true;
             this.chkDownloadThumbnails.Location = new System.Drawing.Point(11, 89);
             this.chkDownloadThumbnails.Name = "chkDownloadThumbnails";
-            this.chkDownloadThumbnails.Size = new System.Drawing.Size(130, 17);
+            this.chkDownloadThumbnails.Size = new System.Drawing.Size(131, 17);
             this.chkDownloadThumbnails.TabIndex = 24;
             this.chkDownloadThumbnails.Text = "Download Thumbnails";
             this.ttSettings.SetToolTip(this.chkDownloadThumbnails, "Downloads thumbnails for files in the thumb folder.");
@@ -162,7 +162,7 @@
             this.chkDownloadHTML.AutoSize = true;
             this.chkDownloadHTML.Location = new System.Drawing.Point(11, 66);
             this.chkDownloadHTML.Name = "chkDownloadHTML";
-            this.chkDownloadHTML.Size = new System.Drawing.Size(106, 17);
+            this.chkDownloadHTML.Size = new System.Drawing.Size(107, 17);
             this.chkDownloadHTML.TabIndex = 23;
             this.chkDownloadHTML.Text = "Download HTML";
             this.ttSettings.SetToolTip(this.chkDownloadHTML, "Downloads thread HTML files as Thread.html in the thread folder");
@@ -227,7 +227,7 @@
             this.chkMove.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkMove.Location = new System.Drawing.Point(296, 6);
             this.chkMove.Name = "chkMove";
-            this.chkMove.Size = new System.Drawing.Size(93, 30);
+            this.chkMove.Size = new System.Drawing.Size(94, 30);
             this.chkMove.TabIndex = 19;
             this.chkMove.Text = "Move existing \r\ndownloads";
             this.ttSettings.SetToolTip(this.chkMove, "Moves existing downloads to the new directory.");
@@ -235,7 +235,7 @@
             // 
             // tabApplication
             // 
-            this.tabApplication.Controls.Add(this.idk);
+            this.tabApplication.Controls.Add(this.chkUseFullBoardNameForTitle);
             this.tabApplication.Controls.Add(this.chkEnableUpdates);
             this.tabApplication.Controls.Add(this.chkShowExitWarning);
             this.tabApplication.Controls.Add(this.chkMinimizeToTray);
@@ -243,27 +243,27 @@
             this.tabApplication.Location = new System.Drawing.Point(4, 22);
             this.tabApplication.Name = "tabApplication";
             this.tabApplication.Padding = new System.Windows.Forms.Padding(3);
-            this.tabApplication.Size = new System.Drawing.Size(394, 144);
+            this.tabApplication.Size = new System.Drawing.Size(386, 144);
             this.tabApplication.TabIndex = 1;
             this.tabApplication.Text = "Application";
             this.tabApplication.UseVisualStyleBackColor = true;
             // 
-            // idk
+            // chkUseFullBoardNameForTitle
             // 
-            this.idk.AutoSize = true;
-            this.idk.Location = new System.Drawing.Point(225, 75);
-            this.idk.Name = "idk";
-            this.idk.Size = new System.Drawing.Size(49, 17);
-            this.idk.TabIndex = 31;
-            this.idk.Text = "????";
-            this.idk.UseVisualStyleBackColor = true;
+            this.chkUseFullBoardNameForTitle.AutoSize = true;
+            this.chkUseFullBoardNameForTitle.Location = new System.Drawing.Point(166, 75);
+            this.chkUseFullBoardNameForTitle.Name = "chkUseFullBoardNameForTitle";
+            this.chkUseFullBoardNameForTitle.Size = new System.Drawing.Size(160, 17);
+            this.chkUseFullBoardNameForTitle.TabIndex = 31;
+            this.chkUseFullBoardNameForTitle.Text = "Use full board names in titles";
+            this.chkUseFullBoardNameForTitle.UseVisualStyleBackColor = true;
             // 
             // chkEnableUpdates
             // 
             this.chkEnableUpdates.AutoSize = true;
-            this.chkEnableUpdates.Location = new System.Drawing.Point(120, 75);
+            this.chkEnableUpdates.Location = new System.Drawing.Point(61, 75);
             this.chkEnableUpdates.Name = "chkEnableUpdates";
-            this.chkEnableUpdates.Size = new System.Drawing.Size(99, 17);
+            this.chkEnableUpdates.Size = new System.Drawing.Size(100, 17);
             this.chkEnableUpdates.TabIndex = 30;
             this.chkEnableUpdates.Text = "Enable updates";
             this.ttSettings.SetToolTip(this.chkEnableUpdates, "Enables updates for the application");
@@ -274,7 +274,7 @@
             this.chkShowExitWarning.AutoSize = true;
             this.chkShowExitWarning.Location = new System.Drawing.Point(244, 52);
             this.chkShowExitWarning.Name = "chkShowExitWarning";
-            this.chkShowExitWarning.Size = new System.Drawing.Size(111, 17);
+            this.chkShowExitWarning.Size = new System.Drawing.Size(112, 17);
             this.chkShowExitWarning.TabIndex = 29;
             this.chkShowExitWarning.Text = "Show exit warning";
             this.ttSettings.SetToolTip(this.chkShowExitWarning, "Shows a warning before exiting");
@@ -285,7 +285,7 @@
             this.chkMinimizeToTray.AutoSize = true;
             this.chkMinimizeToTray.Location = new System.Drawing.Point(141, 52);
             this.chkMinimizeToTray.Name = "chkMinimizeToTray";
-            this.chkMinimizeToTray.Size = new System.Drawing.Size(97, 17);
+            this.chkMinimizeToTray.Size = new System.Drawing.Size(98, 17);
             this.chkMinimizeToTray.TabIndex = 28;
             this.chkMinimizeToTray.Text = "Minimize to tray";
             this.ttSettings.SetToolTip(this.chkMinimizeToTray, "Minimizes the program to the system\'s tray");
@@ -296,7 +296,7 @@
             this.chkShowTrayIcon.AutoSize = true;
             this.chkShowTrayIcon.Location = new System.Drawing.Point(40, 52);
             this.chkShowTrayIcon.Name = "chkShowTrayIcon";
-            this.chkShowTrayIcon.Size = new System.Drawing.Size(95, 17);
+            this.chkShowTrayIcon.Size = new System.Drawing.Size(96, 17);
             this.chkShowTrayIcon.TabIndex = 27;
             this.chkShowTrayIcon.Text = "Show tray icon";
             this.ttSettings.SetToolTip(this.chkShowTrayIcon, "Shows the ychanex icon in the system tray");
@@ -333,7 +333,7 @@
             this.chkSilenceErrors.AutoSize = true;
             this.chkSilenceErrors.Location = new System.Drawing.Point(261, 72);
             this.chkSilenceErrors.Name = "chkSilenceErrors";
-            this.chkSilenceErrors.Size = new System.Drawing.Size(89, 17);
+            this.chkSilenceErrors.Size = new System.Drawing.Size(90, 17);
             this.chkSilenceErrors.TabIndex = 3;
             this.chkSilenceErrors.Text = "Silence errors";
             this.ttSettings.SetToolTip(this.chkSilenceErrors, "Silences any errors that may occur.");
@@ -344,7 +344,7 @@
             this.chkDisableScannerWhenOpeningSettings.AutoSize = true;
             this.chkDisableScannerWhenOpeningSettings.Location = new System.Drawing.Point(45, 72);
             this.chkDisableScannerWhenOpeningSettings.Name = "chkDisableScannerWhenOpeningSettings";
-            this.chkDisableScannerWhenOpeningSettings.Size = new System.Drawing.Size(210, 17);
+            this.chkDisableScannerWhenOpeningSettings.Size = new System.Drawing.Size(211, 17);
             this.chkDisableScannerWhenOpeningSettings.TabIndex = 2;
             this.chkDisableScannerWhenOpeningSettings.Text = "Disable scanner when opening settings";
             this.ttSettings.SetToolTip(this.chkDisableScannerWhenOpeningSettings, "Pauses the scanner timer.\r\nThis does not stop in-progress scans/downloads.");
@@ -414,7 +414,7 @@
             this.label1.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.Location = new System.Drawing.Point(42, 8);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(310, 26);
+            this.label1.Size = new System.Drawing.Size(311, 26);
             this.label1.TabIndex = 0;
             this.label1.Text = "This tab is for regex matches for non-api supported boards\r\nYou can change them h" +
     "ere, but it may break downloading.";
@@ -472,7 +472,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.ClientSize = new System.Drawing.Size(402, 212);
+            this.ClientSize = new System.Drawing.Size(394, 203);
             this.Controls.Add(this.btnSSave);
             this.Controls.Add(this.btnUserScript);
             this.Controls.Add(this.btnProtocol);
@@ -518,7 +518,7 @@
         private System.Windows.Forms.CheckBox chkDownloadThumbnails;
         private System.Windows.Forms.CheckBox chkDownloadHTML;
         private HintTextBox txtSavePath;
-        private System.Windows.Forms.CheckBox idk;
+        private System.Windows.Forms.CheckBox chkUseFullBoardNameForTitle;
         private System.Windows.Forms.CheckBox chkEnableUpdates;
         private System.Windows.Forms.CheckBox chkShowExitWarning;
         private System.Windows.Forms.CheckBox chkMinimizeToTray;

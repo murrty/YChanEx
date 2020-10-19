@@ -8,6 +8,7 @@ namespace YChanEx {
     static class Program {
         static frmMain MainForm;                            // Main form instance
         private static volatile bool IsSettingsOpen = false;// Detects if the settings form is open
+        public static volatile bool IsDebug = false;
 
         public static frmMain GetMainFormInstance() {
             return MainForm;
@@ -22,10 +23,17 @@ namespace YChanEx {
         /// </summary>
         [STAThread]
         static void Main() {
+            EnableDebug();
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             MainForm = new frmMain();
             Application.Run(MainForm);
+        }
+
+        [System.Diagnostics.Conditional("DEBUG")]
+        static void EnableDebug() {
+            IsDebug = true;
         }
     }
 }

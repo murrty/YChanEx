@@ -141,6 +141,7 @@
             this.lvImages.TabIndex = 0;
             this.lvImages.UseCompatibleStateImageBehavior = false;
             this.lvImages.View = System.Windows.Forms.View.Details;
+            this.lvImages.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.lvImages_MouseDoubleClick);
             // 
             // clID
             // 
@@ -164,12 +165,14 @@
             // 
             // btnForce404
             // 
+            this.btnForce404.Enabled = false;
             this.btnForce404.Location = new System.Drawing.Point(308, 256);
             this.btnForce404.Name = "btnForce404";
             this.btnForce404.Size = new System.Drawing.Size(91, 24);
             this.btnForce404.TabIndex = 8;
             this.btnForce404.Text = "404";
             this.btnForce404.UseVisualStyleBackColor = true;
+            this.btnForce404.Visible = false;
             this.btnForce404.Click += new System.EventHandler(this.btnForce404_Click);
             // 
             // frmDownloader

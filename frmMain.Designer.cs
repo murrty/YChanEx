@@ -75,6 +75,7 @@
             // 
             this.mAbout.Index = 1;
             this.mAbout.Text = "About";
+            this.mAbout.Click += new System.EventHandler(this.mAbout_Click);
             // 
             // niTray
             // 

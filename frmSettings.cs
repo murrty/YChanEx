@@ -6,6 +6,7 @@ namespace YChanEx {
         public frmSettings() {
             InitializeComponent();
             this.Icon = Properties.Resources.YChanEx;
+            Program.SettingsOpen = true;
             LoadSettings();
         }
 
@@ -27,6 +28,7 @@ namespace YChanEx {
             chkMinimizeToTray.Checked = General.Default.MinimizeToTray;
             chkShowExitWarning.Checked = General.Default.ShowExitWarning;
             chkEnableUpdates.Checked = General.Default.EnableUpdates;
+            chkUseFullBoardNameForTitle.Checked = General.Default.UseFullBoardNameForTitle;
 
             txtUserAgent.Text = Advanced.Default.UserAgent;
             chkDisableScannerWhenOpeningSettings.Checked = Advanced.Default.DisableScanWhenOpeningSettings;
@@ -51,6 +53,7 @@ namespace YChanEx {
             General.Default.MinimizeToTray = chkMinimizeToTray.Checked;
             General.Default.ShowExitWarning = chkShowExitWarning.Checked;
             General.Default.EnableUpdates = chkEnableUpdates.Checked;
+            General.Default.UseFullBoardNameForTitle = chkUseFullBoardNameForTitle.Checked;
 
             if (!string.IsNullOrEmpty(txtUserAgent.Text)) {
                 Advanced.Default.UserAgent = txtUserAgent.Text;

@@ -51,6 +51,9 @@ namespace YChanEx {
         }
         private void btnStopDownload_Click(object sender, EventArgs e) {
             StopDownload();
+            if (Program.IsDebug) {
+                btnForce404.Enabled = false;
+            }
         }
         private void btnClose_Click(object sender, EventArgs e) {
             this.Hide();
@@ -85,22 +88,55 @@ namespace YChanEx {
                 CountdownToNextScan--;
             }
         }
+        private void lvImages_MouseDoubleClick(object sender, MouseEventArgs e) {
+            for (int i = 0; i < lvImages.SelectedItems.Count; i++) {
+                string FileName = lvImages.SelectedItems[i].Text + "." + lvImages.SelectedItems[i].SubItems[1].Text;
+                if (File.Exists(DownloadPath + "\\" + FileName)) {
+                    System.Diagnostics.Process.Start(DownloadPath + "\\" + FileName);
+                }
+            }
+        }
+        private void btnForce404_Click(object sender, EventArgs e) {
+            if (Program.IsDebug) {
+                ThreadHas404 = true;
+                btnForce404.Enabled = false;
+                AfterDownload();
+            }
+        }
 
         public void StartDownload() {
             ChanType = Chans.GetChanType(ThreadURL);
             switch (ChanType) {
                 case (int)ChanTypes.Types.fourChan:
                     if (!ThreadHasScanned) {
-                        ThreadBoard = ThreadURL.Split('/')[ThreadURL.Split('/').Length - 3];
-                        ThreadID = ThreadURL.Split('/')[ThreadURL.Split('/').Length - 1];
-                        this.Text = "4chan thread - " + ThreadBoard + " - " + ThreadID;
+                        string[] URLSplit = ThreadURL.Split('/');
+                        ThreadBoard = URLSplit[URLSplit.Length - 3];
+                        ThreadID = URLSplit[URLSplit.Length - 1];
+                        if (General.Default.UseFullBoardNameForTitle) {
+                            this.Text = "4chan thread - " + BoardTitles.FourChan(ThreadBoard) + " - " + ThreadID;
+                        }
+                        else {
+                            this.Text = "4chan thread - " + ThreadBoard + " - " + ThreadID;
+                        }
                         DownloadPath = Downloads.Default.DownloadPath + "\\4chan\\" + ThreadBoard + "\\" + ThreadID;
-
                     }
                     SetFourChanThread();
-                    DownloadThread.Start();
                     break;
                 case (int)ChanTypes.Types.fourTwentyChan:
+                    if (!ThreadHasScanned) {
+                        lvImages.Columns.RemoveAt(3);
+                        string[] URLSplit = ThreadURL.Split('/');
+                        ThreadBoard = URLSplit[URLSplit.Length - 4];
+                        ThreadID = URLSplit[URLSplit.Length - 2];
+                        if (General.Default.UseFullBoardNameForTitle) {
+                            this.Text = "420chan thread - " + BoardTitles.FourTwentyChan(ThreadBoard) + " - " + ThreadID;
+                        }
+                        else {
+                            this.Text = "420chan thread - " + ThreadBoard + " - " + ThreadID;
+                        }
+                        DownloadPath = Downloads.Default.DownloadPath + "\\420chan\\" + ThreadBoard + "\\" + ThreadID;
+                    }
+                    SetFourTwentyChanThread();
                     break;
                 case (int)ChanTypes.Types.sevenChan:
                     break;
@@ -110,18 +146,25 @@ namespace YChanEx {
                     break;
                 case (int)ChanTypes.Types.uEighteenChan:
                     if (!ThreadHasScanned) {
-                        ThreadBoard = ThreadURL.Split('/')[ThreadURL.Split('/').Length - 3];
-                        ThreadID = ThreadURL.Split('/')[ThreadURL.Split('/').Length - 1];
-                        this.Text = "u18chan thread - " + ThreadBoard + " - " + ThreadID;
+                        string[] URLSplit = ThreadURL.Split('/');
+                        ThreadBoard = URLSplit[URLSplit.Length - 3];
+                        ThreadID = URLSplit[URLSplit.Length - 1];
+                        if (General.Default.UseFullBoardNameForTitle) {
+                            this.Text = "u18chan thread - " + BoardTitles.uEighteenChan(ThreadBoard) + " - " + ThreadID;
+                        }
+                        else {
+                            this.Text = "u18chan thread - " + ThreadBoard + " - " + ThreadID;
+                        }
                         DownloadPath = Downloads.Default.DownloadPath + "\\u18chan\\" + ThreadBoard + "\\" + ThreadID;
-                        SetUEighteenChanThread();
                     }
-                    BeginUEighteenChanDownlad();
+                    SetUEighteenChanThread();
                     break;
                 default:
+                    MainFormInstance.SetItemStatus(ThreadURL, "Invalid");
                     return;
             }
 
+            DownloadThread.Start();
             MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Downloading);
         }
         public void StopDownload() {
@@ -153,6 +196,9 @@ namespace YChanEx {
                     lbScanTimer.Text = "soon (tm)";
                     MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Waiting);
                     CountdownToNextScan = Downloads.Default.ScannerDelay;
+                    if (Program.IsDebug) {
+                        CountdownToNextScan = 10;
+                    }
                     tmrScan.Start();
                     if (ChanType == (int)ChanTypes.Types.uEighteenChan) {
                         GC.Collect();
@@ -161,25 +207,22 @@ namespace YChanEx {
             }
         }
 
-        #region 4chan
+    #region 4chan
         private void SetFourChanThread() {
             DownloadThread = new Thread(() => {
-                string FileBaseURL = "https://i.4cdn.org/" + ThreadURL.Split('/')[3] + "/";
+                string FileBaseURL = "https://i.4cdn.org/" + ThreadBoard + "/";
                 string ThreadJSON = null;
                 string ThreadHTML = null;
                 string CurrentURL = null;
 
                 try {
-                    ThreadBoard = ThreadURL.Split('/')[ThreadURL.Split('/').Length - 3];
-                    ThreadID = ThreadURL.Split('/')[ThreadURL.Split('/').Length - 1];
-
                     if (ThreadBoard == null || ThreadID == null) {
                         ThreadHas404 = true;
                         AfterDownload();
                         return;
                     }
 
-                    CurrentURL = "https://a.4cdn.org/" + ThreadBoard + "/thread/" + ThreadID + ".json";
+                    CurrentURL = string.Format(ChanApiLinks.FourChan, ThreadBoard, ThreadID);
                     HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(CurrentURL);
                     Request.UserAgent = Advanced.Default.UserAgent;
                     Request.IfModifiedSince = LastModified;
@@ -351,6 +394,7 @@ namespace YChanEx {
                     AfterDownload();
                 }
             });
+            DownloadThread.Name = "4chan thread /" + ThreadBoard + "/" + ThreadID;
         }
         private static bool GenerateFourChanMD5(string InputFile, string InputFileHash) {
             // Attempts to convert existing file to 4chan's hash type
@@ -384,174 +428,142 @@ namespace YChanEx {
                 return false;
             }
         }
-        private static string GetFourChanBoardTopic(string board) {
-            // Japanese Culture
-            if (board == "/a/")
-                return "Anime & Manga";
-            else if (board == "/c/")
-                return "Anime/Cute";
-            else if (board == "/w/")
-                return "Anime/Wallpapers";
-            else if (board == "/m/")
-                return "Mecha";
-            else if (board == "/cgl/")
-                return "Cosplay & EGL";
-            else if (board == "/cm/")
-                return "Cute/Male";
-            else if (board == "/f/")
-                return "Flash";
-            else if (board == "/n/")
-                return "Transportation";
-            else if (board == "/jp/")
-                return "Otaku Culture";
+    #endregion
 
-            // Video Games
-            else if (board == "/v/")
-                return "Video Games";
-            else if (board == "/vg/")
-                return "Video Game Generals";
-            else if (board == "/vp/")
-                return "Pokémon";
-            else if (board == "/vr/")
-                return "Retro Games";
+    #region 420chan
+        private void SetFourTwentyChanThread() {
+            DownloadThread = new Thread(() => {
+                string FileBaseURL = "https://boards.420chan.org/" + ThreadBoard + "/src/";
+                string ThumbnailBaseUrl = "https://boards.420chan.org/" + ThreadBoard + "/thumb/";
+                string ThreadJSON = null;
+                string ThreadHTML = null;
+                string CurrentURL = null;
 
-            // Interests
-            else if (board == "/co/")
-                return "Comics & Cartoons";
-            else if (board == "/g/")
-                return "Technology";
-            else if (board == "/tv/")
-                return "Television & Film";
-            else if (board == "/k/")
-                return "Weapons";
-            else if (board == "/o/")
-                return "Auto";
-            else if (board == "/an/")
-                return "Animals & Nature";
-            else if (board == "/tg/")
-                return "Traditional Games";
-            else if (board == "/sp/")
-                return "Sports";
-            else if (board == "/asp/")
-                return "Alternative Sports";
-            else if (board == "/sci/")
-                return "Science & Math";
-            else if (board == "/his/")
-                return "History & Humanities";
-            else if (board == "/int/")
-                return "International";
-            else if (board == "/out/")
-                return "Outdoors";
-            else if (board == "/toy/")
-                return "Toys";
+                try {
+                    if (ThreadBoard == null || ThreadID == null) {
+                        ThreadHas404 = true;
+                        AfterDownload();
+                        return;
+                    }
 
-            // Creative
-            else if (board == "/i/")
-                return "Oekaki";
-            else if (board == "/po/")
-                return "Papercraft & Origami";
-            else if (board == "/p/")
-                return "Photography";
-            else if (board == "/ck/")
-                return "Food & Cooking";
-            else if (board == "/ic/")
-                return "Artwork/Critique";
-            else if (board == "/wg/")
-                return "Wallpapers/General";
-            else if (board == "/lit/")
-                return "Literature";
-            else if (board == "/mu/")
-                return "Music";
-            else if (board == "/fa/")
-                return "Fashion";
-            else if (board == "/3/")
-                return "3DCG";
-            else if (board == "/gd/")
-                return "Graphic Design";
-            else if (board == "/diy/")
-                return "Do It Yourself";
-            else if (board == "/wsg/")
-                return "Worksafe GIF";
-            else if (board == "/qst/")
-                return "Quests";
+                    CurrentURL = string.Format(ChanApiLinks.FourTwentyChan, ThreadBoard, ThreadID);
+                    HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(CurrentURL);
+                    Request.UserAgent = Advanced.Default.UserAgent;
+                    //Request.IfModifiedSince = LastModified;
+                    Request.Method = "GET";
+                    var Response = (HttpWebResponse)Request.GetResponse();
+                    var ResponseStream = Response.GetResponseStream();
+                    using (StreamReader ResponseReader = new StreamReader(ResponseStream)) {
+                        string RawJSON = ResponseReader.ReadToEnd();
+                        byte[] JSONBytes = Encoding.ASCII.GetBytes(RawJSON);
+                        using (var ByteMemory = new MemoryStream(JSONBytes)) {
+                            var Quotas = new XmlDictionaryReaderQuotas();
+                            var JSONReader = JsonReaderWriterFactory.CreateJsonReader(ByteMemory, Quotas);
+                            var xml = XDocument.Load(JSONReader);
+                            ByteMemory.Flush();
+                            ByteMemory.Close();
+                            ThreadJSON = xml.ToString();
+                        }
+                    }
+                    //LastModified = Response.LastModified;
+                    Response.Dispose();
+                    ResponseStream.Dispose();
 
-            // Other
-            else if (board == "/biz/")
-                return "Business & Finance";
-            else if (board == "/trv/")
-                return "Travel";
-            else if (board == "/fit/")
-                return "Fitness";
-            else if (board == "/x/")
-                return "Paranormal";
-            else if (board == "/adv/")
-                return "Advice";
-            else if (board == "/lgbt/")
-                return "Lesbian, Gay, Bisexual, & Transgender";
-            else if (board == "/mlp/")
-                return "My Little Pony"; // disgusting.
-            else if (board == "/news/")
-                return "Current News";
-            else if (board == "/wsr/")
-                return "Worksafe Requests";
-            else if (board == "/vip/")
-                return "Very Important Posts";
+                    CurrentURL = this.ThreadURL;
+                    if (YChanEx.Downloads.Default.SaveHTML) {
+                        ThreadHTML = Chans.GetHTML(CurrentURL);
+                        ThreadHTML.Replace("href=\"/" + ThreadBoard + "/src/", "");
+                        ThreadHTML.Replace("href=\"/" + ThreadBoard, "");
+                        ThreadHTML.Replace("href=\"/static/", "href=\"https://420chan.org/static/");
+                    }
 
-            // Misc
-            else if (board == "/b/")
-                return "Random";
-            else if (board == "/r9k/")
-                return "ROBOT9001";
-            else if (board == "/pol/")
-                return "Politically Incorrect";
-            else if (board == "/bant/")
-                return "International/Random";
-            else if (board == "/soc/")
-                return "Cams & Meetups";
-            else if (board == "/s4s/")
-                return "Sh*t 4chan Says";
+                    if (string.IsNullOrEmpty(ThreadJSON) || ThreadJSON == Chans.EmptyXML) {
+                        return;
+                    }
 
-            // Adult
-            else if (board == "/s/")
-                return "Sexy Beautiful Women";
-            else if (board == "/hc/")
-                return "Hardcore";
-            else if (board == "/hm/")
-                return "Handsome Men";
-            else if (board == "/h/")
-                return "Hentai";
-            else if (board == "/e/")
-                return "Ecchi";
-            else if (board == "/u/")
-                return "Yuri";
-            else if (board == "/d/")
-                return "Hentai/Alternative";
-            else if (board == "/y/")
-                return "Yaoi";
-            else if (board == "/t/")
-                return "Torrents";
-            else if (board == "/hr/")
-                return "High Resolution";
-            else if (board == "/gif/")
-                return "Adult GIF";
-            else if (board == "/aco/")
-                return "Adult Cartoons";
-            else if (board == "/r/")
-                return "Adult Requests";
+                    XmlDocument xmlDoc = new XmlDocument();
+                    xmlDoc.LoadXml(ThreadJSON);
+                    XmlNodeList xmlFileName = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/filename");
+                    XmlNodeList xmlExt = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/ext");
 
-            // Unlisted
-            else if (board == "/trash/")
-                return "Off-Topic";
-            else if (board == "/qa/")
-                return "Question & Answer";
+                    for (int i = ThreadImageCount; i < xmlFileName.Count; i++, ThreadImageCount++) {
+                        if (xmlFileName[i] != null) {
+                            FileIDs.Add(xmlFileName[i].InnerText);
+                            FileExtensions.Add(xmlExt[i].InnerText);
+                            ImageFiles.Add(FileBaseURL + xmlFileName[i].InnerText + xmlExt[i].InnerText);
+                            ThumbnailFiles.Add(ThumbnailBaseUrl + xmlFileName[i].InnerText + "s.jpg");
 
+                            ListViewItem lvi = new ListViewItem();
+                            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                            lvi.Name = xmlFileName[i].InnerText;
+                            lvi.Text = xmlFileName[i].InnerText;
+                            lvi.SubItems[1].Text = xmlExt[i].InnerText.Trim('.');
+                            lvi.SubItems[2].Text = xmlFileName[i].InnerText;
+                            this.BeginInvoke(new MethodInvoker(() => {
+                                lvImages.Items.Add(lvi);
+                            }));
+                        }
+                    }
 
-            else
-                return "";
+                    this.BeginInvoke(new MethodInvoker(() => {
+                        lbTotal.Text = "number of files: " + ThreadImageCount.ToString();
+                        lbLastModified.Text = "last modified: " + LastModified.ToString();
+                        lbScanTimer.Text = "Downloading files";
+                    }));
+
+                    for (int i = 0; i < ImageFiles.Count; i++) {
+                        if (ImageFiles[i] != null) {
+                            string FileName = FileIDs[i] + FileExtensions[i];
+                            CurrentURL = ImageFiles[i];
+
+                            Chans.DownloadFile(CurrentURL, DownloadPath, FileName);
+
+                            if (YChanEx.Downloads.Default.SaveThumbnails) {
+                                CurrentURL = ThumbnailFiles[i];
+                                Chans.DownloadFile(CurrentURL, DownloadPath + "\\thumb", FileIDs[i] + "s.jpg");
+                            }
+                        }
+                    }
+
+                    if (YChanEx.Downloads.Default.SaveHTML) {
+                        File.WriteAllText(DownloadPath + "\\Thread.html", ThreadHTML);
+                    }
+                    ThreadHasScanned = true;
+                }
+                catch (ThreadAbortException) {
+                    IsAbortingDownload = true;
+                }
+                catch (WebException WebEx) {
+                    var Response = (HttpWebResponse)WebEx.Response;
+                    if (Response.StatusCode == HttpStatusCode.NotModified) {
+                        this.BeginInvoke(new MethodInvoker(() => {
+                            lbNotModified.Visible = true;
+                        }));
+                        AfterDownload();
+                    }
+                    else {
+                        if (((int)WebEx.Status) == 7) {
+                            ThreadHas404 = true;
+                        }
+                        else {
+                            MessageBox.Show(WebEx.ToString());
+                        }
+                    }
+                }
+                catch (Exception ex) {
+                    MessageBox.Show(ex.ToString());
+                }
+                finally {
+                    AfterDownload();
+                }
+            });
+            DownloadThread.Name = "420chan thread /" + ThreadBoard + "/" + ThreadID;
         }
-        #endregion
+        
+    #endregion
 
-        #region u18chan
+    #region u18chan
         private void SetUEighteenChanThread() {
             DownloadThread = new Thread(() => {
                 string ThreadHTML = null;
@@ -691,73 +703,9 @@ retryThread:
                     MessageBox.Show(ex.ToString());
                 }
             });
+            DownloadThread.Name = "u18chan thread /" + ThreadBoard + "/" + ThreadID;
         }
-        private void BeginUEighteenChanDownlad() {
-            DownloadThread.Start();
-        }
-        public static string GetU18ChanTopic(string board) {
-            if (board == "/fur/")
-                return "Furries";
-            else if (board == "/c/")
-                return "Furry Comics";
-            else if (board == "/gfur/")
-                return "Gay Furries";
-            else if (board == "/gc/")
-                return "Gay Furry Comics";
-            else if (board == "/i/")
-                return "Intersex";
-            else if (board == "/rs/")
-                return "Request & Source";
-            else if (board == "/a/")
-                return "Animated";
-            else if (board == "/cute/")
-                return "Cute";
-
-            else if (board == "/pb/")
-                return "Post Your Naked Body";
-            else if (board == "/p/")
-                return "Ponies"; // seriously, fuck this mlp shit
-            else if (board == "/f/")
-                return "Feral";
-            else if (board == "/cub/")
-                return "Cub";
-            else if (board == "/gore/")
-                return "Gore";
-
-            else if (board == "/d/")
-                return "Discussion";
-            else if (board == "/mu/")
-                return "Music";
-            else if (board == "/w/")
-                return "Wallpapers";
-            else if (board == "/v/")
-                return "Video Games";
-            else if (board == "/lo/")
-                return "Lounge";
-            else if (board == "/tech/")
-                return "Technology";
-            else if (board == "/lit/")
-                return "Literature";
-
-            else
-                return string.Empty;
-        }
-        #endregion
-
-        private void btnForce404_Click(object sender, EventArgs e) {
-            if (Program.IsDebug) {
-                ThreadHas404 = true;
-                btnForce404.Enabled = false;
-                AfterDownload();
-            }
-        }
-
-        private void lvImages_MouseDoubleClick(object sender, MouseEventArgs e) {
-            for (int i = 0; i < lvImages.SelectedItems.Count; i++) {
-                string FileName = lvImages.SelectedItems[i].Text + "." + lvImages.SelectedItems[i].SubItems[1].Text;
-                System.Diagnostics.Process.Start(DownloadPath + "\\" + FileName);
-            }
-        }
+    #endregion
 
     }
 }
