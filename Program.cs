@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -8,7 +9,10 @@ namespace YChanEx {
     static class Program {
         static frmMain MainForm;                            // Main form instance
         private static volatile bool IsSettingsOpen = false;// Detects if the settings form is open
-        public static volatile bool IsDebug = false;
+        public static volatile bool IsDebug = false;        // Enables debug methods and logic
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern IntPtr LoadCursor(IntPtr hInstance, int lpCursorName);
+        public static readonly Cursor SystemHandCursor = new Cursor(LoadCursor(IntPtr.Zero, 32649));
 
         public static frmMain GetMainFormInstance() {
             return MainForm;

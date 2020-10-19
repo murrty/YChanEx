@@ -18,6 +18,7 @@ class Chans {
     public static string GetJSON(string InputURL, DateTime ModifiedSince = default(DateTime)) {
         try {
             string JSONOutput = null;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(InputURL);
             Request.UserAgent = YChanEx.Advanced.Default.UserAgent;
             Request.Method = "GET";
@@ -591,6 +592,17 @@ class ChanRegex {
             }
         }
     }
+    public static string sevenChanFile {
+        get {
+            if (!string.IsNullOrEmpty(RegexStrings.Default.SevenChanFiles)) {
+                return RegexStrings.Default.SevenChanFiles;
+            }
+            else {
+                //return "(?<=<a href=\").*?(?=\" id=\"expandimg_)";
+                return "http(?:s)?:\\/\\/(?:www\\.)?7chan.org\\/([a-zA-Z0-9]+)\\/src\\/([0-9]+)\\.(?:jpg|jpeg|gif|png|webm|mp4)?";
+            }
+        }
+    }
     public static string eightChan {
         get {
             if (!string.IsNullOrEmpty(RegexStrings.Default.EightChanURL)) {
@@ -628,6 +640,16 @@ class ChanRegex {
             }
             else {
                 return "u18chan.com/(.*?)[a-zA-Z0-9]*?/topic/[0-9]*";
+            }
+        }
+    }
+    public static string uEighteenChanFile {
+        get {
+            if (!string.IsNullOrEmpty(RegexStrings.Default.u18chanFiles)) {
+                return RegexStrings.Default.u18chanFiles;
+            }
+            else {
+                return "(?<=File: <a href=\").*?(?=\" target=\"_blank\">)";
             }
         }
     }

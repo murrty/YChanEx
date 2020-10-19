@@ -62,6 +62,18 @@ namespace YChanEx {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string SevenChanFiles {
+            get {
+                return ((string)(this["SevenChanFiles"]));
+            }
+            set {
+                this["SevenChanFiles"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string EightChanURL {
             get {
                 return ((string)(this["EightChanURL"]));
@@ -92,6 +104,18 @@ namespace YChanEx {
             }
             set {
                 this["fchanURL"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string fchanFiles {
+            get {
+                return ((string)(this["fchanFiles"]));
+            }
+            set {
+                this["fchanFiles"] = value;
             }
         }
         
