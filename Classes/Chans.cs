@@ -141,37 +141,37 @@ class Chans {
     }
 
     public static bool SupportedChan(string URL) {
-        Regex Matcher = new Regex(ChanRegex.fourChan);
+        Regex Matcher = new Regex(ChanRegex.fourChanUrl);
         if (Matcher.IsMatch(URL)) {
             return true;
         }
 
-        Matcher = new Regex(ChanRegex.fourTwentyChan);
+        Matcher = new Regex(ChanRegex.fourTwentyChanUrl);
         if (Matcher.IsMatch(URL)) {
             return true;
         }
 
-        Matcher = new Regex(ChanRegex.sevenChan);
+        Matcher = new Regex(ChanRegex.sevenChanUrl);
         if (Matcher.IsMatch(URL)) {
             return true;
         }
 
-        Matcher = new Regex(ChanRegex.eightChan);
+        Matcher = new Regex(ChanRegex.eightChanUrl);
         if (Matcher.IsMatch(URL)) {
             return true;
         }
 
-        Matcher = new Regex(ChanRegex.eightKun);
+        Matcher = new Regex(ChanRegex.eightKunUrl);
         if (Matcher.IsMatch(URL)) {
             return true;
         }
 
-        Matcher = new Regex(ChanRegex.fchan);
+        Matcher = new Regex(ChanRegex.fchanUrl);
         if (Matcher.IsMatch(URL)) {
             return true;
         }
 
-        Matcher = new Regex(ChanRegex.uEighteenChan);
+        Matcher = new Regex(ChanRegex.uEighteenChanUrl);
         if (Matcher.IsMatch(URL)) {
             return true;
         }
@@ -180,37 +180,37 @@ class Chans {
     }
 
     public static int GetChanType(string URL) {
-        Regex Matcher = new Regex(ChanRegex.fourChan);
+        Regex Matcher = new Regex(ChanRegex.fourChanUrl);
         if (Matcher.IsMatch(URL)) {
             return ChanTypes.fourChan;
         }
 
-        Matcher = new Regex(ChanRegex.fourTwentyChan);
+        Matcher = new Regex(ChanRegex.fourTwentyChanUrl);
         if (Matcher.IsMatch(URL)) {
             return ChanTypes.fourTwentyChan;
         }
 
-        Matcher = new Regex(ChanRegex.sevenChan);
+        Matcher = new Regex(ChanRegex.sevenChanUrl);
         if (Matcher.IsMatch(URL)) {
             return ChanTypes.sevenChan;
         }
 
-        Matcher = new Regex(ChanRegex.eightChan);
+        Matcher = new Regex(ChanRegex.eightChanUrl);
         if (Matcher.IsMatch(URL)) {
             return ChanTypes.eightChan;
         }
 
-        Matcher = new Regex(ChanRegex.eightKun);
+        Matcher = new Regex(ChanRegex.eightKunUrl);
         if (Matcher.IsMatch(URL)) {
             return ChanTypes.eightKun;
         }
 
-        Matcher = new Regex(ChanRegex.fchan);
+        Matcher = new Regex(ChanRegex.fchanUrl);
         if (Matcher.IsMatch(URL)) {
             return ChanTypes.fchan;
         }
 
-        Matcher = new Regex(ChanRegex.uEighteenChan);
+        Matcher = new Regex(ChanRegex.uEighteenChanUrl);
         if (Matcher.IsMatch(URL)) {
             return ChanTypes.uEighteenChan;
         }
@@ -567,12 +567,12 @@ class BoardTitles {
 /// The Regex strings for detecting the chans.
 /// </summary>
 class ChanRegex {
-    public static string fourChan {
+    public static string fourChanUrl {
         get {
             return "boards.4chan(nel)?.org/[a-zA-Z0-9]*?/thread[0-9]*";
         }
     }
-    public static string fourTwentyChan {
+    public static string fourTwentyChanUrl {
         get {
             if (!string.IsNullOrEmpty(RegexStrings.Default.FourChanURL)) {
                 return RegexStrings.Default.FourChanURL;
@@ -582,7 +582,7 @@ class ChanRegex {
             }
         }
     }
-    public static string sevenChan {
+    public static string sevenChanUrl {
         get {
             if (!string.IsNullOrEmpty(RegexStrings.Default.SevenChanURL)) {
                 return RegexStrings.Default.SevenChanURL;
@@ -603,7 +603,7 @@ class ChanRegex {
             }
         }
     }
-    public static string eightChan {
+    public static string eightChanUrl {
         get {
             if (!string.IsNullOrEmpty(RegexStrings.Default.EightChanURL)) {
                 return RegexStrings.Default.EightChanURL;
@@ -613,7 +613,7 @@ class ChanRegex {
             }
         }
     }
-    public static string eightKun {
+    public static string eightKunUrl {
         get {
             if (!string.IsNullOrEmpty(RegexStrings.Default.EightKunURL)) {
                 return RegexStrings.Default.EightKunURL;
@@ -623,7 +623,7 @@ class ChanRegex {
             }
         }
     }
-    public static string fchan {
+    public static string fchanUrl {
         get {
             if (!string.IsNullOrEmpty(RegexStrings.Default.fchanURL)) {
                 return RegexStrings.Default.fchanURL;
@@ -633,7 +633,17 @@ class ChanRegex {
             }
         }
     }
-    public static string uEighteenChan {
+    public static string fchanFileUrl {
+        get {
+            if (!string.IsNullOrEmpty(RegexStrings.Default.fchanFiles)) {
+                return RegexStrings.Default.fchanFiles;
+            }
+            else {
+                return "(?<=<a target=\"_blank\" href=\").*?(?=\" rel=\"nofollow\">)";
+            }
+        }
+    }
+    public static string uEighteenChanUrl {
         get {
             if (!string.IsNullOrEmpty(RegexStrings.Default.u18chanUrl)) {
                 return RegexStrings.Default.u18chanUrl;

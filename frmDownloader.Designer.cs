@@ -31,7 +31,6 @@
             this.lbTotal = new System.Windows.Forms.Label();
             this.lbTimeToRescan = new System.Windows.Forms.Label();
             this.btnClose = new System.Windows.Forms.Button();
-            this.btnStopDownload = new System.Windows.Forms.Button();
             this.lbScanTimer = new System.Windows.Forms.Label();
             this.lbLastModified = new System.Windows.Forms.Label();
             this.ttDownloader = new System.Windows.Forms.ToolTip(this.components);
@@ -42,6 +41,7 @@
             this.clFileName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clHash = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.btnForce404 = new System.Windows.Forms.Button();
+            this.btnOpenFolder = new YChanEx.SplitButton();
             this.SuspendLayout();
             // 
             // tmrScan
@@ -80,16 +80,6 @@
             this.btnClose.Text = "Close";
             this.btnClose.UseVisualStyleBackColor = true;
             this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
-            // 
-            // btnStopDownload
-            // 
-            this.btnStopDownload.Location = new System.Drawing.Point(308, 285);
-            this.btnStopDownload.Name = "btnStopDownload";
-            this.btnStopDownload.Size = new System.Drawing.Size(91, 23);
-            this.btnStopDownload.TabIndex = 4;
-            this.btnStopDownload.Text = "Stop download";
-            this.btnStopDownload.UseVisualStyleBackColor = true;
-            this.btnStopDownload.Click += new System.EventHandler(this.btnStopDownload_Click);
             // 
             // lbScanTimer
             // 
@@ -166,24 +156,35 @@
             // btnForce404
             // 
             this.btnForce404.Enabled = false;
-            this.btnForce404.Location = new System.Drawing.Point(308, 256);
+            this.btnForce404.Location = new System.Drawing.Point(300, 256);
             this.btnForce404.Name = "btnForce404";
-            this.btnForce404.Size = new System.Drawing.Size(91, 24);
+            this.btnForce404.Size = new System.Drawing.Size(99, 24);
             this.btnForce404.TabIndex = 8;
             this.btnForce404.Text = "404";
             this.btnForce404.UseVisualStyleBackColor = true;
             this.btnForce404.Visible = false;
             this.btnForce404.Click += new System.EventHandler(this.btnForce404_Click);
             // 
+            // btnOpenFolder
+            // 
+            this.btnOpenFolder.FlatStyle = System.Windows.Forms.FlatStyle.System;
+            this.btnOpenFolder.Location = new System.Drawing.Point(300, 285);
+            this.btnOpenFolder.Name = "btnOpenFolder";
+            this.btnOpenFolder.Size = new System.Drawing.Size(99, 23);
+            this.btnOpenFolder.TabIndex = 9;
+            this.btnOpenFolder.Text = "Open folder";
+            this.btnOpenFolder.UseVisualStyleBackColor = true;
+            this.btnOpenFolder.Click += new System.EventHandler(this.btnOpenFolder_Click);
+            // 
             // frmDownloader
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(492, 320);
+            this.Controls.Add(this.btnOpenFolder);
             this.Controls.Add(this.btnForce404);
             this.Controls.Add(this.lbLastModified);
             this.Controls.Add(this.lbScanTimer);
-            this.Controls.Add(this.btnStopDownload);
             this.Controls.Add(this.btnClose);
             this.Controls.Add(this.lbTimeToRescan);
             this.Controls.Add(this.lbTotal);
@@ -209,12 +210,12 @@
         private System.Windows.Forms.Label lbTotal;
         private System.Windows.Forms.Label lbTimeToRescan;
         private System.Windows.Forms.Button btnClose;
-        private System.Windows.Forms.Button btnStopDownload;
         private System.Windows.Forms.Label lbScanTimer;
         private System.Windows.Forms.Label lbLastModified;
         private System.Windows.Forms.ToolTip ttDownloader;
         private System.Windows.Forms.Label lbNotModified;
         private System.Windows.Forms.Button btnForce404;
+        private SplitButton btnOpenFolder;
 
     }
 }
