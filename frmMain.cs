@@ -15,11 +15,36 @@ namespace YChanEx {
             this.Icon = Properties.Resources.YChanEx;
             lvThreads.ContextMenu = cmItems;
         }
-        public void Announce404(string ThreadID, string ThreadBoard, string URL) {
+        public void Announce404(string ThreadID, string ThreadBoard, string URL, int Chan) {
             int ThreadIndex = ThreadURLS.IndexOf(URL);
             ThreadIsGone[ThreadIndex] = true;
-            niTray.BalloonTipText = ThreadID + " on board " + ThreadBoard + " has 404'd";
-            niTray.BalloonTipTitle = "404";
+            niTray.BalloonTipText = ThreadID + " on /" + ThreadBoard + "/ has 404'd";
+            switch (Chan) {
+                case (int)ChanTypes.Types.fourChan:
+                    niTray.BalloonTipTitle = "4chan";
+                    break;
+                case (int)ChanTypes.Types.fourTwentyChan:
+                    niTray.BalloonTipTitle = "420chan";
+                    break;
+                case (int)ChanTypes.Types.sevenChan:
+                    niTray.BalloonTipTitle = "7chan";
+                    break;
+                case (int)ChanTypes.Types.eightChan:
+                    niTray.BalloonTipTitle = "8chan";
+                    break;
+                case (int)ChanTypes.Types.eightKun:
+                    niTray.BalloonTipTitle = "8kun";
+                    break;
+                case (int)ChanTypes.Types.fchan:
+                    niTray.BalloonTipTitle = "fchan";
+                    break;
+                case (int)ChanTypes.Types.uEighteenChan:
+                    niTray.BalloonTipTitle = "u18chan";
+                    break;
+                default:
+                    niTray.BalloonTipTitle = "Thread 404";
+                    break;
+            }
             if (changeTray.Enabled) {
                 changeTray.Stop();
             }
