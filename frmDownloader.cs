@@ -17,7 +17,7 @@ namespace YChanEx {
 
         public string DownloadPath = null; // all
         public string ThreadURL = null; // all
-        public ChanTypes.Types ChanType = ChanTypes.Types.None; // all
+        public int ChanType = -1; // all
         public DateTime LastModified = default(DateTime); // if supported
 
         private string ThreadBoard = null; // all
@@ -40,6 +40,10 @@ namespace YChanEx {
         public frmDownloader() {
             InitializeComponent();
             this.Icon = Properties.Resources.YChanEx;
+            if (Program.IsDebug) {
+                btnForce404.Enabled = true;
+                btnForce404.Visible = true;
+            }
         }
         private void frmDownloader_FormClosing(object sender, FormClosingEventArgs e) {
             e.Cancel = true;
@@ -53,6 +57,7 @@ namespace YChanEx {
         }
         private void tmrScan_Tick(object sender, EventArgs e) {
             if (Program.SettingsOpen) {
+                Thread.Sleep(500);
                 return;
             }
             if (ThreadHas404) {
@@ -95,15 +100,15 @@ namespace YChanEx {
                     SetFourChanThread();
                     DownloadThread.Start();
                     break;
-                case ChanTypes.Types.fourTwentyChan:
+                case (int)ChanTypes.Types.fourTwentyChan:
                     break;
-                case ChanTypes.Types.sevenChan:
+                case (int)ChanTypes.Types.sevenChan:
                     break;
-                case ChanTypes.Types.eightChan:
+                case (int)ChanTypes.Types.eightChan:
                     break;
-                case ChanTypes.Types.fchan:
+                case (int)ChanTypes.Types.fchan:
                     break;
-                case ChanTypes.Types.uEighteenChan:
+                case (int)ChanTypes.Types.uEighteenChan:
                     if (!ThreadHasScanned) {
                         ThreadBoard = ThreadURL.Split('/')[ThreadURL.Split('/').Length - 3];
                         ThreadID = ThreadURL.Split('/')[ThreadURL.Split('/').Length - 1];
@@ -149,7 +154,7 @@ namespace YChanEx {
                     MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Waiting);
                     CountdownToNextScan = Downloads.Default.ScannerDelay;
                     tmrScan.Start();
-                    if (ChanType == ChanTypes.Types.uEighteenChan) {
+                    if (ChanType == (int)ChanTypes.Types.uEighteenChan) {
                         GC.Collect();
                     }
                 }));
@@ -740,8 +745,18 @@ retryThread:
         #endregion
 
         private void btnForce404_Click(object sender, EventArgs e) {
-            ThreadHas404 = true;
-            AfterDownload();
+            if (Program.IsDebug) {
+                ThreadHas404 = true;
+                btnForce404.Enabled = false;
+                AfterDownload();
+            }
+        }
+
+        private void lvImages_MouseDoubleClick(object sender, MouseEventArgs e) {
+            for (int i = 0; i < lvImages.SelectedItems.Count; i++) {
+                string FileName = lvImages.SelectedItems[i].Text + "." + lvImages.SelectedItems[i].SubItems[1].Text;
+                System.Diagnostics.Process.Start(DownloadPath + "\\" + FileName);
+            }
         }
 
     }
