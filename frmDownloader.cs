@@ -16,7 +16,7 @@ namespace YChanEx {
         frmMain MainFormInstance = Program.GetMainFormInstance();
 
         public string DownloadPath = null; // all
-        public string ThreadURL = null; // all
+        public string ThreadURL = null; // all, threadurl passed from the main form
         public int ChanType = -1; // all
         public DateTime LastModified = default(DateTime); // if supported
 
@@ -26,11 +26,13 @@ namespace YChanEx {
 
         private List<string> ImageFiles = new List<string>();
         private List<string> ThumbnailFiles = new List<string>();
+        private List<string> ThumbnailNames = new List<string>(); // 8chan, 8kun
         private List<string> FileIDs = new List<string>();
         private List<string> FileNames = new List<string>();
         private List<string> FileHashes = new List<string>();
         private List<string> FileExtensions = new List<string>();
         private int ThreadImageCount = 0;
+        private int ExtraFilesImageCount = 0; // 8kun
         private bool ThreadHasScanned = false;
         private bool ThreadHas404 = false;
         private bool IsAbortingDownload = false;
@@ -39,6 +41,7 @@ namespace YChanEx {
         private Thread DownloadThread;
 
         private bool UseConfirmedWorkingLogic = false; // all, if any of them use non-fully tested logic. debug only
+        private bool UseOldLogic = false;
 
         public frmDownloader() {
             InitializeComponent();
@@ -164,9 +167,7 @@ namespace YChanEx {
                     SetEightChanThread();
                     break;
                 case (int)ChanTypes.Types.eightKun:
-                    return;
                     if (!ThreadHasScanned) {
-                        lvImages.Columns.RemoveAt(3);
                         string[] URLSplit = ThreadURL.Split('/');
                         ThreadBoard = URLSplit[URLSplit.Length - 3];
                         ThreadID = URLSplit[URLSplit.Length - 1].Split('#')[0].Replace(".html", "").Replace(".json", "");
@@ -299,52 +300,52 @@ namespace YChanEx {
                     XmlNodeList xmlExt = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/ext");
                     XmlNodeList xmlHash = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/md5");
 
-                    for (int i = ThreadImageCount; i < xmlFileID.Count; i++, ThreadImageCount++) {
-                        if (xmlFileID[i] == null) {
+                    for (int FileIdIndex = ThreadImageCount; FileIdIndex < xmlFileID.Count; FileIdIndex++, ThreadImageCount++) {
+                        if (xmlFileID[FileIdIndex] == null) {
                             continue;
                         }
-                        FileIDs.Add(xmlFileID[i].InnerText);
-                        ImageFiles.Add(FileBaseURL + xmlFileID[i].InnerText + xmlExt[i].InnerText);
-                        ThumbnailFiles.Add(FileBaseURL + xmlFileID[i].InnerText + "s.jpg");
+                        FileIDs.Add(xmlFileID[FileIdIndex].InnerText);
+                        ImageFiles.Add(FileBaseURL + xmlFileID[FileIdIndex].InnerText + xmlExt[FileIdIndex].InnerText);
+                        ThumbnailFiles.Add(FileBaseURL + xmlFileID[FileIdIndex].InnerText + "s.jpg");
                         if (YChanEx.Downloads.Default.SaveOriginalFilenames) {
-                            string FileName = xmlFileName[i].InnerText;
+                            string FileName = xmlFileName[FileIdIndex].InnerText;
                             for (int j = 0; j < Chans.InvalidFileCharacters.Length; j++) {
                                 FileName = FileName.Replace(Chans.InvalidFileCharacters[j], "_");
                             }
-                            FileNames.Add(FileName + xmlExt[i].InnerText);
+                            FileNames.Add(FileName + xmlExt[FileIdIndex].InnerText);
                         }
                         else {
-                            FileNames.Add(xmlFileID[i].InnerText + xmlExt[i].InnerText);
+                            FileNames.Add(xmlFileID[FileIdIndex].InnerText + xmlExt[FileIdIndex].InnerText);
                         }
-                        FileHashes.Add(xmlHash[i].InnerText);
+                        FileHashes.Add(xmlHash[FileIdIndex].InnerText);
 
                         if (YChanEx.Downloads.Default.SaveHTML) {
                             string OldHTMLLinks = null;
 
                             if (YChanEx.Downloads.Default.SaveThumbnails) {
-                                OldHTMLLinks = "//i.4cdn.org/" + ThreadBoard + "/" + xmlFileID[i].InnerText + "s.jpg";
-                                ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, "thumb\\" + xmlFileID[i].InnerText + "s.jpg");
+                                OldHTMLLinks = "//i.4cdn.org/" + ThreadBoard + "/" + xmlFileID[FileIdIndex].InnerText + "s.jpg";
+                                ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, "thumb\\" + xmlFileID[FileIdIndex].InnerText + "s.jpg");
                             }
-                            OldHTMLLinks = "//i.4cdn.org/" + ThreadBoard + "/" + xmlFileID[i].InnerText;
+                            OldHTMLLinks = "//i.4cdn.org/" + ThreadBoard + "/" + xmlFileID[FileIdIndex].InnerText;
                             if (YChanEx.Downloads.Default.SaveOriginalFilenames) {
                                 string FileNamePrefix = "";
                                 if (YChanEx.Downloads.Default.PreventDuplicates) {
-                                    if (i >= 10) {
-                                        if (i >= 100) {
-                                            FileNamePrefix = "(" + i.ToString() + ") ";
+                                    if (FileIdIndex >= 10) {
+                                        if (FileIdIndex >= 100) {
+                                            FileNamePrefix = "(" + FileIdIndex.ToString() + ") ";
                                         }
                                         else {
-                                            FileNamePrefix = "(0" + i.ToString() + ") ";
+                                            FileNamePrefix = "(0" + FileIdIndex.ToString() + ") ";
                                         }
                                     }
                                     else {
-                                        FileNamePrefix = "(00" + i.ToString() + ") ";
+                                        FileNamePrefix = "(00" + FileIdIndex.ToString() + ") ";
                                     }
                                 }
-                                ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, FileNamePrefix + xmlFileName[i].InnerText);
+                                ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, FileNamePrefix + xmlFileName[FileIdIndex].InnerText);
                             }
                             else {
-                                ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, xmlFileID[i].InnerText);
+                                ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, xmlFileID[FileIdIndex].InnerText);
                             }
                         }
 
@@ -352,11 +353,11 @@ namespace YChanEx {
                         lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
                         lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
                         lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                        lvi.Name = xmlFileID[i].InnerText;
-                        lvi.SubItems[0].Text = xmlFileID[i].InnerText;
-                        lvi.SubItems[1].Text = xmlExt[i].InnerText.Trim('.');
-                        lvi.SubItems[2].Text = xmlFileName[i].InnerText;
-                        lvi.SubItems[3].Text = xmlHash[i].InnerText;
+                        lvi.Name = xmlFileID[FileIdIndex].InnerText;
+                        lvi.SubItems[0].Text = xmlFileID[FileIdIndex].InnerText;
+                        lvi.SubItems[1].Text = xmlExt[FileIdIndex].InnerText.Trim('.');
+                        lvi.SubItems[2].Text = xmlFileName[FileIdIndex].InnerText;
+                        lvi.SubItems[3].Text = xmlHash[FileIdIndex].InnerText;
                         this.BeginInvoke(new MethodInvoker(() => {
                             lvImages.Items.Add(lvi);
                         }));
@@ -368,31 +369,31 @@ namespace YChanEx {
                         lbScanTimer.Text = "Downloading files";
                     }));
 
-                    for (int i = 0; i < ImageFiles.Count; i++) {
-                        if (ImageFiles[i] == null) {
+                    for (int ImageFilesIndex = 0; ImageFilesIndex < ImageFiles.Count; ImageFilesIndex++) {
+                        if (ImageFiles[ImageFilesIndex] == null) {
                             continue;
                         }
-                        string FileName = FileNames[i];
-                        CurrentURL = ImageFiles[i];
+                        string FileName = FileNames[ImageFilesIndex];
+                        CurrentURL = ImageFiles[ImageFilesIndex];
                         if (YChanEx.Downloads.Default.SaveOriginalFilenames && YChanEx.Downloads.Default.PreventDuplicates) {
-                            if (i >= 10) {
-                                if (i >= 100) {
-                                    FileName = "(" + i.ToString() + ") " + FileName;
+                            if (ImageFilesIndex >= 10) {
+                                if (ImageFilesIndex >= 100) {
+                                    FileName = "(" + ImageFilesIndex.ToString() + ") " + FileName;
                                 }
                                 else {
-                                    FileName = "(0" + i.ToString() + ") " + FileName;
+                                    FileName = "(0" + ImageFilesIndex.ToString() + ") " + FileName;
                                 }
                             }
                             else {
-                                FileName = "(00" + i.ToString() + ") " + FileName;
+                                FileName = "(00" + ImageFilesIndex.ToString() + ") " + FileName;
                             }
                         }
 
                         Chans.DownloadFile(CurrentURL, DownloadPath, FileName);
 
                         if (YChanEx.Downloads.Default.SaveThumbnails) {
-                            CurrentURL = ThumbnailFiles[i];
-                            Chans.DownloadFile(CurrentURL, DownloadPath + "\\thumb", FileIDs[i] + "s.jpg");
+                            CurrentURL = ThumbnailFiles[ImageFilesIndex];
+                            Chans.DownloadFile(CurrentURL, DownloadPath + "\\thumb", FileIDs[ImageFilesIndex] + "s.jpg");
                         }
 
 
@@ -523,20 +524,20 @@ namespace YChanEx {
                     XmlNodeList xmlFileName = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/filename");
                     XmlNodeList xmlExt = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/ext");
 
-                    for (int i = ThreadImageCount; i < xmlFileName.Count; i++, ThreadImageCount++) {
-                        if (xmlFileName[i] != null) {
-                            FileIDs.Add(xmlFileName[i].InnerText);
-                            FileExtensions.Add(xmlExt[i].InnerText);
-                            ImageFiles.Add(FileBaseURL + xmlFileName[i].InnerText + xmlExt[i].InnerText);
-                            ThumbnailFiles.Add(ThumbnailBaseUrl + xmlFileName[i].InnerText + "s.jpg");
+                    for (int FileNameIndex = ThreadImageCount; FileNameIndex < xmlFileName.Count; FileNameIndex++, ThreadImageCount++) {
+                        if (xmlFileName[FileNameIndex] != null) {
+                            FileIDs.Add(xmlFileName[FileNameIndex].InnerText);
+                            FileExtensions.Add(xmlExt[FileNameIndex].InnerText);
+                            ImageFiles.Add(FileBaseURL + xmlFileName[FileNameIndex].InnerText + xmlExt[FileNameIndex].InnerText);
+                            ThumbnailFiles.Add(ThumbnailBaseUrl + xmlFileName[FileNameIndex].InnerText + "s.jpg");
 
                             ListViewItem lvi = new ListViewItem();
                             lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
                             lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                            lvi.Name = xmlFileName[i].InnerText;
-                            lvi.Text = xmlFileName[i].InnerText;
-                            lvi.SubItems[1].Text = xmlExt[i].InnerText.Trim('.');
-                            lvi.SubItems[2].Text = xmlFileName[i].InnerText;
+                            lvi.Name = xmlFileName[FileNameIndex].InnerText;
+                            lvi.Text = xmlFileName[FileNameIndex].InnerText;
+                            lvi.SubItems[1].Text = xmlExt[FileNameIndex].InnerText.Trim('.');
+                            lvi.SubItems[2].Text = xmlFileName[FileNameIndex].InnerText;
                             this.BeginInvoke(new MethodInvoker(() => {
                                 lvImages.Items.Add(lvi);
                             }));
@@ -549,16 +550,16 @@ namespace YChanEx {
                         lbScanTimer.Text = "Downloading files";
                     }));
 
-                    for (int i = 0; i < ImageFiles.Count; i++) {
-                        if (ImageFiles[i] != null) {
-                            string FileName = FileIDs[i] + FileExtensions[i];
-                            CurrentURL = ImageFiles[i];
+                    for (int ImageFilesIndex = 0; ImageFilesIndex < ImageFiles.Count; ImageFilesIndex++) {
+                        if (ImageFiles[ImageFilesIndex] != null) {
+                            string FileName = FileIDs[ImageFilesIndex] + FileExtensions[ImageFilesIndex];
+                            CurrentURL = ImageFiles[ImageFilesIndex];
 
                             Chans.DownloadFile(CurrentURL, DownloadPath, FileName);
 
                             if (YChanEx.Downloads.Default.SaveThumbnails) {
-                                CurrentURL = ThumbnailFiles[i];
-                                Chans.DownloadFile(CurrentURL, DownloadPath + "\\thumb", FileIDs[i] + "s.jpg");
+                                CurrentURL = ThumbnailFiles[ImageFilesIndex];
+                                Chans.DownloadFile(CurrentURL, DownloadPath + "\\thumb", FileIDs[ImageFilesIndex] + "s.jpg");
                             }
                         }
                     }
@@ -648,11 +649,11 @@ retryThread:
                     }
 
                     if (FilesBuffer.Count > ImageFiles.Count) {
-                        for (int i = ImageFiles.Count; i < FilesBuffer.Count; i++) {
-                            string FileName = FilesBuffer[i].Split('/')[FilesBuffer[i].Split('/').Length - 1].Split('.')[0];
-                            string Extension = FilesBuffer[i].Split('.')[FilesBuffer[i].Split('.').Length - 1];
+                        for (int FilesBufferIndex = ImageFiles.Count; FilesBufferIndex < FilesBuffer.Count; FilesBufferIndex++) {
+                            string FileName = FilesBuffer[FilesBufferIndex].Split('/')[FilesBuffer[FilesBufferIndex].Split('/').Length - 1].Split('.')[0];
+                            string Extension = FilesBuffer[FilesBufferIndex].Split('.')[FilesBuffer[FilesBufferIndex].Split('.').Length - 1];
                             if (!FileNames.Contains(FileName)) {
-                                ImageFiles.Add(FilesBuffer[i]);
+                                ImageFiles.Add(FilesBuffer[FilesBufferIndex]);
                                 FileNames.Add(FileName);
                                 FileExtensions.Add(Extension);
 
@@ -668,7 +669,7 @@ retryThread:
                                 ListViewItem lvi = new ListViewItem();
                                 lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
                                 lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                                lvi.Name = FilesBuffer[i];
+                                lvi.Name = FilesBuffer[FilesBufferIndex];
                                 lvi.SubItems[0].Text = FileName;
                                 lvi.SubItems[1].Text = Extension;
                                 lvi.SubItems[2].Text = FileName;
@@ -685,13 +686,13 @@ retryThread:
                         lbScanTimer.Text = "Downloading files";
                     }));
 
-                    for (int i = 0; i < ImageFiles.Count; i++) {
-                        string FileName = ImageFiles[i].Split('/')[ImageFiles[i].Split('/').Length - 1];
+                    for (int ImageFilesIndex = 0; ImageFilesIndex < ImageFiles.Count; ImageFilesIndex++) {
+                        string FileName = ImageFiles[ImageFilesIndex].Split('/')[ImageFiles[ImageFilesIndex].Split('/').Length - 1];
                         for (int y = 0; y < Chans.InvalidFileCharacters.Length; y++) {
                             FileName = FileName.Replace(Chans.InvalidFileCharacters[y], "_");
-                            HTMLBuffer = HTMLBuffer.Replace(ImageFiles[i].Split('/')[ImageFiles[i].Split('/').Length - 1], FileName);
+                            HTMLBuffer = HTMLBuffer.Replace(ImageFiles[ImageFilesIndex].Split('/')[ImageFiles[ImageFilesIndex].Split('/').Length - 1], FileName);
                         }
-                        Chans.DownloadFile(ImageFiles[i], DownloadPath, FileName);
+                        Chans.DownloadFile(ImageFiles[ImageFilesIndex], DownloadPath, FileName);
                     }
 
                     if (Downloads.Default.SaveThumbnails) {
@@ -810,6 +811,7 @@ retryThread:
                         FileHashes.Add(FileHash);
                         ImageFiles.Add(FileBaseURL + FileUrl);
                         ThumbnailFiles.Add(FileBaseURL + xmlFileThumbnail[PostIndex].InnerText);
+                        ThumbnailNames.Add(xmlFileThumbnail[PostIndex].InnerText.Substring(8));
 
                         string FileName = string.Empty;
                         if (YChanEx.Downloads.Default.SaveOriginalFilenames) {
@@ -841,10 +843,10 @@ retryThread:
                         if (YChanEx.Downloads.Default.SaveHTML) {
                             string OldHTMLLinks = null;
 
-                            OldHTMLLinks = "src=\"/.media/t_";
-                            ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, "src=\"/thumb/t_");
-                            OldHTMLLinks = "href=\"/.media";
-                            ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, FileName);
+                            OldHTMLLinks = "src=\"/.media/t_" + FileHash;
+                            ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, "src=\"thumb/t_" + FileHash + ".jpg");
+                            OldHTMLLinks = "href=\"/.media/" + FileHash;
+                            ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, "href=\"" + FileName);
                         }
 
                         ListViewItem lvi = new ListViewItem();
@@ -863,7 +865,8 @@ retryThread:
                     #endregion
 
                     #region Subsequent posts
-                    if (UseConfirmedWorkingLogic) {
+                    if (UseOldLogic) {
+                    #region Subsequent Old Logic
                         xmlFilePath = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/files/item/path");
                         xmlFileThumbnail = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/files/item/thumb");
                         xmlFileName = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/files/item/originalName");
@@ -875,8 +878,7 @@ retryThread:
                             ThreadImageCount++;
                             string FileUrl = xmlFilePath[PostIndex].InnerText;
                             string FileHash = FileUrl.Substring(8, FileUrl.Length - 4 - 8);
-                            string FileID = ThreadID + "-" + (PostIndex + 1).ToString();
-                            //string FileID = (ThreadImageCount + 1).ToString();
+                            string FileID = (ThreadImageCount + 1).ToString();
                             string FileExtension = "." + FileUrl.Split('/')[2].Split('.')[1];
                             FileExtensions.Add(FileExtension);
                             FileIDs.Add(FileID);
@@ -933,6 +935,7 @@ retryThread:
                                 lvImages.Items.Add(lvi);
                             }));
                         }
+                    #endregion
                     }
                     else {
                         XmlNodeList xmlPost = xmlDoc.DocumentElement.SelectNodes("/root/posts/item");
@@ -949,13 +952,13 @@ retryThread:
                                 string FileUrl = xFilePath;
                                 string FileHash = FileUrl.Substring(8, FileUrl.Length - 4 - 8);
                                 string FileID = xmlPostId[PostIndex].InnerText + "-" + (FileIndex + 1).ToString();
-                                //string FileID = (ThreadImageCount + 1).ToString();
                                 string FileExtension = "." + FileUrl.Split('/')[2].Split('.')[1];
                                 FileExtensions.Add(FileExtension);
                                 FileIDs.Add(FileID);
                                 FileHashes.Add(FileHash);
                                 ImageFiles.Add(FileBaseURL + FileUrl);
                                 ThumbnailFiles.Add(FileBaseURL + xFileThumbnail);
+                                ThumbnailNames.Add(xFileThumbnail.Substring(8));
 
                                 string FileName = string.Empty;
                                 if (YChanEx.Downloads.Default.SaveOriginalFilenames) {
@@ -987,10 +990,10 @@ retryThread:
                                 if (YChanEx.Downloads.Default.SaveHTML) {
                                     string OldHTMLLinks = null;
 
-                                    OldHTMLLinks = "src=\"/.media/t_";
-                                    ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, "src=\"/thumb/t_");
-                                    OldHTMLLinks = "href=\"/.media";
-                                    ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, FileName);
+                                    OldHTMLLinks = "src=\"/.media/t_" + FileHash; 
+                                    ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, "src=\"thumb/t_" + FileHash + ".jpg");
+                                    OldHTMLLinks = "href=\"/.media/" + FileHash;
+                                    ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, "href=\"" + FileName);
                                 }
 
                                 ListViewItem lvi = new ListViewItem();
@@ -1016,31 +1019,29 @@ retryThread:
                         lbScanTimer.Text = "Downloading files";
                     }));
 
-                    MessageBox.Show(ImageFiles.Count.ToString());
-                    MessageBox.Show(ThreadImageCount.ToString());
-                    for (int i = 0; i < ImageFiles.Count; i++) {
-                        if (ImageFiles[i] == null) {
-                            continue;
-                        }
-                        string FileName = FileNames[i];
-                        CurrentURL = ImageFiles[i];
-
-                        MessageBox.Show(FileName);
-
-                        Chans.DownloadFile(CurrentURL, DownloadPath, FileNames[i] + FileExtensions[i]);
-
-                        if (YChanEx.Downloads.Default.SaveThumbnails) {
-                            CurrentURL = ThumbnailFiles[i];
-                            Chans.DownloadFile(CurrentURL, DownloadPath + "\\thumb", FileIDs[i] + "s.jpg");
-                        }
-
-
-
-                    }
-
                     if (YChanEx.Downloads.Default.SaveHTML) {
                         File.WriteAllText(DownloadPath + "\\Thread.html", ThreadHTML);
                     }
+
+                    for (int ImageFilesIndex = 0; ImageFilesIndex < ImageFiles.Count; ImageFilesIndex++) {
+                        if (ImageFiles[ImageFilesIndex] == null) {
+                            continue;
+                        }
+                        string FileName = FileNames[ImageFilesIndex];
+                        CurrentURL = ImageFiles[ImageFilesIndex];
+
+                        MessageBox.Show(FileName);
+
+                        Chans.DownloadFile(CurrentURL, DownloadPath, FileNames[ImageFilesIndex] + FileExtensions[ImageFilesIndex]);
+
+                        if (YChanEx.Downloads.Default.SaveThumbnails) {
+                            CurrentURL = ThumbnailFiles[ImageFilesIndex];
+                            Chans.DownloadFile(CurrentURL, DownloadPath + "\\thumb", ThumbnailNames[ImageFilesIndex] + ".jpg");
+                        }
+                    }
+
+                    // Save html
+
                     ThreadHasScanned = true;
                 }
                 catch (ThreadAbortException) {
@@ -1076,7 +1077,268 @@ retryThread:
 
     #region 8kun
         private void SetEightKunThread() {
-            return;
+            DownloadThread = new Thread(() => {
+                string FileBaseURL = "https://media.8kun.top/file_store/";
+                string ThumbnailFileBaseURL = "https://media.8kun.top/file_store/thumb/";
+                string ThreadJSON = null;
+                string ThreadHTML = null;
+                string CurrentURL = null;
+
+                try {
+                    if (ThreadBoard == null || ThreadID == null) {
+                        ThreadHas404 = true;
+                        AfterDownload();
+                        return;
+                    }
+
+                    CurrentURL = string.Format(ChanApiLinks.EightKun, ThreadBoard, ThreadID);
+                    HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(CurrentURL);
+                    Request.UserAgent = Advanced.Default.UserAgent;
+                    Request.IfModifiedSince = LastModified;
+                    Request.Method = "GET";
+                    var Response = (HttpWebResponse)Request.GetResponse();
+                    var ResponseStream = Response.GetResponseStream();
+                    using (StreamReader ResponseReader = new StreamReader(ResponseStream)) {
+                        string RawJSON = ResponseReader.ReadToEnd();
+                        byte[] JSONBytes = Encoding.ASCII.GetBytes(RawJSON);
+                        using (var ByteMemory = new MemoryStream(JSONBytes)) {
+                            var Quotas = new XmlDictionaryReaderQuotas();
+                            var JSONReader = JsonReaderWriterFactory.CreateJsonReader(ByteMemory, Quotas);
+                            var xml = XDocument.Load(JSONReader);
+                            ByteMemory.Flush();
+                            ByteMemory.Close();
+                            ThreadJSON = xml.ToString();
+                        }
+                    }
+                    LastModified = Response.LastModified;
+                    Response.Dispose();
+                    ResponseStream.Dispose();
+
+                    CurrentURL = this.ThreadURL;
+                    if (YChanEx.Downloads.Default.SaveHTML) {
+                        ThreadHTML = Chans.GetHTML(CurrentURL);
+                    }
+
+                    if (string.IsNullOrEmpty(ThreadJSON) || ThreadJSON == Chans.EmptyXML) {
+                        // Thread is dead?
+                        return;
+                    }
+
+                    XmlDocument xmlDoc = new XmlDocument();
+                    xmlDoc.LoadXml(ThreadJSON);
+                    //XmlNodeList xmlPosts = xmlDoc.DocumentElement.SelectNodes("/root/posts/item");
+
+                    if (UseConfirmedWorkingLogic) {
+                        XmlNodeList xmlPostID = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/no");
+                        XmlNodeList xmlTim = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/tim");
+                        XmlNodeList xmlFileName = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/filename");
+                        XmlNodeList xmlExtension = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/ext");
+                        XmlNodeList xmlMd5 = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/md5");
+
+                        // Scan for first images in posts
+                        for (int FileIdIndex = 0; FileIdIndex < xmlTim.Count; FileIdIndex++) {
+                            if (xmlTim[FileIdIndex] == null) {
+                                continue;
+                            }
+                            ThreadImageCount++;
+                            string xPostID = xmlPostID[FileIdIndex].InnerText;
+                            string xTim = xmlTim[FileIdIndex].InnerText;
+                            string xExtension = xmlExtension[FileIdIndex].InnerText;
+                            string xMD5 = xmlMd5[FileIdIndex].InnerText;
+                            string xFileName = xmlFileName[FileIdIndex].InnerText;
+
+                            FileIDs.Add(xTim);
+                            ImageFiles.Add(FileBaseURL + xTim + xExtension);
+                            ThumbnailFiles.Add(ThumbnailFileBaseURL + xTim + xExtension);
+                            ThumbnailNames.Add(xTim + xExtension);
+                            FileExtensions.Add(xExtension);
+                            FileHashes.Add(xMD5);
+
+                            string FileName = xTim;
+                            string FileNamePrefix = string.Empty;
+                            if (YChanEx.Downloads.Default.SaveOriginalFilenames) {
+                                FileName = xFileName;
+                                for (int j = 0; j < Chans.InvalidFileCharacters.Length; j++) {
+                                    FileName = FileName.Replace(Chans.InvalidFileCharacters[j], "_");
+                                }
+
+                                if (YChanEx.Downloads.Default.PreventDuplicates) {
+                                    if (FileIdIndex >= 10) {
+                                        if (FileIdIndex >= 100) {
+                                            FileNamePrefix = "(" + FileIdIndex.ToString() + ") ";
+                                        }
+                                        else {
+                                            FileNamePrefix = "(0" + FileIdIndex.ToString() + ") ";
+                                        }
+                                    }
+                                    else {
+                                        FileNamePrefix = "(00" + FileIdIndex.ToString() + ") ";
+                                    }
+                                }
+
+                                FileName = FileNamePrefix + FileName;
+                            }
+
+                            FileNames.Add(FileName + xExtension);
+
+                            if (YChanEx.Downloads.Default.SaveHTML) {
+                                string OldHTMLLinks = null;
+                                if (YChanEx.Downloads.Default.SaveThumbnails) {
+                                    OldHTMLLinks = ThumbnailFileBaseURL;
+                                    ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, "thumb/");
+                                }
+                                OldHTMLLinks = FileBaseURL + xTim;
+                                ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, FileName);
+                            }
+
+                            ListViewItem lvi = new ListViewItem();
+                            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                            lvi.Name = xTim;
+                            lvi.SubItems[0].Text = xTim;
+                            lvi.SubItems[1].Text = xExtension.Trim('.');
+                            lvi.SubItems[2].Text = xFileName;
+                            lvi.SubItems[3].Text = xMD5;
+                            this.BeginInvoke(new MethodInvoker(() => {
+                                lvImages.Items.Add(lvi);
+                            }));
+                        }
+
+                        // Scan extra files in posts
+                        xmlTim = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/extra_files/item/tim");
+                        xmlFileName = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/extra_files/item/filename");
+                        xmlExtension = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/extra_files/item/ext");
+                        xmlMd5 = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/extra_files/item/md5");
+                        for (int FileIdIndex = ExtraFilesImageCount; FileIdIndex < xmlTim.Count; FileIdIndex++) {
+                            if (xmlTim[FileIdIndex] == null) {
+                                continue;
+                            }
+                            ExtraFilesImageCount++;
+                            string xTim = xmlTim[FileIdIndex].InnerText;
+                            string xExtension = xmlExtension[FileIdIndex].InnerText;
+                            string xMD5 = xmlMd5[FileIdIndex].InnerText;
+                            string xFileName = xmlFileName[FileIdIndex].InnerText;
+
+                            FileIDs.Add(xTim);
+                            ImageFiles.Add(FileBaseURL + xTim + xExtension);
+                            ThumbnailFiles.Add(ThumbnailFileBaseURL + xTim + xExtension);
+                            ThumbnailNames.Add(xTim + xExtension);
+                            FileExtensions.Add(xExtension);
+                            FileHashes.Add(xMD5);
+
+                            string FileName = xTim;
+                            string FileNamePrefix = string.Empty;
+                            if (YChanEx.Downloads.Default.SaveOriginalFilenames) {
+                                FileName = xFileName;
+                                for (int j = 0; j < Chans.InvalidFileCharacters.Length; j++) {
+                                    FileName = FileName.Replace(Chans.InvalidFileCharacters[j], "_");
+                                }
+
+                                if (YChanEx.Downloads.Default.PreventDuplicates) {
+                                    if (FileIdIndex >= 10) {
+                                        if (FileIdIndex >= 100) {
+                                            FileNamePrefix = "(" + FileIdIndex.ToString() + ") ";
+                                        }
+                                        else {
+                                            FileNamePrefix = "(0" + FileIdIndex.ToString() + ") ";
+                                        }
+                                    }
+                                    else {
+                                        FileNamePrefix = "(00" + FileIdIndex.ToString() + ") ";
+                                    }
+                                }
+
+                                FileName = FileNamePrefix + FileName;
+                            }
+
+                            FileNames.Add(FileName + xExtension);
+
+                            if (YChanEx.Downloads.Default.SaveHTML) {
+                                string OldHTMLLinks = null;
+                                if (YChanEx.Downloads.Default.SaveThumbnails) {
+                                    OldHTMLLinks = ThumbnailFileBaseURL;
+                                    ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, "thumb/");
+                                }
+                                OldHTMLLinks = FileBaseURL + xTim;
+                                ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, FileName);
+                            }
+
+                            ListViewItem lvi = new ListViewItem();
+                            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                            lvi.Name = xTim;
+                            lvi.SubItems[0].Text = xTim;
+                            lvi.SubItems[1].Text = xExtension.Trim('.');
+                            lvi.SubItems[2].Text = xFileName;
+                            lvi.SubItems[3].Text = xMD5;
+                            this.BeginInvoke(new MethodInvoker(() => {
+                                lvImages.Items.Add(lvi);
+                            }));
+                        }
+                    }
+                    else {
+                        // WIP
+                    }
+
+                    this.BeginInvoke(new MethodInvoker(() => {
+                        lbTotal.Text = "number of files: " + (ThreadImageCount + ExtraFilesImageCount).ToString();
+                        lbLastModified.Text = "last modified: " + LastModified.ToString();
+                        lbScanTimer.Text = "Downloading files";
+                    }));
+
+                    for (int ImageFilesIndex = 0; ImageFilesIndex < ImageFiles.Count; ImageFilesIndex++) {
+                        if (ImageFiles[ImageFilesIndex] == null) {
+                            continue;
+                        }
+                        string FileName = FileNames[ImageFilesIndex];
+                        CurrentURL = ImageFiles[ImageFilesIndex];
+
+                        MessageBox.Show(CurrentURL);
+                        Chans.DownloadFile(CurrentURL, DownloadPath, FileName);
+
+                        if (YChanEx.Downloads.Default.SaveThumbnails) {
+                            CurrentURL = ThumbnailFiles[ImageFilesIndex];
+                            MessageBox.Show(CurrentURL);
+                            Chans.DownloadFile(CurrentURL, DownloadPath + "\\thumb", FileIDs[ImageFilesIndex] + FileExtensions[ImageFilesIndex]);
+                        }
+                    }
+
+                    if (YChanEx.Downloads.Default.SaveHTML) {
+                        File.WriteAllText(DownloadPath + "\\Thread.html", ThreadHTML);
+                    }
+
+                    ThreadHasScanned = true;
+                }
+                catch (ThreadAbortException) {
+                    IsAbortingDownload = true;
+                }
+                catch (WebException WebEx) {
+                    var Response = (HttpWebResponse)WebEx.Response;
+                    if (Response.StatusCode == HttpStatusCode.NotModified) {
+                        this.BeginInvoke(new MethodInvoker(() => {
+                            lbNotModified.Visible = true;
+                        }));
+                        AfterDownload();
+                    }
+                    else {
+                        if (((int)WebEx.Status) == 7) {
+                            ThreadHas404 = true;
+                        }
+                        else {
+                            MessageBox.Show(WebEx.ToString());
+                        }
+                    }
+                }
+                catch (Exception ex) {
+                    MessageBox.Show(ex.ToString());
+                }
+                finally {
+                    AfterDownload();
+                }
+            });
+            DownloadThread.Name = "8kun thread /" + ThreadBoard + "/" + ThreadID;
         }
     #endregion
 
