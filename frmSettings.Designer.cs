@@ -24,6 +24,18 @@
         /// </summary>
         private void InitializeComponent() {
             this.components = new System.ComponentModel.Container();
+            System.Windows.Forms.ListViewItem listViewItem1 = new System.Windows.Forms.ListViewItem("4chan URL");
+            System.Windows.Forms.ListViewItem listViewItem2 = new System.Windows.Forms.ListViewItem("420chan URL");
+            System.Windows.Forms.ListViewItem listViewItem3 = new System.Windows.Forms.ListViewItem(new string[] {
+            "7chan URL",
+            "1"}, -1);
+            System.Windows.Forms.ListViewItem listViewItem4 = new System.Windows.Forms.ListViewItem("7chan Files");
+            System.Windows.Forms.ListViewItem listViewItem5 = new System.Windows.Forms.ListViewItem("8chan URL");
+            System.Windows.Forms.ListViewItem listViewItem6 = new System.Windows.Forms.ListViewItem("8kun URL");
+            System.Windows.Forms.ListViewItem listViewItem7 = new System.Windows.Forms.ListViewItem("fchan URL");
+            System.Windows.Forms.ListViewItem listViewItem8 = new System.Windows.Forms.ListViewItem("fchan Files");
+            System.Windows.Forms.ListViewItem listViewItem9 = new System.Windows.Forms.ListViewItem("u18chan URL");
+            System.Windows.Forms.ListViewItem listViewItem10 = new System.Windows.Forms.ListViewItem("u18chan Files");
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabDownloads = new System.Windows.Forms.TabPage();
             this.chkSaveDownloadQueueOnExit = new System.Windows.Forms.CheckBox();
@@ -51,8 +63,8 @@
             this.lbUserAgent = new System.Windows.Forms.Label();
             this.tabReset = new System.Windows.Forms.TabPage();
             this.tabRegex = new System.Windows.Forms.TabPage();
-            this.lbu18chan = new System.Windows.Forms.Label();
-            this.txtU18ChanRegex = new YChanEx.HintTextBox();
+            this.lvRegex = new System.Windows.Forms.ListView();
+            this.txtRegex = new YChanEx.HintTextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.btnUserScript = new System.Windows.Forms.Button();
             this.btnProtocol = new System.Windows.Forms.Button();
@@ -151,9 +163,9 @@
             this.chkDownloadThumbnails.AutoSize = true;
             this.chkDownloadThumbnails.Location = new System.Drawing.Point(11, 89);
             this.chkDownloadThumbnails.Name = "chkDownloadThumbnails";
-            this.chkDownloadThumbnails.Size = new System.Drawing.Size(131, 17);
+            this.chkDownloadThumbnails.Size = new System.Drawing.Size(127, 17);
             this.chkDownloadThumbnails.TabIndex = 24;
-            this.chkDownloadThumbnails.Text = "Download Thumbnails";
+            this.chkDownloadThumbnails.Text = "Download thumbnails";
             this.ttSettings.SetToolTip(this.chkDownloadThumbnails, "Downloads thumbnails for files in the thumb folder.");
             this.chkDownloadThumbnails.UseVisualStyleBackColor = true;
             // 
@@ -206,9 +218,9 @@
             this.lbSavePath.AutoSize = true;
             this.lbSavePath.Location = new System.Drawing.Point(5, 14);
             this.lbSavePath.Name = "lbSavePath";
-            this.lbSavePath.Size = new System.Drawing.Size(57, 13);
+            this.lbSavePath.Size = new System.Drawing.Size(56, 13);
             this.lbSavePath.TabIndex = 20;
-            this.lbSavePath.Text = "Save &Path\r\n";
+            this.lbSavePath.Text = "Save &path\r\n";
             // 
             // btnBrowse
             // 
@@ -312,7 +324,7 @@
             this.tabAdvanced.Location = new System.Drawing.Point(4, 22);
             this.tabAdvanced.Name = "tabAdvanced";
             this.tabAdvanced.Padding = new System.Windows.Forms.Padding(3);
-            this.tabAdvanced.Size = new System.Drawing.Size(394, 144);
+            this.tabAdvanced.Size = new System.Drawing.Size(386, 144);
             this.tabAdvanced.TabIndex = 2;
             this.tabAdvanced.Text = "Advanced";
             this.tabAdvanced.UseVisualStyleBackColor = true;
@@ -373,40 +385,54 @@
             this.tabReset.Location = new System.Drawing.Point(4, 22);
             this.tabReset.Name = "tabReset";
             this.tabReset.Padding = new System.Windows.Forms.Padding(3);
-            this.tabReset.Size = new System.Drawing.Size(394, 144);
+            this.tabReset.Size = new System.Drawing.Size(386, 144);
             this.tabReset.TabIndex = 3;
             this.tabReset.Text = "Reset";
             this.tabReset.UseVisualStyleBackColor = true;
             // 
             // tabRegex
             // 
-            this.tabRegex.Controls.Add(this.lbu18chan);
-            this.tabRegex.Controls.Add(this.txtU18ChanRegex);
+            this.tabRegex.Controls.Add(this.lvRegex);
+            this.tabRegex.Controls.Add(this.txtRegex);
             this.tabRegex.Controls.Add(this.label1);
             this.tabRegex.Location = new System.Drawing.Point(4, 22);
             this.tabRegex.Name = "tabRegex";
             this.tabRegex.Padding = new System.Windows.Forms.Padding(3);
-            this.tabRegex.Size = new System.Drawing.Size(394, 144);
+            this.tabRegex.Size = new System.Drawing.Size(386, 144);
             this.tabRegex.TabIndex = 4;
             this.tabRegex.Text = "Regex";
             this.tabRegex.UseVisualStyleBackColor = true;
             // 
-            // lbu18chan
+            // lvRegex
             // 
-            this.lbu18chan.AutoSize = true;
-            this.lbu18chan.Location = new System.Drawing.Point(29, 47);
-            this.lbu18chan.Name = "lbu18chan";
-            this.lbu18chan.Size = new System.Drawing.Size(49, 13);
-            this.lbu18chan.TabIndex = 2;
-            this.lbu18chan.Text = "u18chan";
+            this.lvRegex.Items.AddRange(new System.Windows.Forms.ListViewItem[] {
+            listViewItem1,
+            listViewItem2,
+            listViewItem3,
+            listViewItem4,
+            listViewItem5,
+            listViewItem6,
+            listViewItem7,
+            listViewItem8,
+            listViewItem9,
+            listViewItem10});
+            this.lvRegex.Location = new System.Drawing.Point(3, 40);
+            this.lvRegex.MultiSelect = false;
+            this.lvRegex.Name = "lvRegex";
+            this.lvRegex.Size = new System.Drawing.Size(107, 101);
+            this.lvRegex.TabIndex = 2;
+            this.lvRegex.UseCompatibleStateImageBehavior = false;
+            this.lvRegex.View = System.Windows.Forms.View.SmallIcon;
+            this.lvRegex.SelectedIndexChanged += new System.EventHandler(this.lvRegex_SelectedIndexChanged);
             // 
-            // txtU18ChanRegex
+            // txtRegex
             // 
-            this.txtU18ChanRegex.Location = new System.Drawing.Point(84, 44);
-            this.txtU18ChanRegex.Name = "txtU18ChanRegex";
-            this.txtU18ChanRegex.Size = new System.Drawing.Size(281, 20);
-            this.txtU18ChanRegex.TabIndex = 1;
-            this.txtU18ChanRegex.TextHint = "(?<=File: <a href=\\\").*?(?=\\\" target=\\\"_blank\\\">)";
+            this.txtRegex.Location = new System.Drawing.Point(116, 78);
+            this.txtRegex.Name = "txtRegex";
+            this.txtRegex.Size = new System.Drawing.Size(262, 20);
+            this.txtRegex.TabIndex = 1;
+            this.txtRegex.TextHint = "";
+            this.txtRegex.TextChanged += new System.EventHandler(this.txtRegex_TextChanged);
             // 
             // label1
             // 
@@ -421,7 +447,7 @@
             // 
             // btnUserScript
             // 
-            this.btnUserScript.Location = new System.Drawing.Point(12, 176);
+            this.btnUserScript.Location = new System.Drawing.Point(12, 173);
             this.btnUserScript.Name = "btnUserScript";
             this.btnUserScript.Size = new System.Drawing.Size(75, 24);
             this.btnUserScript.TabIndex = 25;
@@ -432,7 +458,7 @@
             // btnProtocol
             // 
             this.btnProtocol.Enabled = false;
-            this.btnProtocol.Location = new System.Drawing.Point(93, 176);
+            this.btnProtocol.Location = new System.Drawing.Point(93, 173);
             this.btnProtocol.Name = "btnProtocol";
             this.btnProtocol.Size = new System.Drawing.Size(116, 24);
             this.btnProtocol.TabIndex = 24;
@@ -443,7 +469,7 @@
             // 
             // btnSCan
             // 
-            this.btnSCan.Location = new System.Drawing.Point(234, 176);
+            this.btnSCan.Location = new System.Drawing.Point(307, 173);
             this.btnSCan.Name = "btnSCan";
             this.btnSCan.Size = new System.Drawing.Size(75, 24);
             this.btnSCan.TabIndex = 23;
@@ -454,7 +480,7 @@
             // 
             // btnSSave
             // 
-            this.btnSSave.Location = new System.Drawing.Point(315, 176);
+            this.btnSSave.Location = new System.Drawing.Point(226, 173);
             this.btnSSave.Name = "btnSSave";
             this.btnSSave.Size = new System.Drawing.Size(75, 24);
             this.btnSSave.TabIndex = 22;
@@ -482,7 +508,8 @@
             this.MaximumSize = new System.Drawing.Size(410, 242);
             this.MinimumSize = new System.Drawing.Size(410, 242);
             this.Name = "frmSettings";
-            this.Text = "ychanex settings";
+            this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
+            this.Text = "YChanEx settings";
             this.tabControl1.ResumeLayout(false);
             this.tabDownloads.ResumeLayout(false);
             this.tabDownloads.PerformLayout();
@@ -532,7 +559,7 @@
         private System.Windows.Forms.Button btnOpenLocalFiles;
         private System.Windows.Forms.TabPage tabRegex;
         private System.Windows.Forms.Label label1;
-        private HintTextBox txtU18ChanRegex;
-        private System.Windows.Forms.Label lbu18chan;
+        private HintTextBox txtRegex;
+        private System.Windows.Forms.ListView lvRegex;
     }
 }

@@ -42,6 +42,12 @@
             this.clHash = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.btnForce404 = new System.Windows.Forms.Button();
             this.btnOpenFolder = new YChanEx.SplitButton();
+            this.contextMenu1 = new System.Windows.Forms.ContextMenu();
+            this.btnAbort = new System.Windows.Forms.Button();
+            this.cmClose = new System.Windows.Forms.ContextMenu();
+            this.cmCloseForm = new System.Windows.Forms.MenuItem();
+            this.mCloseSep = new System.Windows.Forms.MenuItem();
+            this.cmCancelDownload = new System.Windows.Forms.MenuItem();
             this.SuspendLayout();
             // 
             // tmrScan
@@ -150,7 +156,7 @@
             // 
             // clHash
             // 
-            this.clHash.Text = "MD5 Hash";
+            this.clHash.Text = "File Hash";
             this.clHash.Width = 114;
             // 
             // btnForce404
@@ -176,11 +182,46 @@
             this.btnOpenFolder.UseVisualStyleBackColor = true;
             this.btnOpenFolder.Click += new System.EventHandler(this.btnOpenFolder_Click);
             // 
+            // btnAbort
+            // 
+            this.btnAbort.Location = new System.Drawing.Point(405, 256);
+            this.btnAbort.Name = "btnAbort";
+            this.btnAbort.Size = new System.Drawing.Size(75, 23);
+            this.btnAbort.TabIndex = 10;
+            this.btnAbort.Text = "Abort";
+            this.btnAbort.UseVisualStyleBackColor = true;
+            // 
+            // cmClose
+            // 
+            this.cmClose.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
+            this.cmCloseForm,
+            this.mCloseSep,
+            this.cmCancelDownload});
+            // 
+            // cmCloseForm
+            // 
+            this.cmCloseForm.Index = 0;
+            this.cmCloseForm.Text = "Close form";
+            this.cmCloseForm.Click += new System.EventHandler(this.cmCloseForm_Click);
+            // 
+            // mCloseSep
+            // 
+            this.mCloseSep.Index = 1;
+            this.mCloseSep.Text = "-";
+            // 
+            // cmCancelDownload
+            // 
+            this.cmCancelDownload.Index = 2;
+            this.cmCancelDownload.Text = "Cancel download";
+            this.cmCancelDownload.Click += new System.EventHandler(this.cmCancelDownload_Click);
+            // 
             // frmDownloader
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(492, 320);
+            this.Controls.Add(this.btnAbort);
+            this.Controls.Add(this.lbNotModified);
             this.Controls.Add(this.btnOpenFolder);
             this.Controls.Add(this.btnForce404);
             this.Controls.Add(this.lbLastModified);
@@ -189,7 +230,6 @@
             this.Controls.Add(this.lbTimeToRescan);
             this.Controls.Add(this.lbTotal);
             this.Controls.Add(this.lvImages);
-            this.Controls.Add(this.lbNotModified);
             this.MinimumSize = new System.Drawing.Size(500, 350);
             this.Name = "frmDownloader";
             this.Text = "unknown chan download";
@@ -216,6 +256,12 @@
         private System.Windows.Forms.Label lbNotModified;
         private System.Windows.Forms.Button btnForce404;
         private SplitButton btnOpenFolder;
+        private System.Windows.Forms.ContextMenu contextMenu1;
+        private System.Windows.Forms.Button btnAbort;
+        private System.Windows.Forms.ContextMenu cmClose;
+        private System.Windows.Forms.MenuItem cmCloseForm;
+        private System.Windows.Forms.MenuItem mCloseSep;
+        private System.Windows.Forms.MenuItem cmCancelDownload;
 
     }
 }

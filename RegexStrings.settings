@@ -26,7 +26,7 @@
     <Setting Name="fchanFiles" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="u18chanUrl" Type="System.String" Scope="User">
+    <Setting Name="u18chanURL" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="u18chanFiles" Type="System.String" Scope="User">

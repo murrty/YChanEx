@@ -26,7 +26,7 @@
             this.components = new System.ComponentModel.Container();
             this.btnAdd = new System.Windows.Forms.Button();
             this.txtThreadURL = new System.Windows.Forms.TextBox();
-            this.mainMenu1 = new System.Windows.Forms.MainMenu(this.components);
+            this.mmMain = new System.Windows.Forms.MainMenu(this.components);
             this.mSettings = new System.Windows.Forms.MenuItem();
             this.mAbout = new System.Windows.Forms.MenuItem();
             this.niTray = new System.Windows.Forms.NotifyIcon(this.components);
@@ -59,9 +59,9 @@
             this.txtThreadURL.Size = new System.Drawing.Size(264, 20);
             this.txtThreadURL.TabIndex = 2;
             // 
-            // mainMenu1
+            // mmMain
             // 
-            this.mainMenu1.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
+            this.mmMain.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.mSettings,
             this.mAbout});
             // 
@@ -143,7 +143,7 @@
             this.Controls.Add(this.lvThreads);
             this.Controls.Add(this.txtThreadURL);
             this.Controls.Add(this.btnAdd);
-            this.Menu = this.mainMenu1;
+            this.Menu = this.mmMain;
             this.MinimumSize = new System.Drawing.Size(350, 250);
             this.Name = "frmMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -158,7 +158,7 @@
 
         private System.Windows.Forms.Button btnAdd;
         private System.Windows.Forms.TextBox txtThreadURL;
-        private System.Windows.Forms.MainMenu mainMenu1;
+        private System.Windows.Forms.MainMenu mmMain;
         private System.Windows.Forms.MenuItem mSettings;
         private System.Windows.Forms.MenuItem mAbout;
         private System.Windows.Forms.NotifyIcon niTray;

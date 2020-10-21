@@ -25,7 +25,7 @@ namespace YChanEx.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        [global::System.Configuration.DefaultSettingValueAttribute("2.0")]
         public decimal AppVersion {
             get {
                 return ((decimal)(this["AppVersion"]));
@@ -34,10 +34,22 @@ namespace YChanEx.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2020-02-26")]
+        [global::System.Configuration.DefaultSettingValueAttribute("2020-10-21")]
         public string DebugDate {
             get {
                 return ((string)(this["DebugDate"]));
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public decimal SkippedVersion {
+            get {
+                return ((decimal)(this["SkippedVersion"]));
+            }
+            set {
+                this["SkippedVersion"] = value;
             }
         }
     }

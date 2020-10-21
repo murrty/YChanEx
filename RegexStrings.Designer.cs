@@ -122,12 +122,12 @@ namespace YChanEx {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string u18chanUrl {
+        public string u18chanURL {
             get {
-                return ((string)(this["u18chanUrl"]));
+                return ((string)(this["u18chanURL"]));
             }
             set {
-                this["u18chanUrl"] = value;
+                this["u18chanURL"] = value;
             }
         }
         

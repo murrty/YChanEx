@@ -10,6 +10,7 @@ namespace YChanEx {
         static frmMain MainForm;                            // Main form instance
         private static volatile bool IsSettingsOpen = false;// Detects if the settings form is open
         public static volatile bool IsDebug = false;        // Enables debug methods and logic
+        public static readonly string ApplicationFilesLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\YChanEx";
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern IntPtr LoadCursor(IntPtr hInstance, int lpCursorName);
         public static readonly Cursor SystemHandCursor = new Cursor(LoadCursor(IntPtr.Zero, 32649));
