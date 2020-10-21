@@ -40,7 +40,7 @@ namespace YChanEx {
         private int HideModifiedLabelAt = 0;
         private Thread DownloadThread;
 
-        private bool UseConfirmedWorkingLogic = false; // all, if any of them use non-fully tested logic. debug only
+        private bool UseConfirmedWorkingLogic = true; // all, if any of them use non-fully tested logic. debug only
         private bool UseOldLogic = false;
 
         public frmDownloader() {
@@ -1017,11 +1017,6 @@ retryThread:
                         lbTotal.Text = "number of files: " + ThreadImageCount.ToString();
                         lbLastModified.Text = "last modified: " + LastModified.ToString();
                         lbScanTimer.Text = "Downloading files";
-                    }));
-
-                    if (YChanEx.Downloads.Default.SaveHTML) {
-                        File.WriteAllText(DownloadPath + "\\Thread.html", ThreadHTML);
-                    }
 
                     for (int ImageFilesIndex = 0; ImageFilesIndex < ImageFiles.Count; ImageFilesIndex++) {
                         if (ImageFiles[ImageFilesIndex] == null) {
@@ -1040,7 +1035,11 @@ retryThread:
                         }
                     }
 
-                    // Save html
+                    }));
+
+                    if (YChanEx.Downloads.Default.SaveHTML) {
+                        File.WriteAllText(DownloadPath + "\\Thread.html", ThreadHTML);
+                    }
 
                     ThreadHasScanned = true;
                 }
@@ -1129,6 +1128,7 @@ retryThread:
                     //XmlNodeList xmlPosts = xmlDoc.DocumentElement.SelectNodes("/root/posts/item");
 
                     if (UseConfirmedWorkingLogic) {
+                    #region Legacy 8kun
                         XmlNodeList xmlPostID = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/no");
                         XmlNodeList xmlTim = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/tim");
                         XmlNodeList xmlFileName = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/filename");
@@ -1277,6 +1277,7 @@ retryThread:
                                 lvImages.Items.Add(lvi);
                             }));
                         }
+                    #endregion
                     }
                     else {
                         // WIP
