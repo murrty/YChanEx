@@ -97,13 +97,13 @@ namespace YChanEx {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool SaveQueueOnExit {
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool AllowFileNamesGreaterThan255 {
             get {
-                return ((bool)(this["SaveQueueOnExit"]));
+                return ((bool)(this["AllowFileNamesGreaterThan255"]));
             }
             set {
-                this["SaveQueueOnExit"] = value;
+                this["AllowFileNamesGreaterThan255"] = value;
             }
         }
     }

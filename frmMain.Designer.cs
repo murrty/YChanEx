@@ -33,6 +33,7 @@
             this.changeTray = new System.Windows.Forms.Timer(this.components);
             this.cmItems = new System.Windows.Forms.ContextMenu();
             this.mStatus = new System.Windows.Forms.MenuItem();
+            this.mRetryDownload = new System.Windows.Forms.MenuItem();
             this.mRemove = new System.Windows.Forms.MenuItem();
             this.lvThreads = new YChanEx.VistaListView();
             this.clStatus = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -92,7 +93,9 @@
             // 
             this.cmItems.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.mStatus,
+            this.mRetryDownload,
             this.mRemove});
+            this.cmItems.Popup += new System.EventHandler(this.cmItems_Popup);
             // 
             // mStatus
             // 
@@ -100,9 +103,15 @@
             this.mStatus.Text = "View Status";
             this.mStatus.Click += new System.EventHandler(this.mStatus_Click);
             // 
+            // mRetryDownload
+            // 
+            this.mRetryDownload.Index = 1;
+            this.mRetryDownload.Text = "Retry Download";
+            this.mRetryDownload.Click += new System.EventHandler(this.mRetryDownload_Click);
+            // 
             // mRemove
             // 
-            this.mRemove.Index = 1;
+            this.mRemove.Index = 2;
             this.mRemove.Text = "Remove";
             this.mRemove.Click += new System.EventHandler(this.mRemove_Click);
             // 
@@ -119,7 +128,7 @@
             this.lvThreads.Location = new System.Drawing.Point(0, 33);
             this.lvThreads.MultiSelect = false;
             this.lvThreads.Name = "lvThreads";
-            this.lvThreads.Size = new System.Drawing.Size(342, 187);
+            this.lvThreads.Size = new System.Drawing.Size(342, 178);
             this.lvThreads.TabIndex = 3;
             this.lvThreads.UseCompatibleStateImageBehavior = false;
             this.lvThreads.View = System.Windows.Forms.View.Details;
@@ -139,7 +148,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(342, 220);
+            this.ClientSize = new System.Drawing.Size(342, 211);
             this.Controls.Add(this.lvThreads);
             this.Controls.Add(this.txtThreadURL);
             this.Controls.Add(this.btnAdd);
@@ -148,6 +157,7 @@
             this.Name = "frmMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "YChanEx";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmMain_FormClosing);
             this.Load += new System.EventHandler(this.frmMain_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -169,6 +179,7 @@
         private System.Windows.Forms.ContextMenu cmItems;
         private System.Windows.Forms.MenuItem mStatus;
         private System.Windows.Forms.MenuItem mRemove;
+        private System.Windows.Forms.MenuItem mRetryDownload;
     }
 }
 

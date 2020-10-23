@@ -57,6 +57,7 @@
     <Compile Include="Classes\Controls.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Classes\ErrorLog.cs" />
     <Compile Include="Classes\UpdateChecker.cs" />
     <Compile Include="Downloads.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -176,6 +177,18 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\YChanEx404.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\downloading.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\errored.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\finished.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\waiting.bmp" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

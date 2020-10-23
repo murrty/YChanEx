@@ -122,6 +122,18 @@ namespace YChanEx {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string fchanNames {
+            get {
+                return ((string)(this["fchanNames"]));
+            }
+            set {
+                this["fchanNames"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string u18chanURL {
             get {
                 return ((string)(this["u18chanURL"]));
@@ -140,6 +152,30 @@ namespace YChanEx {
             }
             set {
                 this["u18chanFiles"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string u18chanID {
+            get {
+                return ((string)(this["u18chanID"]));
+            }
+            set {
+                this["u18chanID"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string u18chanPosts {
+            get {
+                return ((string)(this["u18chanPosts"]));
+            }
+            set {
+                this["u18chanPosts"] = value;
             }
         }
     }

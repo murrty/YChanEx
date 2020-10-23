@@ -3,6 +3,7 @@ using System.Windows.Forms;
 
 namespace YChanEx {
     public partial class frmSettings : Form {
+        #region Variables for regex strings
         private string FourChanURL = string.Empty;
         private string FourTwentyChanURL = string.Empty;
         private string SevenChanURL = string.Empty;
@@ -11,8 +12,10 @@ namespace YChanEx {
         private string EightKunURL = string.Empty;
         private string fchanURL = string.Empty;
         private string fchanFiles = string.Empty;
+        private string fchanNames = string.Empty;
         private string u18chanURL = string.Empty;
-        private string u18chanFiles = string.Empty;
+        private string u18chanPosts = string.Empty;
+        #endregion
 
         public frmSettings() {
             InitializeComponent();
@@ -29,17 +32,18 @@ namespace YChanEx {
         void LoadSettings() {
             txtSavePath.Text = Downloads.Default.DownloadPath;
             numTimer.Value = Downloads.Default.ScannerDelay;
-            chkDownloadHTML.Checked = Downloads.Default.SaveHTML;
-            chkDownloadThumbnails.Checked = Downloads.Default.SaveThumbnails;
-            chkSaveDownloadQueueOnExit.Checked = Downloads.Default.SaveQueueOnExit;
             chkSaveOriginalFileNames.Checked = Downloads.Default.SaveOriginalFilenames;
             chkPreventDuplicates.Checked = Downloads.Default.PreventDuplicates;
+            chkAllowFileNamesGreaterThan255.Checked = Downloads.Default.AllowFileNamesGreaterThan255;
+            chkDownloadHTML.Checked = Downloads.Default.SaveHTML;
+            chkDownloadThumbnails.Checked = Downloads.Default.SaveThumbnails;
 
             chkShowTrayIcon.Checked = General.Default.ShowTrayIcon;
             chkMinimizeToTray.Checked = General.Default.MinimizeToTray;
             chkShowExitWarning.Checked = General.Default.ShowExitWarning;
             chkEnableUpdates.Checked = General.Default.EnableUpdates;
             chkUseFullBoardNameForTitle.Checked = General.Default.UseFullBoardNameForTitle;
+            chkSaveDownloadQueueOnExit.Checked = General.Default.SaveQueueOnExit;
 
             txtUserAgent.Text = Advanced.Default.UserAgent;
             chkDisableScannerWhenOpeningSettings.Checked = Advanced.Default.DisableScanWhenOpeningSettings;
@@ -50,17 +54,18 @@ namespace YChanEx {
                 Downloads.Default.DownloadPath = txtSavePath.Text;
             }
             Downloads.Default.ScannerDelay = (int)numTimer.Value;
-            Downloads.Default.SaveHTML = chkDownloadHTML.Checked;
-            Downloads.Default.SaveThumbnails = chkDownloadThumbnails.Checked;
-            Downloads.Default.SaveQueueOnExit = chkSaveDownloadQueueOnExit.Checked;
             Downloads.Default.SaveOriginalFilenames = chkSaveOriginalFileNames.Checked;
             Downloads.Default.PreventDuplicates = chkPreventDuplicates.Checked;
+            Downloads.Default.AllowFileNamesGreaterThan255 = chkAllowFileNamesGreaterThan255.Checked;
+            Downloads.Default.SaveHTML = chkDownloadHTML.Checked;
+            Downloads.Default.SaveThumbnails = chkDownloadThumbnails.Checked;
 
             General.Default.ShowTrayIcon = chkShowTrayIcon.Checked;
             General.Default.MinimizeToTray = chkMinimizeToTray.Checked;
             General.Default.ShowExitWarning = chkShowExitWarning.Checked;
             General.Default.EnableUpdates = chkEnableUpdates.Checked;
             General.Default.UseFullBoardNameForTitle = chkUseFullBoardNameForTitle.Checked;
+            General.Default.SaveQueueOnExit = chkSaveDownloadQueueOnExit.Checked;
 
             if (!string.IsNullOrEmpty(txtUserAgent.Text)) {
                 Advanced.Default.UserAgent = txtUserAgent.Text;
@@ -109,8 +114,8 @@ namespace YChanEx {
                 RegexStrings.Default.u18chanURL = u18chanURL;
                 RegexChanged = true;
             }
-            if (RegexStrings.Default.u18chanFiles != u18chanFiles) {
-                RegexStrings.Default.u18chanFiles = u18chanFiles;
+            if (RegexStrings.Default.u18chanPosts != u18chanPosts) {
+                RegexStrings.Default.u18chanPosts = u18chanPosts;
                 RegexChanged = true;
             }
 
@@ -126,6 +131,29 @@ namespace YChanEx {
             using (FolderBrowserDialog fbd = new FolderBrowserDialog()) {
                 fbd.Description = "Select a folder to save threads to";
                 if (fbd.ShowDialog() == DialogResult.OK) {
+                    if (chkMoveExistingDownloads.Checked) {
+                        if (System.IO.Directory.Exists(txtSavePath.Text + "\\4chan")) {
+                            System.IO.Directory.Move(txtSavePath.Text + "\\4chan", fbd.SelectedPath + "\\4chan");
+                        }
+                        if (System.IO.Directory.Exists(txtSavePath.Text + "\\420chan")) {
+                            System.IO.Directory.Move(txtSavePath.Text + "\\420chan", fbd.SelectedPath + "\\420chan");
+                        }
+                        if (System.IO.Directory.Exists(txtSavePath.Text + "\\7chan")) {
+                            System.IO.Directory.Move(txtSavePath.Text + "\\7chan", fbd.SelectedPath + "\\7chan");
+                        }
+                        if (System.IO.Directory.Exists(txtSavePath.Text + "\\8chan")) {
+                            System.IO.Directory.Move(txtSavePath.Text + "\\8chan", fbd.SelectedPath + "\\8chan");
+                        }
+                        if (System.IO.Directory.Exists(txtSavePath.Text + "\\8kun")) {
+                            System.IO.Directory.Move(txtSavePath.Text + "\\8kun", fbd.SelectedPath + "\\8kun");
+                        }
+                        if (System.IO.Directory.Exists(txtSavePath.Text + "\\fchan")) {
+                            System.IO.Directory.Move(txtSavePath.Text + "\\fchan", fbd.SelectedPath + "\\fchan");
+                        }
+                        if (System.IO.Directory.Exists(txtSavePath.Text + "\\u18chan")) {
+                            System.IO.Directory.Move(txtSavePath.Text + "\\u18chan", fbd.SelectedPath + "\\u18chan");
+                        }
+                    }
                     txtSavePath.Text = fbd.SelectedPath;
                 }
             }
@@ -141,48 +169,69 @@ namespace YChanEx {
                     case 0:
                         txtRegex.Text = RegexStrings.Default.FourChanURL;
                         txtRegex.TextHint = ChanRegex.DefaultRegex.FourChanURL;
+                        lbRegexHint.Text = "This is the URL pattern of a 4chan thread, used to detect if it's a real 4chan link.";
                         break;
                     case 1:
                         txtRegex.Text = RegexStrings.Default.FourTwentyChanURL;
                         txtRegex.TextHint = ChanRegex.DefaultRegex.FourTwentyChanURL;
+                        lbRegexHint.Text = "This is the URL pattern of a 420chan thread, used to detect if it's a real 420chan link.";
                         break;
                     case 2:
                         txtRegex.Text = RegexStrings.Default.SevenChanURL;
                         txtRegex.TextHint = ChanRegex.DefaultRegex.SevenChanURL;
+                        lbRegexHint.Text = "This is the URL pattern of a 7chan thread, used to detect if it's a real 4chan link.";
                         break;
                     case 3:
                         txtRegex.Text = RegexStrings.Default.SevenChanFiles;
                         txtRegex.TextHint = ChanRegex.DefaultRegex.SevenChanFiles;
+                        lbRegexHint.Text = "This is a file pattern for 7chan, it parses raw HTML for image links.";
                         break;
                     case 4:
                         txtRegex.Text = RegexStrings.Default.EightChanURL;
                         txtRegex.TextHint = ChanRegex.DefaultRegex.EightChanURL;
+                        lbRegexHint.Text = "This is the URL pattern of a 8chan thread, used to detect if it's a real 4chan link.";
                         break;
                     case 5:
                         txtRegex.Text = RegexStrings.Default.EightKunURL;
                         txtRegex.TextHint = ChanRegex.DefaultRegex.EightKunURL;
+                        lbRegexHint.Text = "This is the URL pattern of a 8kun thread, used to detect if it's a real 4chan link.";
                         break;
                     case 6:
                         txtRegex.Text = RegexStrings.Default.fchanURL;
                         txtRegex.TextHint = ChanRegex.DefaultRegex.fchanURL;
+                        lbRegexHint.Text = "This is the URL pattern of a fchan thread, used to detect if it's a real fchan link.";
                         break;
                     case 7:
                         txtRegex.Text = RegexStrings.Default.fchanFiles;
                         txtRegex.TextHint = ChanRegex.DefaultRegex.fchanFiles;
+                        lbRegexHint.Text = "This is a file pattern for fchan, it parses raw HTML for image links.";
                         break;
                     case 8:
-                        txtRegex.Text = RegexStrings.Default.u18chanURL;
-                        txtRegex.TextHint = ChanRegex.DefaultRegex.u18chanURL;
+                        txtRegex.Text = RegexStrings.Default.fchanNames;
+                        txtRegex.TextHint = ChanRegex.DefaultRegex.fchanNames;
+                        lbRegexHint.Text = "This is a file name pattern for fchan, it parses raw HTML for original file names.";
                         break;
                     case 9:
-                        txtRegex.Text = RegexStrings.Default.u18chanFiles;
-                        txtRegex.TextHint = ChanRegex.DefaultRegex.u18chanFiles;
+                        txtRegex.Text = RegexStrings.Default.u18chanURL;
+                        txtRegex.TextHint = ChanRegex.DefaultRegex.u18chanURL;
+                        lbRegexHint.Text = "This is the URL pattern of a u18chan thread, used to detect if it's a real u18chan link.";
+                        break;
+                    case 10:
+                        txtRegex.Text = RegexStrings.Default.u18chanPosts;
+                        txtRegex.TextHint = ChanRegex.DefaultRegex.u18chanPosts;
+                        lbRegexHint.Text = "This is a post pattern for 7chan, it parses raw HTML for image links and post IDs.";
+                        break;
+                    default:
+                        txtRegex.Text = "Unknown Regex Pattern";
+                        txtRegex.TextHint = "Unknown Regex Pattern";
+                        lbRegexHint.Text = "An error occured somewhere, and a pattern wasn't properly selected.";
                         break;
                 }
             }
             else {
                 txtRegex.Text = "";
                 txtRegex.TextHint = "";
+                lbRegexHint.Text = "Select a pattern to the left if you want to change them.\nIf you are unsure what you're doing, don't do anything here.";
             }
         }
 
@@ -214,10 +263,13 @@ namespace YChanEx {
                         fchanFiles = txtRegex.Text;
                         break;
                     case 8:
-                        u18chanURL = txtRegex.Text;
+                        fchanNames = txtRegex.Text;
                         break;
                     case 9:
-                        u18chanFiles = txtRegex.Text;
+                        u18chanURL = txtRegex.Text;
+                        break;
+                    case 10:
+                        u18chanPosts = txtRegex.Text;
                         break;
                 }
             }

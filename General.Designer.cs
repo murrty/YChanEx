@@ -37,7 +37,7 @@ namespace YChanEx {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
         public bool MinimizeToTray {
             get {
                 return ((bool)(this["MinimizeToTray"]));
@@ -73,13 +73,37 @@ namespace YChanEx {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool UseFullBoardNameForTitle {
             get {
                 return ((bool)(this["UseFullBoardNameForTitle"]));
             }
             set {
                 this["UseFullBoardNameForTitle"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool SaveQueueOnExit {
+            get {
+                return ((bool)(this["SaveQueueOnExit"]));
+            }
+            set {
+                this["SaveQueueOnExit"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool MinimizeInsteadOfExiting {
+            get {
+                return ((bool)(this["MinimizeInsteadOfExiting"]));
+            }
+            set {
+                this["MinimizeInsteadOfExiting"] = value;
             }
         }
     }
