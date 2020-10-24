@@ -80,42 +80,6 @@ namespace YChanEx {
             e.Cancel = true;
             this.Hide();
         }
-        private void btnOpenFolder_Click(object sender, EventArgs e) {
-            if (DownloadPath == null) { return; }
-
-            if (Directory.Exists(DownloadPath)) {
-                System.Diagnostics.Process.Start(DownloadPath);
-            }
-        }
-        private void btnAbortRetry_Click(object sender, EventArgs e) {
-            if (!Thread404 && !DownloadAborted) {
-                StopDownload();
-                btnAbortRetry.Text = "Retry";
-                lbNotModified.Visible = false;
-                if (Program.IsDebug) {
-                    btnForce404.Enabled = false;
-                }
-            }
-            else {
-                btnAbortRetry.Text = "Abort";
-                if (Program.IsDebug) {
-                    btnForce404.Enabled = true;
-                }
-                RetryScanOnFailure();
-            }
-        }
-        private void btnClose_Click(object sender, EventArgs e) {
-            this.Hide();
-        }
-        private void cmCancelDownload_Click(object sender, EventArgs e) {
-            StopDownload();
-            if (Program.IsDebug) {
-                btnForce404.Enabled = false;
-            }
-        }
-        private void cmCloseForm_Click(object sender, EventArgs e) {
-            this.Hide();
-        }
         private void tmrScan_Tick(object sender, EventArgs e) {
             if (Program.SettingsOpen) {
                 if (TimerIdle != null && TimerIdle.IsAlive) {
@@ -178,7 +142,61 @@ namespace YChanEx {
                 AfterDownload();
             }
         }
+        private void btnAbortRetry_Click(object sender, EventArgs e) {
+            if (!Thread404 && !DownloadAborted) {
+                StopDownload();
+                btnAbortRetry.Text = "Retry";
+                lbNotModified.Visible = false;
+                if (Program.IsDebug) {
+                    btnForce404.Enabled = false;
+                }
+            }
+            else {
+                btnAbortRetry.Text = "Abort";
+                if (Program.IsDebug) {
+                    btnForce404.Enabled = true;
+                }
+                RetryScanOnFailure();
+            }
+        }
+        private void btnOpenFolder_Click(object sender, EventArgs e) {
+            if (DownloadPath == null) { return; }
 
+            if (Directory.Exists(DownloadPath)) {
+                System.Diagnostics.Process.Start(DownloadPath);
+            }
+        }
+        private void btnClose_Click(object sender, EventArgs e) {
+            this.Hide();
+        }
+
+
+        #region cmThreadActions
+        private void mOpenThreadDownloadFolder_Click(object sender, EventArgs e) {
+            if (System.IO.Directory.Exists(DownloadPath)) {
+                System.Diagnostics.Process.Start(DownloadPath);
+            }
+        }
+
+        private void mOpenThreadInBrowser_Click(object sender, EventArgs e) {
+            if (ThreadURL != null) {
+                System.Diagnostics.Process.Start(ThreadURL);
+            }
+        }
+
+        private void mCopyThreadID_Click(object sender, EventArgs e) {
+            if (ThreadID != null) {
+                Clipboard.SetText(ThreadID);
+            }
+        }
+
+        private void mCopyThreadURL_Click(object sender, EventArgs e) {
+            if (ThreadURL != null) {
+                Clipboard.SetText(ThreadURL);
+            }
+        }
+        #endregion
+        #region Custom Thread Actions Methods
         public void StartDownload() {
             GC.Collect();
             ChanType = Chans.GetChanType(ThreadURL);
@@ -328,8 +346,10 @@ namespace YChanEx {
                 DownloadThread.Abort();
             }
         }
+        #endregion
 
-        #region 4chan Completed.
+
+        #region 4chan Download Logic Completed.
         private void Set4chanThread() {
             DownloadThread = new Thread(() => {
                 string FileBaseURL = "https://i.4cdn.org/" + ThreadBoard + "/";
@@ -592,7 +612,7 @@ namespace YChanEx {
         }
         #endregion
 
-        #region 420chan Completed.
+        #region 420chan Download Logic Completed.
         private void Set420chanThread() {
             DownloadThread = new Thread(() => {
                 string FileBaseURL = "https://boards.420chan.org/" + ThreadBoard + "/src/";
@@ -757,9 +777,10 @@ namespace YChanEx {
         }
         #endregion
 
-        #region 7chan (needs work)
+        #region 7chan Download Logic Basically Completed, Needs: Original File Names
         private void Set7chanThread() {
             DownloadThread = new Thread(() => {
+                string BaseURL = "https://7chan.org/";
                 string ThreadHTML = null;
                 string CurrentURL = null;
                 try {
@@ -798,48 +819,124 @@ retryThread:
                     }
 
                     LastThreadHTML = ThreadHTML;
+                    string HTMLBuffer = ThreadHTML; // This will be saved instead of ThreadHTML
                     #endregion
 
                     #region HTML Parsing Logic
-                    Regex ImageMatch = new Regex(ChanRegex.SevenChanFiles);
+                    if (!UseOldLogic) {
+                        #region New HTML Parsing Logic
+                        MatchCollection PostMatches = new Regex(ChanRegex.SevenChanPosts).Matches(ThreadHTML);
+                        for (int PostMatchesIndex = ThreadPostsCount; PostMatchesIndex < PostMatches.Count; PostMatchesIndex++, ThreadPostsCount++) {
+                            string MatchValue = PostMatches[PostMatchesIndex].Value;
+                            int IndexOfFileLink = MatchValue.IndexOf("alt=\"") + 5;
+                            int IndexOfID = MatchValue.IndexOf("\"><img src=\"");
+                            string PostID = MatchValue.Substring(IndexOfFileLink, MatchValue.Length - IndexOfFileLink - 15);
+                            string FileLink = MatchValue.Substring(0, IndexOfID);
 
-                    List<string> FilesBuffer = new List<string>();
-                    string HTMLBuffer = ThreadHTML; // This will be saved instead of ThreadHTML
-                    foreach (Match ImageLink in ImageMatch.Matches(ThreadHTML)) {
-                        FilesBuffer.Add(ImageLink.ToString());
+                            string FileExtension = "." + FileLink.Split('.')[2];
+                            string FileName = FileLink.Split('/')[5];
+                            FileName = FileName.Substring(0, FileName.Length - FileExtension.Length);
+
+                            ImageFiles.Add(FileLink);
+                            FileExtensions.Add(FileExtension);
+
+                            //if (YChanEx.Downloads.Default.SaveOriginalFilenames) {
+                            //    FileName = OriginalFileName;
+                            //    string FileNamePrefix = "";
+                            //    string FileNameSuffix = "";
+
+                            //    if (Downloads.Default.PreventDuplicates) {
+                            //        if (OriginalFileNames.Contains(FileName)) {
+                            //            if (FileNamesDupes.Contains(FileName)) {
+                            //                int DupeNameIndex = FileNamesDupes.IndexOf(FileName);
+                            //                FileNamesDupesCount[DupeNameIndex] += 1;
+                            //                FileNameSuffix = " (dupe " + FileNamesDupesCount[DupeNameIndex].ToString() + ")";
+                            //            }
+                            //            else {
+                            //                FileNamesDupes.Add(FileName);
+                            //                FileNamesDupesCount.Add(1);
+                            //                FileNameSuffix = " (dupe 1)";
+                            //            }
+                            //        }
+                            //    }
+
+                            //    for (int j = 0; j < Chans.InvalidFileCharacters.Length; j++) {
+                            //        FileName = FileName.Replace(Chans.InvalidFileCharacters[j], "_");
+                            //    }
+
+                            //    FileNameToReplace = FileNamePrefix + FileName + FileNameSuffix;
+                            //    FileName = FileNamePrefix + FileName + FileNameSuffix;
+                            //}
+
+                            //OriginalFileNames.Add(OriginalFileName);
+                            FileNames.Add(FileName + FileExtension);
+
+                            if (Downloads.Default.SaveThumbnails) {
+                                ThumbnailFiles.Add(BaseURL + ThreadBoard + "/thumb/" + FileName + "s" + FileExtension);
+                                ThumbnailNames.Add(FileName + "s" + FileExtension);
+                            }
+
+                            ListViewItem lvi = new ListViewItem();
+                            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                            lvi.Name = FileLink;
+                            lvi.SubItems[0].Text = FileName;
+                            lvi.SubItems[1].Text = FileExtension;
+                            lvi.SubItems[2].Text = FileName;
+                            lvi.ImageIndex = 0;
+                            this.BeginInvoke(new MethodInvoker(() => {
+                                lvImages.Items.Add(lvi);
+                            }));
+                        }
+
+                        if (Downloads.Default.SaveHTML) {
+                            HTMLBuffer = HTMLBuffer.Replace("https://7chan.org/" + ThreadBoard + "/src/", "");
+                            HTMLBuffer = HTMLBuffer.Replace("https://7chan.org/" + ThreadBoard + "/thumb/", "thumb/");
+                        }
+                        #endregion
                     }
+                    else {
+                        #region Old HTML Parsing Logic
+                        Regex ImageMatch = new Regex("http(?:s)?:\\/\\/(?:www\\.)?7chan.org\\/([a-zA-Z0-9]+)\\/src\\/([0-9]+)\\.(?:jpg|jpeg|gif|png|webm|mp4)?");
 
-                    if (FilesBuffer.Count > ImageFiles.Count) {
-                        for (int FilesBufferIndex = ImageFiles.Count; FilesBufferIndex < FilesBuffer.Count; FilesBufferIndex++) {
-                            string FileName = FilesBuffer[FilesBufferIndex].Split('/')[FilesBuffer[FilesBufferIndex].Split('/').Length - 1].Split('.')[0];
-                            string Extension = FilesBuffer[FilesBufferIndex].Split('.')[FilesBuffer[FilesBufferIndex].Split('.').Length - 1];
-                            if (!FileNames.Contains(FileName)) {
-                                ImageFiles.Add(FilesBuffer[FilesBufferIndex]);
-                                FileNames.Add(FileName);
-                                FileExtensions.Add(Extension);
+                        List<string> FilesBuffer = new List<string>();
+                        foreach (Match ImageLink in ImageMatch.Matches(ThreadHTML)) {
+                            FilesBuffer.Add(ImageLink.ToString());
+                        }
 
-                                if (Downloads.Default.SaveThumbnails) {
-                                    ThumbnailFiles.Add("https://7chan.org/" + ThreadBoard + "/thumb/" + FileName + "s.jpg");
+                        if (FilesBuffer.Count > ImageFiles.Count) {
+                            for (int FilesBufferIndex = ImageFiles.Count; FilesBufferIndex < FilesBuffer.Count; FilesBufferIndex++) {
+                                string FileName = FilesBuffer[FilesBufferIndex].Split('/')[FilesBuffer[FilesBufferIndex].Split('/').Length - 1].Split('.')[0];
+                                string Extension = FilesBuffer[FilesBufferIndex].Split('.')[FilesBuffer[FilesBufferIndex].Split('.').Length - 1];
+                                if (!FileNames.Contains(FileName)) {
+                                    ImageFiles.Add(FilesBuffer[FilesBufferIndex]);
+                                    FileNames.Add(FileName);
+                                    FileExtensions.Add(Extension);
+
+                                    if (Downloads.Default.SaveThumbnails) {
+                                        ThumbnailFiles.Add("https://7chan.org/" + ThreadBoard + "/thumb/" + FileName + "s.jpg");
+                                    }
+
+                                    if (Downloads.Default.SaveHTML) {
+                                        //HTMLBuffer = HTMLBuffer.Replace(FilesBuffer[i], FileName + "." + Extension);
+                                        HTMLBuffer = HTMLBuffer.Replace("https://7chan.org/" + ThreadBoard, "");
+                                    }
+
+                                    ListViewItem lvi = new ListViewItem();
+                                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                                    lvi.Name = FilesBuffer[FilesBufferIndex];
+                                    lvi.SubItems[0].Text = FileName;
+                                    lvi.SubItems[1].Text = Extension;
+                                    lvi.SubItems[2].Text = FileName;
+                                    lvi.ImageIndex = 0;
+                                    this.BeginInvoke(new MethodInvoker(() => {
+                                        lvImages.Items.Add(lvi);
+                                    }));
                                 }
-
-                                if (Downloads.Default.SaveHTML) {
-                                    //HTMLBuffer = HTMLBuffer.Replace(FilesBuffer[i], FileName + "." + Extension);
-                                    HTMLBuffer = HTMLBuffer.Replace("https://7chan.org/" + ThreadBoard, "");
-                                }
-
-                                ListViewItem lvi = new ListViewItem();
-                                lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                                lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                                lvi.Name = FilesBuffer[FilesBufferIndex];
-                                lvi.SubItems[0].Text = FileName;
-                                lvi.SubItems[1].Text = Extension;
-                                lvi.SubItems[2].Text = FileName;
-                                lvi.ImageIndex = 0;
-                                this.BeginInvoke(new MethodInvoker(() => {
-                                    lvImages.Items.Add(lvi);
-                                }));
                             }
                         }
+                        #endregion
                     }
 
                     this.BeginInvoke(new MethodInvoker(() => {
@@ -850,30 +947,20 @@ retryThread:
                     #endregion
 
                     #region Download Logic
-                    for (int ImageFilesIndex = DownloadedImagesCount; ImageFilesIndex < ImageFiles.Count; ImageFilesIndex++, DownloadedImagesCount++) {
+                    for (int ImageFilesIndex = DownloadedImagesCount; ImageFilesIndex < ImageFiles.Count; ImageFilesIndex++) {
                         this.BeginInvoke(new MethodInvoker(() => {
                             lvImages.Items[ImageFilesIndex].ImageIndex = 1;
                         }));
                         CurrentURL = ImageFiles[ImageFilesIndex];
-                        string FileName = ImageFiles[ImageFilesIndex].Split('/')[ImageFiles[ImageFilesIndex].Split('/').Length - 1];
-                        for (int y = 0; y < Chans.InvalidFileCharacters.Length; y++) {
-                            FileName = FileName.Replace(Chans.InvalidFileCharacters[y], "_");
-                            HTMLBuffer = HTMLBuffer.Replace(ImageFiles[ImageFilesIndex].Split('/')[ImageFiles[ImageFilesIndex].Split('/').Length - 1], FileName);
-                        }
 
                         if (MessageBoxPerFile) { MessageBox.Show(CurrentURL); }
-                        if (Chans.DownloadFile(ImageFiles[ImageFilesIndex], DownloadPath, FileName)) {
+                        if (Chans.DownloadFile(ImageFiles[ImageFilesIndex], DownloadPath, FileNames[ImageFilesIndex])) {
                             if (Downloads.Default.SaveThumbnails) {
-                                FileName = ThumbnailFiles[ImageFilesIndex].Split('/')[ThumbnailFiles[ImageFilesIndex].Split('/').Length - 1];
-                                for (int y = 0; y < Chans.InvalidFileCharacters.Length; y++) {
-                                    FileName = FileName.Replace(Chans.InvalidFileCharacters[y], "_");
-                                    HTMLBuffer = HTMLBuffer.Replace(ThumbnailFiles[ImageFilesIndex].Split('/')[ThumbnailFiles[ImageFilesIndex].Split('/').Length - 1], FileName);
-                                }
-                                if (MessageBoxPerFile) { MessageBox.Show(CurrentURL); }
-                                Chans.DownloadFile(ThumbnailFiles[ImageFilesIndex], DownloadPath + "\\thumb\\", FileName);
+                                Chans.DownloadFile(ThumbnailFiles[ImageFilesIndex], DownloadPath + "\\thumb\\", ThumbnailNames[ImageFilesIndex]);
                             }
 
 
+                            DownloadedImagesCount++;
                             this.BeginInvoke(new MethodInvoker(() => {
                                 lbDownloadedFiles.Text = DownloadedImagesCount.ToString();
                                 lvImages.Items[ImageFilesIndex].ImageIndex = 2;
@@ -884,7 +971,6 @@ retryThread:
                                 lvImages.Items[ImageFilesIndex].ImageIndex = 3;
                             }));
                         }
-
 
                         if (PauseBetweenFiles) { Thread.Sleep(100); }
                     }
@@ -933,7 +1019,7 @@ retryThread:
         }
         #endregion
 
-        #region 8chan Completed.
+        #region 8chan Download Logic Completed.
         private void Set8chanThread() {
             DownloadThread = new Thread(() => {
                 string FileBaseURL = "https://8chan.moe";
@@ -1382,7 +1468,7 @@ retryThread:
         }
         #endregion
 
-        #region 8kun Completed.
+        #region 8kun Download Logic Completed.
         private void Set8kunThread() {
             DownloadThread = new Thread(() => {
                 string FileBaseURL = "https://media.8kun.top/file_store/";
@@ -1855,7 +1941,7 @@ retryThread:
         }
         #endregion
 
-        #region fchan TODO: Actually implement properly.
+        #region fchan Download Logic TODO: Actually implement properly.
         private void SetFchanThread() {
             DownloadThread = new Thread(() => {
                 string ThreadHTML = null;
@@ -2022,7 +2108,7 @@ retryThread:
         }
         #endregion
 
-        #region u18chan (Basically completed) TODO: HTML replacement.
+        #region u18chan Download Logic (Basically completed) TODO: HTML replacement.
         private void Setu18ChanThread() {
             DownloadThread = new Thread(() => {
                 string ThreadHTML = null;
@@ -2069,15 +2155,14 @@ retryThread:
                     #region HTML Parsing logic
                     if (!UseOldLogic) {
                         #region New Parse Logic
-                        MatchCollection ImageMatch = new Regex(ChanRegex.u18chanPosts).Matches(ThreadHTML);
-                        for (int MatchIndex = ThreadPostsCount; MatchIndex < ImageMatch.Count; MatchIndex++, ThreadPostsCount++) {
-                            if (ImageMatch[MatchIndex] != null) {
-                                string MatchValue = ImageMatch[MatchIndex].Value;
+                        MatchCollection PostMatches = new Regex(ChanRegex.u18chanPosts).Matches(ThreadHTML);
+                        for (int PostMatchesIndex = ThreadPostsCount; PostMatchesIndex < PostMatches.Count; PostMatchesIndex++, ThreadPostsCount++) {
+                            if (PostMatches[PostMatchesIndex] != null) {
+                                string MatchValue = PostMatches[PostMatchesIndex].Value;
                                 int IndexOfTag = MatchValue.IndexOf('<');
                                 string PostID = MatchValue.Substring(IndexOfTag + 14).Substring(0, 8).Trim('_');
                                 IndexOfTag = MatchValue.IndexOf('>');
                                 string FileLink = MatchValue.Substring(0, IndexOfTag - 1);
-
 
                                 string FileName = FileLink.Split('/')[FileLink.Split('/').Length - 1];
                                 string Extension = "." + FileName.Split('.')[FileName.Split('.').Length - 1];
