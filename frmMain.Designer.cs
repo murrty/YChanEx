@@ -38,6 +38,10 @@
             this.lvThreads = new YChanEx.VistaListView();
             this.clStatus = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clThread = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.cmTray = new System.Windows.Forms.ContextMenu();
+            this.mTrayShowYChanEx = new System.Windows.Forms.MenuItem();
+            this.mTrayExit = new System.Windows.Forms.MenuItem();
+            this.mTraySep = new System.Windows.Forms.MenuItem();
             this.SuspendLayout();
             // 
             // btnAdd
@@ -82,7 +86,7 @@
             // 
             this.niTray.BalloonTipIcon = System.Windows.Forms.ToolTipIcon.Error;
             this.niTray.Text = "YChanEx";
-            this.niTray.Visible = true;
+            this.niTray.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.niTray_MouseDoubleClick);
             // 
             // changeTray
             // 
@@ -144,6 +148,30 @@
             this.clThread.Text = "Threads";
             this.clThread.Width = 260;
             // 
+            // cmTray
+            // 
+            this.cmTray.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
+            this.mTrayShowYChanEx,
+            this.mTraySep,
+            this.mTrayExit});
+            // 
+            // mTrayShowYChanEx
+            // 
+            this.mTrayShowYChanEx.Index = 0;
+            this.mTrayShowYChanEx.Text = "Show YChanex";
+            this.mTrayShowYChanEx.Click += new System.EventHandler(this.mTrayShowYChanEx_Click);
+            // 
+            // mTrayExit
+            // 
+            this.mTrayExit.Index = 2;
+            this.mTrayExit.Text = "Exit";
+            this.mTrayExit.Click += new System.EventHandler(this.mTrayExit_Click);
+            // 
+            // mTraySep
+            // 
+            this.mTraySep.Index = 1;
+            this.mTraySep.Text = "-";
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -159,6 +187,7 @@
             this.Text = "YChanEx";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmMain_FormClosing);
             this.Load += new System.EventHandler(this.frmMain_Load);
+            this.SizeChanged += new System.EventHandler(this.frmMain_SizeChanged);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -180,6 +209,10 @@
         private System.Windows.Forms.MenuItem mStatus;
         private System.Windows.Forms.MenuItem mRemove;
         private System.Windows.Forms.MenuItem mRetryDownload;
+        private System.Windows.Forms.ContextMenu cmTray;
+        private System.Windows.Forms.MenuItem mTrayShowYChanEx;
+        private System.Windows.Forms.MenuItem mTraySep;
+        private System.Windows.Forms.MenuItem mTrayExit;
     }
 }
 

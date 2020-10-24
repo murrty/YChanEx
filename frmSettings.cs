@@ -7,12 +7,12 @@ namespace YChanEx {
         private string FourChanURL = string.Empty;
         private string FourTwentyChanURL = string.Empty;
         private string SevenChanURL = string.Empty;
-        private string SevenChanFiles = string.Empty;
+        private string SevenChanPosts = string.Empty;
         private string EightChanURL = string.Empty;
         private string EightKunURL = string.Empty;
         private string fchanURL = string.Empty;
         private string fchanFiles = string.Empty;
-        private string fchanNames = string.Empty;
+        private string fchanIDs = string.Empty;
         private string u18chanURL = string.Empty;
         private string u18chanPosts = string.Empty;
         #endregion
@@ -90,8 +90,8 @@ namespace YChanEx {
                 RegexStrings.Default.SevenChanURL = SevenChanURL;
                 RegexChanged = true;
             }
-            if (RegexStrings.Default.SevenChanFiles != SevenChanFiles) {
-                RegexStrings.Default.SevenChanFiles = SevenChanFiles;
+            if (RegexStrings.Default.SevenChanPosts != SevenChanPosts) {
+                RegexStrings.Default.SevenChanPosts = SevenChanPosts;
                 RegexChanged = true;
             }
             if (RegexStrings.Default.EightChanURL != EightChanURL) {
@@ -182,9 +182,9 @@ namespace YChanEx {
                         lbRegexHint.Text = "This is the URL pattern of a 7chan thread, used to detect if it's a real 4chan link.";
                         break;
                     case 3:
-                        txtRegex.Text = RegexStrings.Default.SevenChanFiles;
-                        txtRegex.TextHint = ChanRegex.DefaultRegex.SevenChanFiles;
-                        lbRegexHint.Text = "This is a file pattern for 7chan, it parses raw HTML for image links.";
+                        txtRegex.Text = RegexStrings.Default.SevenChanPosts;
+                        txtRegex.TextHint = ChanRegex.DefaultRegex.SevenChanPosts;
+                        lbRegexHint.Text = "This is a post pattern for 7chan, it parses raw HTML for image links and post IDs.";
                         break;
                     case 4:
                         txtRegex.Text = RegexStrings.Default.EightChanURL;
@@ -207,9 +207,9 @@ namespace YChanEx {
                         lbRegexHint.Text = "This is a file pattern for fchan, it parses raw HTML for image links.";
                         break;
                     case 8:
-                        txtRegex.Text = RegexStrings.Default.fchanNames;
-                        txtRegex.TextHint = ChanRegex.DefaultRegex.fchanNames;
-                        lbRegexHint.Text = "This is a file name pattern for fchan, it parses raw HTML for original file names.";
+                        txtRegex.Text = RegexStrings.Default.fchanIDs;
+                        txtRegex.TextHint = ChanRegex.DefaultRegex.fchanFiles;
+                        lbRegexHint.Text = "This is a file name pattern for fchan, it parses raw HTML for post IDs.";
                         break;
                     case 9:
                         txtRegex.Text = RegexStrings.Default.u18chanURL;
@@ -219,7 +219,7 @@ namespace YChanEx {
                     case 10:
                         txtRegex.Text = RegexStrings.Default.u18chanPosts;
                         txtRegex.TextHint = ChanRegex.DefaultRegex.u18chanPosts;
-                        lbRegexHint.Text = "This is a post pattern for 7chan, it parses raw HTML for image links and post IDs.";
+                        lbRegexHint.Text = "This is a post pattern for u18chanchan, it parses raw HTML for image links and post IDs.";
                         break;
                     default:
                         txtRegex.Text = "Unknown Regex Pattern";
@@ -248,7 +248,7 @@ namespace YChanEx {
                         SevenChanURL = txtRegex.Text;
                         break;
                     case 3:
-                        SevenChanFiles = txtRegex.Text;
+                        SevenChanPosts = txtRegex.Text;
                         break;
                     case 4:
                         EightChanURL = txtRegex.Text;
@@ -263,7 +263,7 @@ namespace YChanEx {
                         fchanFiles = txtRegex.Text;
                         break;
                     case 8:
-                        fchanNames = txtRegex.Text;
+                        fchanIDs = txtRegex.Text;
                         break;
                     case 9:
                         u18chanURL = txtRegex.Text;
@@ -273,6 +273,37 @@ namespace YChanEx {
                         break;
                 }
             }
+        }
+
+        private void chkEnableSettingsReset_CheckedChanged(object sender, EventArgs e) {
+            btnResetSettings.Enabled = chkEnableSettingsReset.Checked;
+        }
+
+        private void btnResetSettings_Click(object sender, EventArgs e) {
+            if (chkResetDownloadSettings.Checked) {
+                Downloads.Default.Reset();
+                Downloads.Default.Save();
+                Downloads.Default.Reload();
+            }
+            if (chkResetApplicationSettings.Checked) {
+                General.Default.Reset();
+                General.Default.Save();
+                General.Default.Reload();
+            }
+            if (chkResetAdvancedSettings.Checked) {
+                Advanced.Default.Reset();
+                Advanced.Default.Save();
+                Advanced.Default.Reload();
+            }
+            if (chkResetRegexSettings.Checked) {
+                RegexStrings.Default.Reset();
+                RegexStrings.Default.Save();
+                RegexStrings.Default.Reload();
+            }
+
+            LoadSettings();
+            chkEnableSettingsReset.Checked = false;
+            btnResetSettings.Enabled = false;
         }
     }
 }

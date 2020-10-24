@@ -106,5 +106,17 @@ namespace YChanEx {
                 this["AllowFileNamesGreaterThan255"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool fchanWarning {
+            get {
+                return ((bool)(this["fchanWarning"]));
+            }
+            set {
+                this["fchanWarning"] = value;
+            }
+        }
     }
 }

@@ -36,12 +36,12 @@
             this.ttDownloader = new System.Windows.Forms.ToolTip(this.components);
             this.lbNotModified = new System.Windows.Forms.Label();
             this.btnForce404 = new System.Windows.Forms.Button();
-            this.contextMenu1 = new System.Windows.Forms.ContextMenu();
+            this.cmThreadActions = new System.Windows.Forms.ContextMenu();
+            this.mOpenThreadDownloadFolder = new System.Windows.Forms.MenuItem();
+            this.mOpenThreadInBrowser = new System.Windows.Forms.MenuItem();
+            this.mCopyThreadID = new System.Windows.Forms.MenuItem();
+            this.mCopyThreadURL = new System.Windows.Forms.MenuItem();
             this.btnAbortRetry = new System.Windows.Forms.Button();
-            this.cmClose = new System.Windows.Forms.ContextMenu();
-            this.cmCloseForm = new System.Windows.Forms.MenuItem();
-            this.mCloseSep = new System.Windows.Forms.MenuItem();
-            this.cmCancelDownload = new System.Windows.Forms.MenuItem();
             this.lbFileCountSeparator = new System.Windows.Forms.Label();
             this.lbDownloadedFiles = new System.Windows.Forms.Label();
             this.lbTotalFiles = new System.Windows.Forms.Label();
@@ -146,6 +146,38 @@
             this.btnForce404.Visible = false;
             this.btnForce404.Click += new System.EventHandler(this.btnForce404_Click);
             // 
+            // cmThreadActions
+            // 
+            this.cmThreadActions.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
+            this.mOpenThreadDownloadFolder,
+            this.mOpenThreadInBrowser,
+            this.mCopyThreadID,
+            this.mCopyThreadURL});
+            // 
+            // mOpenThreadDownloadFolder
+            // 
+            this.mOpenThreadDownloadFolder.Index = 0;
+            this.mOpenThreadDownloadFolder.Text = "Open download folder";
+            this.mOpenThreadDownloadFolder.Click += new System.EventHandler(this.mOpenThreadDownloadFolder_Click);
+            // 
+            // mOpenThreadInBrowser
+            // 
+            this.mOpenThreadInBrowser.Index = 1;
+            this.mOpenThreadInBrowser.Text = "Open thread in browser";
+            this.mOpenThreadInBrowser.Click += new System.EventHandler(this.mOpenThreadInBrowser_Click);
+            // 
+            // mCopyThreadID
+            // 
+            this.mCopyThreadID.Index = 2;
+            this.mCopyThreadID.Text = "Copy thread ID";
+            this.mCopyThreadID.Click += new System.EventHandler(this.mCopyThreadID_Click);
+            // 
+            // mCopyThreadURL
+            // 
+            this.mCopyThreadURL.Index = 3;
+            this.mCopyThreadURL.Text = "Copy thread URL";
+            this.mCopyThreadURL.Click += new System.EventHandler(this.mCopyThreadURL_Click);
+            // 
             // btnAbortRetry
             // 
             this.btnAbortRetry.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -156,30 +188,6 @@
             this.btnAbortRetry.Text = "Abort";
             this.btnAbortRetry.UseVisualStyleBackColor = true;
             this.btnAbortRetry.Click += new System.EventHandler(this.btnAbortRetry_Click);
-            // 
-            // cmClose
-            // 
-            this.cmClose.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
-            this.cmCloseForm,
-            this.mCloseSep,
-            this.cmCancelDownload});
-            // 
-            // cmCloseForm
-            // 
-            this.cmCloseForm.Index = 0;
-            this.cmCloseForm.Text = "Close form";
-            this.cmCloseForm.Click += new System.EventHandler(this.cmCloseForm_Click);
-            // 
-            // mCloseSep
-            // 
-            this.mCloseSep.Index = 1;
-            this.mCloseSep.Text = "-";
-            // 
-            // cmCancelDownload
-            // 
-            this.cmCancelDownload.Index = 2;
-            this.cmCancelDownload.Text = "Cancel download";
-            this.cmCancelDownload.Click += new System.EventHandler(this.cmCancelDownload_Click);
             // 
             // lbFileCountSeparator
             // 
@@ -315,16 +323,16 @@
         private System.Windows.Forms.Label lbNotModified;
         private System.Windows.Forms.Button btnForce404;
         private SplitButton btnOpenFolder;
-        private System.Windows.Forms.ContextMenu contextMenu1;
+        private System.Windows.Forms.ContextMenu cmThreadActions;
         private System.Windows.Forms.Button btnAbortRetry;
-        private System.Windows.Forms.ContextMenu cmClose;
-        private System.Windows.Forms.MenuItem cmCloseForm;
-        private System.Windows.Forms.MenuItem mCloseSep;
-        private System.Windows.Forms.MenuItem cmCancelDownload;
         private System.Windows.Forms.Label lbFileCountSeparator;
         private System.Windows.Forms.Label lbDownloadedFiles;
         private System.Windows.Forms.Label lbTotalFiles;
         private System.Windows.Forms.ImageList ilStatus;
+        private System.Windows.Forms.MenuItem mOpenThreadDownloadFolder;
+        private System.Windows.Forms.MenuItem mOpenThreadInBrowser;
+        private System.Windows.Forms.MenuItem mCopyThreadID;
+        private System.Windows.Forms.MenuItem mCopyThreadURL;
 
     }
 }

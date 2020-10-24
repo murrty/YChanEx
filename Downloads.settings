@@ -23,5 +23,8 @@
     <Setting Name="AllowFileNamesGreaterThan255" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
+    <Setting Name="fchanWarning" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

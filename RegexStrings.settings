@@ -11,7 +11,7 @@
     <Setting Name="SevenChanURL" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="SevenChanFiles" Type="System.String" Scope="User">
+    <Setting Name="SevenChanPosts" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="EightChanURL" Type="System.String" Scope="User">
@@ -26,7 +26,7 @@
     <Setting Name="fchanFiles" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="fchanNames" Type="System.String" Scope="User">
+    <Setting Name="fchanIDs" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="u18chanURL" Type="System.String" Scope="User">

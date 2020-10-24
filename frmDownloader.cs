@@ -199,7 +199,6 @@ namespace YChanEx {
         #region Custom Thread Methods
         public void StartDownload() {
             GC.Collect();
-            ChanType = Chans.GetChanType(ThreadURL);
             switch (ChanType) {
                 case (int)ChanTypes.Types.FourChan:
                     if (!ThreadScanned) {
@@ -344,6 +343,34 @@ namespace YChanEx {
         public void AbortDownloadForClosing() {
             if (DownloadThread != null && DownloadThread.IsAlive) {
                 DownloadThread.Abort();
+            }
+        }
+        public void ChangeFormTitle() {
+            switch (ChanType) {
+                case (int)ChanTypes.Types.FourChan:
+                    this.Text = string.Format("4chan thread - {0} - {1}", BoardTitles.FourChan(ThreadBoard), ThreadID);
+                    break;
+                case (int)ChanTypes.Types.FourTwentyChan:
+                    this.Text = string.Format("420chan thread - {0} - {1}", BoardTitles.FourTwentyChan(ThreadBoard), ThreadID);
+                    break;
+                case (int)ChanTypes.Types.SevenChan:
+                    this.Text = string.Format("7chan thread - {0} - {1}", BoardTitles.SevenChan(ThreadBoard), ThreadID);
+                    break;
+                case (int)ChanTypes.Types.EightChan:
+                    this.Text = string.Format("8chan thread - {0} - {1}", BoardTitles.EightChan(ThreadBoard, false), ThreadID);
+                    break;
+                case (int)ChanTypes.Types.EightKun:
+                    this.Text = string.Format("8kun thread - {0} - {1}", BoardTitles.EightKun(ThreadBoard, false), ThreadID);
+                    break;
+                case (int)ChanTypes.Types.fchan:
+                    this.Text = string.Format("fchan thread - {0} - {1}", BoardTitles.fchan(ThreadBoard), ThreadID);
+                    break;
+                case (int)ChanTypes.Types.u18chan:
+                    this.Text = string.Format("u18chan thread - {0} - {1}", BoardTitles.u18chan(ThreadBoard), ThreadID);
+                    break;
+                default:
+                    this.Text = string.Format("unknown thread - {0} - {1}", ThreadBoard, ThreadID);
+                    return;
             }
         }
         #endregion
@@ -1940,7 +1967,17 @@ retryThread:
         }
         #endregion
 
-        #region fchan Download Logic TODO: Actually implement properly.
+        #region fchan Download Logic Works, very poorly.
+        /* here's some information.
+         * fchan is parsed using html, but even then it's inconsistent.
+         * some file names have underscores after the file ID, or a period.
+         * do people use fchan?
+         * the main problem is, the regex will find the right lines, but I can only
+         * guess the substrings to make it work... but it just sometimes doesn't work.
+         * Unless fchan can implement an API, I'm not going to be updating this.
+         * It will sometimes work, it sometimes won't.
+         * That's all. I'm tired of fchan's HTML guessing game.
+         */
         private void SetFchanThread() {
             DownloadThread = new Thread(() => {
                 string BaseURL = "http://fchan.us/";

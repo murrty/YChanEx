@@ -22,6 +22,7 @@ namespace YChanEx {
 
             using (frmException ExceptionDisplay = new frmException()) {
                 ExceptionDisplay.ReportedWebException = WebException;
+                ExceptionDisplay.WebAddress = WebsiteAddress;
                 ExceptionDisplay.FromLanguage = false;
 
                 switch (WebException.Status) {

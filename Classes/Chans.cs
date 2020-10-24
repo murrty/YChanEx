@@ -878,8 +878,8 @@ class ChanRegex {
             "boards.420chan.org/[a-zA-Z0-9]*?/thread/[0-9]*";
         public static readonly string SevenChanURL =
             "7chan.org/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*";
-        public static readonly string SevenChanFiles =
-            "http(?:s)?:\\/\\/(?:www\\.)?7chan.org\\/([a-zA-Z0-9]+)\\/src\\/([0-9]+)\\.(?:jpg|jpeg|gif|png|webm|mp4)?";
+        public static readonly string SevenChanPosts =
+            "(?<=<a target=\"_blank\" href=\").*?( class=\"thumb\")";
         public static readonly string EightChanURL =
             "8chan.moe/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*";
         public static readonly string EightKunURL =
@@ -887,9 +887,9 @@ class ChanRegex {
         public static readonly string fchanURL =
             "fchan.us/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*";
         public static readonly string fchanFiles =
-            "(?<=<a target=\"_blank\" href=\").*?(?=\" rel=\"nofollow\">)";
-        public static readonly string fchanNames =
-            "(?<=File: <a target=\"_blank\" href=\"{0}\" rel=\"nofollow\">).*?(?=</a>)";
+            "(?<=File: <a target=\"_blank\" href=\").*?(?=</a>)";
+        public static readonly string fchanIDs =
+            "(?=<img id=\"img).*?(\" src=\")";
         public static readonly string u18chanURL =
             "u18chan.com/(.*?)[a-zA-Z0-9]*?/topic/[0-9]*";
         public static readonly string u18chanPosts =
@@ -925,13 +925,13 @@ class ChanRegex {
             }
         }
     }
-    public static string SevenChanFiles {
+    public static string SevenChanPosts {
         get {
-            if (!string.IsNullOrEmpty(RegexStrings.Default.SevenChanFiles)) {
-                return RegexStrings.Default.SevenChanFiles;
+            if (!string.IsNullOrEmpty(RegexStrings.Default.SevenChanPosts)) {
+                return RegexStrings.Default.SevenChanPosts;
             }
             else {
-                return DefaultRegex.SevenChanFiles;
+                return DefaultRegex.SevenChanPosts;
             }
         }
     }
@@ -965,23 +965,23 @@ class ChanRegex {
             }
         }
     }
-    public static string fchanFiles {
+    public static string fchanNames {
         get {
-            if (!string.IsNullOrEmpty(RegexStrings.Default.fchanFiles)) {
-                return RegexStrings.Default.fchanFiles;
+            if (!string.IsNullOrEmpty(RegexStrings.Default.fchanIDs)) {
+                return RegexStrings.Default.fchanIDs;
             }
             else {
                 return DefaultRegex.fchanFiles;
             }
         }
     }
-    public static string fchanNames {
+    public static string fchanIDs {
         get {
-            if (!string.IsNullOrEmpty(RegexStrings.Default.fchanNames)) {
-                return RegexStrings.Default.fchanNames;
+            if (!string.IsNullOrEmpty(RegexStrings.Default.fchanIDs)) {
+                return RegexStrings.Default.fchanIDs;
             }
             else {
-                return DefaultRegex.fchanNames;
+                return DefaultRegex.fchanIDs;
             }
         }
     }

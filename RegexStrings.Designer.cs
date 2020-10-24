@@ -62,12 +62,12 @@ namespace YChanEx {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string SevenChanFiles {
+        public string SevenChanPosts {
             get {
-                return ((string)(this["SevenChanFiles"]));
+                return ((string)(this["SevenChanPosts"]));
             }
             set {
-                this["SevenChanFiles"] = value;
+                this["SevenChanPosts"] = value;
             }
         }
         
@@ -122,12 +122,12 @@ namespace YChanEx {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string fchanNames {
+        public string fchanIDs {
             get {
-                return ((string)(this["fchanNames"]));
+                return ((string)(this["fchanIDs"]));
             }
             set {
-                this["fchanNames"] = value;
+                this["fchanIDs"] = value;
             }
         }
         

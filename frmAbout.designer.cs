@@ -29,7 +29,6 @@
         [System.Diagnostics.DebuggerStepThrough]
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmAbout));
             this.lbVersion = new System.Windows.Forms.Label();
             this.lbHeader = new System.Windows.Forms.Label();
             this.lbBody = new System.Windows.Forms.Label();
@@ -64,14 +63,13 @@
             this.lbBody.Name = "lbBody";
             this.lbBody.Size = new System.Drawing.Size(240, 79);
             this.lbBody.TabIndex = 3;
-            this.lbBody.Text = "ychanex by murrty\r\nlogically inspired by ychan by mirage\r\ndebug date {DEBUG}\r\n\r\n\r" +
-    "\ndo it for likulau";
+            this.lbBody.Text = "ychanex by murrty\r\ndebug date {DEBUG}\r\n\r\n\r\n\r\ndo it for likulau";
             this.lbBody.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
             // pbIcon
             // 
             this.pbIcon.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.pbIcon.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbIcon.InitialImage")));
+            this.pbIcon.InitialImage = null;
             this.pbIcon.Location = new System.Drawing.Point(58, 3);
             this.pbIcon.Name = "pbIcon";
             this.pbIcon.Size = new System.Drawing.Size(32, 32);

@@ -71,7 +71,7 @@ namespace YChanEx {
             if (Chans.SupportedChan(URL)) {
                 if (ThreadURLs.Contains(URL)) {
                     int ThreadURLIndex = ThreadURLs.IndexOf(URL);
-                    if (ThreadIsGone[ThreadURLIndex]){
+                    if (ThreadIsGone[ThreadURLIndex]) {
                         ThreadDownloadForms[lvThreads.SelectedIndices[0]].RetryScanOnFailure();
                     }
                     return true;
@@ -86,6 +86,18 @@ namespace YChanEx {
                     ThreadURLs.Add(URL);
                     ThreadIsGone.Add(false);
                     frmDownloader newThread = new frmDownloader();
+                    newThread.ChanType = Chans.GetChanType(URL);
+                    if (newThread.ChanType == (int)ChanTypes.Types.fchan) {
+                        if (!Downloads.Default.fchanWarning) {
+                            MessageBox.Show(
+                                "fchan works, but isn't supported. I'm keeping this in for people, but here's your only warning: I will not help with any issues regarding fchan, and they will not be acknowledged.\n\n" +
+                                "The reason I'm not going to continue working on fchan is because of all the logic shenanigans I have to do to get files, and even then it's still not perfect for some files.\n\n\n" +
+                                "I might fix it and update it later, but I'm not going to touch it anymore. You're on your own with it.\n\n" +
+                                "This is the only time this warning will appear.");
+                            Downloads.Default.fchanWarning = true;
+                            Downloads.Default.Save();
+                        }
+                    }
                     newThread.Name = URL;
                     newThread.ThreadURL = URL;
                     newThread.StartDownload();
@@ -98,6 +110,48 @@ namespace YChanEx {
                 return false;
             }
         }
+        public bool TryExiting() {
+            bool ExitApplication = false;
+            if (General.Default.MinimizeInsteadOfExiting) {
+                this.WindowState = FormWindowState.Normal;
+                this.Hide();
+            }
+            else if (ThreadDownloadForms.Count > 0) {
+                if (General.Default.ShowExitWarning) {
+                    switch (MessageBox.Show("You have threads in the queue. Do you really want to exit?", "YChanEx", MessageBoxButtons.YesNo)) {
+                        case DialogResult.Yes:
+                            Chans.SaveThreads(ThreadURLs);
+                            ExitApplication = true;
+                            break;
+                        case DialogResult.No:
+                            return false;
+                    }
+                }
+                else {
+                    Chans.SaveThreads(ThreadURLs);
+                    ExitApplication = true;
+                }
+            }
+            else {
+                ExitApplication = true;
+            }
+
+            if (!ExitApplication) {
+                return false;
+            }
+
+            for (int i = 0; i < ThreadDownloadForms.Count; i++) {
+                ThreadDownloadForms[i].AbortDownloadForClosing();
+                ThreadDownloadForms[i].Dispose();
+                ThreadURLs.RemoveAt(i);
+                ThreadIsGone.RemoveAt(i);
+                ThreadDownloadForms.RemoveAt(i);
+            }
+
+            niTray.Visible = false;
+
+            return true;
+        }
 
 
         private void frmMain_Load(object sender, EventArgs e) {
@@ -109,37 +163,27 @@ namespace YChanEx {
                     }
                 }
             }
+            if (General.Default.ShowTrayIcon) {
+                niTray.Visible = true;
+            }
         }
         private void frmMain_FormClosing(object sender, FormClosingEventArgs e) {
-            bool ExitApplication = false;
-            if (ThreadDownloadForms.Count > 0) {
-                if (General.Default.ShowExitWarning) {
-                    switch (MessageBox.Show("You have threads in the queue. Do you really want to exit?", "YChanEx", MessageBoxButtons.YesNo)) {
-                        case DialogResult.Yes:
-                            Chans.SaveThreads(ThreadURLs);
-                            ExitApplication = true;
-                            break;
-                        case DialogResult.No:
-                            e.Cancel = true;
-                            return;
-                    }
-                }
-                else {
-                    Chans.SaveThreads(ThreadURLs);
-                    ExitApplication = true;
-                }
+            if (General.Default.MinimizeInsteadOfExiting) {
+                e.Cancel = true;
+                return;
             }
 
-            if (!ExitApplication) {
+            if (!TryExiting()) {
                 e.Cancel = true;
             }
-
-            for (int i = 0; i < ThreadDownloadForms.Count; i++) {
-                ThreadDownloadForms[i].AbortDownloadForClosing();
-                ThreadDownloadForms[i].Dispose();
-                ThreadURLs.RemoveAt(i);
-                ThreadIsGone.RemoveAt(i);
-                ThreadDownloadForms.RemoveAt(i);
+        }
+        private void frmMain_SizeChanged(object sender, EventArgs e) {
+            if (General.Default.MinimizeToTray && this.WindowState == FormWindowState.Minimized) {
+                this.WindowState = FormWindowState.Normal;
+                this.Hide();
+                if (!niTray.Visible) {
+                    niTray.Visible = true;
+                }
             }
         }
         private void changeTray_Tick(object sender, EventArgs e) {
@@ -156,6 +200,15 @@ namespace YChanEx {
                 mRetryDownload.Enabled = ThreadIsGone[lvThreads.SelectedIndices[0]];
             }
         }
+        private void niTray_MouseDoubleClick(object sender, MouseEventArgs e) {
+            if (this.Visible == false) {
+                this.Show();
+                this.Activate();
+                if (!General.Default.ShowTrayIcon) {
+                    niTray.Visible = false;
+                }
+            }
+        }
 
 
         private void mSettings_Click(object sender, EventArgs e) {
@@ -163,6 +216,19 @@ namespace YChanEx {
             Settings.ShowDialog();
             Settings.Dispose();
             Program.SettingsOpen = false;
+
+            if (General.Default.ShowTrayIcon) {
+                niTray.Visible = true;
+            }
+            else {
+                niTray.Visible = false;
+            }
+
+            if (ThreadDownloadForms.Count > 0) {
+                for (int Thread = 0; Thread < ThreadDownloadForms.Count; Thread++) {
+                    ThreadDownloadForms[Thread].ChangeFormTitle();
+                }
+            }
         }
         private void mAbout_Click(object sender, EventArgs e) {
             frmAbout About = new frmAbout();
@@ -207,6 +273,20 @@ namespace YChanEx {
             }
         }
 
+        private void mTrayShowYChanEx_Click(object sender, EventArgs e) {
+            if (this.Visible == false) {
+                this.Show();
+                this.Activate();
+                if (!General.Default.ShowTrayIcon) {
+                    niTray.Visible = false;
+                }
+            }
+        }
+        private void mTrayExit_Click(object sender, EventArgs e) {
+            if (TryExiting()) {
+                Environment.Exit(0);
+            }
+        }
 
     }
 }

@@ -30,12 +30,12 @@
             System.Windows.Forms.ListViewItem listViewItem3 = new System.Windows.Forms.ListViewItem(new string[] {
             "7chan URL",
             "1"}, -1);
-            System.Windows.Forms.ListViewItem listViewItem4 = new System.Windows.Forms.ListViewItem("7chan Files");
+            System.Windows.Forms.ListViewItem listViewItem4 = new System.Windows.Forms.ListViewItem("7chan Posts");
             System.Windows.Forms.ListViewItem listViewItem5 = new System.Windows.Forms.ListViewItem("8chan URL");
             System.Windows.Forms.ListViewItem listViewItem6 = new System.Windows.Forms.ListViewItem("8kun URL");
             System.Windows.Forms.ListViewItem listViewItem7 = new System.Windows.Forms.ListViewItem("fchan URL");
             System.Windows.Forms.ListViewItem listViewItem8 = new System.Windows.Forms.ListViewItem("fchan Files");
-            System.Windows.Forms.ListViewItem listViewItem9 = new System.Windows.Forms.ListViewItem("fchan Names");
+            System.Windows.Forms.ListViewItem listViewItem9 = new System.Windows.Forms.ListViewItem("fchan IDs");
             System.Windows.Forms.ListViewItem listViewItem10 = new System.Windows.Forms.ListViewItem("u18chan URL");
             System.Windows.Forms.ListViewItem listViewItem11 = new System.Windows.Forms.ListViewItem("u18chan Posts");
             this.tcMain = new System.Windows.Forms.TabControl();
@@ -66,7 +66,14 @@
             this.txtUserAgent = new YChanEx.HintTextBox();
             this.lbUserAgent = new System.Windows.Forms.Label();
             this.tabReset = new System.Windows.Forms.TabPage();
+            this.chkEnableSettingsReset = new System.Windows.Forms.CheckBox();
+            this.chkResetRegexSettings = new System.Windows.Forms.CheckBox();
+            this.chkResetAdvancedSettings = new System.Windows.Forms.CheckBox();
+            this.chkResetApplicationSettings = new System.Windows.Forms.CheckBox();
+            this.chkResetDownloadSettings = new System.Windows.Forms.CheckBox();
+            this.btnResetSettings = new System.Windows.Forms.Button();
             this.tabRegex = new System.Windows.Forms.TabPage();
+            this.lbRegexHint = new System.Windows.Forms.Label();
             this.lvRegex = new System.Windows.Forms.ListView();
             this.txtRegex = new YChanEx.HintTextBox();
             this.lbRegexInfo = new System.Windows.Forms.Label();
@@ -75,12 +82,12 @@
             this.btnSCan = new System.Windows.Forms.Button();
             this.btnSSave = new System.Windows.Forms.Button();
             this.ttSettings = new System.Windows.Forms.ToolTip(this.components);
-            this.lbRegexHint = new System.Windows.Forms.Label();
             this.tcMain.SuspendLayout();
             this.tabDownloads.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numTimer)).BeginInit();
             this.tabApplication.SuspendLayout();
             this.tabAdvanced.SuspendLayout();
+            this.tabReset.SuspendLayout();
             this.tabRegex.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -412,6 +419,12 @@
             // 
             // tabReset
             // 
+            this.tabReset.Controls.Add(this.chkEnableSettingsReset);
+            this.tabReset.Controls.Add(this.chkResetRegexSettings);
+            this.tabReset.Controls.Add(this.chkResetAdvancedSettings);
+            this.tabReset.Controls.Add(this.chkResetApplicationSettings);
+            this.tabReset.Controls.Add(this.chkResetDownloadSettings);
+            this.tabReset.Controls.Add(this.btnResetSettings);
             this.tabReset.Location = new System.Drawing.Point(4, 22);
             this.tabReset.Name = "tabReset";
             this.tabReset.Padding = new System.Windows.Forms.Padding(3);
@@ -419,6 +432,68 @@
             this.tabReset.TabIndex = 3;
             this.tabReset.Text = "Reset";
             this.tabReset.UseVisualStyleBackColor = true;
+            // 
+            // chkEnableSettingsReset
+            // 
+            this.chkEnableSettingsReset.AutoSize = true;
+            this.chkEnableSettingsReset.Location = new System.Drawing.Point(278, 115);
+            this.chkEnableSettingsReset.Name = "chkEnableSettingsReset";
+            this.chkEnableSettingsReset.Size = new System.Drawing.Size(62, 17);
+            this.chkEnableSettingsReset.TabIndex = 5;
+            this.chkEnableSettingsReset.Text = "I\'m sure";
+            this.chkEnableSettingsReset.UseVisualStyleBackColor = true;
+            this.chkEnableSettingsReset.CheckedChanged += new System.EventHandler(this.chkEnableSettingsReset_CheckedChanged);
+            // 
+            // chkResetRegexSettings
+            // 
+            this.chkResetRegexSettings.AutoSize = true;
+            this.chkResetRegexSettings.Location = new System.Drawing.Point(118, 88);
+            this.chkResetRegexSettings.Name = "chkResetRegexSettings";
+            this.chkResetRegexSettings.Size = new System.Drawing.Size(129, 17);
+            this.chkResetRegexSettings.TabIndex = 4;
+            this.chkResetRegexSettings.Text = "Reset Regex Settings";
+            this.chkResetRegexSettings.UseVisualStyleBackColor = true;
+            // 
+            // chkResetAdvancedSettings
+            // 
+            this.chkResetAdvancedSettings.AutoSize = true;
+            this.chkResetAdvancedSettings.Location = new System.Drawing.Point(118, 65);
+            this.chkResetAdvancedSettings.Name = "chkResetAdvancedSettings";
+            this.chkResetAdvancedSettings.Size = new System.Drawing.Size(147, 17);
+            this.chkResetAdvancedSettings.TabIndex = 3;
+            this.chkResetAdvancedSettings.Text = "Reset Advanced Settings";
+            this.chkResetAdvancedSettings.UseVisualStyleBackColor = true;
+            // 
+            // chkResetApplicationSettings
+            // 
+            this.chkResetApplicationSettings.AutoSize = true;
+            this.chkResetApplicationSettings.Location = new System.Drawing.Point(118, 42);
+            this.chkResetApplicationSettings.Name = "chkResetApplicationSettings";
+            this.chkResetApplicationSettings.Size = new System.Drawing.Size(150, 17);
+            this.chkResetApplicationSettings.TabIndex = 2;
+            this.chkResetApplicationSettings.Text = "Reset Application Settings";
+            this.chkResetApplicationSettings.UseVisualStyleBackColor = true;
+            // 
+            // chkResetDownloadSettings
+            // 
+            this.chkResetDownloadSettings.AutoSize = true;
+            this.chkResetDownloadSettings.Location = new System.Drawing.Point(118, 19);
+            this.chkResetDownloadSettings.Name = "chkResetDownloadSettings";
+            this.chkResetDownloadSettings.Size = new System.Drawing.Size(146, 17);
+            this.chkResetDownloadSettings.TabIndex = 1;
+            this.chkResetDownloadSettings.Text = "Reset Download Settings";
+            this.chkResetDownloadSettings.UseVisualStyleBackColor = true;
+            // 
+            // btnResetSettings
+            // 
+            this.btnResetSettings.Enabled = false;
+            this.btnResetSettings.Location = new System.Drawing.Point(114, 111);
+            this.btnResetSettings.Name = "btnResetSettings";
+            this.btnResetSettings.Size = new System.Drawing.Size(158, 23);
+            this.btnResetSettings.TabIndex = 0;
+            this.btnResetSettings.Text = "Reset Selected Options";
+            this.btnResetSettings.UseVisualStyleBackColor = true;
+            this.btnResetSettings.Click += new System.EventHandler(this.btnResetSettings_Click);
             // 
             // tabRegex
             // 
@@ -433,6 +508,16 @@
             this.tabRegex.TabIndex = 4;
             this.tabRegex.Text = "Regex";
             this.tabRegex.UseVisualStyleBackColor = true;
+            // 
+            // lbRegexHint
+            // 
+            this.lbRegexHint.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lbRegexHint.Location = new System.Drawing.Point(116, 46);
+            this.lbRegexHint.Name = "lbRegexHint";
+            this.lbRegexHint.Size = new System.Drawing.Size(262, 65);
+            this.lbRegexHint.TabIndex = 3;
+            this.lbRegexHint.Text = "This is the URL to direct the parser to the 4chan API.";
+            this.lbRegexHint.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // lvRegex
             // 
@@ -526,16 +611,6 @@
             // 
             this.ttSettings.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Info;
             // 
-            // lbRegexHint
-            // 
-            this.lbRegexHint.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lbRegexHint.Location = new System.Drawing.Point(116, 46);
-            this.lbRegexHint.Name = "lbRegexHint";
-            this.lbRegexHint.Size = new System.Drawing.Size(262, 65);
-            this.lbRegexHint.TabIndex = 3;
-            this.lbRegexHint.Text = "This is the URL to direct the parser to the 4chan API.";
-            this.lbRegexHint.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
             // frmSettings
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -561,6 +636,8 @@
             this.tabApplication.PerformLayout();
             this.tabAdvanced.ResumeLayout(false);
             this.tabAdvanced.PerformLayout();
+            this.tabReset.ResumeLayout(false);
+            this.tabReset.PerformLayout();
             this.tabRegex.ResumeLayout(false);
             this.tabRegex.PerformLayout();
             this.ResumeLayout(false);
@@ -607,5 +684,11 @@
         private System.Windows.Forms.CheckBox chkAllowFileNamesGreaterThan255;
         private System.Windows.Forms.CheckBox chkMinimizeInsteadOfExiting;
         private System.Windows.Forms.Label lbRegexHint;
+        private System.Windows.Forms.CheckBox chkResetRegexSettings;
+        private System.Windows.Forms.CheckBox chkResetAdvancedSettings;
+        private System.Windows.Forms.CheckBox chkResetApplicationSettings;
+        private System.Windows.Forms.CheckBox chkResetDownloadSettings;
+        private System.Windows.Forms.Button btnResetSettings;
+        private System.Windows.Forms.CheckBox chkEnableSettingsReset;
     }
 }
