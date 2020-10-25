@@ -67,7 +67,7 @@ namespace YChanEx {
             int ItemIndex = ThreadURLs.IndexOf(URL);
             lvThreads.Items[ItemIndex].SubItems[0].Text = Status;
         }
-        public bool AddNewThread(string URL) {
+        public bool AddNewThread(string URL, bool IsHidden = false) {
             if (Chans.SupportedChan(URL)) {
                 if (ThreadURLs.Contains(URL)) {
                     int ThreadURLIndex = ThreadURLs.IndexOf(URL);
@@ -103,6 +103,10 @@ namespace YChanEx {
                     newThread.StartDownload();
                     ThreadDownloadForms.Add(newThread);
                     newThread.Show();
+                    if (IsHidden) {
+                        newThread.Hide();
+                    }
+                    newThread.Opacity = 100;
                     return true;
                 }
             }
@@ -157,20 +161,22 @@ namespace YChanEx {
         private void frmMain_Load(object sender, EventArgs e) {
             if (General.Default.SaveQueueOnExit && !Program.IsDebug) {
                 string[] ThreadArray = Chans.LoadThreads();
-                if (ThreadArray.Length > 0) {
+                if (ThreadArray != null && ThreadArray.Length > 0) {
                     for (int ThreadArrayIndex = 0; ThreadArrayIndex < ThreadArray.Length; ThreadArrayIndex++) {
-                        AddNewThread(ThreadArray[ThreadArrayIndex]);
+                        AddNewThread(ThreadArray[ThreadArrayIndex], true);
                     }
                 }
             }
             if (General.Default.ShowTrayIcon) {
                 niTray.Visible = true;
             }
+            niTray.ContextMenu = cmTray;
         }
         private void frmMain_FormClosing(object sender, FormClosingEventArgs e) {
             if (General.Default.MinimizeInsteadOfExiting) {
+                this.Hide();
+                niTray.Visible = true;
                 e.Cancel = true;
-                return;
             }
 
             if (!TryExiting()) {
@@ -201,7 +207,7 @@ namespace YChanEx {
             }
         }
         private void niTray_MouseDoubleClick(object sender, MouseEventArgs e) {
-            if (this.Visible == false) {
+            if (!this.Visible) {
                 this.Show();
                 this.Activate();
                 if (!General.Default.ShowTrayIcon) {

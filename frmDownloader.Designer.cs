@@ -231,6 +231,7 @@
             // btnOpenFolder
             // 
             this.btnOpenFolder.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnOpenFolder.DropDownContextMenu = this.cmThreadActions;
             this.btnOpenFolder.FlatStyle = System.Windows.Forms.FlatStyle.System;
             this.btnOpenFolder.Location = new System.Drawing.Point(300, 285);
             this.btnOpenFolder.Name = "btnOpenFolder";
@@ -299,6 +300,7 @@
             this.Controls.Add(this.lbFileCountSeparator);
             this.MinimumSize = new System.Drawing.Size(500, 350);
             this.Name = "frmDownloader";
+            this.Opacity = 0D;
             this.Text = "unknown chan download";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmDownloader_FormClosing);
             this.ResumeLayout(false);
