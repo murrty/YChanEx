@@ -223,14 +223,16 @@ class Chans {
         return (int)ChanTypes.Types.None;
     }
 
-    public static bool SaveThreads(List<string> Threads, List<bool> ThreadStatus) {
+    public static bool SaveThreads(List<string> ThreadURLs, List<bool> ThreadStatus) {
         if (General.Default.SaveQueueOnExit) {
             try {
                 string FileContentBuffer = string.Empty;
-                for (int i = 0; i < Threads.Count; i++) {
-                    FileContentBuffer += Threads[i].Replace("=", "%61").Replace("|", "%124") + "|" + ThreadStatus[i].ToString() + "\n";
+                for (int i = 0; i < ThreadURLs.Count; i++) {
+                    FileContentBuffer += ThreadURLs[i].Replace("=", "%61").Replace("|", "%124") + " = " + ThreadStatus[i].ToString() + "\n";
                 }
-                File.WriteAllText(Program.ApplicationFilesLocation + "\\threads.dat", FileContentBuffer.Trim('\n'));
+                FileContentBuffer = FileContentBuffer.Trim('\n');
+
+                File.WriteAllText(Program.ApplicationFilesLocation + "\\threads.dat", FileContentBuffer);
                 return true;
             }
             catch (Exception ex) {
@@ -1037,4 +1039,5 @@ class ThreadStatuses {
     public static string Waiting { get { return "Waiting"; } }
     public static string Has404 { get { return "404'd"; } }
     public static string HasAborted { get { return "Aborted"; } }
+    public static string Scanning { get { return "Scanning"; } }
 }

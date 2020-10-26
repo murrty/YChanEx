@@ -11,64 +11,64 @@ namespace YChanEx {
         public static GitData GitData = GitData.GetInstance();
 
         public static void CheckForUpdate(bool ForceCheck = false) {
-            if (Program.IsDebug && !ForceCheck && !bypassDebug) {
-                Debug.Print("-version " + GitData.UpdateVersion + " -name " + System.AppDomain.CurrentDomain.FriendlyName);
-            }
-            else {
-                if (!General.Default.EnableUpdates && !ForceCheck) { return; }
+            //if (Program.IsDebug) {
+            //    Debug.Print("-version " + GitData.UpdateVersion + " -name " + System.AppDomain.CurrentDomain.FriendlyName);
+            //    return;
+            //}
+
+            if (!General.Default.EnableUpdates && !ForceCheck) { return; }
 
 
-                if (GitData.UpdateAvailable) {
-                    using (frmUpdateAvailable Update = new frmUpdateAvailable()) {
-                        Update.BlockSkip = ForceCheck;
-                        switch (Update.ShowDialog()) {
-                            case DialogResult.Yes:
-                                try {
-                                    UpdateApplication();
-                                }
-                                catch (Exception ex) {
-                                    //ErrorLog.ReportException(ex);
-                                    return;
-                                }
-                                break;
-                        }
+            if (GitData.UpdateAvailable) {
+                using (frmUpdateAvailable Update = new frmUpdateAvailable()) {
+                    Update.BlockSkip = ForceCheck;
+                    switch (Update.ShowDialog()) {
+                        case DialogResult.Yes:
+                            try {
+                                UpdateApplication();
+                            }
+                            catch (Exception ex) {
+                                ErrorLog.ReportException(ex);
+                                return;
+                            }
+                            break;
                     }
                 }
-                else {
-                    //Thread checkUpdates = new Thread(() => {
-                        if (GitData.UpdateVersion == "-1" || ForceCheck) {
-                            decimal GitVersion = GetGitVersion(0);
-                            if (IsUpdateAvailable(GitVersion)) {
-                                GitData.UpdateAvailable = true;
-                                if (GitVersion != Properties.Settings.Default.SkippedVersion || ForceCheck) {
-                                    using (frmUpdateAvailable Update = new frmUpdateAvailable()) {
-                                        Update.BlockSkip = ForceCheck;
-                                        switch (Update.ShowDialog()) {
-                                            case DialogResult.Yes:
-                                                try {
-                                                    UpdateApplication();
-                                                }
-                                                catch (Exception ex) {
-                                                    //ErrorLog.ReportException(ex);
-                                                    return;
-                                                }
-                                                break;
-                                            case DialogResult.Ignore:
-                                                Properties.Settings.Default.SkippedVersion = GitVersion;
-                                                Properties.Settings.Default.Save();
-                                                break;
-                                        }
+            }
+            else {
+                Thread checkUpdates = new Thread(() => {
+                    if (GitData.UpdateVersion == "-1" || ForceCheck) {
+                        decimal GitVersion = GetGitVersion(0);
+                        if (IsUpdateAvailable(GitVersion)) {
+                            GitData.UpdateAvailable = true;
+                            if (GitVersion != Properties.Settings.Default.SkippedVersion || ForceCheck) {
+                                using (frmUpdateAvailable Update = new frmUpdateAvailable()) {
+                                    Update.BlockSkip = ForceCheck;
+                                    switch (Update.ShowDialog()) {
+                                        case DialogResult.Yes:
+                                            try {
+                                                UpdateApplication();
+                                            }
+                                            catch (Exception ex) {
+                                                ErrorLog.ReportException(ex);
+                                                return;
+                                            }
+                                            break;
+                                        case DialogResult.Ignore:
+                                            Properties.Settings.Default.SkippedVersion = GitVersion;
+                                            Properties.Settings.Default.Save();
+                                            break;
                                     }
                                 }
                             }
-                            else if (ForceCheck) {
-                                MessageBox.Show("No updates available.");
-                            }
                         }
-                    //});
-                    //checkUpdates.Name = "Check for application update";
-                    //checkUpdates.Start();
-                }
+                        else if (ForceCheck) {
+                            MessageBox.Show("No updates available.");
+                        }
+                    }
+                });
+                checkUpdates.Name = "Check for application update";
+                checkUpdates.Start();
             }
         }
 
@@ -83,6 +83,7 @@ namespace YChanEx {
             //Updater.StartInfo.Arguments = ArgumentsBuffer;
             //Updater.Start();
             //Environment.Exit(0);
+            Process.Start("https://github.com/murrty/ychanex/releases/latest");
         }
         public static string GetGitVersionString(int GitID) {
             try {
@@ -111,7 +112,7 @@ namespace YChanEx {
 
             }
             catch (Exception ex) {
-                //ErrorLog.ReportException(ex);
+                ErrorLog.ReportException(ex);
                 return null;
             }
         }
@@ -141,7 +142,7 @@ namespace YChanEx {
                 }
             }
             catch (Exception ex) {
-                //ErrorLog.ReportException(ex);
+                ErrorLog.ReportException(ex);
                 return -1;
             }
         }
@@ -152,24 +153,8 @@ namespace YChanEx {
                 else { return false; }
             }
             catch (Exception ex) {
-                //ErrorLog.ReportException(ex);
+                ErrorLog.ReportException(ex);
                 return false;
-            }
-        }
-
-        public class UpdateDebug {
-            public static void UpdateAvailable() {
-                bool OldGitUpdateAvailable = GitData.UpdateAvailable;
-                string[] UpdateArray = { GitData.UpdateName, GitData.UpdateBody, GitData.UpdateVersion };
-                GitData.UpdateAvailable = true;
-                GitData.UpdateName = "An update";
-                GitData.UpdateBody = "A new update is available. Not really.\nNew line escape sequence works! Use \\n\n\nhello world";
-                GitData.UpdateVersion = "1.0";
-                using (frmUpdateAvailable Update = new frmUpdateAvailable()) { Update.ShowDialog(); }
-                GitData.UpdateAvailable = OldGitUpdateAvailable;
-                GitData.UpdateName = UpdateArray[0];
-                GitData.UpdateBody = UpdateArray[1];
-                GitData.UpdateVersion = UpdateArray[2];
             }
         }
     }
@@ -179,6 +164,7 @@ namespace YChanEx {
         public class GitLinks {
             public static readonly string GithubRawUrl = "https://raw.githubusercontent.com/{0}/{1}";
             public static readonly string GithubRepoUrl = "https://github.com/{0}/{1}";
+            public static readonly string GithubIssuesUrl = "https://github.com/{0}/{1}/issues";
             public static readonly string GithubLatestJson = "http://api.github.com/repos/{0}/{1}/releases/latest";
             public static readonly string ApplicationDownloadUrl = "https://github.com/{0}/{1}/releases/download/{2}/{1}.exe";
 
@@ -200,6 +186,9 @@ namespace YChanEx {
             return GitDataInstance;
         }
 
+        public string GithubIssuesPage {
+            get { return string.Format(GitLinks.GithubIssuesUrl, GitLinks.Users[0], GitLinks.ApplciationNames[0]); }
+        }
         public string UpdateVersion {
             get { return UpdateVersionString; }
             set { UpdateVersionString = value; }

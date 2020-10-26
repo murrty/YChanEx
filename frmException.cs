@@ -38,6 +38,11 @@ namespace YChanEx {
             //    btnExceptionGithub.Text = lang.btnExceptionGithub;
             //    btnExceptionOk.Text = lang.btnExceptionOk;
             //}
+            this.Text = "Exception report";
+            lbExceptionHeader.Text = "An exception has occured.";
+            lbExceptionDescription.Text = "Due to an unforseeable problem, an exception occured.";
+            btnExceptionGithub.Text = "Github Issues";
+            btnExceptionOk.Text = "OK";
         }
 
         private void frmError_Load(object sender, EventArgs e) {
@@ -84,7 +89,7 @@ namespace YChanEx {
         }
 
         private void btnGithub_Click(object sender, EventArgs e) {
-            System.Diagnostics.Process.Start("https://github.com/murrty/youtube-dl-gui/issues");
+            System.Diagnostics.Process.Start(UpdateChecker.GitData.GithubIssuesPage);
         }
 
     }
