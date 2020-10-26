@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace YChanEx {
@@ -13,7 +14,7 @@ namespace YChanEx {
             InitializeComponent();
             niTray.Icon = Properties.Resources.YChanEx;
             this.Icon = Properties.Resources.YChanEx;
-            lvThreads.ContextMenu = cmItems;
+            lvThreads.ContextMenu = cmThreads;
         }
 
         public void Announce404(string ThreadID, string ThreadBoard, string URL, int Chan) {
@@ -120,29 +121,31 @@ namespace YChanEx {
                 this.WindowState = FormWindowState.Normal;
                 this.Hide();
             }
-            else if (ThreadDownloadForms.Count > 0) {
-                if (General.Default.ShowExitWarning) {
-                    switch (MessageBox.Show("You have threads in the queue. Do you really want to exit?", "YChanEx", MessageBoxButtons.YesNo)) {
-                        case DialogResult.Yes:
-                            Chans.SaveThreads(ThreadURLs, ThreadIsGone);
-                            ExitApplication = true;
-                            break;
-                        case DialogResult.No:
-                            return false;
-                    }
-                }
-                else {
-                    Chans.SaveThreads(ThreadURLs, ThreadIsGone);
-                    ExitApplication = true;
+            if (General.Default.ShowExitWarning) {
+                switch (MessageBox.Show("You have threads in the queue. Do you really want to exit?", "YChanEx", MessageBoxButtons.YesNoCancel)) {
+                    case DialogResult.Yes:
+                        Chans.SaveThreads(ThreadURLs, ThreadIsGone);
+                        ExitApplication = true;
+                        break;
+                    case DialogResult.No:
+                        ExitApplication = true;
+                        break;
+                    case DialogResult.Cancel:
+                        return false;
                 }
             }
             else {
+                Chans.SaveThreads(ThreadURLs, ThreadIsGone);
                 ExitApplication = true;
             }
 
             if (!ExitApplication) {
                 return false;
             }
+
+            Saved.Default.MainFormLocation = this.Location;
+            Saved.Default.MainFormSize = this.Size;
+            Saved.Default.Save();
 
             for (int i = 0; i < ThreadDownloadForms.Count; i++) {
                 ThreadDownloadForms[i].AbortDownloadForClosing();
@@ -159,7 +162,7 @@ namespace YChanEx {
 
 
         private void frmMain_Load(object sender, EventArgs e) {
-            if (General.Default.SaveQueueOnExit) {
+            if (General.Default.SaveQueueOnExit && !Program.IsDebug) {
                 string[] ThreadArray = Chans.LoadThreads().Replace("\r", "").Split('\n');
                 if (ThreadArray != null && ThreadArray.Length > 0) {
                     for (int ThreadArrayIndex = 0; ThreadArrayIndex < ThreadArray.Length; ThreadArrayIndex++) {
@@ -182,6 +185,15 @@ namespace YChanEx {
                 niTray.Visible = true;
             }
             niTray.ContextMenu = cmTray;
+
+            if (Saved.Default.MainFormLocation != default(System.Drawing.Point)) {
+                this.Location = Saved.Default.MainFormLocation;
+            }
+            if (Saved.Default.MainFormSize != default(System.Drawing.Size)) {
+                this.Size = Saved.Default.MainFormSize;
+            }
+
+            UpdateChecker.CheckForUpdate();
         }
         private void frmMain_FormClosing(object sender, FormClosingEventArgs e) {
             if (General.Default.MinimizeInsteadOfExiting) {
@@ -263,10 +275,44 @@ namespace YChanEx {
         }
 
 
-
         private void mStatus_Click(object sender, EventArgs e) {
             if (lvThreads.SelectedIndices.Count > 0) {
                 ThreadDownloadForms[lvThreads.SelectedIndices[0]].Show();
+            }
+        }
+        private void mRetryDownload_Click(object sender, EventArgs e) {
+            if (lvThreads.SelectedItems.Count > 0) {
+                if (ThreadIsGone[lvThreads.SelectedIndices[0]]) {
+                    ThreadDownloadForms[lvThreads.SelectedIndices[0]].RetryScanOnFailure();
+                }
+            }
+        }
+        private void mOpenDownloadFolder_Click(object sender, EventArgs e) {
+            if (lvThreads.SelectedIndices.Count > 0) {
+                string FoundThreadDownloadPath = ThreadDownloadForms[lvThreads.SelectedIndices[0]].DownloadPath;
+                if (!string.IsNullOrEmpty(FoundThreadDownloadPath)) {
+                    if (System.IO.Directory.Exists(FoundThreadDownloadPath)) {
+                        System.Diagnostics.Process.Start(FoundThreadDownloadPath);
+                    }
+                }
+            }
+        }
+        private void mOpenThreadInBrowser_Click(object sender, EventArgs e) {
+            if (lvThreads.SelectedIndices.Count > 0) {
+                System.Diagnostics.Process.Start(ThreadURLs[lvThreads.SelectedIndices[0]]);
+            }
+        }
+        private void mCopyThreadURL_Click(object sender, EventArgs e) {
+            if (lvThreads.SelectedIndices.Count > 0) {
+                Clipboard.SetText(ThreadURLs[lvThreads.SelectedIndices[0]]);
+            }
+        }
+        private void mCopyThreadID_Click(object sender, EventArgs e) {
+            if (lvThreads.SelectedIndices.Count > 0) {
+                string FoundThreadID = ThreadDownloadForms[lvThreads.SelectedIndices[0]].PublicThreadID;
+                if (!string.IsNullOrEmpty(FoundThreadID)) {
+                    Clipboard.SetText(FoundThreadID);
+                }
             }
         }
         private void mRemove_Click(object sender, EventArgs e) {
@@ -280,15 +326,13 @@ namespace YChanEx {
                 ThreadURLs.RemoveAt(SelectedIndex);
                 ThreadIsGone.RemoveAt(SelectedIndex);
                 lvThreads.Items.RemoveAt(SelectedIndex);
-            }
-        }
-        private void mRetryDownload_Click(object sender, EventArgs e) {
-            if (lvThreads.SelectedItems.Count > 0) {
-                if (ThreadIsGone[lvThreads.SelectedIndices[0]]) {
-                    ThreadDownloadForms[lvThreads.SelectedIndices[0]].RetryScanOnFailure();
+
+                if (Saved.Default.DownloadFormSize != ThreadDownloadForms[SelectedIndex].Size) {
+                    Saved.Default.DownloadFormSize = ThreadDownloadForms[SelectedIndex].Size;
                 }
             }
         }
+
 
         private void mTrayShowYChanEx_Click(object sender, EventArgs e) {
             if (this.Visible == false) {
