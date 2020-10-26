@@ -124,7 +124,7 @@ namespace YChanEx {
                 if (General.Default.ShowExitWarning) {
                     switch (MessageBox.Show("You have threads in the queue. Do you really want to exit?", "YChanEx", MessageBoxButtons.YesNo)) {
                         case DialogResult.Yes:
-                            Chans.SaveThreads(ThreadURLs);
+                            Chans.SaveThreads(ThreadURLs, ThreadIsGone);
                             ExitApplication = true;
                             break;
                         case DialogResult.No:
@@ -132,7 +132,7 @@ namespace YChanEx {
                     }
                 }
                 else {
-                    Chans.SaveThreads(ThreadURLs);
+                    Chans.SaveThreads(ThreadURLs, ThreadIsGone);
                     ExitApplication = true;
                 }
             }
@@ -159,11 +159,22 @@ namespace YChanEx {
 
 
         private void frmMain_Load(object sender, EventArgs e) {
-            if (General.Default.SaveQueueOnExit && !Program.IsDebug) {
-                string[] ThreadArray = Chans.LoadThreads();
+            if (General.Default.SaveQueueOnExit) {
+                string[] ThreadArray = Chans.LoadThreads().Replace("\r", "").Split('\n');
                 if (ThreadArray != null && ThreadArray.Length > 0) {
                     for (int ThreadArrayIndex = 0; ThreadArrayIndex < ThreadArray.Length; ThreadArrayIndex++) {
-                        AddNewThread(ThreadArray[ThreadArrayIndex], true);
+                        // assume the thread is alive unless it's confirmed false in the threads.dat file
+                        bool IsAlive = true;
+                        string ThreadAtIndex = ThreadArray[ThreadArrayIndex];
+                        string URL = ThreadAtIndex.Split('=')[0].Trim(' ');
+
+                        // if the thread.dat contains an equal sign, try to parse it.
+                        if (ThreadAtIndex.Contains("=")) {
+                            string IsAliveString = ThreadAtIndex.Split('=')[1].ToLower().Trim(' ');
+                            if (IsAliveString.ToLower() == "false") { IsAlive = false; }
+                        }
+
+                        AddNewThread(URL, IsAlive);
                     }
                 }
             }

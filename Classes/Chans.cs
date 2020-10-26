@@ -95,7 +95,7 @@ class Chans {
             using (WebClientMethod wc = new WebClientMethod()) {
                 wc.Method = "GET";
                 wc.Headers.Add(HttpRequestHeader.UserAgent, YChanEx.Advanced.Default.UserAgent);
-                if (RequireCookie) {
+                if (RequireCookie && RequiredCookie != null) {
                     wc.Headers.Add(HttpRequestHeader.Cookie, RequiredCookie);
                 }
                 string FullFileName = Destination + "\\" + FileName;
@@ -223,12 +223,12 @@ class Chans {
         return (int)ChanTypes.Types.None;
     }
 
-    public static bool SaveThreads(List<string> Threads) {
+    public static bool SaveThreads(List<string> Threads, List<bool> ThreadStatus) {
         if (General.Default.SaveQueueOnExit) {
             try {
                 string FileContentBuffer = string.Empty;
                 for (int i = 0; i < Threads.Count; i++) {
-                    FileContentBuffer += Threads[i] + "\n";
+                    FileContentBuffer += Threads[i].Replace("=", "%61").Replace("|", "%124") + "|" + ThreadStatus[i].ToString() + "\n";
                 }
                 File.WriteAllText(Program.ApplicationFilesLocation + "\\threads.dat", FileContentBuffer.Trim('\n'));
                 return true;
@@ -240,12 +240,12 @@ class Chans {
         }
         return false;
     }
-    public static string[] LoadThreads() {
+    public static string LoadThreads() {
         try {
             if (System.IO.File.Exists(Program.ApplicationFilesLocation + "\\threads.dat")) {
                 string ReadThreads = System.IO.File.ReadAllText(Program.ApplicationFilesLocation + "\\threads.dat").Trim('\n');
                 if (!string.IsNullOrEmpty(ReadThreads)) {
-                    return ReadThreads.Split('\n');
+                    return ReadThreads;
                 }
             }
             return null;
