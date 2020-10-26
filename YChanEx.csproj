@@ -179,13 +179,9 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>RegexStrings.Designer.cs</LastGenOutput>
     </None>
-    <None Include="Resources\YChanEx.ico" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\ychanex32.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\YChanEx404.ico" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\downloading.bmp" />
@@ -198,6 +194,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\waiting.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\YChanEx.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\YChanEx404.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
