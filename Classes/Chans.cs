@@ -95,7 +95,7 @@ class Chans {
             using (WebClientMethod wc = new WebClientMethod()) {
                 wc.Method = "GET";
                 wc.Headers.Add(HttpRequestHeader.UserAgent, YChanEx.Advanced.Default.UserAgent);
-                if (RequireCookie && RequiredCookie != null) {
+                if (RequireCookie && !string.IsNullOrEmpty(RequiredCookie)) {
                     wc.Headers.Add(HttpRequestHeader.Cookie, RequiredCookie);
                 }
                 string FullFileName = Destination + "\\" + FileName;
