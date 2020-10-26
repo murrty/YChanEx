@@ -223,7 +223,8 @@ class Chans {
         return (int)ChanTypes.Types.None;
     }
 
-    public static bool SaveThreads(List<string> ThreadURLs, List<bool> ThreadStatus) {
+    //public static bool SaveThreads(List<string> ThreadURLs, List<bool> ThreadStatus) {
+    public static bool SaveThreads(List<string> ThreadURLs, List<int> ThreadStatus) {
         if (General.Default.SaveQueueOnExit) {
             try {
                 string FileContentBuffer = string.Empty;
@@ -245,16 +246,13 @@ class Chans {
     public static string LoadThreads() {
         try {
             if (System.IO.File.Exists(Program.ApplicationFilesLocation + "\\threads.dat")) {
-                string ReadThreads = System.IO.File.ReadAllText(Program.ApplicationFilesLocation + "\\threads.dat").Trim('\n');
-                if (!string.IsNullOrEmpty(ReadThreads)) {
-                    return ReadThreads;
-                }
+                return System.IO.File.ReadAllText(Program.ApplicationFilesLocation + "\\threads.dat").Replace("\r", "").Trim('\n');
             }
-            return null;
+            return string.Empty;
         }
         catch (Exception ex) {
             ErrorLog.ReportException(ex);
-            return null;
+            return string.Empty;
         }
     }
 
@@ -1035,6 +1033,12 @@ class ChanTypes {
 /// Strings of the thread statuses. If this will be kept is TBD.
 /// </summary>
 class ThreadStatuses {
+    public enum AliveStatus : int {
+        Alive = 0,
+        Was404 = 1,
+        WasAborted = 2
+    }
+
     public static string Downloading { get { return "Downloading"; } }
     public static string Waiting { get { return "Waiting"; } }
     public static string Has404 { get { return "404'd"; } }

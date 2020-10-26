@@ -31,6 +31,10 @@ namespace YChanEx {
         static void Main() {
             EnableDebug();
 
+            using (System.Diagnostics.Process ThisProgram = System.Diagnostics.Process.GetCurrentProcess()) {
+                ThisProgram.PriorityClass = System.Diagnostics.ProcessPriorityClass.BelowNormal;
+            }
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             MainForm = new frmMain();

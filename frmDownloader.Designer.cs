@@ -301,6 +301,7 @@
             this.MinimumSize = new System.Drawing.Size(500, 350);
             this.Name = "frmDownloader";
             this.Opacity = 0D;
+            this.ShowInTaskbar = false;
             this.Text = "unknown chan download";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmDownloader_FormClosing);
             this.ResumeLayout(false);

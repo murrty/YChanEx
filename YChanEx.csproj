@@ -112,6 +112,11 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>RegexStrings.settings</DependentUpon>
     </Compile>
+    <Compile Include="Saved.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Saved.settings</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="frmAbout.resx">
       <DependentUpon>frmAbout.cs</DependentUpon>
     </EmbeddedResource>
@@ -161,6 +166,10 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="Saved.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Saved.Designer.cs</LastGenOutput>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

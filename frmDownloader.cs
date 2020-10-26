@@ -24,15 +24,16 @@ namespace YChanEx {
         public string DownloadPath = null;                          // all, the local directory for the files to save to.
         public string ThreadURL = null;                             // all, the URL passed from the main form.
         public int ChanType = (int)ChanTypes.Types.None;            // all, the int-based chan type.
-        public DateTime LastModified = default(DateTime);           // 4chan 7chan 8chan,
-        // uses If-Modified-Since header on requests
-        // to prevent repeat requests overloading their servers.
-        // all logic includes this, but only some make use of it.
+        public string PublicThreadID = null;
 
         private string ThreadBoard = null;                          // all, the chan board.
         private string ThreadID = null;                             // all, the thread ID.
         private string LastThreadHTML = null;                       // 7chan fchan u18chan, the last HTML of the thread.
         // (used as a make-shift if-modified-since header)
+        private DateTime LastModified = default(DateTime);           // 4chan 7chan 8chan,
+        // uses If-Modified-Since header on requests
+        // to prevent repeat requests overloading their servers.
+        // all logic includes this, but only some make use of it.
 
         private List<string> ImageFiles = new List<string>();       // all, list of file links.
         private List<string> ThumbnailFiles = new List<string>();   // all, list of thumbnail file links.
@@ -45,7 +46,7 @@ namespace YChanEx {
         private List<string> FileExtensions = new List<string>();   // all, list of file extensions.
         private List<int> FileNamesDupesCount = new List<int>();    // all, contains the amount of files with the same name.
         private bool ThreadScanned = false;     // all, Prevents thread data (ThreadBoard, ThreadID ...) from being rewrote on rescans.
-        private bool Thread404 = false;         // all, determines if a thread 404'd.
+        private bool DownloadThread404 = false; // all, determines if a thread 404'd.
         private bool DownloadAborted = false;   // all, determines if a thread was aborted.
         private int ThreadImagesCount = 0;       // all, counts the images in the thread. restarts parsing at this index.
         private int DownloadedImagesCount = 0;   // all, counts the images that have downloaded.
@@ -102,7 +103,7 @@ namespace YChanEx {
                 return;
             }
 
-            if (Thread404) {
+            if (DownloadThread404) {
                 lbScanTimer.Text = "404'd";
                 lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
                 this.Icon = Properties.Resources.YChanEx404;
@@ -121,6 +122,7 @@ namespace YChanEx {
             else if (CountdownToNextScan == 0) {
                 StartDownload();
                 lbScanTimer.Text = "scanning now...";
+                MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Scanning);
                 tmrScan.Stop();
             }
             else {
@@ -137,13 +139,13 @@ namespace YChanEx {
         }
         private void btnForce404_Click(object sender, EventArgs e) {
             if (Program.IsDebug) {
-                Thread404 = true;
+                DownloadThread404 = true;
                 btnForce404.Enabled = false;
                 AfterDownload();
             }
         }
         private void btnAbortRetry_Click(object sender, EventArgs e) {
-            if (!Thread404 && !DownloadAborted) {
+            if (!DownloadThread404 && !DownloadAborted) {
                 StopDownload();
                 btnAbortRetry.Text = "Retry";
                 lbNotModified.Visible = false;
@@ -197,7 +199,7 @@ namespace YChanEx {
         }
         #endregion
         #region Custom Thread Methods
-        public void StartDownload() {
+        public void StartDownload(bool ScanThread = true) {
             GC.Collect();
             switch (ChanType) {
                 case (int)ChanTypes.Types.FourChan:
@@ -298,9 +300,12 @@ namespace YChanEx {
                 btnOpenFolder.Enabled = true;
             }
 
+            PublicThreadID = ThreadID;
             HideModifiedLabelAt = Downloads.Default.ScannerDelay - 10;
-            DownloadThread.Start();
-            MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Downloading);
+            if (ScanThread) {
+                DownloadThread.Start();
+                MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Scanning);
+            }
         }
         public void StopDownload() {
             DownloadAborted = true;
@@ -332,12 +337,13 @@ namespace YChanEx {
             }
         }
         public void RetryScanOnFailure() {
-            Thread404 = false;
+            DownloadThread404 = false;
             DownloadAborted = false;
             MainFormInstance.Un404Thread(ThreadURL);
             lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.ControlText);
             StartDownload();
             lbScanTimer.Text = "scanning now...";
+            btnAbortRetry.Text = "Abort";
             tmrScan.Stop();
         }
         public void AbortDownloadForClosing() {
@@ -373,6 +379,22 @@ namespace YChanEx {
                     return;
             }
         }
+        public void StartGone(int Status) {
+            this.Icon = Properties.Resources.YChanEx404;
+            lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
+            btnAbortRetry.Text = "Retry";
+            switch (Status) {
+                case (int)ThreadStatuses.AliveStatus.Was404:
+                    lbScanTimer.Text = "404'd";
+                    DownloadThread404 = true;
+                    break;
+                case (int)ThreadStatuses.AliveStatus.WasAborted:
+                    lbScanTimer.Text = "aborted download";
+                    DownloadAborted = true;
+                    break;
+            }
+            StartDownload(false);
+        }
         #endregion
 
 
@@ -388,7 +410,7 @@ namespace YChanEx {
 
                     #region API/HTML Download Logic
                     if (ThreadBoard == null || ThreadID == null) {
-                        Thread404 = true;
+                        DownloadThread404 = true;
                         AfterDownload();
                         return;
                     }
@@ -525,6 +547,7 @@ namespace YChanEx {
                         lbTotalFiles.Text = ThreadImagesCount.ToString();
                         lbLastModified.Text = "last modified: " + LastModified.ToString();
                         lbScanTimer.Text = "Downloading files";
+                        MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Downloading);
                     }));
                     #endregion
 
@@ -588,7 +611,7 @@ namespace YChanEx {
                     }
                     else {
                         if (((int)WebEx.Status) == 7) {
-                            Thread404 = true;
+                            DownloadThread404 = true;
                         }
                         else {
                             ErrorLog.ReportWebException(WebEx, CurrentURL);
@@ -652,7 +675,7 @@ namespace YChanEx {
 
                     #region API/HTML Download Logic
                     if (ThreadBoard == null || ThreadID == null) {
-                        Thread404 = true;
+                        DownloadThread404 = true;
                         AfterDownload();
                         return;
                     }
@@ -725,6 +748,7 @@ namespace YChanEx {
                         lbTotalFiles.Text = ThreadImagesCount.ToString();
                         lbLastModified.Text = "last modified: " + LastModified.ToString();
                         lbScanTimer.Text = "Downloading files";
+                        MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Downloading);
                     }));
                     #endregion
 
@@ -785,7 +809,7 @@ namespace YChanEx {
                     }
                     else {
                         if (((int)WebEx.Status) == 7) {
-                            Thread404 = true;
+                            DownloadThread404 = true;
                         }
                         else {
                             ErrorLog.ReportWebException(WebEx, CurrentURL);
@@ -833,7 +857,7 @@ retryThread:
                     if (string.IsNullOrEmpty(ThreadHTML)) {
                         TryCount++;
                         if (TryCount == 5) {
-                            Thread404 = true;
+                            DownloadThread404 = true;
                             return;
                         }
                         Thread.Sleep(5000);
@@ -969,6 +993,7 @@ retryThread:
                         lbTotalFiles.Text = ImageFiles.Count.ToString();
                         lbLastModified.Text = "last modified: " + LastModified.ToString();
                         lbScanTimer.Text = "Downloading files";
+                        MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Downloading);
                     }));
                     #endregion
 
@@ -1026,7 +1051,7 @@ retryThread:
                     }
                     else {
                         if (((int)WebEx.Status) == 7) {
-                            Thread404 = true;
+                            DownloadThread404 = true;
                         }
                         else {
                             ErrorLog.ReportWebException(WebEx, CurrentURL);
@@ -1057,7 +1082,7 @@ retryThread:
 
                     #region Download JSON Logic
                     if (ThreadBoard == null || ThreadID == null) {
-                        Thread404 = true;
+                        DownloadThread404 = true;
                         AfterDownload();
                         return;
                     }
@@ -1414,6 +1439,7 @@ retryThread:
                         lbTotalFiles.Text = ThreadImagesCount.ToString();
                         lbLastModified.Text = "last modified: " + LastModified.ToString();
                         lbScanTimer.Text = "Downloading files";
+                        MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Downloading);
                     }));
                     #endregion
 
@@ -1475,7 +1501,7 @@ retryThread:
                     }
                     else {
                         if (((int)WebEx.Status) == 7) {
-                            Thread404 = true;
+                            DownloadThread404 = true;
                         }
                         else {
                             ErrorLog.ReportWebException(WebEx, CurrentURL);
@@ -1505,7 +1531,7 @@ retryThread:
 
                 try {
                     if (ThreadBoard == null || ThreadID == null) {
-                        Thread404 = true;
+                        DownloadThread404 = true;
                         AfterDownload();
                         return;
                     }
@@ -1887,6 +1913,7 @@ retryThread:
                         lbTotalFiles.Text = (ThreadImagesCount + ExtraFilesImageCount).ToString();
                         lbLastModified.Text = "last modified: " + LastModified.ToString();
                         lbScanTimer.Text = "Downloading files";
+                        MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Downloading);
                     }));
                     #endregion
 
@@ -1948,7 +1975,7 @@ retryThread:
                     }
                     else {
                         if (((int)WebEx.Status) == 7) {
-                            Thread404 = true;
+                            DownloadThread404 = true;
                         }
                         else {
                             ErrorLog.ReportWebException(WebEx, CurrentURL);
@@ -2009,7 +2036,7 @@ retryThread:
                     if (string.IsNullOrEmpty(ThreadHTML)) {
                         TryCount++;
                         if (TryCount == 5) {
-                            Thread404 = true;
+                            DownloadThread404 = true;
                             return;
                         }
                         Thread.Sleep(5000);
@@ -2112,6 +2139,7 @@ retryThread:
                         lbTotalFiles.Text = ImageFiles.Count.ToString();
                         lbLastModified.Text = "last modified: " + LastModified.ToString();
                         lbScanTimer.Text = "Downloading files";
+                        MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Downloading);
                     }));
                     #endregion
 
@@ -2170,7 +2198,7 @@ retryThread:
                     }
                     else {
                         if (((int)WebEx.Status) == 7) {
-                            Thread404 = true;
+                            DownloadThread404 = true;
                         }
                         else {
                             ErrorLog.ReportWebException(WebEx, CurrentURL);
@@ -2217,7 +2245,7 @@ retryThread:
                     if (string.IsNullOrEmpty(ThreadHTML)) {
                         TryCount++;
                         if (TryCount == 5) {
-                            Thread404 = true;
+                            DownloadThread404 = true;
                             return;
                         }
                         Thread.Sleep(5000);
@@ -2402,6 +2430,7 @@ retryThread:
                         lbTotalFiles.Text = ThreadImagesCount.ToString();
                         lbLastModified.Text = "last modified: " + LastModified.ToString();
                         lbScanTimer.Text = "Downloading files";
+                        MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Downloading);
                     }));
                     #endregion
 
@@ -2460,7 +2489,7 @@ retryThread:
                     }
                     else {
                         if (((int)WebEx.Status) == 7) {
-                            Thread404 = true;
+                            DownloadThread404 = true;
                         }
                         else {
                             ErrorLog.ReportWebException(WebEx, CurrentURL);

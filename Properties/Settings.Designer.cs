@@ -34,7 +34,7 @@ namespace YChanEx.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2020-10-21")]
+        [global::System.Configuration.DefaultSettingValueAttribute("2020-10-26")]
         public string DebugDate {
             get {
                 return ((string)(this["DebugDate"]));
