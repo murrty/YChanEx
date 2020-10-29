@@ -38,8 +38,8 @@ namespace YChanEx {
         private List<string> FileNames = new List<string>();        // all, list of file names.
         private List<string> OriginalFileNames = new List<string>();// all, list of original file names.
         private List<string> FileNamesDupes = new List<string>();   // all, contains the stringed names of duplicate files.
-        private List<string> FileExtensions = new List<string>();   // all, list of file extensions.
         private List<string> FileHashes = new List<string>();       // all, list of file hashes.
+        private List<string> FileExtensions = new List<string>();   // all, list of file extensions.
         private List<int> FileNamesDupesCount = new List<int>();    // all, contains the amount of files with the same name.
         private bool ThreadScanned = false;     // all, Prevents thread data (ThreadBoard, ThreadID ...) from being rewrote on rescans.
         private bool DownloadThread404 = false; // all, determines if a thread 404'd.
@@ -59,7 +59,6 @@ namespace YChanEx {
         private bool MessageBoxPerFile = false;         // all, debug to display a message box of the URL before download
         private bool PauseBetweenFiles = true;         // all, temp pauses between file downloads.
         #endregion
-
 
         #region Form Controls
         public frmDownloader() {
@@ -606,7 +605,6 @@ namespace YChanEx {
                         this.BeginInvoke(new MethodInvoker(() => {
                             lbNotModified.Visible = true;
                         }));
-                        AfterDownload();
                     }
                     else {
                         if (((int)WebEx.Status) == 7) {
@@ -804,7 +802,6 @@ namespace YChanEx {
                         this.BeginInvoke(new MethodInvoker(() => {
                             lbNotModified.Visible = true;
                         }));
-                        AfterDownload();
                     }
                     else {
                         if (((int)WebEx.Status) == 7) {
@@ -1046,7 +1043,6 @@ retryThread:
                         this.BeginInvoke(new MethodInvoker(() => {
                             lbNotModified.Visible = true;
                         }));
-                        AfterDownload();
                     }
                     else {
                         if (((int)WebEx.Status) == 7) {
@@ -1496,7 +1492,6 @@ retryThread:
                         this.BeginInvoke(new MethodInvoker(() => {
                             lbNotModified.Visible = true;
                         }));
-                        AfterDownload();
                     }
                     else {
                         if (((int)WebEx.Status) == 7) {
@@ -1967,7 +1962,6 @@ retryThread:
                         this.BeginInvoke(new MethodInvoker(() => {
                             lbNotModified.Visible = true;
                         }));
-                        AfterDownload();
                     }
                     if (Response.StatusCode == HttpStatusCode.BadGateway) {
                         AfterDownload();
@@ -2193,7 +2187,6 @@ retryThread:
                         this.BeginInvoke(new MethodInvoker(() => {
                             lbNotModified.Visible = true;
                         }));
-                        AfterDownload();
                     }
                     else {
                         if (((int)WebEx.Status) == 7) {
