@@ -5,22 +5,25 @@ using System.Windows.Forms;
 
 namespace YChanEx {
     public partial class frmMain : Form {
-        List<frmDownloader> ThreadDownloadForms = new List<frmDownloader>();
-        List<string> ThreadURLs = new List<string>();
-        List<int> ThreadAliveStatus = new List<int>();
-        bool Show404Icon = false;
-        bool ThreadsModified = false;
+        #region Variables
+        private List<frmDownloader> ThreadDownloadForms = new List<frmDownloader>();    // The list of Thread download forms
+        private List<string> ThreadURLs = new List<string>();                           // The list of Thread URLs
+        private List<int> ThreadAliveStatuses = new List<int>();                        // the list of Thread statuses
+        private bool Icon404WasShown = false;   // Determines if the 404 icon has been shown on the tray.
+        private bool ThreadsModified = false;   // Determines if the threads lists were modified to resave them.
+        #endregion
 
-        public frmMain() {
-            InitializeComponent();
-            niTray.Icon = Properties.Resources.YChanEx;
-            this.Icon = Properties.Resources.YChanEx;
-            lvThreads.ContextMenu = cmThreads;
-        }
-
-        public void Announce404(string ThreadID, string ThreadBoard, string URL, int ChanType) {
-            int ThreadIndex = ThreadURLs.IndexOf(URL);
-            ThreadAliveStatus[ThreadIndex] = (int)ThreadStatuses.AliveStatus.Was404;
+        #region Usbility methods
+        /// <summary>
+        /// Announces the 404 to the main form handle, which will pop up a notification in the tray.
+        /// </summary>
+        /// <param name="ThreadID">The ID of the thread that will be displayed in the notification.</param>
+        /// <param name="ThreadBoard">The board of the thread that will be displayed in the notification.</param>
+        /// <param name="ThreadURL">The URL of the thread that will be used to find indexes in the lists to set 404 status.</param>
+        /// <param name="ChanType">The int value of the *chan to determine what *chan the thread was on.</param>
+        public void Announce404(string ThreadID, string ThreadBoard, string ThreadURL, int ChanType) {
+            int ThreadIndex = ThreadURLs.IndexOf(ThreadURL);
+            ThreadAliveStatuses[ThreadIndex] = (int)ThreadStatuses.AliveStatus.Was404;
             niTray.BalloonTipText = ThreadID + " on /" + ThreadBoard + "/ has 404'd";
             switch (ChanType) {
                 case (int)ChanTypes.Types.FourChan:
@@ -52,31 +55,51 @@ namespace YChanEx {
                 changeTray.Stop();
             }
             niTray.Icon = Properties.Resources.YChanEx404;
-            Show404Icon = true;
+            Icon404WasShown = true;
             changeTray.Start();
             niTray.ShowBalloonTip(5000);
             ThreadsModified = true;
             GC.Collect();
         }
-        public void AnnounceAbort(string URL) {
-            int ThreadIndex = ThreadURLs.IndexOf(URL);
-            ThreadAliveStatus[ThreadIndex] = (int)ThreadStatuses.AliveStatus.WasAborted;
+        /// <summary>
+        /// Announces to the form that the thread was aborted by the user.
+        /// </summary>
+        /// <param name="ThreadURL">The url of the thread that was aborted to find the index of the status to set aborted status.</param>
+        public void AnnounceAbort(string ThreadURL) {
+            int ThreadIndex = ThreadURLs.IndexOf(ThreadURL);
+            ThreadAliveStatuses[ThreadIndex] = (int)ThreadStatuses.AliveStatus.WasAborted;
             ThreadsModified = true;
         }
+        /// <summary>
+        /// Restores the alive status of the thread to attempt redownloading if the thread was 404'd or aborted.
+        /// </summary>
+        /// <param name="ThreadURL">The url of the thread being reset to alive to find the index of the status to set alive status.</param>
         public void Un404Thread(string ThreadURL) {
             int ThreadIndex = ThreadURLs.IndexOf(ThreadURL);
-            ThreadAliveStatus[ThreadIndex] = (int)ThreadStatuses.AliveStatus.Alive;
+            ThreadAliveStatuses[ThreadIndex] = (int)ThreadStatuses.AliveStatus.Alive;
             ThreadsModified = true;
         }
-        public void SetItemStatus(string URL, string Status) {
-            int ItemIndex = ThreadURLs.IndexOf(URL);
-            lvThreads.Items[ItemIndex].SubItems[0].Text = Status;
+        /// <summary>
+        /// Sets the thread status from another thread handle to change the status on the main form.
+        /// </summary>
+        /// <param name="ThreadURL">The url of the thread to find the index in the listview.</param>
+        /// <param name="NewStatus">The new custom status to be set onto it.</param>
+        public void SetItemStatus(string ThreadURL, string NewStatus) {
+            int ItemIndex = ThreadURLs.IndexOf(ThreadURL);
+            lvThreads.Items[ItemIndex].SubItems[0].Text = NewStatus;
         }
-        public bool AddNewThread(string URL, bool ThreadWasSaved = false, int AliveStatus = (int)ThreadStatuses.AliveStatus.Alive) {
-            if (Chans.SupportedChan(URL)) {
-                if (ThreadURLs.Contains(URL)) {
-                    int ThreadURLIndex = ThreadURLs.IndexOf(URL);
-                    if (ThreadAliveStatus[ThreadURLIndex] != (int)ThreadStatuses.AliveStatus.Alive) {
+        /// <summary>
+        /// Adds a new thread to the queue by setting predetermined statuses.
+        /// </summary>
+        /// <param name="ThreadURL">The url of the thread that will be added to the queue.</param>
+        /// <param name="ThreadWasSaved">The boolean to set if the thread was saved, and if it was it will automatically hide the form. Defaults to false.</param>
+        /// <param name="AliveStatus">The int value of the thread status. Defaults to alive.</param>
+        /// <returns></returns>
+        public bool AddNewThread(string ThreadURL, bool ThreadWasSaved = false, int AliveStatus = (int)ThreadStatuses.AliveStatus.Alive) {
+            if (Chans.SupportedChan(ThreadURL)) {
+                if (ThreadURLs.Contains(ThreadURL)) {
+                    int ThreadURLIndex = ThreadURLs.IndexOf(ThreadURL);
+                    if (ThreadAliveStatuses[ThreadURLIndex] != (int)ThreadStatuses.AliveStatus.Alive) {
                         ThreadDownloadForms[lvThreads.SelectedIndices[0]].RetryScanOnFailure();
                     }
                     return true;
@@ -95,15 +118,15 @@ namespace YChanEx {
                             lvi.SubItems[0].Text = ThreadStatuses.Waiting;
                             break;
                     }
-                    lvi.SubItems[1].Text = URL;
-                    lvi.Name = URL;
+                    lvi.SubItems[1].Text = ThreadURL;
+                    lvi.Name = ThreadURL;
                     lvThreads.Items.Add(lvi);
-                    ThreadURLs.Add(URL);
-                    ThreadAliveStatus.Add(AliveStatus);
+                    ThreadURLs.Add(ThreadURL);
+                    ThreadAliveStatuses.Add(AliveStatus);
 
                     frmDownloader newThread = new frmDownloader();
                     ThreadDownloadForms.Add(newThread);
-                    newThread.ChanType = Chans.GetChanType(URL);
+                    newThread.ChanType = Chans.GetChanType(ThreadURL);
                     if (newThread.ChanType == (int)ChanTypes.Types.fchan) {
                         if (!Downloads.Default.fchanWarning) {
                             MessageBox.Show(
@@ -115,8 +138,8 @@ namespace YChanEx {
                             Downloads.Default.Save();
                         }
                     }
-                    newThread.Name = URL;
-                    newThread.ThreadURL = URL;
+                    newThread.Name = ThreadURL;
+                    newThread.ThreadURL = ThreadURL;
                     newThread.Show();
 
                     if (ThreadWasSaved) {
@@ -143,32 +166,38 @@ namespace YChanEx {
                 return false;
             }
         }
-        public bool TryExiting() {
-            bool ExitApplication = false;
+        /// <summary>
+        /// The method to determine if the application should exit, while also performing last-second saving for threads and form location/size.
+        /// </summary>
+        /// <returns>True, if the application is allowed to exit. False, if the application isn't allowed to exit.</returns>
+        public bool ApplicationShouldExit() {
+            bool ExitApplication = true;
+
             if (General.Default.MinimizeInsteadOfExiting) {
                 this.WindowState = FormWindowState.Normal;
                 this.Hide();
+                ExitApplication = false;
+                return false;
             }
-            if (General.Default.ShowExitWarning) {
-                switch (MessageBox.Show("You have threads in the queue. Do you really want to exit?", "YChanEx", MessageBoxButtons.YesNoCancel)) {
-                    case DialogResult.Yes:
-                        if (ThreadsModified) {
-                            Chans.SaveThreads(ThreadURLs, ThreadAliveStatus);
-                        }
-                        ExitApplication = true;
-                        break;
-                    case DialogResult.No:
-                        ExitApplication = true;
-                        break;
-                    case DialogResult.Cancel:
-                        return false;
+
+            if (lvThreads.Items.Count > 0) {
+                if (General.Default.ShowExitWarning) {
+                    switch (MessageBox.Show("You have threads in the queue. Do you want to save them for later?", "YChanEx", MessageBoxButtons.YesNoCancel)) {
+                        case DialogResult.Yes:
+                            if (ThreadsModified) {
+                                Chans.SaveThreads(ThreadURLs, ThreadAliveStatuses);
+                            }
+                            break;
+                        case DialogResult.Cancel:
+                            ExitApplication = false;
+                            return false;
+                    }
                 }
-            }
-            else {
-                if (ThreadsModified) {
-                    Chans.SaveThreads(ThreadURLs, ThreadAliveStatus);
+                else if (General.Default.SaveQueueOnExit) {
+                    if (ThreadsModified) {
+                        Chans.SaveThreads(ThreadURLs, ThreadAliveStatuses);
+                    }
                 }
-                ExitApplication = true;
             }
 
             if (!ExitApplication) {
@@ -183,7 +212,7 @@ namespace YChanEx {
                 ThreadDownloadForms[i].AbortDownloadForClosing();
                 ThreadDownloadForms[i].Dispose();
                 ThreadURLs.RemoveAt(i);
-                ThreadAliveStatus.RemoveAt(i);
+                ThreadAliveStatuses.RemoveAt(i);
                 ThreadDownloadForms.RemoveAt(i);
             }
 
@@ -191,8 +220,15 @@ namespace YChanEx {
 
             return true;
         }
+        #endregion
 
-
+        #region Form Controls
+        public frmMain() {
+            InitializeComponent();
+            niTray.Icon = Properties.Resources.YChanEx;
+            this.Icon = Properties.Resources.YChanEx;
+            lvThreads.ContextMenu = cmThreads;
+        }
         private void frmMain_Load(object sender, EventArgs e) {
             if (General.Default.SaveQueueOnExit && !Program.IsDebug) {
                 string[] ThreadArray = Chans.LoadThreads().Split('\n');
@@ -235,7 +271,7 @@ namespace YChanEx {
                 e.Cancel = true;
             }
 
-            if (!TryExiting()) {
+            if (!ApplicationShouldExit()) {
                 e.Cancel = true;
             }
         }
@@ -248,19 +284,44 @@ namespace YChanEx {
                 }
             }
         }
-        private void changeTray_Tick(object sender, EventArgs e) {
-            if (Show404Icon) {
-                Show404Icon = false;
+        private void mSettings_Click(object sender, EventArgs e) {
+            frmSettings Settings = new frmSettings();
+            Settings.ShowDialog();
+            Settings.Dispose();
+            Program.SettingsOpen = false;
+
+            if (General.Default.ShowTrayIcon) {
+                niTray.Visible = true;
             }
             else {
-                niTray.Icon = Properties.Resources.YChanEx;
-                changeTray.Stop();
+                niTray.Visible = false;
+            }
+
+            if (ThreadDownloadForms.Count > 0) {
+                for (int Thread = 0; Thread < ThreadDownloadForms.Count; Thread++) {
+                    ThreadDownloadForms[Thread].ChangeFormTitle();
+                }
             }
         }
-        private void cmItems_Popup(object sender, EventArgs e) {
+        private void mAbout_Click(object sender, EventArgs e) {
+            frmAbout About = new frmAbout();
+            About.ShowDialog();
+        }
+        private void btnAdd_Click(object sender, EventArgs e) {
+            if (AddNewThread(txtThreadURL.Text)) {
+                txtThreadURL.Clear();
+            }
+        }
+        private void lvThreads_MouseDoubleClick(object sender, MouseEventArgs e) {
+            if (lvThreads.SelectedItems.Count > 0) {
+                ThreadDownloadForms[lvThreads.SelectedIndices[0]].Show();
+                ThreadDownloadForms[lvThreads.SelectedIndices[0]].Activate();
+            }
+        }
+        private void cmThreads_Popup(object sender, EventArgs e) {
             if (lvThreads.SelectedIndices.Count > 0) {
                 mStatus.Enabled = true;
-                if (ThreadAliveStatus[lvThreads.SelectedIndices[0]] != (int)ThreadStatuses.AliveStatus.Alive) {
+                if (ThreadAliveStatuses[lvThreads.SelectedIndices[0]] != (int)ThreadStatuses.AliveStatus.Alive) {
                     mRetryDownload.Enabled = true;
                 }
                 else {
@@ -286,6 +347,15 @@ namespace YChanEx {
                 mRemove.Enabled = false;
             }
         }
+        private void changeTray_Tick(object sender, EventArgs e) {
+            if (Icon404WasShown) {
+                Icon404WasShown = false;
+            }
+            else {
+                niTray.Icon = Properties.Resources.YChanEx;
+                changeTray.Stop();
+            }
+        }
         private void niTray_MouseDoubleClick(object sender, MouseEventArgs e) {
             if (!this.Visible) {
                 this.Show();
@@ -295,44 +365,9 @@ namespace YChanEx {
                 }
             }
         }
+        #endregion
 
-
-        private void mSettings_Click(object sender, EventArgs e) {
-            frmSettings Settings = new frmSettings();
-            Settings.ShowDialog();
-            Settings.Dispose();
-            Program.SettingsOpen = false;
-
-            if (General.Default.ShowTrayIcon) {
-                niTray.Visible = true;
-            }
-            else {
-                niTray.Visible = false;
-            }
-
-            if (ThreadDownloadForms.Count > 0) {
-                for (int Thread = 0; Thread < ThreadDownloadForms.Count; Thread++) {
-                    ThreadDownloadForms[Thread].ChangeFormTitle();
-                }
-            }
-        }
-        private void mAbout_Click(object sender, EventArgs e) {
-            frmAbout About = new frmAbout();
-            About.ShowDialog();
-        }
-        private void lvThreads_MouseDoubleClick(object sender, MouseEventArgs e) {
-            if (lvThreads.SelectedItems.Count > 0) {
-                ThreadDownloadForms[lvThreads.SelectedIndices[0]].Show();
-                ThreadDownloadForms[lvThreads.SelectedIndices[0]].Activate();
-            }
-        }
-        private void btnAdd_Click(object sender, EventArgs e) {
-            if (AddNewThread(txtThreadURL.Text)) {
-                txtThreadURL.Clear();
-            }
-        }
-
-
+        #region cmThreads Controls
         private void mStatus_Click(object sender, EventArgs e) {
             if (lvThreads.SelectedIndices.Count > 0) {
                 ThreadDownloadForms[lvThreads.SelectedIndices[0]].Show();
@@ -340,7 +375,7 @@ namespace YChanEx {
         }
         private void mRetryDownload_Click(object sender, EventArgs e) {
             if (lvThreads.SelectedItems.Count > 0) {
-                if (ThreadAliveStatus[lvThreads.SelectedIndices[0]] != (int)ThreadStatuses.AliveStatus.Alive) {
+                if (ThreadAliveStatuses[lvThreads.SelectedIndices[0]] != (int)ThreadStatuses.AliveStatus.Alive) {
                     ThreadDownloadForms[lvThreads.SelectedIndices[0]].RetryScanOnFailure();
                     ThreadsModified = true;
                     mRetryDownload.Enabled = false;
@@ -378,7 +413,7 @@ namespace YChanEx {
         private void mRemove_Click(object sender, EventArgs e) {
             if (lvThreads.SelectedIndices.Count > 0) {
                 int SelectedIndex = lvThreads.SelectedIndices[0];
-                if (ThreadAliveStatus[SelectedIndex] != (int)ThreadStatuses.AliveStatus.Alive) {
+                if (ThreadAliveStatuses[SelectedIndex] != (int)ThreadStatuses.AliveStatus.Alive) {
                     ThreadDownloadForms[SelectedIndex].StopDownload();
                 }
 
@@ -389,14 +424,15 @@ namespace YChanEx {
                 ThreadDownloadForms[SelectedIndex].Dispose();
                 ThreadDownloadForms.RemoveAt(SelectedIndex);
                 ThreadURLs.RemoveAt(SelectedIndex);
-                ThreadAliveStatus.RemoveAt(SelectedIndex);
+                ThreadAliveStatuses.RemoveAt(SelectedIndex);
                 lvThreads.Items.RemoveAt(SelectedIndex);
 
                 ThreadsModified = true;
             }
         }
+        #endregion
 
-
+        #region cmTray Controls
         private void mTrayShowYChanEx_Click(object sender, EventArgs e) {
             if (this.Visible == false) {
                 this.Show();
@@ -407,10 +443,10 @@ namespace YChanEx {
             }
         }
         private void mTrayExit_Click(object sender, EventArgs e) {
-            if (TryExiting()) {
+            if (ApplicationShouldExit()) {
                 Environment.Exit(0);
             }
         }
-
+        #endregion
     }
 }

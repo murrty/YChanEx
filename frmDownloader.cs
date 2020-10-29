@@ -13,10 +13,6 @@ using System.Xml.Linq;
 
 namespace YChanEx {
     public partial class frmDownloader : Form {
-        // Theory: If file name exists in FileNames, add a prefix based on FileNames.Count + 1
-        // Only works if it's counted using the ThreadImageCount instead of 0.
-        // 4chan done.
-
         #region Variables
         frmMain MainFormInstance = Program.GetMainFormInstance();   // all, the instance of the main for for modifying it
         // when anything major changes in the download form.
@@ -42,8 +38,8 @@ namespace YChanEx {
         private List<string> FileNames = new List<string>();        // all, list of file names.
         private List<string> OriginalFileNames = new List<string>();// all, list of original file names.
         private List<string> FileNamesDupes = new List<string>();   // all, contains the stringed names of duplicate files.
-        private List<string> FileHashes = new List<string>();       // all, list of file hashes.
         private List<string> FileExtensions = new List<string>();   // all, list of file extensions.
+        private List<string> FileHashes = new List<string>();       // all, list of file hashes.
         private List<int> FileNamesDupesCount = new List<int>();    // all, contains the amount of files with the same name.
         private bool ThreadScanned = false;     // all, Prevents thread data (ThreadBoard, ThreadID ...) from being rewrote on rescans.
         private bool DownloadThread404 = false; // all, determines if a thread 404'd.
@@ -64,6 +60,8 @@ namespace YChanEx {
         private bool PauseBetweenFiles = true;         // all, temp pauses between file downloads.
         #endregion
 
+
+        #region Form Controls
         public frmDownloader() {
             InitializeComponent();
             this.Icon = Properties.Resources.YChanEx;
@@ -171,6 +169,7 @@ namespace YChanEx {
         private void btnClose_Click(object sender, EventArgs e) {
             this.Hide();
         }
+        #endregion
 
 
         #region cmThreadActions
@@ -313,7 +312,7 @@ namespace YChanEx {
             if (DownloadThread != null && DownloadThread.IsAlive) {
                 DownloadThread.Abort();
             }
-            lbScanTimer.Text = "aborted download";
+            lbScanTimer.Text = "Aborted";
             lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
             //btnStopDownload.Enabled = false;
             MainFormInstance.AnnounceAbort(ThreadURL);
@@ -389,7 +388,7 @@ namespace YChanEx {
                     DownloadThread404 = true;
                     break;
                 case (int)ThreadStatuses.AliveStatus.WasAborted:
-                    lbScanTimer.Text = "aborted download";
+                    lbScanTimer.Text = "Aborted";
                     DownloadAborted = true;
                     break;
             }
