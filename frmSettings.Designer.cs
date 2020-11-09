@@ -25,19 +25,19 @@
         private void InitializeComponent() {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmSettings));
-            System.Windows.Forms.ListViewItem listViewItem1 = new System.Windows.Forms.ListViewItem("4chan URL");
-            System.Windows.Forms.ListViewItem listViewItem2 = new System.Windows.Forms.ListViewItem("420chan URL");
-            System.Windows.Forms.ListViewItem listViewItem3 = new System.Windows.Forms.ListViewItem(new string[] {
+            System.Windows.Forms.ListViewItem listViewItem34 = new System.Windows.Forms.ListViewItem("4chan URL");
+            System.Windows.Forms.ListViewItem listViewItem35 = new System.Windows.Forms.ListViewItem("420chan URL");
+            System.Windows.Forms.ListViewItem listViewItem36 = new System.Windows.Forms.ListViewItem(new string[] {
             "7chan URL",
             "1"}, -1);
-            System.Windows.Forms.ListViewItem listViewItem4 = new System.Windows.Forms.ListViewItem("7chan Posts");
-            System.Windows.Forms.ListViewItem listViewItem5 = new System.Windows.Forms.ListViewItem("8chan URL");
-            System.Windows.Forms.ListViewItem listViewItem6 = new System.Windows.Forms.ListViewItem("8kun URL");
-            System.Windows.Forms.ListViewItem listViewItem7 = new System.Windows.Forms.ListViewItem("fchan URL");
-            System.Windows.Forms.ListViewItem listViewItem8 = new System.Windows.Forms.ListViewItem("fchan Files");
-            System.Windows.Forms.ListViewItem listViewItem9 = new System.Windows.Forms.ListViewItem("fchan IDs");
-            System.Windows.Forms.ListViewItem listViewItem10 = new System.Windows.Forms.ListViewItem("u18chan URL");
-            System.Windows.Forms.ListViewItem listViewItem11 = new System.Windows.Forms.ListViewItem("u18chan Posts");
+            System.Windows.Forms.ListViewItem listViewItem37 = new System.Windows.Forms.ListViewItem("7chan Posts");
+            System.Windows.Forms.ListViewItem listViewItem38 = new System.Windows.Forms.ListViewItem("8chan URL");
+            System.Windows.Forms.ListViewItem listViewItem39 = new System.Windows.Forms.ListViewItem("8kun URL");
+            System.Windows.Forms.ListViewItem listViewItem40 = new System.Windows.Forms.ListViewItem("fchan URL");
+            System.Windows.Forms.ListViewItem listViewItem41 = new System.Windows.Forms.ListViewItem("fchan Files");
+            System.Windows.Forms.ListViewItem listViewItem42 = new System.Windows.Forms.ListViewItem("fchan IDs");
+            System.Windows.Forms.ListViewItem listViewItem43 = new System.Windows.Forms.ListViewItem("u18chan URL");
+            System.Windows.Forms.ListViewItem listViewItem44 = new System.Windows.Forms.ListViewItem("u18chan Posts");
             this.tcMain = new System.Windows.Forms.TabControl();
             this.tabDownloads = new System.Windows.Forms.TabPage();
             this.chkAllowFileNamesGreaterThan255 = new System.Windows.Forms.CheckBox();
@@ -82,6 +82,7 @@
             this.btnSCan = new System.Windows.Forms.Button();
             this.btnSSave = new System.Windows.Forms.Button();
             this.ttSettings = new System.Windows.Forms.ToolTip(this.components);
+            this.lbScanDelaySeconds = new System.Windows.Forms.Label();
             this.tcMain.SuspendLayout();
             this.tabDownloads.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numTimer)).BeginInit();
@@ -118,6 +119,7 @@
             this.tabDownloads.Controls.Add(this.lbSavePath);
             this.tabDownloads.Controls.Add(this.btnBrowse);
             this.tabDownloads.Controls.Add(this.chkMoveExistingDownloads);
+            this.tabDownloads.Controls.Add(this.lbScanDelaySeconds);
             this.tabDownloads.Location = new System.Drawing.Point(4, 22);
             this.tabDownloads.Name = "tabDownloads";
             this.tabDownloads.Padding = new System.Windows.Forms.Padding(3);
@@ -194,7 +196,7 @@
             // 
             // numTimer
             // 
-            this.numTimer.Location = new System.Drawing.Point(73, 37);
+            this.numTimer.Location = new System.Drawing.Point(68, 37);
             this.numTimer.Maximum = new decimal(new int[] {
             99999,
             0,
@@ -209,7 +211,9 @@
             this.numTimer.Size = new System.Drawing.Size(56, 20);
             this.numTimer.TabIndex = 21;
             this.numTimer.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.ttSettings.SetToolTip(this.numTimer, "The time (in seconds) that will be delayed before each scan\r\n\r\nRecommended: 60");
+            this.ttSettings.SetToolTip(this.numTimer, "Rescans threads after the specified time (in seconds)\r\n(Note: some sites don\'t li" +
+        "ke it if their API is requested more than once in 60 seconds, and may impose lim" +
+        "its)\r\n\r\nRecommended: 60");
             this.numTimer.Value = new decimal(new int[] {
             60,
             0,
@@ -219,11 +223,11 @@
             // lbTimer
             // 
             this.lbTimer.AutoSize = true;
-            this.lbTimer.Location = new System.Drawing.Point(8, 39);
+            this.lbTimer.Location = new System.Drawing.Point(5, 39);
             this.lbTimer.Name = "lbTimer";
-            this.lbTimer.Size = new System.Drawing.Size(59, 13);
+            this.lbTimer.Size = new System.Drawing.Size(60, 13);
             this.lbTimer.TabIndex = 22;
-            this.lbTimer.Text = "Timer (sec)";
+            this.lbTimer.Text = "Scan delay";
             // 
             // lbSavePath
             // 
@@ -241,6 +245,7 @@
             this.btnBrowse.Size = new System.Drawing.Size(24, 20);
             this.btnBrowse.TabIndex = 18;
             this.btnBrowse.Text = "...";
+            this.ttSettings.SetToolTip(this.btnBrowse, "Browses for a new directory for threads to be saved at.");
             this.btnBrowse.UseVisualStyleBackColor = true;
             this.btnBrowse.Click += new System.EventHandler(this.btnBrowse_Click);
             // 
@@ -294,6 +299,7 @@
             this.chkUseFullBoardNameForTitle.Size = new System.Drawing.Size(160, 17);
             this.chkUseFullBoardNameForTitle.TabIndex = 31;
             this.chkUseFullBoardNameForTitle.Text = "Use full board names in titles";
+            this.ttSettings.SetToolTip(this.chkUseFullBoardNameForTitle, resources.GetString("chkUseFullBoardNameForTitle.ToolTip"));
             this.chkUseFullBoardNameForTitle.UseVisualStyleBackColor = true;
             // 
             // chkSaveDownloadQueueOnExit
@@ -522,17 +528,17 @@
             // lvRegex
             // 
             this.lvRegex.Items.AddRange(new System.Windows.Forms.ListViewItem[] {
-            listViewItem1,
-            listViewItem2,
-            listViewItem3,
-            listViewItem4,
-            listViewItem5,
-            listViewItem6,
-            listViewItem7,
-            listViewItem8,
-            listViewItem9,
-            listViewItem10,
-            listViewItem11});
+            listViewItem34,
+            listViewItem35,
+            listViewItem36,
+            listViewItem37,
+            listViewItem38,
+            listViewItem39,
+            listViewItem40,
+            listViewItem41,
+            listViewItem42,
+            listViewItem43,
+            listViewItem44});
             this.lvRegex.Location = new System.Drawing.Point(3, 40);
             this.lvRegex.MultiSelect = false;
             this.lvRegex.Name = "lvRegex";
@@ -591,7 +597,7 @@
             this.btnSCan.Name = "btnSCan";
             this.btnSCan.Size = new System.Drawing.Size(75, 24);
             this.btnSCan.TabIndex = 23;
-            this.btnSCan.Text = "Cancel";
+            this.btnSCan.Text = "&Cancel";
             this.ttSettings.SetToolTip(this.btnSCan, "Does not save any settings changed");
             this.btnSCan.UseVisualStyleBackColor = true;
             this.btnSCan.Click += new System.EventHandler(this.btnSCan_Click);
@@ -602,14 +608,26 @@
             this.btnSSave.Name = "btnSSave";
             this.btnSSave.Size = new System.Drawing.Size(75, 24);
             this.btnSSave.TabIndex = 22;
-            this.btnSSave.Text = "Save";
+            this.btnSSave.Text = "&Save";
             this.ttSettings.SetToolTip(this.btnSSave, "Saves the settings");
             this.btnSSave.UseVisualStyleBackColor = true;
             this.btnSSave.Click += new System.EventHandler(this.btnSSave_Click);
             // 
             // ttSettings
             // 
+            this.ttSettings.AutoPopDelay = 25000;
+            this.ttSettings.InitialDelay = 500;
+            this.ttSettings.ReshowDelay = 100;
             this.ttSettings.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Info;
+            // 
+            // lbScanDelaySeconds
+            // 
+            this.lbScanDelaySeconds.AutoSize = true;
+            this.lbScanDelaySeconds.Location = new System.Drawing.Point(126, 39);
+            this.lbScanDelaySeconds.Name = "lbScanDelaySeconds";
+            this.lbScanDelaySeconds.Size = new System.Drawing.Size(47, 13);
+            this.lbScanDelaySeconds.TabIndex = 31;
+            this.lbScanDelaySeconds.Text = "seconds";
             // 
             // frmSettings
             // 
@@ -690,5 +708,6 @@
         private System.Windows.Forms.CheckBox chkResetDownloadSettings;
         private System.Windows.Forms.Button btnResetSettings;
         private System.Windows.Forms.CheckBox chkEnableSettingsReset;
+        private System.Windows.Forms.Label lbScanDelaySeconds;
     }
 }
