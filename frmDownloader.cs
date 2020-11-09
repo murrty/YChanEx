@@ -41,17 +41,19 @@ namespace YChanEx {
         private List<string> FileHashes = new List<string>();       // all, list of file hashes.
         private List<string> FileExtensions = new List<string>();   // all, list of file extensions.
         private List<int> FileNamesDupesCount = new List<int>();    // all, contains the amount of files with the same name.
-        private bool ThreadScanned = false;     // all, Prevents thread data (ThreadBoard, ThreadID ...) from being rewrote on rescans.
-        private bool DownloadThread404 = false; // all, determines if a thread 404'd.
-        private bool DownloadAborted = false;   // all, determines if a thread was aborted.
-        private int ThreadImagesCount = 0;       // all, counts the images in the thread. restarts parsing at this index.
-        private int DownloadedImagesCount = 0;   // all, counts the images that have downloaded.
-        private int ExtraFilesImageCount = 0;   // 8kun, !LEGACY! restarts parsing extra files at this index.
-        private int ThreadPostsCount = 0;        // 8chan 8kun, restarts the parsing at this index.
-        private int CountdownToNextScan = 0;    // all, countdown between rescans.
-        private int HideModifiedLabelAt = 0;    // all, hides the modified at 10 seconds less of CountdownToNextScan.
-        private Thread DownloadThread;          // all, the main download thread.
-        private Thread TimerIdle;               // all, the timer idler for when the settings form is open.
+        private bool ThreadScanned = false;         // all, Prevents thread data (ThreadBoard, ThreadID ...) from being rewrote on rescans.
+        private bool DownloadThread404 = false;     // all, determines if a thread 404'd.
+        private bool DownloadAborted = false;       // all, determines if a thread was aborted.
+        private bool RetrievedBoardName = false;    // 8chan 8kun, determines if the board title was retrieved from HTML.
+        private int ThreadImagesCount = 0;          // all, counts the images in the thread. restarts parsing at this index.
+        private int DownloadedImagesCount = 0;      // all, counts the images that have downloaded.
+        private int ExtraFilesImageCount = 0;       // 8kun, !LEGACY! restarts parsing extra files at this index.
+        private int ThreadPostsCount = 0;           // 8chan 8kun, restarts the parsing at this index.
+        private int CountdownToNextScan = 0;        // all, countdown between rescans.
+        private int HideModifiedLabelAt = 0;        // all, hides the modified at 10 seconds less of CountdownToNextScan.
+        private string BoardName = null;            // 8chan 8kun, the retrieved board name from HTML.
+        private Thread DownloadThread;              // all, the main download thread.
+        private Thread TimerIdle;                   // all, the timer idler for when the settings form is open.
 
         // Mostly-debug
         private bool UseOldLogic = false;               // all, maybe user-set. Uses old parsing logic instead of latest.
@@ -1108,6 +1110,23 @@ retryThread:
                     CurrentURL = this.ThreadURL;
                     if (YChanEx.Downloads.Default.SaveHTML) {
                         ThreadHTML = Chans.GetHTML(CurrentURL);
+                    }
+
+                    if (General.Default.UseFullBoardNameForTitle && !RetrievedBoardName) {
+                        if (ThreadHTML == null) {
+                            ThreadHTML = Chans.GetHTML(CurrentURL);
+                        }
+
+                        int TitleExtraLength = 5 + ThreadBoard.Length;
+                        string TitleLine = ThreadHTML.Substring(ThreadHTML.IndexOf("<title>") + (7 + TitleExtraLength), ThreadHTML.IndexOf("</title>") - ThreadHTML.IndexOf("<title>") - (7 + TitleExtraLength));
+
+                        this.BeginInvoke(new MethodInvoker(() => {
+                            this.Text = string.Format("8chan thread - {0} - {1}", TitleLine, ThreadID);
+                        }));
+
+                        RetrievedBoardName = true;
+
+                        Thread.Sleep(100);
                     }
 
                     if (string.IsNullOrEmpty(ThreadJSON) || ThreadJSON == Chans.EmptyXML) {
