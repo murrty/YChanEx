@@ -8,60 +8,54 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace YChanEx.Properties {
+namespace YChanEx {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "12.0.0.0")]
-    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
+    internal sealed partial class Advanced : global::System.Configuration.ApplicationSettingsBase {
         
-        private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
+        private static Advanced defaultInstance = ((Advanced)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Advanced())));
         
-        public static Settings Default {
+        public static Advanced Default {
             get {
                 return defaultInstance;
             }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2.0")]
-        public decimal AppVersion {
-            get {
-                return ((decimal)(this["AppVersion"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2020-11-09")]
-        public string DebugDate {
-            get {
-                return ((string)(this["DebugDate"]));
-            }
-        }
-        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public decimal SkippedVersion {
+        [global::System.Configuration.DefaultSettingValueAttribute("Mozilla/5.0 (X11; Linux i686; rv:64.0) Gecko/20100101 Firefox/64.0")]
+        public string UserAgent {
             get {
-                return ((decimal)(this["SkippedVersion"]));
+                return ((string)(this["UserAgent"]));
             }
             set {
-                this["SkippedVersion"] = value;
+                this["UserAgent"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool FirstTime {
+        public bool DisableScanWhenOpeningSettings {
             get {
-                return ((bool)(this["FirstTime"]));
+                return ((bool)(this["DisableScanWhenOpeningSettings"]));
             }
             set {
-                this["FirstTime"] = value;
+                this["DisableScanWhenOpeningSettings"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool SilenceErrors {
+            get {
+                return ((bool)(this["SilenceErrors"]));
+            }
+            set {
+                this["SilenceErrors"] = value;
             }
         }
     }

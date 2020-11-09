@@ -1,50 +1,71 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Security.Principal;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace YChanEx {
     static class Program {
-        static Mutex mtx = new Mutex(true, "{BLESSED-BE-LIKULAU-YChanEx}");
+        static frmMain MainForm;                            // Main form instance
+        private static volatile bool IsSettingsOpen = false;// Detects if the settings form is open
+        public static volatile bool IsDebug = false;        // Enables debug methods and logic
+        public static readonly string ApplicationFilesLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\YChanEx";
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern IntPtr LoadCursor(IntPtr hInstance, int lpCursorName);
+        public static readonly Cursor SystemHandCursor = new Cursor(LoadCursor(IntPtr.Zero, 32649));
 
+        public static frmMain GetMainFormInstance() {
+            return MainForm;
+        }
+        public static bool SettingsOpen {
+            get { return IsSettingsOpen; }
+            set { IsSettingsOpen = value; }
+        }
+
+        /// <summary>
+        /// The main entry point for the application.
+        /// </summary>
         [STAThread]
         static void Main() {
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            if ((new WindowsPrincipal(WindowsIdentity.GetCurrent())).IsInRole(WindowsBuiltInRole.Administrator)) {
-                for (int i = 1; i < Environment.GetCommandLineArgs().Length; i++) {
-                    string arg = Environment.GetCommandLineArgs()[i];
-                    if (arg.StartsWith("installProtocol")) {
-                        Controller.installProtocol();
-                    }
-                }
+            EnableDebug();
+
+            using (System.Diagnostics.Process ThisProgram = System.Diagnostics.Process.GetCurrentProcess()) {
+                ThisProgram.PriorityClass = System.Diagnostics.ProcessPriorityClass.BelowNormal;
             }
-            if (mtx.WaitOne(TimeSpan.Zero, true)) {
-                Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new frmMain());
-                mtx.ReleaseMutex();
-            }
-            else {
-                bool isDownload = false;
-                for (int i = 1; i < Environment.GetCommandLineArgs().Length; i++) {
-                    string arg = Environment.GetCommandLineArgs()[i].Replace("ychanex:", "");
-                    if (Controller.isSupported(arg)) {
-                        File.WriteAllText(Controller.settingsDir + "\\Arg.nfo", arg);
-                        Controller.PostMessage((IntPtr)Controller.HWND_YCXBROADCAST, Controller.WM_ADDYCXDOWNLOAD, IntPtr.Zero, IntPtr.Zero);
-                        isDownload = true;
+
+            if (Properties.Settings.Default.FirstTime) {
+                switch (MessageBox.Show("Would you like to specify a download path now? If not, it'll default to the current direcotry.", "YChanEx", MessageBoxButtons.YesNo)) {
+                    case DialogResult.Yes:
+                        using (FolderBrowserDialog fbd = new FolderBrowserDialog()) {
+                            fbd.Description = "Select a folder to download to";
+                            fbd.RootFolder = Environment.SpecialFolder.MyComputer;
+                            if (fbd.ShowDialog() == DialogResult.OK) {
+                                Downloads.Default.DownloadPath = fbd.SelectedPath;
+                            }
+                            else {
+                                MessageBox.Show("Downloads will be saved at \"" + Environment.CurrentDirectory + "\". You can change this at any time in the settings.", "YChanEx");
+                                Downloads.Default.DownloadPath = Environment.CurrentDirectory;
+                            }
+                        }
                         break;
-                    }
+                    case DialogResult.No:
+                        MessageBox.Show("Downloads will be saved at \"" + Environment.CurrentDirectory + "\". You can change this at any time in the settings.", "YChanEx");
+                                Downloads.Default.DownloadPath = Environment.CurrentDirectory;
+                        break;
                 }
-                if (!isDownload) {
-                    Controller.PostMessage((IntPtr)Controller.HWND_YCXBROADCAST, Controller.WM_SHOWYCXFORM, IntPtr.Zero, IntPtr.Zero);
-                }
+
+                Properties.Settings.Default.FirstTime = false;
+                Properties.Settings.Default.Save();
+                Downloads.Default.Save();
             }
+
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            MainForm = new frmMain();
+            Application.Run(MainForm);
+        }
+
+        [System.Diagnostics.Conditional("DEBUG")]
+        static void EnableDebug() {
+            IsDebug = true;
         }
     }
 }

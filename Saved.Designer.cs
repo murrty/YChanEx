@@ -8,60 +8,54 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace YChanEx.Properties {
+namespace YChanEx {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "12.0.0.0")]
-    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
+    internal sealed partial class Saved : global::System.Configuration.ApplicationSettingsBase {
         
-        private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
+        private static Saved defaultInstance = ((Saved)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Saved())));
         
-        public static Settings Default {
+        public static Saved Default {
             get {
                 return defaultInstance;
             }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2.0")]
-        public decimal AppVersion {
+        [global::System.Configuration.DefaultSettingValueAttribute("0, 0")]
+        public global::System.Drawing.Point MainFormLocation {
             get {
-                return ((decimal)(this["AppVersion"]));
+                return ((global::System.Drawing.Point)(this["MainFormLocation"]));
             }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2020-11-09")]
-        public string DebugDate {
-            get {
-                return ((string)(this["DebugDate"]));
+            set {
+                this["MainFormLocation"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public decimal SkippedVersion {
+        [global::System.Configuration.DefaultSettingValueAttribute("0, 0")]
+        public global::System.Drawing.Size MainFormSize {
             get {
-                return ((decimal)(this["SkippedVersion"]));
+                return ((global::System.Drawing.Size)(this["MainFormSize"]));
             }
             set {
-                this["SkippedVersion"] = value;
+                this["MainFormSize"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool FirstTime {
+        [global::System.Configuration.DefaultSettingValueAttribute("0, 0")]
+        public global::System.Drawing.Size DownloadFormSize {
             get {
-                return ((bool)(this["FirstTime"]));
+                return ((global::System.Drawing.Size)(this["DownloadFormSize"]));
             }
             set {
-                this["FirstTime"] = value;
+                this["DownloadFormSize"] = value;
             }
         }
     }
