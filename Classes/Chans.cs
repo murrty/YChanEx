@@ -54,13 +54,11 @@ class Chans {
             return null;
         }
         catch (WebException WebEx) {
-            //error log
-            System.Windows.Forms.MessageBox.Show(WebEx.ToString());
+            ErrorLog.ReportWebException(WebEx, InputURL);
             return null;
         }
         catch (Exception ex) {
-            //error log
-            System.Windows.Forms.MessageBox.Show(ex.ToString());
+            ErrorLog.ReportException(ex);
             return null;
         }
     }
@@ -77,13 +75,11 @@ class Chans {
             }
         }
         catch (WebException WebEx) {
-            //error log
-            System.Windows.Forms.MessageBox.Show(WebEx.ToString());
+            ErrorLog.ReportWebException(WebEx, InputURL);
             return null;
         }
         catch (Exception Ex) {
-            //error log
-            System.Windows.Forms.MessageBox.Show(Ex.ToString());
+            ErrorLog.ReportException(Ex);
             return null;
         }
     }
@@ -100,7 +96,6 @@ class Chans {
                 }
                 string FullFileName = Destination + "\\" + FileName;
 
-                // TODO: Add option for names greater than 255
                 if (FullFileName.Length > 255 && !Downloads.Default.AllowFileNamesGreaterThan255) {
                     string FileExtension = FileName.Split('.')[FileName.Split('.').Length - 1];
                     string OldFileName = FileName;
@@ -123,24 +118,6 @@ class Chans {
         }
         catch (Exception Ex) {
             ErrorLog.ReportException(Ex);
-            return false;
-        }
-    }
-
-    public static bool IsModified(string ThreadURL, DateTime LastCheck) {
-        try {
-            HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(ThreadURL);
-            Request.UserAgent = YChanEx.Advanced.Default.UserAgent;
-            Request.IfModifiedSince = LastCheck;
-            Request.Method = "HEAD";
-            var Response = (HttpWebResponse)Request.GetResponse();
-            return true;
-        }
-        catch (WebException WebEx) {
-            var Response = (HttpWebResponse)WebEx.Response;
-            if (Response.StatusCode != HttpStatusCode.NotModified) {
-                //error log
-            }
             return false;
         }
     }
@@ -183,7 +160,6 @@ class Chans {
 
         return false;
     }
-
     public static int GetChanType(string URL) {
         Regex Matcher = new Regex(ChanRegex.FourChanURL);
         if (Matcher.IsMatch(URL)) {
@@ -223,7 +199,6 @@ class Chans {
         return (int)ChanTypes.Types.None;
     }
 
-    //public static bool SaveThreads(List<string> ThreadURLs, List<bool> ThreadStatus) {
     public static bool SaveThreads(List<string> ThreadURLs, List<int> ThreadStatus) {
         if (General.Default.SaveQueueOnExit) {
             try {

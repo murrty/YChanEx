@@ -34,7 +34,7 @@ namespace YChanEx.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2020-10-26")]
+        [global::System.Configuration.DefaultSettingValueAttribute("2020-11-09")]
         public string DebugDate {
             get {
                 return ((string)(this["DebugDate"]));
@@ -50,6 +50,18 @@ namespace YChanEx.Properties {
             }
             set {
                 this["SkippedVersion"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool FirstTime {
+            get {
+                return ((bool)(this["FirstTime"]));
+            }
+            set {
+                this["FirstTime"] = value;
             }
         }
     }

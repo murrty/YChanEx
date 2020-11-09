@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace YChanEx {
@@ -33,6 +29,32 @@ namespace YChanEx {
 
             using (System.Diagnostics.Process ThisProgram = System.Diagnostics.Process.GetCurrentProcess()) {
                 ThisProgram.PriorityClass = System.Diagnostics.ProcessPriorityClass.BelowNormal;
+            }
+
+            if (Properties.Settings.Default.FirstTime) {
+                switch (MessageBox.Show("Would you like to specify a download path now? If not, it'll default to the current direcotry.", "YChanEx", MessageBoxButtons.YesNo)) {
+                    case DialogResult.Yes:
+                        using (FolderBrowserDialog fbd = new FolderBrowserDialog()) {
+                            fbd.Description = "Select a folder to download to";
+                            fbd.RootFolder = Environment.SpecialFolder.MyComputer;
+                            if (fbd.ShowDialog() == DialogResult.OK) {
+                                Downloads.Default.DownloadPath = fbd.SelectedPath;
+                            }
+                            else {
+                                MessageBox.Show("Downloads will be saved at \"" + Environment.CurrentDirectory + "\". You can change this at any time in the settings.", "YChanEx");
+                                Downloads.Default.DownloadPath = Environment.CurrentDirectory;
+                            }
+                        }
+                        break;
+                    case DialogResult.No:
+                        MessageBox.Show("Downloads will be saved at \"" + Environment.CurrentDirectory + "\". You can change this at any time in the settings.", "YChanEx");
+                                Downloads.Default.DownloadPath = Environment.CurrentDirectory;
+                        break;
+                }
+
+                Properties.Settings.Default.FirstTime = false;
+                Properties.Settings.Default.Save();
+                Downloads.Default.Save();
             }
 
             Application.EnableVisualStyles();

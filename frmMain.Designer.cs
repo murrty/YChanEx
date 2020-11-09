@@ -34,6 +34,12 @@
             this.cmThreads = new System.Windows.Forms.ContextMenu();
             this.mStatus = new System.Windows.Forms.MenuItem();
             this.mRetryDownload = new System.Windows.Forms.MenuItem();
+            this.mThreadsSep = new System.Windows.Forms.MenuItem();
+            this.mOpenDownloadFolder = new System.Windows.Forms.MenuItem();
+            this.mOpenThreadInBrowser = new System.Windows.Forms.MenuItem();
+            this.mCopyThreadURL = new System.Windows.Forms.MenuItem();
+            this.mCopyThreadID = new System.Windows.Forms.MenuItem();
+            this.mThreadsSep2 = new System.Windows.Forms.MenuItem();
             this.mRemove = new System.Windows.Forms.MenuItem();
             this.lvThreads = new YChanEx.VistaListView();
             this.clStatus = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -42,12 +48,6 @@
             this.mTrayShowYChanEx = new System.Windows.Forms.MenuItem();
             this.mTraySep = new System.Windows.Forms.MenuItem();
             this.mTrayExit = new System.Windows.Forms.MenuItem();
-            this.mThreadsSep = new System.Windows.Forms.MenuItem();
-            this.mThreadsSep2 = new System.Windows.Forms.MenuItem();
-            this.mOpenDownloadFolder = new System.Windows.Forms.MenuItem();
-            this.mOpenThreadInBrowser = new System.Windows.Forms.MenuItem();
-            this.mCopyThreadURL = new System.Windows.Forms.MenuItem();
-            this.mCopyThreadID = new System.Windows.Forms.MenuItem();
             this.SuspendLayout();
             // 
             // btnAdd
@@ -111,7 +111,7 @@
             this.mCopyThreadID,
             this.mThreadsSep2,
             this.mRemove});
-            this.cmThreads.Popup += new System.EventHandler(this.cmItems_Popup);
+            this.cmThreads.Popup += new System.EventHandler(this.cmThreads_Popup);
             // 
             // mStatus
             // 
@@ -124,6 +124,40 @@
             this.mRetryDownload.Index = 1;
             this.mRetryDownload.Text = "Retry Download";
             this.mRetryDownload.Click += new System.EventHandler(this.mRetryDownload_Click);
+            // 
+            // mThreadsSep
+            // 
+            this.mThreadsSep.Index = 2;
+            this.mThreadsSep.Text = "-";
+            // 
+            // mOpenDownloadFolder
+            // 
+            this.mOpenDownloadFolder.Index = 3;
+            this.mOpenDownloadFolder.Text = "Open download folder";
+            this.mOpenDownloadFolder.Click += new System.EventHandler(this.mOpenDownloadFolder_Click);
+            // 
+            // mOpenThreadInBrowser
+            // 
+            this.mOpenThreadInBrowser.Index = 4;
+            this.mOpenThreadInBrowser.Text = "Open thread in browser";
+            this.mOpenThreadInBrowser.Click += new System.EventHandler(this.mOpenThreadInBrowser_Click);
+            // 
+            // mCopyThreadURL
+            // 
+            this.mCopyThreadURL.Index = 5;
+            this.mCopyThreadURL.Text = "Copy thread url";
+            this.mCopyThreadURL.Click += new System.EventHandler(this.mCopyThreadURL_Click);
+            // 
+            // mCopyThreadID
+            // 
+            this.mCopyThreadID.Index = 6;
+            this.mCopyThreadID.Text = "Copy thread ID";
+            this.mCopyThreadID.Click += new System.EventHandler(this.mCopyThreadID_Click);
+            // 
+            // mThreadsSep2
+            // 
+            this.mThreadsSep2.Index = 7;
+            this.mThreadsSep2.Text = "-";
             // 
             // mRemove
             // 
@@ -183,40 +217,6 @@
             this.mTrayExit.Index = 2;
             this.mTrayExit.Text = "Exit";
             this.mTrayExit.Click += new System.EventHandler(this.mTrayExit_Click);
-            // 
-            // mThreadsSep
-            // 
-            this.mThreadsSep.Index = 2;
-            this.mThreadsSep.Text = "-";
-            // 
-            // mThreadsSep2
-            // 
-            this.mThreadsSep2.Index = 7;
-            this.mThreadsSep2.Text = "-";
-            // 
-            // mOpenDownloadFolder
-            // 
-            this.mOpenDownloadFolder.Index = 3;
-            this.mOpenDownloadFolder.Text = "Open download folder";
-            this.mOpenDownloadFolder.Click += new System.EventHandler(this.mOpenDownloadFolder_Click);
-            // 
-            // mOpenThreadInBrowser
-            // 
-            this.mOpenThreadInBrowser.Index = 4;
-            this.mOpenThreadInBrowser.Text = "Open thread in browser";
-            this.mOpenThreadInBrowser.Click += new System.EventHandler(this.mOpenThreadInBrowser_Click);
-            // 
-            // mCopyThreadURL
-            // 
-            this.mCopyThreadURL.Index = 5;
-            this.mCopyThreadURL.Text = "Copy thread url";
-            this.mCopyThreadURL.Click += new System.EventHandler(this.mCopyThreadURL_Click);
-            // 
-            // mCopyThreadID
-            // 
-            this.mCopyThreadID.Index = 6;
-            this.mCopyThreadID.Text = "Copy thread ID";
-            this.mCopyThreadID.Click += new System.EventHandler(this.mCopyThreadID_Click);
             // 
             // frmMain
             // 
