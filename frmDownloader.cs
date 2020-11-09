@@ -1118,10 +1118,13 @@ retryThread:
                         }
 
                         int TitleExtraLength = 5 + ThreadBoard.Length;
-                        string TitleLine = ThreadHTML.Substring(ThreadHTML.IndexOf("<title>") + (7 + TitleExtraLength), ThreadHTML.IndexOf("</title>") - ThreadHTML.IndexOf("<title>") - (7 + TitleExtraLength));
+                        BoardName = ThreadHTML.Substring(
+                            ThreadHTML.IndexOf("<title>") + (7 + TitleExtraLength),
+                            ThreadHTML.IndexOf("</title>") - ThreadHTML.IndexOf("<title>") - (7 + TitleExtraLength)
+                        );
 
                         this.BeginInvoke(new MethodInvoker(() => {
-                            this.Text = string.Format("8chan thread - {0} - {1}", TitleLine, ThreadID);
+                            this.Text = string.Format("8chan thread - {0} - {1}", BoardName, ThreadID);
                         }));
 
                         RetrievedBoardName = true;
@@ -1576,6 +1579,26 @@ retryThread:
                     CurrentURL = this.ThreadURL;
                     if (YChanEx.Downloads.Default.SaveHTML) {
                         ThreadHTML = Chans.GetHTML(CurrentURL);
+                    }
+
+                    if (General.Default.UseFullBoardNameForTitle && !RetrievedBoardName) {
+                        if (ThreadHTML == null) {
+                            ThreadHTML = Chans.GetHTML(CurrentURL);
+                        }
+
+                        int TitleExtraLength = 5 + ThreadBoard.Length;
+                        BoardName = ThreadHTML.Substring(
+                            ThreadHTML.IndexOf("<h1>") + (4 + TitleExtraLength),
+                            ThreadHTML.IndexOf("</h1>") - ThreadHTML.IndexOf("<h1>") - (4 + TitleExtraLength)
+                        );
+
+                        this.BeginInvoke(new MethodInvoker(() => {
+                            this.Text = string.Format("8kun thread - {0} - {1}", BoardName, ThreadID);
+                        }));
+
+                        RetrievedBoardName = true;
+
+                        Thread.Sleep(100);
                     }
 
                     if (string.IsNullOrEmpty(ThreadJSON) || ThreadJSON == Chans.EmptyXML) {
