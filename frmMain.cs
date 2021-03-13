@@ -5,70 +5,72 @@ using System.Windows.Forms;
 
 namespace YChanEx {
     public partial class frmMain : Form {
+
         #region Variables
         private List<frmDownloader> ThreadDownloadForms = new List<frmDownloader>();    // The list of Thread download forms
         private List<string> ThreadURLs = new List<string>();                           // The list of Thread URLs
-        private List<int> ThreadAliveStatuses = new List<int>();                        // the list of Thread statuses
+        private List<ThreadStatus> ThreadAliveStatuses = new List<ThreadStatus>();      // the list of Thread statuses
         private bool Icon404WasShown = false;   // Determines if the 404 icon has been shown on the tray.
         private bool ThreadsModified = false;   // Determines if the threads lists were modified to resave them.
         #endregion
 
-        #region Usbility methods
-        /// <summary>
-        /// Announces the 404 to the main form handle, which will pop up a notification in the tray.
-        /// </summary>
-        /// <param name="ThreadID">The ID of the thread that will be displayed in the notification.</param>
-        /// <param name="ThreadBoard">The board of the thread that will be displayed in the notification.</param>
-        /// <param name="ThreadURL">The URL of the thread that will be used to find indexes in the lists to set 404 status.</param>
-        /// <param name="ChanType">The int value of the *chan to determine what *chan the thread was on.</param>
-        public void Announce404(string ThreadID, string ThreadBoard, string ThreadURL, int ChanType) {
-            int ThreadIndex = ThreadURLs.IndexOf(ThreadURL);
-            ThreadAliveStatuses[ThreadIndex] = (int)ThreadStatuses.AliveStatus.Was404;
-            niTray.BalloonTipText = ThreadID + " on /" + ThreadBoard + "/ has 404'd";
-            switch (ChanType) {
-                case (int)ChanTypes.Types.FourChan:
-                    niTray.BalloonTipTitle = "4chan";
-                    break;
-                case (int)ChanTypes.Types.FourTwentyChan:
-                    niTray.BalloonTipTitle = "420chan";
-                    break;
-                case (int)ChanTypes.Types.SevenChan:
-                    niTray.BalloonTipTitle = "7chan";
-                    break;
-                case (int)ChanTypes.Types.EightChan:
-                    niTray.BalloonTipTitle = "8chan";
-                    break;
-                case (int)ChanTypes.Types.EightKun:
-                    niTray.BalloonTipTitle = "8kun";
-                    break;
-                case (int)ChanTypes.Types.fchan:
-                    niTray.BalloonTipTitle = "fchan";
-                    break;
-                case (int)ChanTypes.Types.u18chan:
-                    niTray.BalloonTipTitle = "u18chan";
-                    break;
-                default:
-                    niTray.BalloonTipTitle = "Thread 404";
-                    break;
-            }
-            if (changeTray.Enabled) {
-                changeTray.Stop();
-            }
-            niTray.Icon = Properties.Resources.YChanEx404;
-            Icon404WasShown = true;
-            changeTray.Start();
-            niTray.ShowBalloonTip(5000);
-            ThreadsModified = true;
-            GC.Collect();
+        #region Usability methods
+        public void Event() {
+
         }
         /// <summary>
-        /// Announces to the form that the thread was aborted by the user.
+        /// Announces information about the thread's status.
         /// </summary>
-        /// <param name="ThreadURL">The url of the thread that was aborted to find the index of the status to set aborted status.</param>
-        public void AnnounceAbort(string ThreadURL) {
-            int ThreadIndex = ThreadURLs.IndexOf(ThreadURL);
-            ThreadAliveStatuses[ThreadIndex] = (int)ThreadStatuses.AliveStatus.WasAborted;
-            ThreadsModified = true;
+        /// <param name="Event">Thread status event</param>
+        /// <param name="Thread"></param>
+        public void AnnounceEvent(ThreadEvent Event, ThreadInfo UpdThread) {
+            switch (Event) {
+                case ThreadEvent.Thread404:
+                    int Thread404Index = ThreadURLs.IndexOf(UpdThread.ThreadURL);
+                    ThreadAliveStatuses[Thread404Index] = ThreadStatus.Thread404;
+                    niTray.BalloonTipText = UpdThread.ThreadID + " on /" + UpdThread.ThreadBoard + "/ has 404'd";
+                    switch (UpdThread.Chan) {
+                        case ChanType.FourChan:
+                            niTray.BalloonTipTitle = "4chan";
+                            break;
+                        case ChanType.FourTwentyChan:
+                            niTray.BalloonTipTitle = "420chan";
+                            break;
+                        case ChanType.SevenChan:
+                            niTray.BalloonTipTitle = "7chan";
+                            break;
+                        case ChanType.EightChan:
+                            niTray.BalloonTipTitle = "8chan";
+                            break;
+                        case ChanType.EightKun:
+                            niTray.BalloonTipTitle = "8kun";
+                            break;
+                        case ChanType.fchan:
+                            niTray.BalloonTipTitle = "fchan";
+                            break;
+                        case ChanType.u18chan:
+                            niTray.BalloonTipTitle = "u18chan";
+                            break;
+                        default:
+                            niTray.BalloonTipTitle = "Thread 404";
+                            break;
+                    }
+                    if (changeTray.Enabled) {
+                        changeTray.Stop();
+                    }
+                    niTray.Icon = Properties.Resources.YChanEx404;
+                    Icon404WasShown = true;
+                    changeTray.Start();
+                    niTray.ShowBalloonTip(5000);
+                    ThreadsModified = true;
+                    break;
+                case ThreadEvent.ThreadAborted:
+                    int AbortIndex = ThreadURLs.IndexOf(UpdThread.ThreadURL);
+                    ThreadAliveStatuses[AbortIndex] = ThreadStatus.ThreadAborted;
+                    ThreadsModified = true;
+                    break;
+            }
+            GC.Collect();
         }
         /// <summary>
         /// Restores the alive status of the thread to attempt redownloading if the thread was 404'd or aborted.
@@ -76,7 +78,7 @@ namespace YChanEx {
         /// <param name="ThreadURL">The url of the thread being reset to alive to find the index of the status to set alive status.</param>
         public void Un404Thread(string ThreadURL) {
             int ThreadIndex = ThreadURLs.IndexOf(ThreadURL);
-            ThreadAliveStatuses[ThreadIndex] = (int)ThreadStatuses.AliveStatus.Alive;
+            ThreadAliveStatuses[ThreadIndex] = ThreadStatus.ThreadAlive;
             ThreadsModified = true;
         }
         /// <summary>
@@ -84,9 +86,31 @@ namespace YChanEx {
         /// </summary>
         /// <param name="ThreadURL">The url of the thread to find the index in the listview.</param>
         /// <param name="NewStatus">The new custom status to be set onto it.</param>
-        public void SetItemStatus(string ThreadURL, string NewStatus) {
+        public void SetItemStatus(string ThreadURL, ThreadStatus Status) {
             int ItemIndex = ThreadURLs.IndexOf(ThreadURL);
-            lvThreads.Items[ItemIndex].SubItems[0].Text = NewStatus;
+            switch (Status) {
+                case ThreadStatus.Waiting:
+                    lvThreads.Items[ItemIndex].SubItems[0].Text = "Waiting";
+                    break;
+                case ThreadStatus.ThreadScanning:
+                    lvThreads.Items[ItemIndex].SubItems[0].Text = "Scanning";
+                    break;
+                case ThreadStatus.ThreadDownloading:
+                    lvThreads.Items[ItemIndex].SubItems[0].Text = "Downloading";
+                    break;
+                case ThreadStatus.Thread404:
+                    lvThreads.Items[ItemIndex].SubItems[0].Text = "404'd";
+                    break;
+                case ThreadStatus.ThreadAborted:
+                    lvThreads.Items[ItemIndex].SubItems[0].Text = "Aborted";
+                    break;
+                case ThreadStatus.ThreadReloaded:
+                    lvThreads.Items[ItemIndex].SubItems[0].Text = "Reloaded";
+                    break;
+                default:
+                    lvThreads.Items[ItemIndex].SubItems[0].Text = "Unknown?";
+                    break;
+            }
         }
         /// <summary>
         /// Adds a new thread to the queue by setting predetermined statuses.
@@ -95,11 +119,11 @@ namespace YChanEx {
         /// <param name="ThreadWasSaved">The boolean to set if the thread was saved, and if it was it will automatically hide the form. Defaults to false.</param>
         /// <param name="AliveStatus">The int value of the thread status. Defaults to alive.</param>
         /// <returns></returns>
-        public bool AddNewThread(string ThreadURL, bool ThreadWasSaved = false, int AliveStatus = (int)ThreadStatuses.AliveStatus.Alive) {
+        public bool AddNewThread(string ThreadURL, bool ThreadWasSaved = false, ThreadStatus AliveStatus = ThreadStatus.ThreadAlive) {
             if (Chans.SupportedChan(ThreadURL)) {
                 if (ThreadURLs.Contains(ThreadURL)) {
                     int ThreadURLIndex = ThreadURLs.IndexOf(ThreadURL);
-                    if (ThreadAliveStatuses[ThreadURLIndex] != (int)ThreadStatuses.AliveStatus.Alive) {
+                    if (ThreadAliveStatuses[ThreadURLIndex] != ThreadStatus.ThreadAlive) {
                         ThreadDownloadForms[lvThreads.SelectedIndices[0]].RetryScanOnFailure();
                     }
                     return true;
@@ -108,14 +132,14 @@ namespace YChanEx {
                     ListViewItem lvi = new ListViewItem();
                     lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
                     switch (AliveStatus) {
-                        case (int)ThreadStatuses.AliveStatus.Was404:
-                            lvi.SubItems[0].Text = ThreadStatuses.Has404;
+                        case ThreadStatus.Thread404:
+                            lvi.SubItems[0].Text = "404'd";
                             break;
-                        case (int)ThreadStatuses.AliveStatus.WasAborted:
-                            lvi.SubItems[0].Text = ThreadStatuses.HasAborted;
+                        case ThreadStatus.ThreadAborted:
+                            lvi.SubItems[0].Text = "Aborted";
                             break;
                         default:
-                            lvi.SubItems[0].Text = ThreadStatuses.Waiting;
+                            lvi.SubItems[0].Text = "Waiting";
                             break;
                     }
                     lvi.SubItems[1].Text = ThreadURL;
@@ -126,8 +150,8 @@ namespace YChanEx {
 
                     frmDownloader newThread = new frmDownloader();
                     ThreadDownloadForms.Add(newThread);
-                    newThread.ChanType = Chans.GetChanType(ThreadURL);
-                    if (newThread.ChanType == (int)ChanTypes.Types.fchan) {
+                    newThread.Chan = Chans.GetChanType(ThreadURL);
+                    if (newThread.Chan == ChanType.fchan) {
                         if (!Downloads.Default.fchanWarning) {
                             MessageBox.Show(
                                 "fchan works, but isn't supported. I'm keeping this in for people, but here's your only warning: I will not help with any issues regarding fchan, and they will not be acknowledged.\n\n" +
@@ -143,7 +167,7 @@ namespace YChanEx {
                     newThread.Show();
 
                     if (ThreadWasSaved) {
-                        if (AliveStatus == (int)ThreadStatuses.AliveStatus.Alive) {
+                        if (AliveStatus == ThreadStatus.ThreadAlive) {
                             newThread.StartDownload();
                         }
                         else {
@@ -225,8 +249,6 @@ namespace YChanEx {
         #region Form Controls
         public frmMain() {
             InitializeComponent();
-            niTray.Icon = Properties.Resources.YChanEx;
-            this.Icon = Properties.Resources.YChanEx;
             lvThreads.ContextMenu = cmThreads;
         }
         private void frmMain_Load(object sender, EventArgs e) {
@@ -235,15 +257,21 @@ namespace YChanEx {
                 if (ThreadArray != null && ThreadArray.Length > 0) {
                     for (int ThreadArrayIndex = 0; ThreadArrayIndex < ThreadArray.Length; ThreadArrayIndex++) {
                         // assume the thread is alive unless it's confirmed false in the threads.dat file
-                        int AliveStatus = 0;
+                        ThreadStatus AliveStatus = ThreadStatus.ThreadReloaded;
                         string ThreadAtIndex = ThreadArray[ThreadArrayIndex];
                         string URL = ThreadAtIndex.Split('=')[0].Trim(' ');
 
                         // if the thread.dat contains an equal sign, try to parse it.
                         if (ThreadAtIndex.Contains("=")) {
                             string IsAliveString = ThreadAtIndex.Split('=')[1].ToLower().Trim(' ');
-                            if (IsAliveString.ToLower() == "1") { AliveStatus = 1; }
-                            else if (IsAliveString.ToLower() == "2") { AliveStatus = 2; }
+                            switch (IsAliveString.ToLower()) {
+                                case "1":
+                                    AliveStatus = ThreadStatus.Thread404;
+                                    break;
+                                case "2":
+                                    AliveStatus = ThreadStatus.ThreadAborted;
+                                    break;
+                            }
                         }
 
                         AddNewThread(URL, true, AliveStatus);
@@ -321,7 +349,7 @@ namespace YChanEx {
         private void cmThreads_Popup(object sender, EventArgs e) {
             if (lvThreads.SelectedIndices.Count > 0) {
                 mStatus.Enabled = true;
-                if (ThreadAliveStatuses[lvThreads.SelectedIndices[0]] != (int)ThreadStatuses.AliveStatus.Alive) {
+                if (ThreadAliveStatuses[lvThreads.SelectedIndices[0]] != ThreadStatus.ThreadAlive) {
                     mRetryDownload.Enabled = true;
                 }
                 else {
@@ -375,7 +403,7 @@ namespace YChanEx {
         }
         private void mRetryDownload_Click(object sender, EventArgs e) {
             if (lvThreads.SelectedItems.Count > 0) {
-                if (ThreadAliveStatuses[lvThreads.SelectedIndices[0]] != (int)ThreadStatuses.AliveStatus.Alive) {
+                if (ThreadAliveStatuses[lvThreads.SelectedIndices[0]] != ThreadStatus.ThreadAlive) {
                     ThreadDownloadForms[lvThreads.SelectedIndices[0]].RetryScanOnFailure();
                     ThreadsModified = true;
                     mRetryDownload.Enabled = false;
@@ -413,7 +441,7 @@ namespace YChanEx {
         private void mRemove_Click(object sender, EventArgs e) {
             if (lvThreads.SelectedIndices.Count > 0) {
                 int SelectedIndex = lvThreads.SelectedIndices[0];
-                if (ThreadAliveStatuses[SelectedIndex] != (int)ThreadStatuses.AliveStatus.Alive) {
+                if (ThreadAliveStatuses[SelectedIndex] != ThreadStatus.ThreadAlive) {
                     ThreadDownloadForms[SelectedIndex].StopDownload();
                 }
 

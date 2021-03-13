@@ -13,19 +13,25 @@ using System.Xml.Linq;
 
 namespace YChanEx {
     public partial class frmDownloader : Form {
+
         #region Variables
         frmMain MainFormInstance = Program.GetMainFormInstance();   // all, the instance of the main for for modifying it
         // when anything major changes in the download form.
 
+        private ThreadInfo CurrentThread;                           // all, the ThreadInfo for information relating to the thread.
+                                                                    // the information that is in this class is:
+                                                                    // - Chan ID
+                                                                    // - ThreadURL
+                                                                    // - ThreadID
+                                                                    // - ThreadBoard
+
         public string DownloadPath = null;                          // all, the local directory for the files to save to.
         public string ThreadURL = null;                             // all, the URL passed from the main form.
-        public int ChanType = (int)ChanTypes.Types.None;            // all, the int-based chan type.
+        public ChanType Chan = ChanType.None;                       // all, the int-based chan type.
         public string PublicThreadID = null;
 
-        private string ThreadBoard = null;                          // all, the chan board.
-        private string ThreadID = null;                             // all, the thread ID.
         private string LastThreadHTML = null;                       // 7chan fchan u18chan, the last HTML of the thread.
-        // (used as a make-shift if-modified-since header)
+        //  (used as a make-shift if-modified-since header)
         private DateTime LastModified = default(DateTime);           // 4chan 7chan 8chan,
         // uses If-Modified-Since header on requests
         // to prevent repeat requests overloading their servers.
@@ -42,8 +48,8 @@ namespace YChanEx {
         private List<string> FileExtensions = new List<string>();   // all, list of file extensions.
         private List<int> FileNamesDupesCount = new List<int>();    // all, contains the amount of files with the same name.
         private bool ThreadScanned = false;         // all, Prevents thread data (ThreadBoard, ThreadID ...) from being rewrote on rescans.
-        private bool DownloadThread404 = false;     // all, determines if a thread 404'd.
-        private bool DownloadAborted = false;       // all, determines if a thread was aborted.
+        //private bool DownloadThread404 = false;     // all, determines if a thread 404'd.
+        //private bool DownloadAborted = false;       // all, determines if a thread was aborted.
         private bool RetrievedBoardName = false;    // 8chan 8kun, determines if the board title was retrieved from HTML.
         private int ThreadImagesCount = 0;          // all, counts the images in the thread. restarts parsing at this index.
         private int DownloadedImagesCount = 0;      // all, counts the images that have downloaded.
@@ -65,7 +71,6 @@ namespace YChanEx {
         #region Form Controls
         public frmDownloader() {
             InitializeComponent();
-            this.Icon = Properties.Resources.YChanEx;
             if (Program.IsDebug) {
                 btnForce404.Enabled = true;
                 btnForce404.Visible = true;
@@ -102,12 +107,15 @@ namespace YChanEx {
                 return;
             }
 
-            if (DownloadThread404) {
+            if (CurrentThread.Status == ThreadStatus.Thread404) {
                 lbScanTimer.Text = "404'd";
                 lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
                 this.Icon = Properties.Resources.YChanEx404;
-                MainFormInstance.Announce404(ThreadID, ThreadBoard, ThreadURL, ChanType);
-                MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Has404);
+
+                //MainFormInstance.Announce404(ThreadID, ThreadBoard, ThreadURL, Chan);
+                CurrentThread.Status = ThreadStatus.Thread404;
+                MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, CurrentThread.Status);
+                MainFormInstance.AnnounceEvent(ThreadEvent.Thread404, CurrentThread);
                 btnAbortRetry.Text = "Retry";
                 //btnStopDownload.Enabled = false;
                 tmrScan.Stop();
@@ -120,8 +128,9 @@ namespace YChanEx {
             }
             else if (CountdownToNextScan == 0) {
                 StartDownload();
+                CurrentThread.Status = ThreadStatus.ThreadScanning;
                 lbScanTimer.Text = "scanning now...";
-                MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Scanning);
+                MainFormInstance.SetItemStatus(ThreadURL, CurrentThread.Status);
                 tmrScan.Stop();
             }
             else {
@@ -138,26 +147,30 @@ namespace YChanEx {
         }
         private void btnForce404_Click(object sender, EventArgs e) {
             if (Program.IsDebug) {
-                DownloadThread404 = true;
+                CurrentThread.Status = ThreadStatus.Thread404;
                 btnForce404.Enabled = false;
                 AfterDownload();
             }
         }
         private void btnAbortRetry_Click(object sender, EventArgs e) {
-            if (!DownloadThread404 && !DownloadAborted) {
-                StopDownload();
-                btnAbortRetry.Text = "Retry";
-                lbNotModified.Visible = false;
-                if (Program.IsDebug) {
-                    btnForce404.Enabled = false;
-                }
-            }
-            else {
-                btnAbortRetry.Text = "Abort";
-                if (Program.IsDebug) {
-                    btnForce404.Enabled = true;
-                }
-                RetryScanOnFailure();
+            switch (CurrentThread.Status) {
+                case ThreadStatus.Thread404:
+                case ThreadStatus.ThreadAborted:
+                    CurrentThread.Status = ThreadStatus.ThreadScanning;
+                    btnAbortRetry.Text = "Abort";
+                    if (Program.IsDebug) {
+                        btnForce404.Enabled = true;
+                    }
+                    RetryScanOnFailure();
+                    break;
+                default:
+                    StopDownload();
+                    btnAbortRetry.Text = "Retry";
+                    lbNotModified.Visible = false;
+                    if (Program.IsDebug) {
+                        btnForce404.Enabled = false;
+                    }
+                    break;
             }
         }
         private void btnOpenFolder_Click(object sender, EventArgs e) {
@@ -187,8 +200,8 @@ namespace YChanEx {
         }
 
         private void mCopyThreadID_Click(object sender, EventArgs e) {
-            if (ThreadID != null) {
-                Clipboard.SetText(ThreadID);
+            if (CurrentThread.ThreadID != null) {
+                Clipboard.SetText(CurrentThread.ThreadID);
             }
         }
 
@@ -198,101 +211,105 @@ namespace YChanEx {
             }
         }
         #endregion
+
         #region Custom Thread Methods
         public void StartDownload(bool ScanThread = true) {
-            GC.Collect();
-            switch (ChanType) {
-                case (int)ChanTypes.Types.FourChan:
+            CurrentThread = new ThreadInfo();
+            CurrentThread.ThreadURL = ThreadURL;
+            CurrentThread.Chan = Chan;
+
+            switch (Chan) {
+                case ChanType.FourChan:
                     if (!ThreadScanned) {
-                        string[] URLSplit = ThreadURL.Split('/');
-                        ThreadBoard = URLSplit[URLSplit.Length - 3];
-                        ThreadID = URLSplit[URLSplit.Length - 1].Split('#')[0];
-                        this.Text = string.Format("4chan thread - {0} - {1}", BoardTitles.FourChan(ThreadBoard), ThreadID);
+                        string[] URLSplit = CurrentThread.ThreadURL.Split('/');
+                        CurrentThread.ThreadBoard = URLSplit[URLSplit.Length - 3];
+                        CurrentThread.ThreadID = URLSplit[URLSplit.Length - 1].Split('#')[0];
+                        this.Text = string.Format("4chan CurrentThread.Thread - {0} - {1}", BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
                     }
-                    if (DownloadPath != Downloads.Default.DownloadPath + "\\4chan\\" + ThreadBoard + "\\" + ThreadID) {
-                        DownloadPath = Downloads.Default.DownloadPath + "\\4chan\\" + ThreadBoard + "\\" + ThreadID;
+                    if (DownloadPath != Downloads.Default.DownloadPath + "\\4chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID) {
+                        DownloadPath = Downloads.Default.DownloadPath + "\\4chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID;
                     }
                     Set4chanThread();
                     break;
-                case (int)ChanTypes.Types.FourTwentyChan:
+                case ChanType.FourTwentyChan:
                     if (!ThreadScanned) {
                         lvImages.Columns.RemoveAt(3);
-                        string[] URLSplit = ThreadURL.Split('/');
-                        ThreadBoard = URLSplit[URLSplit.Length - 4];
-                        ThreadID = URLSplit[URLSplit.Length - 2].Split('#')[0];
-                        this.Text = string.Format("420chan thread - {0} - {1}", BoardTitles.FourTwentyChan(ThreadBoard), ThreadID);
-                        DownloadPath = Downloads.Default.DownloadPath + "\\420chan\\" + ThreadBoard + "\\" + ThreadID;
+                        string[] URLSplit = CurrentThread.ThreadURL.Split('/');
+                        CurrentThread.ThreadBoard = URLSplit[URLSplit.Length - 4];
+                        CurrentThread.ThreadID = URLSplit[URLSplit.Length - 2].Split('#')[0];
+                        this.Text = string.Format("420chan CurrentThread.Thread - {0} - {1}", BoardTitles.FourTwentyChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
+                        DownloadPath = Downloads.Default.DownloadPath + "\\420chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID;
                     }
-                    if (DownloadPath != Downloads.Default.DownloadPath + "\\420chan\\" + ThreadBoard + "\\" + ThreadID) {
-                        DownloadPath = Downloads.Default.DownloadPath + "\\420chan\\" + ThreadBoard + "\\" + ThreadID;
+                    if (DownloadPath != Downloads.Default.DownloadPath + "\\420chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID) {
+                        DownloadPath = Downloads.Default.DownloadPath + "\\420chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID;
                     }
                     Set420chanThread();
                     break;
-                case (int)ChanTypes.Types.SevenChan:
+                case ChanType.SevenChan:
                     if (!ThreadScanned) {
                         lvImages.Columns.RemoveAt(3);
-                        string[] URLSplit = ThreadURL.Split('/');
-                        ThreadBoard = URLSplit[URLSplit.Length - 3];
-                        ThreadID = URLSplit[URLSplit.Length - 1].Split('#')[0].Replace(".html", "");
-                        this.Text = string.Format("7chan thread - {0} - {1}", BoardTitles.SevenChan(ThreadBoard), ThreadID);
+                        string[] URLSplit = CurrentThread.ThreadURL.Split('/');
+                        CurrentThread.ThreadBoard = URLSplit[URLSplit.Length - 3];
+                        CurrentThread.ThreadID = URLSplit[URLSplit.Length - 1].Split('#')[0].Replace(".html", "");
+                        this.Text = string.Format("7chan CurrentThread.Thread - {0} - {1}", BoardTitles.SevenChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
                     }
-                    if (DownloadPath != Downloads.Default.DownloadPath + "\\7chan\\" + ThreadBoard + "\\" + ThreadID) {
-                        DownloadPath = Downloads.Default.DownloadPath + "\\7chan\\" + ThreadBoard + "\\" + ThreadID;
+                    if (DownloadPath != Downloads.Default.DownloadPath + "\\7chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID) {
+                        DownloadPath = Downloads.Default.DownloadPath + "\\7chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID;
                     }
                     Set7chanThread();
                     break;
-                case (int)ChanTypes.Types.EightChan:
+                case ChanType.EightChan:
                     if (!ThreadScanned) {
-                        string[] URLSplit = ThreadURL.Split('/');
-                        ThreadBoard = URLSplit[URLSplit.Length - 3];
-                        ThreadID = URLSplit[URLSplit.Length - 1].Split('#')[0].Replace(".html", "").Replace(".json", "");
-                        this.Text = string.Format("8chan thread - {0} - {1}", BoardTitles.EightChan(ThreadBoard, false), ThreadID);
+                        string[] URLSplit = CurrentThread.ThreadURL.Split('/');
+                        CurrentThread.ThreadBoard = URLSplit[URLSplit.Length - 3];
+                        CurrentThread.ThreadID = URLSplit[URLSplit.Length - 1].Split('#')[0].Replace(".html", "").Replace(".json", "");
+                        this.Text = string.Format("8chan CurrentThread.Thread - {0} - {1}", BoardTitles.EightChan(CurrentThread.ThreadBoard, false), CurrentThread.ThreadID);
                     }
-                    if (DownloadPath != Downloads.Default.DownloadPath + "\\8chan\\" + ThreadBoard + "\\" + ThreadID) {
-                        DownloadPath = Downloads.Default.DownloadPath + "\\8chan\\" + ThreadBoard + "\\" + ThreadID;
+                    if (DownloadPath != Downloads.Default.DownloadPath + "\\8chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID) {
+                        DownloadPath = Downloads.Default.DownloadPath + "\\8chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID;
                     }
                     Set8chanThread();
                     break;
-                case (int)ChanTypes.Types.EightKun:
+                case ChanType.EightKun:
                     if (!ThreadScanned) {
-                        string[] URLSplit = ThreadURL.Split('/');
-                        ThreadBoard = URLSplit[URLSplit.Length - 3];
-                        ThreadID = URLSplit[URLSplit.Length - 1].Split('#')[0].Replace(".html", "").Replace(".json", "");
-                        this.Text = string.Format("8kun thread - {0} - {1}", BoardTitles.EightKun(ThreadBoard, false), ThreadID);
+                        string[] URLSplit = CurrentThread.ThreadURL.Split('/');
+                        CurrentThread.ThreadBoard = URLSplit[URLSplit.Length - 3];
+                        CurrentThread.ThreadID = URLSplit[URLSplit.Length - 1].Split('#')[0].Replace(".html", "").Replace(".json", "");
+                        this.Text = string.Format("8kun CurrentThread.Thread - {0} - {1}", BoardTitles.EightKun(CurrentThread.ThreadBoard, false), CurrentThread.ThreadID);
                     }
-                    if (DownloadPath != Downloads.Default.DownloadPath + "\\8kun\\" + ThreadBoard + "\\" + ThreadID) {
-                        DownloadPath = Downloads.Default.DownloadPath + "\\8kun\\" + ThreadBoard + "\\" + ThreadID;
+                    if (DownloadPath != Downloads.Default.DownloadPath + "\\8kun\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID) {
+                        DownloadPath = Downloads.Default.DownloadPath + "\\8kun\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID;
                     }
                     Set8kunThread();
                     break;
-                case (int)ChanTypes.Types.fchan:
+                case ChanType.fchan:
                     if (!ThreadScanned) {
                         lvImages.Columns.RemoveAt(3);
-                        string[] URLSplit = ThreadURL.Split('/');
-                        ThreadBoard = URLSplit[URLSplit.Length - 3];
-                        ThreadID = URLSplit[URLSplit.Length - 1].Split('#')[0].Replace(".html", "");
-                        this.Text = string.Format("fchan thread - {0} - {1}", BoardTitles.fchan(ThreadBoard), ThreadID);
+                        string[] URLSplit = CurrentThread.ThreadURL.Split('/');
+                        CurrentThread.ThreadBoard = URLSplit[URLSplit.Length - 3];
+                        CurrentThread.ThreadID = URLSplit[URLSplit.Length - 1].Split('#')[0].Replace(".html", "");
+                        this.Text = string.Format("fchan CurrentThread.Thread - {0} - {1}", BoardTitles.fchan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
                     }
-                    if (DownloadPath != Downloads.Default.DownloadPath + "\\fchan\\" + ThreadBoard + "\\" + ThreadID) {
-                        DownloadPath = Downloads.Default.DownloadPath + "\\fchan\\" + ThreadBoard + "\\" + ThreadID;
+                    if (DownloadPath != Downloads.Default.DownloadPath + "\\fchan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID) {
+                        DownloadPath = Downloads.Default.DownloadPath + "\\fchan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID;
                     }
                     SetFchanThread();
                     break;
-                case (int)ChanTypes.Types.u18chan:
+                case ChanType.u18chan:
                     if (!ThreadScanned) {
                         lvImages.Columns.RemoveAt(3);
-                        string[] URLSplit = ThreadURL.Split('/');
-                        ThreadBoard = URLSplit[URLSplit.Length - 3];
-                        ThreadID = URLSplit[URLSplit.Length - 1].Split('#')[0];
-                        this.Text = string.Format("u18chan thread - {0} - {1}", BoardTitles.u18chan(ThreadBoard), ThreadID);
+                        string[] URLSplit = CurrentThread.ThreadURL.Split('/');
+                        CurrentThread.ThreadBoard = URLSplit[URLSplit.Length - 3];
+                        CurrentThread.ThreadID = URLSplit[URLSplit.Length - 1].Split('#')[0];
+                        this.Text = string.Format("u18chan CurrentThread.Thread - {0} - {1}", BoardTitles.u18chan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
                     }
-                    if (DownloadPath != Downloads.Default.DownloadPath + "\\u18chan\\" + ThreadBoard + "\\" + ThreadID) {
-                        DownloadPath = Downloads.Default.DownloadPath + "\\u18chan\\" + ThreadBoard + "\\" + ThreadID;
+                    if (DownloadPath != Downloads.Default.DownloadPath + "\\u18chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID) {
+                        DownloadPath = Downloads.Default.DownloadPath + "\\u18chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID;
                     }
                     Setu18ChanThread();
                     break;
                 default:
-                    MainFormInstance.SetItemStatus(ThreadURL, "Invalid");
+                    MainFormInstance.SetItemStatus(ThreadURL, ThreadStatus.UnknownStatus);
                     return;
             }
 
@@ -300,15 +317,15 @@ namespace YChanEx {
                 btnOpenFolder.Enabled = true;
             }
 
-            PublicThreadID = ThreadID;
+            //PublicThreadID = ThreadID;
             HideModifiedLabelAt = Downloads.Default.ScannerDelay - 10;
             if (ScanThread) {
                 DownloadThread.Start();
-                MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Scanning);
+                MainFormInstance.SetItemStatus(ThreadURL, ThreadStatus.ThreadScanning);
             }
         }
+
         public void StopDownload() {
-            DownloadAborted = true;
             tmrScan.Stop();
             if (DownloadThread != null && DownloadThread.IsAlive) {
                 DownloadThread.Abort();
@@ -316,17 +333,20 @@ namespace YChanEx {
             lbScanTimer.Text = "Aborted";
             lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
             //btnStopDownload.Enabled = false;
-            MainFormInstance.AnnounceAbort(ThreadURL);
-            MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.HasAborted);
+            CurrentThread.Status = ThreadStatus.ThreadAborted;
+            MainFormInstance.AnnounceEvent(ThreadEvent.ThreadAborted, CurrentThread);
+            MainFormInstance.SetItemStatus(ThreadURL, CurrentThread.Status);
         }
+
         public void AfterDownload() {
-            if (DownloadAborted) {
+            if (CurrentThread.Status == ThreadStatus.ThreadAborted) {
                 return;
             }
             else {
                 this.BeginInvoke(new MethodInvoker(() => {
+                    CurrentThread.Status = ThreadStatus.Waiting;
                     lbScanTimer.Text = "soon (tm)";
-                    MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Waiting);
+                    MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, CurrentThread.Status);
                     CountdownToNextScan = Downloads.Default.ScannerDelay - 1;
                     if (Program.IsDebug) {
                         //CountdownToNextScan = 9;
@@ -336,9 +356,8 @@ namespace YChanEx {
                 GC.Collect();
             }
         }
+
         public void RetryScanOnFailure() {
-            DownloadThread404 = false;
-            DownloadAborted = false;
             MainFormInstance.Un404Thread(ThreadURL);
             lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.ControlText);
             StartDownload();
@@ -346,51 +365,54 @@ namespace YChanEx {
             btnAbortRetry.Text = "Abort";
             tmrScan.Stop();
         }
+
         public void AbortDownloadForClosing() {
             if (DownloadThread != null && DownloadThread.IsAlive) {
                 DownloadThread.Abort();
             }
         }
+
         public void ChangeFormTitle() {
-            switch (ChanType) {
-                case (int)ChanTypes.Types.FourChan:
-                    this.Text = string.Format("4chan thread - {0} - {1}", BoardTitles.FourChan(ThreadBoard), ThreadID);
+            switch (Chan) {
+                case ChanType.FourChan:
+                    this.Text = string.Format("4chan thread - {0} - {1}", BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
                     break;
-                case (int)ChanTypes.Types.FourTwentyChan:
-                    this.Text = string.Format("420chan thread - {0} - {1}", BoardTitles.FourTwentyChan(ThreadBoard), ThreadID);
+                case ChanType.FourTwentyChan:
+                    this.Text = string.Format("420chan thread - {0} - {1}", BoardTitles.FourTwentyChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
                     break;
-                case (int)ChanTypes.Types.SevenChan:
-                    this.Text = string.Format("7chan thread - {0} - {1}", BoardTitles.SevenChan(ThreadBoard), ThreadID);
+                case ChanType.SevenChan:
+                    this.Text = string.Format("7chan thread - {0} - {1}", BoardTitles.SevenChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
                     break;
-                case (int)ChanTypes.Types.EightChan:
-                    this.Text = string.Format("8chan thread - {0} - {1}", BoardTitles.EightChan(ThreadBoard, false), ThreadID);
+                case ChanType.EightChan:
+                    this.Text = string.Format("8chan thread - {0} - {1}", BoardTitles.EightChan(CurrentThread.ThreadBoard, false), CurrentThread.ThreadID);
                     break;
-                case (int)ChanTypes.Types.EightKun:
-                    this.Text = string.Format("8kun thread - {0} - {1}", BoardTitles.EightKun(ThreadBoard, false), ThreadID);
+                case ChanType.EightKun:
+                    this.Text = string.Format("8kun thread - {0} - {1}", BoardTitles.EightKun(CurrentThread.ThreadBoard, false), CurrentThread.ThreadID);
                     break;
-                case (int)ChanTypes.Types.fchan:
-                    this.Text = string.Format("fchan thread - {0} - {1}", BoardTitles.fchan(ThreadBoard), ThreadID);
+                case ChanType.fchan:
+                    this.Text = string.Format("fchan thread - {0} - {1}", BoardTitles.fchan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
                     break;
-                case (int)ChanTypes.Types.u18chan:
-                    this.Text = string.Format("u18chan thread - {0} - {1}", BoardTitles.u18chan(ThreadBoard), ThreadID);
+                case ChanType.u18chan:
+                    this.Text = string.Format("u18chan thread - {0} - {1}", BoardTitles.u18chan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
                     break;
                 default:
-                    this.Text = string.Format("unknown thread - {0} - {1}", ThreadBoard, ThreadID);
+                    this.Text = string.Format("unknown thread - {0} - {1}", CurrentThread.ThreadBoard, CurrentThread.ThreadID);
                     return;
             }
         }
-        public void StartGone(int Status) {
+
+        public void StartGone(ThreadStatus Status) {
             this.Icon = Properties.Resources.YChanEx404;
             lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
             btnAbortRetry.Text = "Retry";
             switch (Status) {
-                case (int)ThreadStatuses.AliveStatus.Was404:
+                case ThreadStatus.Thread404:
                     lbScanTimer.Text = "404'd";
-                    DownloadThread404 = true;
+                    CurrentThread.Status = ThreadStatus.Thread404;
                     break;
-                case (int)ThreadStatuses.AliveStatus.WasAborted:
+                case ThreadStatus.ThreadAborted:
                     lbScanTimer.Text = "Aborted";
-                    DownloadAborted = true;
+                    CurrentThread.Status = ThreadStatus.ThreadAborted;
                     break;
             }
             StartDownload(false);
@@ -401,7 +423,7 @@ namespace YChanEx {
         #region 4chan Download Logic Completed.
         private void Set4chanThread() {
             DownloadThread = new Thread(() => {
-                string FileBaseURL = "https://i.4cdn.org/" + ThreadBoard + "/";
+                string FileBaseURL = "https://i.4cdn.org/" + CurrentThread.ThreadBoard + "/";
                 string ThreadJSON = null;
                 string ThreadHTML = null;
                 string CurrentURL = null;
@@ -409,13 +431,13 @@ namespace YChanEx {
                 try {
 
                     #region API/HTML Download Logic
-                    if (ThreadBoard == null || ThreadID == null) {
-                        DownloadThread404 = true;
+                    if (CurrentThread.ThreadBoard == null || CurrentThread.ThreadID == null) {
+                        CurrentThread.Status = ThreadStatus.Thread404;
                         AfterDownload();
                         return;
                     }
 
-                    CurrentURL = string.Format(ChanApiLinks.FourChan, ThreadBoard, ThreadID);
+                    CurrentURL = string.Format(ChanApiLinks.FourChan, CurrentThread.ThreadBoard, CurrentThread.ThreadID);
                     HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(CurrentURL);
                     Request.UserAgent = Advanced.Default.UserAgent;
                     Request.IfModifiedSince = LastModified;
@@ -510,12 +532,12 @@ namespace YChanEx {
                         if (YChanEx.Downloads.Default.SaveHTML) {
                             string OldHTMLLinks = null;
                             if (YChanEx.Downloads.Default.SaveThumbnails) {
-                                OldHTMLLinks = "//i.4cdn.org/" + ThreadBoard + "/" + FileID + "s.jpg";
+                                OldHTMLLinks = "//i.4cdn.org/" + CurrentThread.ThreadBoard + "/" + FileID + "s.jpg";
                                 ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, "thumb\\" + FileID + "s.jpg");
                             }
 
-                            OldHTMLLinks = "//i.4cdn.org/" + ThreadBoard + "/" + FileID;
-                            string OldHTMLLinks2 = "//is2.4chan.org/" + ThreadBoard + "/" + FileID;
+                            OldHTMLLinks = "//i.4cdn.org/" + CurrentThread.ThreadBoard + "/" + FileID;
+                            string OldHTMLLinks2 = "//is2.4chan.org/" + CurrentThread.ThreadBoard + "/" + FileID;
                             if (YChanEx.Downloads.Default.SaveOriginalFilenames) {
                                 ThreadHTML = ThreadHTML.Replace(OldHTMLLinks, FileNameToReplace);
                                 ThreadHTML = ThreadHTML.Replace(OldHTMLLinks2, FileNameToReplace);
@@ -547,12 +569,14 @@ namespace YChanEx {
                         lbTotalFiles.Text = ThreadImagesCount.ToString();
                         lbLastModified.Text = "last modified: " + LastModified.ToString();
                         lbScanTimer.Text = "Downloading files";
-                        MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Downloading);
+                        MainFormInstance.SetItemStatus(ThreadURL, ThreadStatus.ThreadDownloading);
                     }));
                     #endregion
 
                     #region Download Logic
                     for (int ImageFilesIndex = DownloadedImagesCount; ImageFilesIndex < ImageFiles.Count; ImageFilesIndex++) {
+                        CurrentThread.Status = ThreadStatus.ThreadDownloading;
+
                         if (ImageFiles[ImageFilesIndex] == null) {
                             continue;
                         }
@@ -596,7 +620,7 @@ namespace YChanEx {
                 }
                 #region Catch Logic
                 catch (ThreadAbortException) {
-                    DownloadAborted = true;
+                    CurrentThread.Status = ThreadStatus.ThreadAborted;
                 }
                 catch (ObjectDisposedException) {
                     return;
@@ -610,7 +634,7 @@ namespace YChanEx {
                     }
                     else {
                         if (((int)WebEx.Status) == 7) {
-                            DownloadThread404 = true;
+                            CurrentThread.Status = ThreadStatus.Thread404;
                         }
                         else {
                             ErrorLog.ReportWebException(WebEx, CurrentURL);
@@ -620,12 +644,12 @@ namespace YChanEx {
                 catch (Exception ex) {
                     ErrorLog.ReportException(ex);
                 }
+                #endregion
                 finally {
                     AfterDownload();
                 }
-                #endregion
             });
-            DownloadThread.Name = "4chan thread /" + ThreadBoard + "/" + ThreadID;
+            DownloadThread.Name = "4chan thread /" + CurrentThread.ThreadBoard + "/" + CurrentThread.ThreadID;
         }
         private static bool Generate4chanMD5(string InputFile, string InputFileHash) {
             // Attempts to convert existing file to 4chan's hash type
@@ -664,8 +688,8 @@ namespace YChanEx {
         #region 420chan Download Logic Completed.
         private void Set420chanThread() {
             DownloadThread = new Thread(() => {
-                string FileBaseURL = "https://boards.420chan.org/" + ThreadBoard + "/src/";
-                string ThumbnailBaseUrl = "https://boards.420chan.org/" + ThreadBoard + "/thumb/";
+                string FileBaseURL = "https://boards.420chan.org/" + CurrentThread.ThreadBoard + "/src/";
+                string ThumbnailBaseUrl = "https://boards.420chan.org/" + CurrentThread.ThreadBoard + "/thumb/";
                 string ThreadJSON = null;
                 string ThreadHTML = null;
                 string CurrentURL = null;
@@ -673,13 +697,13 @@ namespace YChanEx {
                 try {
 
                     #region API/HTML Download Logic
-                    if (ThreadBoard == null || ThreadID == null) {
-                        DownloadThread404 = true;
+                    if (CurrentThread.ThreadBoard == null || CurrentThread.ThreadID == null) {
+                        CurrentThread.Status = ThreadStatus.Thread404;
                         AfterDownload();
                         return;
                     }
 
-                    CurrentURL = string.Format(ChanApiLinks.FourTwentyChan, ThreadBoard, ThreadID);
+                    CurrentURL = string.Format(ChanApiLinks.FourTwentyChan, CurrentThread.ThreadBoard, CurrentThread.ThreadID);
                     HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(CurrentURL);
                     Request.UserAgent = Advanced.Default.UserAgent;
                     Request.IfModifiedSince = LastModified;
@@ -705,8 +729,8 @@ namespace YChanEx {
                     CurrentURL = this.ThreadURL;
                     if (YChanEx.Downloads.Default.SaveHTML) {
                         ThreadHTML = Chans.GetHTML(CurrentURL);
-                        ThreadHTML.Replace("href=\"/" + ThreadBoard + "/src/", "");
-                        ThreadHTML.Replace("href=\"/" + ThreadBoard, "");
+                        ThreadHTML.Replace("href=\"/" + CurrentThread.ThreadBoard + "/src/", "");
+                        ThreadHTML.Replace("href=\"/" + CurrentThread.ThreadBoard, "");
                         ThreadHTML.Replace("href=\"/static/", "href=\"https://420chan.org/static/");
                     }
 
@@ -747,12 +771,14 @@ namespace YChanEx {
                         lbTotalFiles.Text = ThreadImagesCount.ToString();
                         lbLastModified.Text = "last modified: " + LastModified.ToString();
                         lbScanTimer.Text = "Downloading files";
-                        MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Downloading);
+                        MainFormInstance.SetItemStatus(ThreadURL, ThreadStatus.ThreadDownloading);
                     }));
                     #endregion
 
                     #region Download Logic
                     for (int ImageFilesIndex = DownloadedImagesCount; ImageFilesIndex < ImageFiles.Count; ImageFilesIndex++, DownloadedImagesCount++) {
+                        CurrentThread.Status = ThreadStatus.ThreadDownloading;
+
                         if (ImageFiles[ImageFilesIndex] != null) {
                             this.BeginInvoke(new MethodInvoker(() => {
                                 lvImages.Items[ImageFilesIndex].ImageIndex = 1;
@@ -793,7 +819,7 @@ namespace YChanEx {
                 }
                 #region Catch Logic
                 catch (ThreadAbortException) {
-                    DownloadAborted = true;
+                    CurrentThread.Status = ThreadStatus.ThreadAborted;
                 }
                 catch (ObjectDisposedException) {
                     return;
@@ -807,7 +833,7 @@ namespace YChanEx {
                     }
                     else {
                         if (((int)WebEx.Status) == 7) {
-                            DownloadThread404 = true;
+                            CurrentThread.Status = ThreadStatus.Thread404;
                         }
                         else {
                             ErrorLog.ReportWebException(WebEx, CurrentURL);
@@ -817,12 +843,12 @@ namespace YChanEx {
                 catch (Exception ex) {
                     ErrorLog.ReportException(ex);
                 }
+                #endregion
                 finally {
                     AfterDownload();
                 }
-                #endregion
             });
-            DownloadThread.Name = "420chan thread /" + ThreadBoard + "/" + ThreadID;
+            DownloadThread.Name = "420chan thread /" + CurrentThread.ThreadBoard + "/" + CurrentThread.ThreadID;
         }
         #endregion
 
@@ -855,7 +881,7 @@ retryThread:
                     if (string.IsNullOrEmpty(ThreadHTML)) {
                         TryCount++;
                         if (TryCount == 5) {
-                            DownloadThread404 = true;
+                            CurrentThread.Status = ThreadStatus.Thread404;
                             return;
                         }
                         Thread.Sleep(5000);
@@ -920,7 +946,7 @@ retryThread:
                             FileNames.Add(FileName + FileExtension);
 
                             if (Downloads.Default.SaveThumbnails) {
-                                ThumbnailFiles.Add(BaseURL + ThreadBoard + "/thumb/" + FileName + "s" + FileExtension);
+                                ThumbnailFiles.Add(BaseURL + CurrentThread.ThreadBoard + "/thumb/" + FileName + "s" + FileExtension);
                                 ThumbnailNames.Add(FileName + "s" + FileExtension);
                             }
 
@@ -938,8 +964,8 @@ retryThread:
                         }
 
                         if (Downloads.Default.SaveHTML) {
-                            ThreadHTML = ThreadHTML.Replace("https://7chan.org/" + ThreadBoard + "/src/", "");
-                            ThreadHTML = ThreadHTML.Replace("https://7chan.org/" + ThreadBoard + "/thumb/", "thumb/");
+                            ThreadHTML = ThreadHTML.Replace("https://7chan.org/" + CurrentThread.ThreadBoard + "/src/", "");
+                            ThreadHTML = ThreadHTML.Replace("https://7chan.org/" + CurrentThread.ThreadBoard + "/thumb/", "thumb/");
                         }
                         #endregion
                     }
@@ -962,12 +988,12 @@ retryThread:
                                     FileExtensions.Add(Extension);
 
                                     if (Downloads.Default.SaveThumbnails) {
-                                        ThumbnailFiles.Add("https://7chan.org/" + ThreadBoard + "/thumb/" + FileName + "s.jpg");
+                                        ThumbnailFiles.Add("https://7chan.org/" + CurrentThread.ThreadBoard + "/thumb/" + FileName + "s.jpg");
                                     }
 
                                     if (Downloads.Default.SaveHTML) {
                                         //HTMLBuffer = HTMLBuffer.Replace(FilesBuffer[i], FileName + "." + Extension);
-                                        ThreadHTML = ThreadHTML.Replace("https://7chan.org/" + ThreadBoard, "");
+                                        ThreadHTML = ThreadHTML.Replace("https://7chan.org/" + CurrentThread.ThreadBoard, "");
                                     }
 
                                     ListViewItem lvi = new ListViewItem();
@@ -991,12 +1017,13 @@ retryThread:
                         lbTotalFiles.Text = ImageFiles.Count.ToString();
                         lbLastModified.Text = "last modified: " + LastModified.ToString();
                         lbScanTimer.Text = "Downloading files";
-                        MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Downloading);
+                        MainFormInstance.SetItemStatus(ThreadURL, ThreadStatus.ThreadDownloading);
                     }));
                     #endregion
 
                     #region Download Logic
                     for (int ImageFilesIndex = DownloadedImagesCount; ImageFilesIndex < ImageFiles.Count; ImageFilesIndex++) {
+                        CurrentThread.Status = ThreadStatus.ThreadDownloading;
                         this.BeginInvoke(new MethodInvoker(() => {
                             lvImages.Items[ImageFilesIndex].ImageIndex = 1;
                         }));
@@ -1033,7 +1060,7 @@ retryThread:
                 }
                 #region Catch Logic
                 catch (ThreadAbortException) {
-                    DownloadAborted = true;
+                    CurrentThread.Status = ThreadStatus.ThreadAborted;
                     return;
                 }
                 catch (ObjectDisposedException) {
@@ -1048,7 +1075,7 @@ retryThread:
                     }
                     else {
                         if (((int)WebEx.Status) == 7) {
-                            DownloadThread404 = true;
+                            CurrentThread.Status = ThreadStatus.Thread404;
                         }
                         else {
                             ErrorLog.ReportWebException(WebEx, CurrentURL);
@@ -1058,12 +1085,12 @@ retryThread:
                 catch (Exception ex) {
                     ErrorLog.ReportException(ex);
                 }
+                #endregion
                 finally {
                     AfterDownload();
                 }
-                #endregion
             });
-            DownloadThread.Name = "7chan thread /" + ThreadBoard + "/" + ThreadID;
+            DownloadThread.Name = "7chan thread /" + CurrentThread.ThreadBoard + "/" + CurrentThread.ThreadID;
         }
         #endregion
 
@@ -1078,13 +1105,13 @@ retryThread:
                 try {
 
                     #region Download JSON Logic
-                    if (ThreadBoard == null || ThreadID == null) {
-                        DownloadThread404 = true;
+                    if (CurrentThread.ThreadBoard == null || CurrentThread.ThreadID == null) {
+                        CurrentThread.Status = ThreadStatus.Thread404;
                         AfterDownload();
                         return;
                     }
 
-                    CurrentURL = string.Format(ChanApiLinks.EightChan, ThreadBoard, ThreadID);
+                    CurrentURL = string.Format(ChanApiLinks.EightChan, CurrentThread.ThreadBoard, CurrentThread.ThreadID);
                     HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(CurrentURL);
                     Request.UserAgent = Advanced.Default.UserAgent;
                     Request.IfModifiedSince = LastModified;
@@ -1117,14 +1144,14 @@ retryThread:
                             ThreadHTML = Chans.GetHTML(CurrentURL);
                         }
 
-                        int TitleExtraLength = 5 + ThreadBoard.Length;
+                        int TitleExtraLength = 5 + CurrentThread.ThreadBoard.Length;
                         BoardName = ThreadHTML.Substring(
                             ThreadHTML.IndexOf("<title>") + (7 + TitleExtraLength),
                             ThreadHTML.IndexOf("</title>") - ThreadHTML.IndexOf("<title>") - (7 + TitleExtraLength)
                         );
 
                         this.BeginInvoke(new MethodInvoker(() => {
-                            this.Text = string.Format("8chan thread - {0} - {1}", BoardName, ThreadID);
+                            this.Text = string.Format("8chan thread - {0} - {1}", BoardName, CurrentThread.ThreadID);
                         }));
 
                         RetrievedBoardName = true;
@@ -1154,7 +1181,7 @@ retryThread:
                         ThreadImagesCount++;
                         string FileUrl = xmlFilePath[PostIndex].InnerText;
                         string FileHash = FileUrl.Substring(8, FileUrl.Length - 4 - 8);
-                        string FileID = ThreadID + "-" + (PostIndex + 1).ToString();
+                        string FileID = CurrentThread.ThreadID + "-" + (PostIndex + 1).ToString();
                         string FileExtension = "." + FileUrl.Split('/')[2].Split('.')[FileUrl.Split('/')[2].Split('.').Length - 1];
                         string OriginalFileName = xmlFileName[PostIndex].InnerText;
                         FileExtensions.Add(FileExtension);
@@ -1456,12 +1483,13 @@ retryThread:
                         lbTotalFiles.Text = ThreadImagesCount.ToString();
                         lbLastModified.Text = "last modified: " + LastModified.ToString();
                         lbScanTimer.Text = "Downloading files";
-                        MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Downloading);
+                        MainFormInstance.SetItemStatus(ThreadURL, ThreadStatus.ThreadDownloading);
                     }));
                     #endregion
 
                     #region Download logic
                     for (int ImageFilesIndex = DownloadedImagesCount; ImageFilesIndex < ImageFiles.Count; ImageFilesIndex++, DownloadedImagesCount++) {
+                        CurrentThread.Status = ThreadStatus.ThreadDownloading;
                         if (ImageFiles[ImageFilesIndex] != null) {
                             this.BeginInvoke(new MethodInvoker(() => {
                                 lvImages.Items[ImageFilesIndex].ImageIndex = 1;
@@ -1503,7 +1531,7 @@ retryThread:
                 }
                 #region Catch logic
                 catch (ThreadAbortException) {
-                    DownloadAborted = true;
+                    CurrentThread.Status = ThreadStatus.ThreadAborted;
                 }
                 catch (ObjectDisposedException) {
                     return;
@@ -1517,7 +1545,7 @@ retryThread:
                     }
                     else {
                         if (((int)WebEx.Status) == 7) {
-                            DownloadThread404 = true;
+                            CurrentThread.Status = ThreadStatus.Thread404;
                         }
                         else {
                             ErrorLog.ReportWebException(WebEx, CurrentURL);
@@ -1527,12 +1555,12 @@ retryThread:
                 catch (Exception ex) {
                     ErrorLog.ReportException(ex);
                 }
+                #endregion
                 finally {
                     AfterDownload();
                 }
-                #endregion
             });
-            DownloadThread.Name = "8chan thread /" + ThreadBoard + "/" + ThreadID;
+            DownloadThread.Name = "8chan thread /" + CurrentThread.ThreadBoard + "/" + CurrentThread.ThreadID;
         }
         #endregion
 
@@ -1546,14 +1574,14 @@ retryThread:
                 string CurrentURL = null;
 
                 try {
-                    if (ThreadBoard == null || ThreadID == null) {
-                        DownloadThread404 = true;
+                    if (CurrentThread.ThreadBoard == null || CurrentThread.ThreadID == null) {
+                        CurrentThread.Status = ThreadStatus.Thread404;
                         AfterDownload();
                         return;
                     }
 
                     #region Download API
-                    CurrentURL = string.Format(ChanApiLinks.EightKun, ThreadBoard, ThreadID);
+                    CurrentURL = string.Format(ChanApiLinks.EightKun, CurrentThread.ThreadBoard, CurrentThread.ThreadID);
                     HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(CurrentURL);
                     Request.UserAgent = Advanced.Default.UserAgent;
                     Request.IfModifiedSince = LastModified;
@@ -1586,14 +1614,14 @@ retryThread:
                             ThreadHTML = Chans.GetHTML(CurrentURL);
                         }
 
-                        int TitleExtraLength = 5 + ThreadBoard.Length;
+                        int TitleExtraLength = 5 + CurrentThread.ThreadBoard.Length;
                         BoardName = ThreadHTML.Substring(
                             ThreadHTML.IndexOf("<h1>") + (4 + TitleExtraLength),
                             ThreadHTML.IndexOf("</h1>") - ThreadHTML.IndexOf("<h1>") - (4 + TitleExtraLength)
                         );
 
                         this.BeginInvoke(new MethodInvoker(() => {
-                            this.Text = string.Format("8kun thread - {0} - {1}", BoardName, ThreadID);
+                            this.Text = string.Format("8kun thread - {0} - {1}", BoardName, CurrentThread.ThreadID);
                         }));
 
                         RetrievedBoardName = true;
@@ -1949,12 +1977,13 @@ retryThread:
                         lbTotalFiles.Text = (ThreadImagesCount + ExtraFilesImageCount).ToString();
                         lbLastModified.Text = "last modified: " + LastModified.ToString();
                         lbScanTimer.Text = "Downloading files";
-                        MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Downloading);
+                        MainFormInstance.SetItemStatus(ThreadURL, ThreadStatus.ThreadDownloading);
                     }));
                     #endregion
 
                     #region Download logic
                     for (int ImageFilesIndex = DownloadedImagesCount; ImageFilesIndex < ImageFiles.Count; ImageFilesIndex++, DownloadedImagesCount++) {
+                        CurrentThread.Status = ThreadStatus.ThreadDownloading;
                         if (ImageFiles[ImageFilesIndex] != null) {
                             this.BeginInvoke(new MethodInvoker(() => {
                                 lvImages.Items[ImageFilesIndex].ImageIndex = 1;
@@ -1993,7 +2022,7 @@ retryThread:
                 }
                 #region Catch logic
                 catch (ThreadAbortException) {
-                    DownloadAborted = true;
+                    CurrentThread.Status = ThreadStatus.ThreadAborted;
                 }
                 catch (ObjectDisposedException) {
                     return;
@@ -2010,7 +2039,7 @@ retryThread:
                     }
                     else {
                         if (((int)WebEx.Status) == 7) {
-                            DownloadThread404 = true;
+                            CurrentThread.Status = ThreadStatus.Thread404;
                         }
                         else {
                             ErrorLog.ReportWebException(WebEx, CurrentURL);
@@ -2020,12 +2049,12 @@ retryThread:
                 catch (Exception ex) {
                     ErrorLog.ReportException(ex);
                 }
+                #endregion
                 finally {
                     AfterDownload();
                 }
-                #endregion
             });
-            DownloadThread.Name = "8kun thread /" + ThreadBoard + "/" + ThreadID;
+            DownloadThread.Name = "8kun thread /" + CurrentThread.ThreadBoard + "/" + CurrentThread.ThreadID;
         }
         #endregion
 
@@ -2071,7 +2100,7 @@ retryThread:
                     if (string.IsNullOrEmpty(ThreadHTML)) {
                         TryCount++;
                         if (TryCount == 5) {
-                            DownloadThread404 = true;
+                            CurrentThread.Status = ThreadStatus.Thread404;
                             return;
                         }
                         Thread.Sleep(5000);
@@ -2142,19 +2171,19 @@ retryThread:
 
                         if (Downloads.Default.SaveThumbnails) {
                             // trim the board name length + 14 for the image generated information before the 
-                            string ThumbnailName = FullFileName.Substring(0, ThreadBoard.Length + 14) + "s";
-                            ThumbnailName += FullFileName.Substring(ThreadBoard.Length + 14, FullFileName.Length - (ThreadBoard.Length + 14));
-                            string ThumbnailLink = BaseURL + ThreadBoard + "/thumb/" + ThumbnailName.Substring(0, ThumbnailName.Length - FileExtension.Length).Trim('/');
+                            string ThumbnailName = FullFileName.Substring(0, CurrentThread.ThreadBoard.Length + 14) + "s";
+                            ThumbnailName += FullFileName.Substring(CurrentThread.ThreadBoard.Length + 14, FullFileName.Length - (CurrentThread.ThreadBoard.Length + 14));
+                            string ThumbnailLink = BaseURL + CurrentThread.ThreadBoard + "/thumb/" + ThumbnailName.Substring(0, ThumbnailName.Length - FileExtension.Length).Trim('/');
                             ThumbnailNames.Add(ThumbnailName);
                             ThumbnailFiles.Add(ThumbnailLink + ".jpg");
 
                             if (Downloads.Default.SaveHTML) {
-                                ThreadHTML = ThreadHTML.Replace("src=\"/" + ThreadBoard + "/thumb/" + ThumbnailName, "src=\"thumb/" + ThumbnailName);
+                                ThreadHTML = ThreadHTML.Replace("src=\"/" + CurrentThread.ThreadBoard + "/thumb/" + ThumbnailName, "src=\"thumb/" + ThumbnailName);
                             }
                         }
 
                         if (Downloads.Default.SaveHTML) {
-                            ThreadHTML = ThreadHTML.Replace("/src/" + ThreadBoard + "/" + FullFileName, FileName);
+                            ThreadHTML = ThreadHTML.Replace("/src/" + CurrentThread.ThreadBoard + "/" + FullFileName, FileName);
                         }
 
                         ListViewItem lvi = new ListViewItem();
@@ -2174,12 +2203,13 @@ retryThread:
                         lbTotalFiles.Text = ImageFiles.Count.ToString();
                         lbLastModified.Text = "last modified: " + LastModified.ToString();
                         lbScanTimer.Text = "Downloading files";
-                        MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Downloading);
+                        MainFormInstance.SetItemStatus(ThreadURL, ThreadStatus.ThreadDownloading);
                     }));
                     #endregion
 
                     #region Download logic
                     for (int ImageFilesIndex = DownloadedImagesCount; ImageFilesIndex < ImageFiles.Count; ImageFilesIndex++, DownloadedImagesCount++) {
+                        CurrentThread.Status = ThreadStatus.ThreadDownloading;
                         this.BeginInvoke(new MethodInvoker(() => {
                             lvImages.Items[ImageFilesIndex].ImageIndex = 1;
                         }));
@@ -2217,7 +2247,7 @@ retryThread:
                 }
                 #region Catch logic
                 catch (ThreadAbortException) {
-                    DownloadAborted = true;
+                    CurrentThread.Status = ThreadStatus.ThreadAborted;
                     return;
                 }
                 catch (ObjectDisposedException) {
@@ -2232,7 +2262,7 @@ retryThread:
                     }
                     else {
                         if (((int)WebEx.Status) == 7) {
-                            DownloadThread404 = true;
+                            CurrentThread.Status = ThreadStatus.Thread404;
                         }
                         else {
                             ErrorLog.ReportWebException(WebEx, CurrentURL);
@@ -2242,12 +2272,12 @@ retryThread:
                 catch (Exception ex) {
                     ErrorLog.ReportException(ex);
                 }
+                #endregion
                 finally {
                     AfterDownload();
                 }
-                #endregion
             });
-            DownloadThread.Name = "fchan thread /" + ThreadBoard + "/" + ThreadID;
+            DownloadThread.Name = "fchan thread /" + CurrentThread.ThreadBoard + "/" + CurrentThread.ThreadID;
         }
         #endregion
 
@@ -2279,7 +2309,7 @@ retryThread:
                     if (string.IsNullOrEmpty(ThreadHTML)) {
                         TryCount++;
                         if (TryCount == 5) {
-                            DownloadThread404 = true;
+                            CurrentThread.Status = ThreadStatus.Thread404;
                             return;
                         }
                         Thread.Sleep(5000);
@@ -2464,12 +2494,13 @@ retryThread:
                         lbTotalFiles.Text = ThreadImagesCount.ToString();
                         lbLastModified.Text = "last modified: " + LastModified.ToString();
                         lbScanTimer.Text = "Downloading files";
-                        MainFormInstance.SetItemStatus(ThreadURL, ThreadStatuses.Downloading);
+                        MainFormInstance.SetItemStatus(ThreadURL, ThreadStatus.ThreadDownloading);
                     }));
                     #endregion
 
                     #region Download logic
                     for (int ImageFilesIndex = DownloadedImagesCount; ImageFilesIndex < ImageFiles.Count; ImageFilesIndex++) {
+                        CurrentThread.Status = ThreadStatus.ThreadDownloading;
                         this.BeginInvoke(new MethodInvoker(() => {
                             lvImages.Items[ImageFilesIndex].ImageIndex = 1;
                         }));
@@ -2508,7 +2539,7 @@ retryThread:
                 }
                 #region Catch logic
                 catch (ThreadAbortException) {
-                    DownloadAborted = true;
+                    CurrentThread.Status = ThreadStatus.ThreadAborted;
                     return;
                 }
                 catch (ObjectDisposedException) {
@@ -2523,7 +2554,7 @@ retryThread:
                     }
                     else {
                         if (((int)WebEx.Status) == 7) {
-                            DownloadThread404 = true;
+                            CurrentThread.Status = ThreadStatus.Thread404;
                         }
                         else {
                             ErrorLog.ReportWebException(WebEx, CurrentURL);
@@ -2533,12 +2564,12 @@ retryThread:
                 catch (Exception ex) {
                     ErrorLog.ReportException(ex);
                 }
+                #endregion
                 finally {
                     AfterDownload();
                 }
-                #endregion
             });
-            DownloadThread.Name = "u18chan thread /" + ThreadBoard + "/" + ThreadID;
+            DownloadThread.Name = "u18chan thread /" + CurrentThread.ThreadBoard + "/" + CurrentThread.ThreadID;
         }
         #endregion
     }
