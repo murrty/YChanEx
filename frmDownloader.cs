@@ -68,6 +68,11 @@ namespace YChanEx {
             ilStatus.Images.Add(Properties.Resources.errored);
             lvImages.SmallImageList = ilStatus;
         }
+        private void frmDownloader_Load(object sender, EventArgs e) {
+            CurrentThread = new ThreadInfo();
+            CurrentThread.ThreadURL = ThreadURL;
+            CurrentThread.Chan = Chan;
+        }
         private void frmDownloader_FormClosing(object sender, FormClosingEventArgs e) {
             e.Cancel = true;
             this.Hide();
@@ -79,7 +84,7 @@ namespace YChanEx {
                 }
                 TimerIdle = new Thread(() => {
                     try {
-                        Thread.Sleep(1000);
+                        Thread.Sleep(5000);
                         this.BeginInvoke(new MethodInvoker(() => {
                             tmrScan.Start();
                         }));
@@ -94,19 +99,27 @@ namespace YChanEx {
                 return;
             }
 
-            if (CurrentThread.Status == ThreadStatus.Thread404) {
-                lbScanTimer.Text = "404'd";
-                lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
-                this.Icon = Properties.Resources.YChanEx404;
+            switch (CurrentThread.Status) {
+                case ThreadStatus.Thread404:
+                    lbScanTimer.Text = "404'd";
+                    lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
+                    this.Icon = Properties.Resources.YChanEx404;
 
-                //MainFormInstance.Announce404(ThreadID, ThreadBoard, ThreadURL, Chan);
-                CurrentThread.Status = ThreadStatus.Thread404;
-                MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, CurrentThread.Status);
-                MainFormInstance.AnnounceEvent(ThreadEvent.Thread404, CurrentThread);
-                btnAbortRetry.Text = "Retry";
-                //btnStopDownload.Enabled = false;
-                tmrScan.Stop();
-                return;
+                    MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, CurrentThread.Status);
+                    MainFormInstance.AnnounceEvent(ThreadEvent.Thread404, CurrentThread);
+                    btnAbortRetry.Text = "Retry";
+                    tmrScan.Stop();
+                    return;
+                case ThreadStatus.ThreadAborted:
+                    lbScanTimer.Text = "Aborted";
+                    lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
+                    this.Icon = Properties.Resources.YChanEx404;
+
+                    MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, CurrentThread.Status);
+                    MainFormInstance.AnnounceEvent(ThreadEvent.ThreadAborted, CurrentThread);
+                    btnAbortRetry.Text = "Retry";
+                    tmrScan.Stop();
+                    break;
             }
             if (CountdownToNextScan == HideModifiedLabelAt) {
                 lbNotModified.Visible = false;
@@ -115,7 +128,6 @@ namespace YChanEx {
             }
             else if (CountdownToNextScan == 0) {
                 StartDownload();
-                CurrentThread.Status = ThreadStatus.ThreadScanning;
                 lbScanTimer.Text = "scanning now...";
                 MainFormInstance.SetItemStatus(ThreadURL, CurrentThread.Status);
                 tmrScan.Stop();
@@ -134,6 +146,11 @@ namespace YChanEx {
         }
         private void btnForce404_Click(object sender, EventArgs e) {
             if (Program.IsDebug) {
+                tmrScan.Stop();
+                if (DownloadThread != null && DownloadThread.IsAlive) {
+                    DownloadThread.Abort();
+                }
+
                 CurrentThread.Status = ThreadStatus.Thread404;
                 btnForce404.Enabled = false;
                 AfterDownload();
@@ -148,15 +165,10 @@ namespace YChanEx {
                     if (Program.IsDebug) {
                         btnForce404.Enabled = true;
                     }
-                    RetryScanOnFailure();
+                    RetryDownload();
                     break;
                 default:
-                    StopDownload();
-                    btnAbortRetry.Text = "Retry";
-                    lbNotModified.Visible = false;
-                    if (Program.IsDebug) {
-                        btnForce404.Enabled = false;
-                    }
+                    AbortDownload();
                     break;
             }
         }
@@ -201,10 +213,6 @@ namespace YChanEx {
 
         #region Custom Thread Methods
         public void StartDownload(bool ScanThread = true) {
-            CurrentThread = new ThreadInfo();
-            CurrentThread.ThreadURL = ThreadURL;
-            CurrentThread.Chan = Chan;
-
             switch (Chan) {
                 case ChanType.FourChan:
                     if (!CurrentThread.ThreadHasScanned) {
@@ -311,43 +319,67 @@ namespace YChanEx {
             HideModifiedLabelAt = Downloads.Default.ScannerDelay - 10;
             if (ScanThread) {
                 DownloadThread.Start();
+                CurrentThread.Status = ThreadStatus.ThreadScanning;
                 MainFormInstance.SetItemStatus(ThreadURL, ThreadStatus.ThreadScanning);
             }
         }
 
-        public void StopDownload() {
+        public void AfterDownload() {
+            switch (CurrentThread.Status) {
+                case ThreadStatus.ThreadAborted:
+                    lbScanTimer.Text = "Aborted";
+                    lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
+                    this.Icon = Properties.Resources.YChanEx404;
+
+                    MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, CurrentThread.Status);
+                    MainFormInstance.AnnounceEvent(ThreadEvent.ThreadAborted, CurrentThread);
+                    btnAbortRetry.Text = "Retry";
+                    break;
+                case ThreadStatus.Thread404:
+                    lbScanTimer.Text = "404'd";
+                    lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
+                    this.Icon = Properties.Resources.YChanEx404;
+
+                    MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, CurrentThread.Status);
+                    MainFormInstance.AnnounceEvent(ThreadEvent.Thread404, CurrentThread);
+                    btnAbortRetry.Text = "Retry";
+                    break;
+                case ThreadStatus.ThreadDownloading: case ThreadStatus.Waiting:
+                    this.BeginInvoke(new MethodInvoker(() => {
+                        lbScanTimer.Text = "soon (tm)";
+                        MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, CurrentThread.Status);
+                        CountdownToNextScan = Downloads.Default.ScannerDelay - 1;
+                        if (Program.IsDebug) {
+                            CountdownToNextScan = 9;
+                        }
+                        tmrScan.Start();
+                    }));
+                    GC.Collect();
+                    break;
+                case ThreadStatus.ThreadInfoNotSet:
+                    break;
+            }
+        }
+
+        public void AbortDownload() {
             tmrScan.Stop();
             if (DownloadThread != null && DownloadThread.IsAlive) {
                 DownloadThread.Abort();
             }
             lbScanTimer.Text = "Aborted";
             lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
-            //btnStopDownload.Enabled = false;
             CurrentThread.Status = ThreadStatus.ThreadAborted;
             MainFormInstance.AnnounceEvent(ThreadEvent.ThreadAborted, CurrentThread);
             MainFormInstance.SetItemStatus(ThreadURL, CurrentThread.Status);
-        }
 
-        public void AfterDownload() {
-            if (CurrentThread.Status == ThreadStatus.ThreadAborted) {
-                return;
-            }
-            else {
-                this.BeginInvoke(new MethodInvoker(() => {
-                    CurrentThread.Status = ThreadStatus.Waiting;
-                    lbScanTimer.Text = "soon (tm)";
-                    MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, CurrentThread.Status);
-                    CountdownToNextScan = Downloads.Default.ScannerDelay - 1;
-                    if (Program.IsDebug) {
-                        //CountdownToNextScan = 9;
-                    }
-                    tmrScan.Start();
-                }));
-                GC.Collect();
+            btnAbortRetry.Text = "Retry";
+            lbNotModified.Visible = false;
+            if (Program.IsDebug) {
+                btnForce404.Enabled = false;
             }
         }
 
-        public void RetryScanOnFailure() {
+        public void RetryDownload() {
             MainFormInstance.Un404Thread(ThreadURL);
             lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.ControlText);
             StartDownload();
@@ -389,6 +421,7 @@ namespace YChanEx {
                     this.Text = string.Format("unknown thread - {0} - {1}", CurrentThread.ThreadBoard, CurrentThread.ThreadID);
                     return;
             }
+            CurrentThread.RetrievedThreadName = false;
         }
 
         public void StartGone(ThreadStatus Status) {
@@ -420,8 +453,8 @@ namespace YChanEx {
         private string GetThreadHTML(string URL) {
             try {
                 HttpWebRequest Request = (HttpWebRequest)WebRequest.CreateHttp(ThreadURL);
-                Request.CookieContainer = CurrentThread.ThreadCookie;
                 Request.IfModifiedSince = CurrentThread.LastModified;
+                Request.CookieContainer = CurrentThread.ThreadCookie;
                 Request.UserAgent = Advanced.Default.UserAgent;
                 Request.Method = "GET";
                 Request = (HttpWebRequest)WebRequest.Create(URL);
@@ -449,8 +482,9 @@ namespace YChanEx {
             try {
                 string RetrievedJson = null;
                 HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(URL);
-                Request.UserAgent = Advanced.Default.UserAgent;
                 Request.IfModifiedSince = CurrentThread.LastModified;
+                Request.CookieContainer = CurrentThread.ThreadCookie;
+                Request.UserAgent = Advanced.Default.UserAgent;
                 Request.Method = "GET";
                 using (var Response = (HttpWebResponse)Request.GetResponse())
                 using (var ResponseStream = Response.GetResponseStream())
@@ -475,6 +509,10 @@ namespace YChanEx {
             }
         }
         private string GetThreadName(string HTML) {
+            if (!string.IsNullOrEmpty(CurrentThread.ThreadName)) {
+                return CurrentThread.ThreadName;
+            }
+
             // First, trim the HTML from the start of the <title> tag to, up to the </title> closing tag
             string TitleWork = HTML.Substring(HTML.IndexOf("<title>") + 7,
                                               HTML.IndexOf("</title>") - (HTML.IndexOf("<title>") + 7));
@@ -524,16 +562,22 @@ namespace YChanEx {
                 string CurrentURL = null;
 
                 try {
+                    CurrentThread.Status = ThreadStatus.ThreadScanning;
 
                     #region API/HTML Download Logic
                     if (CurrentThread.ThreadBoard == null || CurrentThread.ThreadID == null) {
-                        CurrentThread.Status = ThreadStatus.Thread404;
+                        CurrentThread.Status = ThreadStatus.ThreadInfoNotSet;
                         AfterDownload();
                         return;
                     }
 
-                    CurrentURL = string.Format(ChanApiLinks.FourChan, CurrentThread.ThreadBoard, CurrentThread.ThreadID);
+                    CurrentURL = string.Format(Networking.GetAPILink(CurrentThread.Chan), CurrentThread.ThreadBoard, CurrentThread.ThreadID);
                     ThreadJSON = GetThreadJSON(CurrentURL);
+
+                    if (string.IsNullOrEmpty(ThreadJSON) || ThreadJSON == Networking.EmptyXML) {
+                        CurrentThread.Status = ThreadStatus.ThreadImproperlyDownloaded;
+                        return;
+                    }
 
                     CurrentURL = this.ThreadURL;
                     if (YChanEx.Downloads.Default.SaveHTML) {
@@ -541,14 +585,13 @@ namespace YChanEx {
                     }
 
                     if (Downloads.Default.UseThreadName && !CurrentThread.RetrievedThreadName) {
+                        if (string.IsNullOrEmpty(CurrentThread.ThreadName) && ThreadHTML == null) {
+                            ThreadHTML = GetThreadHTML(CurrentURL);
+                        }
+
                         this.BeginInvoke(new MethodInvoker(() => {
                             this.Text = GetThreadName(ThreadHTML);
                         }));
-                    }
-
-                    if (string.IsNullOrEmpty(ThreadJSON) || ThreadJSON == Networking.EmptyXML) {
-                        CurrentThread.Status = ThreadStatus.ThreadImproperlyDownloaded;
-                        return;
                     }
                     #endregion
 
@@ -655,9 +698,9 @@ namespace YChanEx {
                     #endregion
 
                     #region Download Logic
-                    for (int ImageFilesIndex = DownloadedImagesCount; ImageFilesIndex < ImageFiles.Count; ImageFilesIndex++) {
-                        CurrentThread.Status = ThreadStatus.ThreadDownloading;
+                    CurrentThread.Status = ThreadStatus.ThreadDownloading;
 
+                    for (int ImageFilesIndex = DownloadedImagesCount; ImageFilesIndex < ImageFiles.Count; ImageFilesIndex++) {
                         if (ImageFiles[ImageFilesIndex] == null) {
                             continue;
                         }
@@ -698,6 +741,7 @@ namespace YChanEx {
                     #endregion
 
                     CurrentThread.ThreadHasScanned = true;
+                    CurrentThread.Status = ThreadStatus.Waiting;
                 }
                 #region Catch Logic
                 catch (ThreadAbortException) {
@@ -709,9 +753,7 @@ namespace YChanEx {
                 catch (WebException WebEx) {
                     switch (((HttpWebResponse)WebEx.Response).StatusCode) {
                         case HttpStatusCode.NotModified:
-                            this.BeginInvoke(new MethodInvoker(() => {
-                                lbNotModified.Visible = true;
-                            }));
+                            System.Diagnostics.Debug.Print("Not modified");
                             break;
                         case HttpStatusCode.NotFound:
                             CurrentThread.Status = ThreadStatus.Thread404;
@@ -775,16 +817,24 @@ namespace YChanEx {
                 string CurrentURL = null;
 
                 try {
+                    CurrentThread.Status = ThreadStatus.Waiting;
 
                     #region API/HTML Download Logic
                     if (CurrentThread.ThreadBoard == null || CurrentThread.ThreadID == null) {
-                        CurrentThread.Status = ThreadStatus.Thread404;
+                        CurrentThread.Status = ThreadStatus.ThreadInfoNotSet;
                         AfterDownload();
                         return;
                     }
 
-                    CurrentURL = string.Format(ChanApiLinks.FourTwentyChan, CurrentThread.ThreadBoard, CurrentThread.ThreadID);
+                    CurrentThread.Status = ThreadStatus.ThreadScanning;
+
+                    CurrentURL = string.Format(Networking.GetAPILink(CurrentThread.Chan), CurrentThread.ThreadBoard, CurrentThread.ThreadID);
                     ThreadJSON = GetThreadJSON(CurrentURL);
+
+                    if (string.IsNullOrEmpty(ThreadJSON) || ThreadJSON == Networking.EmptyXML) {
+                        CurrentThread.Status = ThreadStatus.ThreadImproperlyDownloaded;
+                        return;
+                    }
 
                     CurrentURL = this.ThreadURL;
                     if (YChanEx.Downloads.Default.SaveHTML) {
@@ -792,11 +842,6 @@ namespace YChanEx {
                         ThreadHTML.Replace("href=\"/" + CurrentThread.ThreadBoard + "/src/", "");
                         ThreadHTML.Replace("href=\"/" + CurrentThread.ThreadBoard, "");
                         ThreadHTML.Replace("href=\"/static/", "href=\"https://420chan.org/static/");
-                    }
-
-                    if (string.IsNullOrEmpty(ThreadJSON) || ThreadJSON == Networking.EmptyXML) {
-                        CurrentThread.Status = ThreadStatus.ThreadImproperlyDownloaded;
-                        return;
                     }
                     #endregion
 
@@ -837,8 +882,9 @@ namespace YChanEx {
                     #endregion
 
                     #region Download Logic
+                    CurrentThread.Status = ThreadStatus.ThreadDownloading;
+
                     for (int ImageFilesIndex = DownloadedImagesCount; ImageFilesIndex < ImageFiles.Count; ImageFilesIndex++, DownloadedImagesCount++) {
-                        CurrentThread.Status = ThreadStatus.ThreadDownloading;
 
                         if (ImageFiles[ImageFilesIndex] != null) {
                             this.BeginInvoke(new MethodInvoker(() => {
@@ -919,8 +965,15 @@ namespace YChanEx {
                 string ThreadHTML = null;
                 string CurrentURL = null;
                 try {
+                    CurrentThread.Status = ThreadStatus.ThreadScanning;
 
                     #region HTML Download Logic
+                    if (CurrentThread.ThreadBoard == null || CurrentThread.ThreadID == null) {
+                        CurrentThread.Status = ThreadStatus.ThreadInfoNotSet;
+                        AfterDownload();
+                        return;
+                    }
+
                     for (int TryCount = 0; TryCount < 5; TryCount++) {
                         CurrentURL = ThreadURL;
                         ThreadHTML = GetThreadHTML(CurrentURL);
@@ -935,6 +988,12 @@ namespace YChanEx {
                         else {
                             break;
                         }
+                    }
+
+                    if (ThreadHTML == CurrentThread.LastThreadHTML) {
+                        CurrentThread.Status = ThreadStatus.Waiting;
+                        AfterDownload();
+                        return;
                     }
 
                     CurrentThread.LastThreadHTML = ThreadHTML;
@@ -1019,8 +1078,9 @@ namespace YChanEx {
                     #endregion
 
                     #region Download Logic
+                    CurrentThread.Status = ThreadStatus.ThreadDownloading;
+
                     for (int ImageFilesIndex = DownloadedImagesCount; ImageFilesIndex < ImageFiles.Count; ImageFilesIndex++) {
-                        CurrentThread.Status = ThreadStatus.ThreadDownloading;
                         this.BeginInvoke(new MethodInvoker(() => {
                             lvImages.Items[ImageFilesIndex].ImageIndex = 1;
                         }));
@@ -1101,15 +1161,22 @@ namespace YChanEx {
 
                 try {
 
+                    CurrentThread.Status = ThreadStatus.ThreadScanning;
+
                     #region API/HTML Download Logic
                     if (CurrentThread.ThreadBoard == null || CurrentThread.ThreadID == null) {
-                        CurrentThread.Status = ThreadStatus.Thread404;
+                        CurrentThread.Status = ThreadStatus.ThreadInfoNotSet;
                         AfterDownload();
                         return;
                     }
 
-                    CurrentURL = string.Format(ChanApiLinks.EightChan, CurrentThread.ThreadBoard, CurrentThread.ThreadID);
+                    CurrentURL = string.Format(Networking.GetAPILink(CurrentThread.Chan), CurrentThread.ThreadBoard, CurrentThread.ThreadID);
                     ThreadJSON = GetThreadJSON(CurrentURL);
+
+                    if (string.IsNullOrEmpty(ThreadJSON) || ThreadJSON == Networking.EmptyXML) {
+                        CurrentThread.Status = ThreadStatus.ThreadImproperlyDownloaded;
+                        return;
+                    }
 
                     CurrentURL = this.ThreadURL;
                     if (YChanEx.Downloads.Default.SaveHTML) {
@@ -1465,8 +1532,9 @@ namespace YChanEx {
                     #endregion
 
                     #region Download logic
+                    CurrentThread.Status = ThreadStatus.ThreadDownloading;
+
                     for (int ImageFilesIndex = DownloadedImagesCount; ImageFilesIndex < ImageFiles.Count; ImageFilesIndex++, DownloadedImagesCount++) {
-                        CurrentThread.Status = ThreadStatus.ThreadDownloading;
                         if (ImageFiles[ImageFilesIndex] != null) {
                             this.BeginInvoke(new MethodInvoker(() => {
                                 lvImages.Items[ImageFilesIndex].ImageIndex = 1;
@@ -1550,15 +1618,22 @@ namespace YChanEx {
                 string CurrentURL = null;
 
                 try {
+                    CurrentThread.Status = ThreadStatus.ThreadScanning;
+
+                    #region API/HTML Download Logic
                     if (CurrentThread.ThreadBoard == null || CurrentThread.ThreadID == null) {
-                        CurrentThread.Status = ThreadStatus.Thread404;
+                        CurrentThread.Status = ThreadStatus.ThreadInfoNotSet;
                         AfterDownload();
                         return;
                     }
 
-                    #region API/HTML Download Logic
-                    CurrentURL = string.Format(ChanApiLinks.EightKun, CurrentThread.ThreadBoard, CurrentThread.ThreadID);
+                    CurrentURL = string.Format(Networking.GetAPILink(CurrentThread.Chan), CurrentThread.ThreadBoard, CurrentThread.ThreadID);
                     ThreadJSON = GetThreadJSON(CurrentURL);
+
+                    if (string.IsNullOrEmpty(ThreadJSON) || ThreadJSON == Networking.EmptyXML) {
+                        CurrentThread.Status = ThreadStatus.ThreadImproperlyDownloaded;
+                        return;
+                    }
 
                     CurrentURL = this.ThreadURL;
                     if (YChanEx.Downloads.Default.SaveHTML) {
@@ -1583,11 +1658,6 @@ namespace YChanEx {
                         CurrentThread.RetrievedBoardName = true;
 
                         Thread.Sleep(100);
-                    }
-
-                    if (string.IsNullOrEmpty(ThreadJSON) || ThreadJSON == Networking.EmptyXML) {
-                        // Thread is dead?
-                        return;
                     }
                     #endregion
 
@@ -1938,8 +2008,9 @@ namespace YChanEx {
                     #endregion
 
                     #region Download logic
+                    CurrentThread.Status = ThreadStatus.ThreadDownloading;
+
                     for (int ImageFilesIndex = DownloadedImagesCount; ImageFilesIndex < ImageFiles.Count; ImageFilesIndex++, DownloadedImagesCount++) {
-                        CurrentThread.Status = ThreadStatus.ThreadDownloading;
                         if (ImageFiles[ImageFilesIndex] != null) {
                             this.BeginInvoke(new MethodInvoker(() => {
                                 lvImages.Items[ImageFilesIndex].ImageIndex = 1;
@@ -2027,8 +2098,15 @@ namespace YChanEx {
                 string ThreadHTML = null;
                 string CurrentURL = null;
                 try {
+                    CurrentThread.Status = ThreadStatus.ThreadScanning;
 
                     #region HTML Download Logic
+                    if (CurrentThread.ThreadBoard == null || CurrentThread.ThreadID == null) {
+                        CurrentThread.Status = ThreadStatus.ThreadInfoNotSet;
+                        AfterDownload();
+                        return;
+                    }
+
                     for (int TryCount = 0; TryCount < 5; TryCount++) {
                         CurrentURL = ThreadURL;
                         ThreadHTML = GetThreadHTML(CurrentURL);
@@ -2046,6 +2124,7 @@ namespace YChanEx {
                     }
 
                     if (ThreadHTML == CurrentThread.LastThreadHTML) {
+                        CurrentThread.Status = ThreadStatus.Waiting;
                         AfterDownload();
                         return;
                     }
@@ -2146,8 +2225,9 @@ namespace YChanEx {
                     #endregion
 
                     #region Download logic
+                    CurrentThread.Status = ThreadStatus.ThreadDownloading;
+
                     for (int ImageFilesIndex = DownloadedImagesCount; ImageFilesIndex < ImageFiles.Count; ImageFilesIndex++, DownloadedImagesCount++) {
-                        CurrentThread.Status = ThreadStatus.ThreadDownloading;
                         this.BeginInvoke(new MethodInvoker(() => {
                             lvImages.Items[ImageFilesIndex].ImageIndex = 1;
                         }));
@@ -2224,8 +2304,15 @@ namespace YChanEx {
                 string ThreadHTML = null;
                 string CurrentURL = null;
                 try {
+                    CurrentThread.Status = ThreadStatus.ThreadScanning;
 
                     #region HTML Download Logic
+                    if (CurrentThread.ThreadBoard == null || CurrentThread.ThreadID == null) {
+                        CurrentThread.Status = ThreadStatus.ThreadInfoNotSet;
+                        AfterDownload();
+                        return;
+                    }
+
                     for (int TryCount = 0; TryCount < 5; TryCount++) {
                         CurrentURL = ThreadURL;
                         ThreadHTML = GetThreadHTML(CurrentURL);
@@ -2243,6 +2330,7 @@ namespace YChanEx {
                     }
 
                     if (ThreadHTML == CurrentThread.LastThreadHTML) {
+                        CurrentThread.Status = ThreadStatus.Waiting;
                         AfterDownload();
                         return;
                     }
@@ -2341,8 +2429,9 @@ namespace YChanEx {
                     #endregion
 
                     #region Download logic
+                    CurrentThread.Status = ThreadStatus.ThreadDownloading;
+
                     for (int ImageFilesIndex = DownloadedImagesCount; ImageFilesIndex < ImageFiles.Count; ImageFilesIndex++) {
-                        CurrentThread.Status = ThreadStatus.ThreadDownloading;
                         this.BeginInvoke(new MethodInvoker(() => {
                             lvImages.Items[ImageFilesIndex].ImageIndex = 1;
                         }));
@@ -2413,5 +2502,6 @@ namespace YChanEx {
             DownloadThread.Name = "u18chan thread /" + CurrentThread.ThreadBoard + "/" + CurrentThread.ThreadID;
         }
         #endregion
+
     }
 }
