@@ -120,6 +120,8 @@ namespace YChanEx {
         /// <param name="AliveStatus">The int value of the thread status. Defaults to alive.</param>
         /// <returns></returns>
         public bool AddNewThread(string ThreadURL, bool ThreadWasSaved = false, ThreadStatus AliveStatus = ThreadStatus.ThreadAlive) {
+            if (ThreadURL.StartsWith("view-source:")) { ThreadURL = ThreadURL.Substring(12); }
+
             if (Chans.SupportedChan(ThreadURL)) {
                 if (ThreadURLs.Contains(ThreadURL)) {
                     int ThreadURLIndex = ThreadURLs.IndexOf(ThreadURL);

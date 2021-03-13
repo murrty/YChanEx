@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
 using System.Runtime.Serialization.Json;
@@ -116,6 +117,7 @@ namespace YChanEx {
         public static readonly string[] InvalidFileCharacters = new string[] { "\\", "/", ":", "*", "?", "\"", "<", ">", "|" };
         public static readonly string EmptyXML = "<root type=\"array\"></root>";
 
+        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]
         public static string GetJsonToXml(string InputURL, DateTime ModifiedSince = default(DateTime)) {
             try {
                 string JSONOutput = null;
@@ -149,55 +151,11 @@ namespace YChanEx {
 
                 return null;
             }
-            catch (WebException WebEx) {
-                throw WebEx;
+            catch (WebException) {
+                throw;
             }
-            catch (Exception Ex) {
-                throw Ex;
-            }
-        }
-
-        public static string GetHTML(string InputURL) {
-            try {
-                using (WebClient wc = new WebClient()) {
-                    wc.Headers.Add("User-Agent: " + YChanEx.Advanced.Default.UserAgent);
-                    return wc.DownloadString(InputURL);
-                }
-            }
-            catch (WebException WebEx) {
-                throw WebEx;
-            }
-            catch (Exception Ex) {
-                throw Ex;
-            }
-        }
-        public static string GetHTML(string InputURL, CookieContainer RequiredCookies) {
-            try {
-                string RetrievedHTML = null;
-
-                HttpWebRequest Request = (HttpWebRequest)WebRequest.CreateHttp(InputURL);
-                Request.CookieContainer = RequiredCookies;
-                Request.UserAgent = Advanced.Default.UserAgent;
-                Request.Method = "GET";
-                Request = (HttpWebRequest)WebRequest.Create(InputURL);
-                using (var Response = (HttpWebResponse)Request.GetResponse())
-                using (var ResponseStream = Response.GetResponseStream())
-                using (StreamReader ResponseReader = new StreamReader(ResponseStream)) {
-                    RetrievedHTML = ResponseReader.ReadToEnd();
-                }
-
-                if (string.IsNullOrEmpty(RetrievedHTML)) {
-                    return null;
-                }
-                else {
-                    return RetrievedHTML;
-                }
-            }
-            catch (WebException WebEx) {
-                throw WebEx;
-            }
-            catch (Exception Ex) {
-                throw Ex;
+            catch (Exception) {
+                throw;
             }
         }
 
@@ -228,11 +186,11 @@ namespace YChanEx {
 
                 return true;
             }
-            catch (WebException WebEx) {
-                throw WebEx;
+            catch (WebException) {
+                throw;
             }
-            catch (Exception Ex) {
-                throw Ex;
+            catch (Exception) {
+                throw;
             }
         }
         public static bool DownloadFile(string FileURL, string Destination, string FileName, string RequiredCookie) {
@@ -262,11 +220,11 @@ namespace YChanEx {
 
                 return true;
             }
-            catch (WebException WebEx) {
-                throw WebEx;
+            catch (WebException) {
+                throw;
             }
-            catch (Exception Ex) {
-                throw Ex;
+            catch (Exception) {
+                throw;
             }
         }
     }
@@ -412,8 +370,8 @@ namespace YChanEx {
     /// The strings for all board titles in chans.
     /// </summary>
     class BoardTitles {
-        public static string FourChan(string Board) {
-            if (General.Default.UseFullBoardNameForTitle) {
+        public static string FourChan(string Board, bool OverrideRequirement = false) {
+            if (General.Default.UseFullBoardNameForTitle || OverrideRequirement) {
                 switch (Board.ToLower()) {
                     #region Japanese Culture
                     case "a":

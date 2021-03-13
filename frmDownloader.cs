@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
 using System.Net;
@@ -210,7 +211,7 @@ namespace YChanEx {
                         string[] URLSplit = CurrentThread.ThreadURL.Split('/');
                         CurrentThread.ThreadBoard = URLSplit[URLSplit.Length - 3];
                         CurrentThread.ThreadID = URLSplit[URLSplit.Length - 1].Split('#')[0];
-                        this.Text = string.Format("4chan CurrentThread.Thread - {0} - {1}", BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
+                        this.Text = string.Format("4chan thread - {0} - {1}", BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
                     }
                     if (DownloadPath != Downloads.Default.DownloadPath + "\\4chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID) {
                         DownloadPath = Downloads.Default.DownloadPath + "\\4chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID;
@@ -223,7 +224,7 @@ namespace YChanEx {
                         string[] URLSplit = CurrentThread.ThreadURL.Split('/');
                         CurrentThread.ThreadBoard = URLSplit[URLSplit.Length - 4];
                         CurrentThread.ThreadID = URLSplit[URLSplit.Length - 2].Split('#')[0];
-                        this.Text = string.Format("420chan CurrentThread.Thread - {0} - {1}", BoardTitles.FourTwentyChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
+                        this.Text = string.Format("420chan thread - {0} - {1}", BoardTitles.FourTwentyChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
                         DownloadPath = Downloads.Default.DownloadPath + "\\420chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID;
                     }
                     if (DownloadPath != Downloads.Default.DownloadPath + "\\420chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID) {
@@ -237,7 +238,7 @@ namespace YChanEx {
                         string[] URLSplit = CurrentThread.ThreadURL.Split('/');
                         CurrentThread.ThreadBoard = URLSplit[URLSplit.Length - 3];
                         CurrentThread.ThreadID = URLSplit[URLSplit.Length - 1].Split('#')[0].Replace(".html", "");
-                        this.Text = string.Format("7chan CurrentThread.Thread - {0} - {1}", BoardTitles.SevenChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
+                        this.Text = string.Format("7chan thread - {0} - {1}", BoardTitles.SevenChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
                     }
                     if (DownloadPath != Downloads.Default.DownloadPath + "\\7chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID) {
                         DownloadPath = Downloads.Default.DownloadPath + "\\7chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID;
@@ -249,7 +250,7 @@ namespace YChanEx {
                         string[] URLSplit = CurrentThread.ThreadURL.Split('/');
                         CurrentThread.ThreadBoard = URLSplit[URLSplit.Length - 3];
                         CurrentThread.ThreadID = URLSplit[URLSplit.Length - 1].Split('#')[0].Replace(".html", "").Replace(".json", "");
-                        this.Text = string.Format("8chan CurrentThread.Thread - {0} - {1}", BoardTitles.EightChan(CurrentThread.ThreadBoard, false), CurrentThread.ThreadID);
+                        this.Text = string.Format("8chan thread - {0} - {1}", BoardTitles.EightChan(CurrentThread.ThreadBoard, false), CurrentThread.ThreadID);
                     }
                     if (DownloadPath != Downloads.Default.DownloadPath + "\\8chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID) {
                         DownloadPath = Downloads.Default.DownloadPath + "\\8chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID;
@@ -261,7 +262,7 @@ namespace YChanEx {
                         string[] URLSplit = CurrentThread.ThreadURL.Split('/');
                         CurrentThread.ThreadBoard = URLSplit[URLSplit.Length - 3];
                         CurrentThread.ThreadID = URLSplit[URLSplit.Length - 1].Split('#')[0].Replace(".html", "").Replace(".json", "");
-                        this.Text = string.Format("8kun CurrentThread.Thread - {0} - {1}", BoardTitles.EightKun(CurrentThread.ThreadBoard, false), CurrentThread.ThreadID);
+                        this.Text = string.Format("8kun thread - {0} - {1}", BoardTitles.EightKun(CurrentThread.ThreadBoard, false), CurrentThread.ThreadID);
                     }
                     if (DownloadPath != Downloads.Default.DownloadPath + "\\8kun\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID) {
                         DownloadPath = Downloads.Default.DownloadPath + "\\8kun\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID;
@@ -274,7 +275,7 @@ namespace YChanEx {
                         string[] URLSplit = CurrentThread.ThreadURL.Split('/');
                         CurrentThread.ThreadBoard = URLSplit[URLSplit.Length - 3];
                         CurrentThread.ThreadID = URLSplit[URLSplit.Length - 1].Split('#')[0].Replace(".html", "");
-                        this.Text = string.Format("fchan CurrentThread.Thread - {0} - {1}", BoardTitles.fchan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
+                        this.Text = string.Format("fchan thread - {0} - {1}", BoardTitles.fchan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
 
                         CurrentThread.ThreadCookie = new CookieContainer();
                         CurrentThread.ThreadCookie.Add(new Cookie("disclaimer", "seen") { Domain = "fchan.us" });
@@ -290,7 +291,7 @@ namespace YChanEx {
                         string[] URLSplit = CurrentThread.ThreadURL.Split('/');
                         CurrentThread.ThreadBoard = URLSplit[URLSplit.Length - 3];
                         CurrentThread.ThreadID = URLSplit[URLSplit.Length - 1].Split('#')[0];
-                        this.Text = string.Format("u18chan CurrentThread.Thread - {0} - {1}", BoardTitles.u18chan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
+                        this.Text = string.Format("u18chan thread - {0} - {1}", BoardTitles.u18chan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
                     }
                     if (DownloadPath != Downloads.Default.DownloadPath + "\\u18chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID) {
                         DownloadPath = Downloads.Default.DownloadPath + "\\u18chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID;
@@ -409,21 +410,41 @@ namespace YChanEx {
         #endregion
 
 
-        #region Common chan downloading
+        #region Shared Chan Logic
+        /// <summary>
+        /// Retrieve the HTML of a given Thread URL for parsing or aesthetics.
+        /// </summary>
+        /// <param name="URL">The URL of the page to download the HTML source.</param>
+        /// <returns>The HTML of a given Thread</returns>
+        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]
         private string GetThreadHTML(string URL) {
-            HttpWebRequest Request = (HttpWebRequest)WebRequest.CreateHttp(ThreadURL);
-            Request.CookieContainer = CurrentThread.ThreadCookie;
-            Request.IfModifiedSince = CurrentThread.LastModified;
-            Request.UserAgent = Advanced.Default.UserAgent;
-            Request.Method = "GET";
-            Request = (HttpWebRequest)WebRequest.Create(URL);
-            using (var Response = (HttpWebResponse)Request.GetResponse())
-            using (var ResponseStream = Response.GetResponseStream())
-            using (StreamReader ResponseReader = new StreamReader(ResponseStream)) {
-                CurrentThread.LastModified = Response.LastModified;
-                return ResponseReader.ReadToEnd();
+            try {
+                HttpWebRequest Request = (HttpWebRequest)WebRequest.CreateHttp(ThreadURL);
+                Request.CookieContainer = CurrentThread.ThreadCookie;
+                Request.IfModifiedSince = CurrentThread.LastModified;
+                Request.UserAgent = Advanced.Default.UserAgent;
+                Request.Method = "GET";
+                Request = (HttpWebRequest)WebRequest.Create(URL);
+                using (var Response = (HttpWebResponse)Request.GetResponse())
+                using (var ResponseStream = Response.GetResponseStream())
+                using (StreamReader ResponseReader = new StreamReader(ResponseStream)) {
+                    CurrentThread.LastModified = Response.LastModified;
+                    return ResponseReader.ReadToEnd();
+                }
+            }
+            catch (WebException) {
+                throw;
+            }
+            catch (Exception) {
+                throw;
             }
         }
+        /// <summary>
+        /// Retrieve the JSON info of a given Thread URL for parsing.
+        /// </summary>
+        /// <param name="URL">The URL of the JSON file to download.</param>
+        /// <returns>The JSON of a given Thread</returns>
+        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]
         private string GetThreadJSON(string URL) {
             try {
                 string RetrievedJson = null;
@@ -446,12 +467,51 @@ namespace YChanEx {
                 }
                 return RetrievedJson;
             }
-            catch (WebException WebEx) {
-                throw WebEx;
+            catch (WebException) {
+                throw;
             }
-            catch (Exception Ex) {
-                throw Ex;
+            catch (Exception) {
+                throw;
             }
+        }
+        private string GetThreadName(string HTML) {
+            // First, trim the HTML from the start of the <title> tag to, up to the </title> closing tag
+            string TitleWork = HTML.Substring(HTML.IndexOf("<title>") + 7,
+                                              HTML.IndexOf("</title>") - (HTML.IndexOf("<title>") + 7));
+
+            switch (Chan) {
+                case ChanType.FourChan:
+                    // trim the end of the text in the tag
+                    TitleWork = TitleWork.Replace(" - " + BoardTitles.FourChan(CurrentThread.ThreadBoard, true) + " - 4chan", "");
+                    // decode any html chars
+                    TitleWork = WebUtility.HtmlDecode(TitleWork);
+
+                    CurrentThread.ThreadName = TitleWork;
+                    CurrentThread.RetrievedThreadName = true;
+
+                    return TitleWork;
+                case ChanType.FourTwentyChan:
+
+                    break;
+                case ChanType.SevenChan:
+
+                    break;
+                case ChanType.EightChan:
+
+                    break;
+                case ChanType.EightKun:
+
+                    break;
+                case ChanType.fchan:
+
+                    break;
+                case ChanType.u18chan:
+
+                    break;
+                default:
+                    return string.Empty;
+            }
+            return string.Empty;
         }
         #endregion
 
@@ -478,6 +538,12 @@ namespace YChanEx {
                     CurrentURL = this.ThreadURL;
                     if (YChanEx.Downloads.Default.SaveHTML) {
                         ThreadHTML = GetThreadHTML(CurrentURL);
+                    }
+
+                    if (Downloads.Default.UseThreadName && !CurrentThread.RetrievedThreadName) {
+                        this.BeginInvoke(new MethodInvoker(() => {
+                            this.Text = GetThreadName(ThreadHTML);
+                        }));
                     }
 
                     if (string.IsNullOrEmpty(ThreadJSON) || ThreadJSON == Networking.EmptyXML) {
@@ -665,6 +731,7 @@ namespace YChanEx {
             });
             DownloadThread.Name = "4chan thread /" + CurrentThread.ThreadBoard + "/" + CurrentThread.ThreadID;
         }
+
         private static bool Generate4chanMD5(string InputFile, string InputFileHash) {
             // Attempts to convert existing file to 4chan's hash type
             try {
@@ -674,12 +741,11 @@ namespace YChanEx {
 
                 string OutputHash = null;
 
-                using (System.Security.Cryptography.MD5 FileMD5 = System.Security.Cryptography.MD5.Create()) {
-                    using (var FileStream = File.OpenRead(InputFile)) {
-                        var FileHash = FileMD5.ComputeHash(FileStream);
-                        System.Threading.Thread.Sleep(50);
-                        OutputHash = BitConverter.ToString(FileHash).Replace("-", string.Empty).ToLowerInvariant();
-                    }
+                using (System.Security.Cryptography.MD5 FileMD5 = System.Security.Cryptography.MD5.Create())
+                using (var FileStream = File.OpenRead(InputFile)) {
+                    var FileHash = FileMD5.ComputeHash(FileStream);
+                    System.Threading.Thread.Sleep(50);
+                    OutputHash = BitConverter.ToString(FileHash).Replace("-", string.Empty).ToLowerInvariant();
                 }
 
                 byte[] RawByte = new byte[16];
@@ -857,7 +923,7 @@ namespace YChanEx {
                     #region HTML Download Logic
                     for (int TryCount = 0; TryCount < 5; TryCount++) {
                         CurrentURL = ThreadURL;
-                        GetThreadHTML(CurrentURL);
+                        ThreadHTML = GetThreadHTML(CurrentURL);
 
                         if (string.IsNullOrEmpty(ThreadHTML)) {
                             if (TryCount == 5) {
@@ -1965,7 +2031,7 @@ namespace YChanEx {
                     #region HTML Download Logic
                     for (int TryCount = 0; TryCount < 5; TryCount++) {
                         CurrentURL = ThreadURL;
-                        GetThreadHTML(CurrentURL);
+                        ThreadHTML = GetThreadHTML(CurrentURL);
 
                         if (string.IsNullOrEmpty(ThreadHTML)) {
                             if (TryCount == 5) {
@@ -2162,7 +2228,7 @@ namespace YChanEx {
                     #region HTML Download Logic
                     for (int TryCount = 0; TryCount < 5; TryCount++) {
                         CurrentURL = ThreadURL;
-                        GetThreadHTML(CurrentURL);
+                        ThreadHTML = GetThreadHTML(CurrentURL);
 
                         if (string.IsNullOrEmpty(ThreadHTML)) {
                             if (TryCount == 5) {

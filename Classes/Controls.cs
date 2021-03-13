@@ -88,6 +88,7 @@ namespace YChanEx {
         public int IsMouseDown = 0;
         public int IsAtDropDown = 0;
         public int DropDownPushed = 0;
+
         [System.Diagnostics.DebuggerStepThrough]
         protected override void WndProc(ref Message WndMessage) {
             switch (WndMessage.Msg) {
