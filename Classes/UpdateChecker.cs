@@ -87,7 +87,7 @@ namespace YChanEx {
         }
         public static string GetGitVersionString(int GitID) {
             try {
-                string xml = Chans.GetJSON(string.Format(GitData.GitLinks.GithubLatestJson, GitData.GitLinks.Users[GitID], GitData.GitLinks.ApplciationNames[GitID]));
+                string xml = Networking.GetJsonToXml(string.Format(GitData.GitLinks.GithubLatestJson, GitData.GitLinks.Users[GitID], GitData.GitLinks.ApplciationNames[GitID]));
 
                 if (xml == null)
                     return null;
@@ -118,7 +118,7 @@ namespace YChanEx {
         }
         public static decimal GetGitVersion(int GitID) {
             try {
-                string xml = Chans.GetJSON(string.Format(GitData.GitLinks.GithubLatestJson, GitData.GitLinks.Users[GitID], GitData.GitLinks.ApplciationNames[GitID]));
+                string xml = Networking.GetJsonToXml(string.Format(GitData.GitLinks.GithubLatestJson, GitData.GitLinks.Users[GitID], GitData.GitLinks.ApplciationNames[GitID]));
 
                 if (xml == null)
                     return -1;

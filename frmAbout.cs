@@ -8,9 +8,8 @@ namespace YChanEx {
 
         public frmAbout() {
             InitializeComponent();
-            this.Icon = Properties.Resources.YChanEx;
             pbIcon.Image = Properties.Resources.ychanex32;
-            pbIcon.Cursor = Program.SystemHandCursor;
+            pbIcon.Cursor = new Cursor(NativeMethods.SetCursor(NativeMethods.LoadCursor(IntPtr.Zero, (IntPtr)32649)));
         }
         private void frmAbout_Shown(object sender, EventArgs e) {
             lbVersion.Text = "v" + Properties.Settings.Default.AppVersion.ToString();
