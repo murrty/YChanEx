@@ -20,7 +20,7 @@ namespace YChanEx {
         frmMain MainFormInstance = Program.GetMainFormInstance();   // all, the instance of the main for for modifying it
         // when anything major changes in the download form.
 
-        private ThreadInfo CurrentThread;                           // all, the ThreadInfo relating to the current thread.
+        public ThreadInfo CurrentThread;                            // all, the ThreadInfo relating to the current thread.
 
         public string DownloadPath = null;                          // all, the local directory for the files to save to.
         public string ThreadURL = null;                             // all, the URL passed from the main form.
@@ -28,6 +28,7 @@ namespace YChanEx {
         public string ThreadID = null;
         public string ThreadBoard = null;
         public ThreadStatus LastStatus;
+        public bool CustomName;
 
         private List<string> ImageFiles = new List<string>();       // all, list of file links.
         private List<string> ThumbnailFiles = new List<string>();   // all, list of thumbnail file links.
@@ -74,9 +75,6 @@ namespace YChanEx {
         }
         private void tmrScan_Tick(object sender, EventArgs e) {
             if (Program.SettingsOpen) {
-                if (TimerIdle != null && TimerIdle.IsAlive) {
-                    TimerIdle.Abort();
-                }
                 TimerIdle = new Thread(() => {
                     try {
                         Thread.Sleep(5000);
@@ -101,7 +99,7 @@ namespace YChanEx {
             }
             else if (CountdownToNextScan == 0) {
                 tmrScan.Stop();
-                DownloadManage(ThreadEvent.StartDownload);
+                ManageThread(ThreadEvent.StartDownload);
             }
             else {
                 lbScanTimer.Text = CountdownToNextScan.ToString();
@@ -122,19 +120,19 @@ namespace YChanEx {
                     DownloadThread.Abort();
                 }
 
-                CurrentThread.Status = ThreadStatus.Thread404;
+                CurrentThread.Status = ThreadStatus.ThreadIs404;
                 btnForce404.Enabled = false;
-                DownloadManage(ThreadEvent.AfterDownload);
+                ManageThread(ThreadEvent.AfterDownload);
             }
         }
         private void btnAbortRetry_Click(object sender, EventArgs e) {
             switch (CurrentThread.Status) {
-                case ThreadStatus.Thread404:
-                case ThreadStatus.ThreadAborted:
-                    DownloadManage(ThreadEvent.RetryDownload);
+                case ThreadStatus.ThreadIs404:
+                case ThreadStatus.ThreadIsAborted:
+                    ManageThread(ThreadEvent.RetryDownload);
                     break;
                 default:
-                    DownloadManage(ThreadEvent.AbortDownload);
+                    ManageThread(ThreadEvent.AbortDownload);
                     break;
             }
         }
@@ -148,8 +146,6 @@ namespace YChanEx {
         private void btnClose_Click(object sender, EventArgs e) {
             this.Hide();
         }
-        #endregion
-
 
         #region cmThreadActions
         private void mOpenThreadDownloadFolder_Click(object sender, EventArgs e) {
@@ -177,10 +173,13 @@ namespace YChanEx {
         }
         #endregion
 
+        #endregion
+
+
         #region Custom Thread Methods
-        public void DownloadManage(ThreadEvent Event) {
+        public void ManageThread(ThreadEvent Event) {
             switch (Event) {
-                #region ParsingForInfo
+                #region ParseForInfo
                 case ThreadEvent.ParseForInfo:
                     Debug.Print("ParseThreadForInfo called");
                     CurrentThread = new ThreadInfo();
@@ -195,7 +194,6 @@ namespace YChanEx {
                             this.Text = string.Format("4chan thread - {0} - {1}", BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
 
                             DownloadPath = Downloads.Default.DownloadPath + "\\4chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID;
-                            Set4chanThread();
                             break;
                         case ChanType.FourTwentyChan:
                             lvImages.Columns.RemoveAt(3);
@@ -204,7 +202,6 @@ namespace YChanEx {
                             this.Text = string.Format("420chan thread - {0} - {1}", BoardTitles.FourTwentyChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
 
                             DownloadPath = Downloads.Default.DownloadPath + "\\420chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID;
-                            Set420chanThread();
                             break;
                         case ChanType.SevenChan:
                             lvImages.Columns.RemoveAt(3);
@@ -213,7 +210,6 @@ namespace YChanEx {
                             this.Text = string.Format("7chan thread - {0} - {1}", BoardTitles.SevenChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
 
                             DownloadPath = Downloads.Default.DownloadPath + "\\7chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID;
-                            Set7chanThread();
                             break;
                         case ChanType.EightChan:
                             CurrentThread.ThreadBoard = URLSplit[URLSplit.Length - 3];
@@ -221,7 +217,6 @@ namespace YChanEx {
                             this.Text = string.Format("8chan thread - {0} - {1}", BoardTitles.EightChan(CurrentThread.ThreadBoard, false), CurrentThread.ThreadID);
 
                             DownloadPath = Downloads.Default.DownloadPath + "\\8chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID;
-                            Set8chanThread();
                             break;
                         case ChanType.EightKun:
                             CurrentThread.ThreadBoard = URLSplit[URLSplit.Length - 3];
@@ -229,7 +224,6 @@ namespace YChanEx {
                             this.Text = string.Format("8kun thread - {0} - {1}", BoardTitles.EightKun(CurrentThread.ThreadBoard, false), CurrentThread.ThreadID);
 
                             DownloadPath = Downloads.Default.DownloadPath + "\\8kun\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID;
-                            Set8kunThread();
                             break;
                         case ChanType.fchan:
                             lvImages.Columns.RemoveAt(3);
@@ -240,7 +234,6 @@ namespace YChanEx {
                             CurrentThread.ThreadCookie.Add(new Cookie("disclaimer", "seen") { Domain = "fchan.us" });
 
                             DownloadPath = Downloads.Default.DownloadPath + "\\fchan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID;
-                            SetFchanThread();
                             break;
                         case ChanType.u18chan:
                             lvImages.Columns.RemoveAt(3);
@@ -249,7 +242,6 @@ namespace YChanEx {
                             this.Text = string.Format("u18chan thread - {0} - {1}", BoardTitles.u18chan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
 
                             DownloadPath = Downloads.Default.DownloadPath + "\\u18chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID;
-                            Setu18ChanThread();
                             break;
                     }
 
@@ -329,7 +321,7 @@ namespace YChanEx {
                 #region AfterDownload
                 case ThreadEvent.AfterDownload:
                     switch (CurrentThread.Status) {
-                        case ThreadStatus.ThreadAborted:
+                        case ThreadStatus.ThreadIsAborted:
                             lbScanTimer.Text = "Aborted";
                             lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
                             this.Icon = Properties.Resources.YChanEx404;
@@ -338,12 +330,12 @@ namespace YChanEx {
                             btnAbortRetry.Text = "Retry";
                             break;
 
-                        case ThreadStatus.Thread404:
+                        case ThreadStatus.ThreadIs404:
                             lbScanTimer.Text = "404'd";
                             lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
                             this.Icon = Properties.Resources.YChanEx404;
 
-                            MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, CurrentThread.Status, CurrentThread);
+                            MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, CurrentThread.Status);
                             btnAbortRetry.Text = "Retry";
                             break;
 
@@ -367,7 +359,7 @@ namespace YChanEx {
                             }));
                             break;
 
-                        case ThreadStatus.ThreadNotAllowed:
+                        case ThreadStatus.ThreadIsNotAllowed:
                             break;
 
                         case ThreadStatus.ThreadInfoNotSet:
@@ -386,7 +378,7 @@ namespace YChanEx {
                     this.Icon = Properties.Resources.YChanEx404;
                     lbScanTimer.Text = "Aborted";
                     lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
-                    CurrentThread.Status = ThreadStatus.ThreadAborted;
+                    CurrentThread.Status = ThreadStatus.ThreadIsAborted;
                     MainFormInstance.SetItemStatus(ThreadURL, CurrentThread.Status);
 
                     btnAbortRetry.Text = "Retry";
@@ -413,7 +405,7 @@ namespace YChanEx {
                     lbScanTimer.Text = "scanning now...";
                     btnAbortRetry.Text = "Abort";
                     tmrScan.Stop();
-                    DownloadManage(ThreadEvent.StartDownload);
+                    ManageThread(ThreadEvent.StartDownload);
                     break;
                 #endregion
 
@@ -423,16 +415,16 @@ namespace YChanEx {
                     lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
                     btnAbortRetry.Text = "Retry";
                     switch (LastStatus) {
-                        case ThreadStatus.Thread404:
+                        case ThreadStatus.ThreadIs404:
                             lbScanTimer.Text = "404'd";
-                            CurrentThread.Status = ThreadStatus.Thread404;
+                            CurrentThread.Status = ThreadStatus.ThreadIs404;
                             break;
-                        case ThreadStatus.ThreadAborted:
+                        case ThreadStatus.ThreadIsAborted:
                             lbScanTimer.Text = "Aborted";
-                            CurrentThread.Status = ThreadStatus.ThreadAborted;
+                            CurrentThread.Status = ThreadStatus.ThreadIsAborted;
                             break;
                     }
-                    DownloadManage(ThreadEvent.ParseForInfo);
+                    ManageThread(ThreadEvent.ParseForInfo);
                     break;
                 #endregion
 
@@ -446,34 +438,97 @@ namespace YChanEx {
             }
         }
 
-        public void ChangeFormTitle() {
+        public void UpdateThreadName(bool ApplyToMainForm = false) {
+            string ThreadNameBuffer = "unknown thread - {0} - {1}";
             switch (Chan) {
                 case ChanType.FourChan:
-                    this.Text = string.Format("4chan thread - {0} - {1}", BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
+                    ThreadNameBuffer = "4chan thread - {0} - {1}";
+                    if (Downloads.Default.UseThreadName && CurrentThread.RetrievedThreadName) {
+                        this.Text = string.Format(ThreadNameBuffer, BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadName);
+                        if (ApplyToMainForm && !CustomName) {
+                            MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, ThreadStatus.ThreadUpdateName);
+                        }
+                    }
+                    else {
+                        this.Text = string.Format(ThreadNameBuffer, BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
+                    }
                     break;
                 case ChanType.FourTwentyChan:
-                    this.Text = string.Format("420chan thread - {0} - {1}", BoardTitles.FourTwentyChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
+                    ThreadNameBuffer = "420chan thread - {0} - {1}";
+                    if (Downloads.Default.UseThreadName && CurrentThread.RetrievedThreadName) {
+                        this.Text = string.Format(ThreadNameBuffer, BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadName);
+                        if (ApplyToMainForm && !CustomName) {
+                            MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, ThreadStatus.ThreadUpdateName);
+                        }
+                    }
+                    else {
+                        this.Text = string.Format(ThreadNameBuffer, BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
+                    }
                     break;
                 case ChanType.SevenChan:
-                    this.Text = string.Format("7chan thread - {0} - {1}", BoardTitles.SevenChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
+                    ThreadNameBuffer = "7chan thread - {0} - {1}";
+                    if (Downloads.Default.UseThreadName && CurrentThread.RetrievedThreadName) {
+                        this.Text = string.Format(ThreadNameBuffer, BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadName);
+                        if (ApplyToMainForm && !CustomName) {
+                            MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, ThreadStatus.ThreadUpdateName);
+                        }
+                    }
+                    else {
+                        this.Text = string.Format(ThreadNameBuffer, BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
+                    }
                     break;
                 case ChanType.EightChan:
-                    this.Text = string.Format("8chan thread - {0} - {1}", BoardTitles.EightChan(CurrentThread.ThreadBoard, false), CurrentThread.ThreadID);
+                    ThreadNameBuffer = "8chan thread - {0} - {1}";
+                    if (Downloads.Default.UseThreadName && CurrentThread.RetrievedThreadName) {
+                        this.Text = string.Format(ThreadNameBuffer, BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadName);
+                        if (ApplyToMainForm && !CustomName) {
+                            MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, ThreadStatus.ThreadUpdateName);
+                        }
+                    }
+                    else {
+                        this.Text = string.Format(ThreadNameBuffer, BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
+                    }
                     break;
                 case ChanType.EightKun:
-                    this.Text = string.Format("8kun thread - {0} - {1}", BoardTitles.EightKun(CurrentThread.ThreadBoard, false), CurrentThread.ThreadID);
+                    ThreadNameBuffer = "8kun thread - {0} - {1}";
+                    if (Downloads.Default.UseThreadName && CurrentThread.RetrievedThreadName) {
+                        this.Text = string.Format(ThreadNameBuffer, BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadName);
+                        if (ApplyToMainForm && !CustomName) {
+                            MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, ThreadStatus.ThreadUpdateName);
+                        }
+                    }
+                    else {
+                        this.Text = string.Format(ThreadNameBuffer, BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
+                    }
                     break;
                 case ChanType.fchan:
-                    this.Text = string.Format("fchan thread - {0} - {1}", BoardTitles.fchan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
+                    ThreadNameBuffer = "fchan thread - {0} - {1}";
+                    if (Downloads.Default.UseThreadName && CurrentThread.RetrievedThreadName) {
+                        this.Text = string.Format(ThreadNameBuffer, BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadName);
+                        if (ApplyToMainForm && !CustomName) {
+                            MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, ThreadStatus.ThreadUpdateName);
+                        }
+                    }
+                    else {
+                        this.Text = string.Format(ThreadNameBuffer, BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
+                    }
                     break;
                 case ChanType.u18chan:
-                    this.Text = string.Format("u18chan thread - {0} - {1}", BoardTitles.u18chan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
+                    ThreadNameBuffer = "u18chan thread - {0} - {1}";
+                    if (Downloads.Default.UseThreadName && CurrentThread.RetrievedThreadName) {
+                        this.Text = string.Format(ThreadNameBuffer, BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadName);
+                        if (ApplyToMainForm && !CustomName) {
+                            MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, ThreadStatus.ThreadUpdateName);
+                        }
+                    }
+                    else {
+                        this.Text = string.Format(ThreadNameBuffer, BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadID);
+                    }
                     break;
                 default:
-                    this.Text = string.Format("unknown thread - {0} - {1}", CurrentThread.ThreadBoard, CurrentThread.ThreadID);
+                    this.Text = string.Format(ThreadNameBuffer, CurrentThread.ThreadBoard, CurrentThread.ThreadID);
                     return;
             }
-            CurrentThread.RetrievedThreadName = false;
         }
         #endregion
 
@@ -595,10 +650,10 @@ namespace YChanEx {
                     CurrentThread.Status = ThreadStatus.ThreadNotModified;
                     break;
                 case HttpStatusCode.NotFound:
-                    CurrentThread.Status = ThreadStatus.Thread404;
+                    CurrentThread.Status = ThreadStatus.ThreadIs404;
                     break;
                 case HttpStatusCode.Forbidden:
-                    CurrentThread.Status = ThreadStatus.ThreadNotAllowed;
+                    CurrentThread.Status = ThreadStatus.ThreadIsNotAllowed;
                     break;
                 default:
                     CurrentThread.Status = ThreadStatus.ThreadImproperlyDownloaded;
@@ -624,7 +679,7 @@ namespace YChanEx {
                     #region API/HTML Download Logic
                     if (CurrentThread.ThreadBoard == null || CurrentThread.ThreadID == null) {
                         CurrentThread.Status = ThreadStatus.ThreadInfoNotSet;
-                        DownloadManage(ThreadEvent.AfterDownload);
+                        ManageThread(ThreadEvent.AfterDownload);
                         return;
                     }
 
@@ -646,9 +701,10 @@ namespace YChanEx {
                             ThreadHTML = GetThreadHTML(CurrentURL);
                         }
 
+                        CurrentThread.ThreadName = GetThreadName(ThreadHTML);
+
                         this.BeginInvoke(new MethodInvoker(() => {
-                            this.Text = "/" + CurrentThread.ThreadBoard + "/ - " + GetThreadName(ThreadHTML);
-                            MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, ThreadStatus.ThreadUpdateName, CurrentThread);
+                            UpdateThreadName(true);
                         }));
                     }
                     #endregion
@@ -802,7 +858,7 @@ namespace YChanEx {
                 }
                 #region Catch Logic
                 catch (ThreadAbortException) {
-                    CurrentThread.Status = ThreadStatus.ThreadAborted;
+                    CurrentThread.Status = ThreadStatus.ThreadIsAborted;
                 }
                 catch (ObjectDisposedException) {
                     return;
@@ -815,7 +871,7 @@ namespace YChanEx {
                 }
                 #endregion
                 finally {
-                    DownloadManage(ThreadEvent.AfterDownload);
+                    ManageThread(ThreadEvent.AfterDownload);
                 }
             });
             DownloadThread.Name = "4chan thread /" + CurrentThread.ThreadBoard + "/" + CurrentThread.ThreadID;
@@ -869,7 +925,7 @@ namespace YChanEx {
                     #region API/HTML Download Logic
                     if (CurrentThread.ThreadBoard == null || CurrentThread.ThreadID == null) {
                         CurrentThread.Status = ThreadStatus.ThreadInfoNotSet;
-                        DownloadManage(ThreadEvent.AfterDownload);
+                        ManageThread(ThreadEvent.AfterDownload);
                         return;
                     }
 
@@ -973,7 +1029,7 @@ namespace YChanEx {
                 }
                 #region Catch Logic
                 catch (ThreadAbortException) {
-                    CurrentThread.Status = ThreadStatus.ThreadAborted;
+                    CurrentThread.Status = ThreadStatus.ThreadIsAborted;
                 }
                 catch (ObjectDisposedException) {
                     return;
@@ -986,7 +1042,7 @@ namespace YChanEx {
                 }
                 #endregion
                 finally {
-                    DownloadManage(ThreadEvent.AfterDownload);
+                    ManageThread(ThreadEvent.AfterDownload);
                 }
             });
             DownloadThread.Name = "420chan thread /" + CurrentThread.ThreadBoard + "/" + CurrentThread.ThreadID;
@@ -1005,7 +1061,7 @@ namespace YChanEx {
                     #region HTML Download Logic
                     if (CurrentThread.ThreadBoard == null || CurrentThread.ThreadID == null) {
                         CurrentThread.Status = ThreadStatus.ThreadInfoNotSet;
-                        DownloadManage(ThreadEvent.AfterDownload);
+                        ManageThread(ThreadEvent.AfterDownload);
                         return;
                     }
 
@@ -1027,7 +1083,7 @@ namespace YChanEx {
 
                     if (ThreadHTML == CurrentThread.LastThreadHTML) {
                         CurrentThread.Status = ThreadStatus.Waiting;
-                        DownloadManage(ThreadEvent.AfterDownload);
+                        ManageThread(ThreadEvent.AfterDownload);
                         return;
                     }
 
@@ -1152,7 +1208,7 @@ namespace YChanEx {
                 }
                 #region Catch Logic
                 catch (ThreadAbortException) {
-                    CurrentThread.Status = ThreadStatus.ThreadAborted;
+                    CurrentThread.Status = ThreadStatus.ThreadIsAborted;
                     return;
                 }
                 catch (ObjectDisposedException) {
@@ -1166,7 +1222,7 @@ namespace YChanEx {
                 }
                 #endregion
                 finally {
-                    DownloadManage(ThreadEvent.AfterDownload);
+                    ManageThread(ThreadEvent.AfterDownload);
                 }
             });
             DownloadThread.Name = "7chan thread /" + CurrentThread.ThreadBoard + "/" + CurrentThread.ThreadID;
@@ -1188,7 +1244,7 @@ namespace YChanEx {
                     #region API/HTML Download Logic
                     if (CurrentThread.ThreadBoard == null || CurrentThread.ThreadID == null) {
                         CurrentThread.Status = ThreadStatus.ThreadInfoNotSet;
-                        DownloadManage(ThreadEvent.AfterDownload);
+                        ManageThread(ThreadEvent.AfterDownload);
                         return;
                     }
 
@@ -1598,7 +1654,7 @@ namespace YChanEx {
                 }
                 #region Catch logic
                 catch (ThreadAbortException) {
-                    CurrentThread.Status = ThreadStatus.ThreadAborted;
+                    CurrentThread.Status = ThreadStatus.ThreadIsAborted;
                 }
                 catch (ObjectDisposedException) {
                     return;
@@ -1611,7 +1667,7 @@ namespace YChanEx {
                 }
                 #endregion
                 finally {
-                    DownloadManage(ThreadEvent.AfterDownload);
+                    ManageThread(ThreadEvent.AfterDownload);
                 }
             });
             DownloadThread.Name = "8chan thread /" + CurrentThread.ThreadBoard + "/" + CurrentThread.ThreadID;
@@ -1633,7 +1689,7 @@ namespace YChanEx {
                     #region API/HTML Download Logic
                     if (CurrentThread.ThreadBoard == null || CurrentThread.ThreadID == null) {
                         CurrentThread.Status = ThreadStatus.ThreadInfoNotSet;
-                        DownloadManage(ThreadEvent.AfterDownload);
+                        ManageThread(ThreadEvent.AfterDownload);
                         return;
                     }
 
@@ -2059,7 +2115,7 @@ namespace YChanEx {
                 }
                 #region Catch logic
                 catch (ThreadAbortException) {
-                    CurrentThread.Status = ThreadStatus.ThreadAborted;
+                    CurrentThread.Status = ThreadStatus.ThreadIsAborted;
                 }
                 catch (ObjectDisposedException) {
                     return;
@@ -2072,7 +2128,7 @@ namespace YChanEx {
                 }
                 #endregion
                 finally {
-                    DownloadManage(ThreadEvent.AfterDownload);
+                    ManageThread(ThreadEvent.AfterDownload);
                 }
             });
             DownloadThread.Name = "8kun thread /" + CurrentThread.ThreadBoard + "/" + CurrentThread.ThreadID;
@@ -2101,7 +2157,7 @@ namespace YChanEx {
                     #region HTML Download Logic
                     if (CurrentThread.ThreadBoard == null || CurrentThread.ThreadID == null) {
                         CurrentThread.Status = ThreadStatus.ThreadInfoNotSet;
-                        DownloadManage(ThreadEvent.AfterDownload);
+                        ManageThread(ThreadEvent.AfterDownload);
                         return;
                     }
 
@@ -2123,7 +2179,7 @@ namespace YChanEx {
 
                     if (ThreadHTML == CurrentThread.LastThreadHTML) {
                         CurrentThread.Status = ThreadStatus.Waiting;
-                        DownloadManage(ThreadEvent.AfterDownload);
+                        ManageThread(ThreadEvent.AfterDownload);
                         return;
                     }
 
@@ -2263,7 +2319,7 @@ namespace YChanEx {
                 }
                 #region Catch logic
                 catch (ThreadAbortException) {
-                    CurrentThread.Status = ThreadStatus.ThreadAborted;
+                    CurrentThread.Status = ThreadStatus.ThreadIsAborted;
                     return;
                 }
                 catch (ObjectDisposedException) {
@@ -2277,7 +2333,7 @@ namespace YChanEx {
                 }
                 #endregion
                 finally {
-                    DownloadManage(ThreadEvent.AfterDownload);
+                    ManageThread(ThreadEvent.AfterDownload);
                 }
             });
             DownloadThread.Name = "fchan thread /" + CurrentThread.ThreadBoard + "/" + CurrentThread.ThreadID;
@@ -2295,7 +2351,7 @@ namespace YChanEx {
                     #region HTML Download Logic
                     if (CurrentThread.ThreadBoard == null || CurrentThread.ThreadID == null) {
                         CurrentThread.Status = ThreadStatus.ThreadInfoNotSet;
-                        DownloadManage(ThreadEvent.AfterDownload);
+                        ManageThread(ThreadEvent.AfterDownload);
                         return;
                     }
 
@@ -2317,7 +2373,7 @@ namespace YChanEx {
 
                     if (ThreadHTML == CurrentThread.LastThreadHTML) {
                         CurrentThread.Status = ThreadStatus.Waiting;
-                        DownloadManage(ThreadEvent.AfterDownload);
+                        ManageThread(ThreadEvent.AfterDownload);
                         return;
                     }
 
@@ -2456,7 +2512,7 @@ namespace YChanEx {
                 }
                 #region Catch logic
                 catch (ThreadAbortException) {
-                    CurrentThread.Status = ThreadStatus.ThreadAborted;
+                    CurrentThread.Status = ThreadStatus.ThreadIsAborted;
                     return;
                 }
                 catch (ObjectDisposedException) {
@@ -2470,7 +2526,7 @@ namespace YChanEx {
                 }
                 #endregion
                 finally {
-                    DownloadManage(ThreadEvent.AfterDownload);
+                    ManageThread(ThreadEvent.AfterDownload);
                 }
             });
             DownloadThread.Name = "u18chan thread /" + CurrentThread.ThreadBoard + "/" + CurrentThread.ThreadID;

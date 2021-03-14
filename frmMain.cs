@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -10,6 +11,9 @@ namespace YChanEx {
         private List<frmDownloader> ThreadDownloadForms = new List<frmDownloader>();    // The list of Thread download forms
         private List<string> ThreadURLs = new List<string>();                           // The list of Thread URLs
         private List<ThreadStatus> ThreadAliveStatuses = new List<ThreadStatus>();      // the list of Thread statuses
+        private List<string> ThreadNames = new List<string>();                          // the list of Thread names
+        //private List<Tuple<string, frmDownloader, ThreadStatus>> Threads =
+        //    new List<Tuple<string, frmDownloader, ThreadStatus>>();
 
         private bool Icon404WasShown = false;   // Determines if the 404 icon has been shown on the tray.
         private bool ThreadsModified = false;   // Determines if the threads lists were modified to resave them.
@@ -21,30 +25,30 @@ namespace YChanEx {
         /// </summary>
         /// <param name="ThreadURL">The url of the thread to find the index in the listview.</param>
         /// <param name="NewStatus">The new custom status to be set onto it.</param>
-        public void SetItemStatus(string ThreadURL, ThreadStatus Status, ThreadInfo UpdThread = default(ThreadInfo)) {
+        public void SetItemStatus(string ThreadURL, ThreadStatus Status) {
             int ThreadIndex = ThreadURLs.IndexOf(ThreadURL);
             switch (Status) {
                 case ThreadStatus.ThreadRetrying:
                     ThreadAliveStatuses[ThreadIndex] = ThreadStatus.ThreadIsAlive;
                     ThreadsModified = true;
-                    lvThreads.Items[ThreadIndex].SubItems[1].Text = "Retrying";
+                    lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = "Retrying";
                     break;
                 case ThreadStatus.Waiting:
-                    lvThreads.Items[ThreadIndex].SubItems[1].Text = "Waiting";
+                    lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = "Waiting";
                     break;
                 case ThreadStatus.ThreadNotModified:
-                    lvThreads.Items[ThreadIndex].SubItems[1].Text = "Not Modified";
+                    lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = "Not Modified";
                     break;
                 case ThreadStatus.ThreadScanning:
-                    lvThreads.Items[ThreadIndex].SubItems[1].Text = "Scanning";
+                    lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = "Scanning";
                     break;
                 case ThreadStatus.ThreadDownloading:
-                    lvThreads.Items[ThreadIndex].SubItems[1].Text = "Downloading";
+                    lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = "Downloading";
                     break;
                 case ThreadStatus.ThreadIs404:
                     ThreadAliveStatuses[ThreadIndex] = ThreadStatus.ThreadIs404;
-                    niTray.BalloonTipText = UpdThread.ThreadID + " on /" + UpdThread.ThreadBoard + "/ has 404'd";
-                    switch (UpdThread.Chan) {
+                    niTray.BalloonTipText = ThreadDownloadForms[ThreadIndex].CurrentThread.ThreadID + " on /" + ThreadDownloadForms[ThreadIndex].CurrentThread.ThreadBoard + "/ has 404'd";
+                    switch (ThreadDownloadForms[ThreadIndex].CurrentThread.Chan) {
                         case ChanType.FourChan:
                             niTray.BalloonTipTitle = "4chan";
                             break;
@@ -78,38 +82,38 @@ namespace YChanEx {
                     changeTray.Start();
                     niTray.ShowBalloonTip(5000);
                     ThreadsModified = true;
-                    lvThreads.Items[ThreadIndex].SubItems[1].Text = "404'd";
+                    lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = "404'd";
                     break;
                 case ThreadStatus.ThreadIsAborted:
                     ThreadAliveStatuses[ThreadIndex] = ThreadStatus.ThreadIsAborted;
                     ThreadsModified = true;
-                    lvThreads.Items[ThreadIndex].SubItems[1].Text = "Aborted";
+                    lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = "Aborted";
                     break;
                 case ThreadStatus.ThreadReloaded:
-                    lvThreads.Items[ThreadIndex].SubItems[1].Text = "Reloaded";
+                    lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = "Reloaded";
                     break;
                 case ThreadStatus.ThreadUpdateName:
-                    if (UpdThread.RetrievedThreadName) {
-                        lvThreads.Items[ThreadIndex].SubItems[3].Text = UpdThread.ThreadName;
+                    if (ThreadDownloadForms[ThreadIndex].CurrentThread.RetrievedThreadName) {
+                        lvThreads.Items[ThreadIndex].SubItems[clName.Index].Text = ThreadDownloadForms[ThreadIndex].CurrentThread.ThreadName;
+                        ThreadNames[ThreadIndex] = ThreadDownloadForms[ThreadIndex].CurrentThread.ThreadName;
                     }
                     else {
-                        lvThreads.Items[ThreadIndex].SubItems[3].Text = ThreadURL;
+                        lvThreads.Items[ThreadIndex].SubItems[clName.Index].Text = ThreadURL;
+                        ThreadNames[ThreadIndex] = ThreadURL;
                     }
                     break;
                 default:
-                    lvThreads.Items[ThreadIndex].SubItems[1].Text = "Unknown?";
+                    lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = "Unknown?";
                     break;
             }
             GC.Collect();
         }
         /// <summary>
-        /// Adds a new thread to the queue by setting predetermined statuses.
+        /// Adds a new thread to the queue via URL.
         /// </summary>
         /// <param name="ThreadURL">The url of the thread that will be added to the queue.</param>
-        /// <param name="ThreadWasSaved">The boolean to set if the thread was saved, and if it was it will automatically hide the form. Defaults to false.</param>
-        /// <param name="AliveStatus">The int value of the thread status. Defaults to alive.</param>
-        /// <returns></returns>
-        public bool AddNewThread(string ThreadURL, bool ThreadWasSaved = false, ThreadStatus AliveStatus = ThreadStatus.ThreadIsAlive) {
+        /// <returns>Boolean based on it's success</returns>
+        public bool AddNewThread(string ThreadURL) {
             if (ThreadURL.StartsWith("view-source:")) { ThreadURL = ThreadURL.Substring(12); }
 
             if (Chans.SupportedChan(ThreadURL)) {
@@ -121,28 +125,7 @@ namespace YChanEx {
                     return true;
                 }
                 else {
-                    ListViewItem lvi = new ListViewItem();
-                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                    switch (AliveStatus) {
-                        case ThreadStatus.ThreadIs404:
-                            lvi.SubItems[1].Text = "404'd";
-                            break;
-                        case ThreadStatus.ThreadIsAborted:
-                            lvi.SubItems[1].Text = "Aborted";
-                            break;
-                        default:
-                            lvi.SubItems[1].Text = "Waiting";
-                            break;
-                    }
-                    lvi.SubItems[3].Text = ThreadURL;
-                    lvi.Name = ThreadURL;
-                    ThreadURLs.Add(ThreadURL);
-                    ThreadAliveStatuses.Add(AliveStatus);
-
                     frmDownloader newThread = new frmDownloader();
-                    ThreadDownloadForms.Add(newThread);
                     newThread.Chan = Chans.GetChanType(ThreadURL);
                     switch (newThread.Chan) {
                         case ChanType.fchan:
@@ -156,47 +139,101 @@ namespace YChanEx {
                                 Downloads.Default.Save();
                             }
                             break;
+                        case ChanType.None:
+                            newThread.Dispose();
+                            return false;
                     }
-                    lvi.ImageIndex = (int)newThread.Chan;
-                    lvThreads.Items.Add(lvi);
-
                     newThread.Name = ThreadURL;
                     newThread.ThreadURL = ThreadURL;
                     newThread.ManageThread(ThreadEvent.ParseForInfo);
-                    lvi.SubItems[2].Text = "/" + newThread.ThreadBoard + "/" + newThread.ThreadID;
                     newThread.Show();
 
-                    if (ThreadWasSaved) {
-                        if (AliveStatus == ThreadStatus.ThreadIsAlive) {
-                            newThread.ManageThread(ThreadEvent.StartDownload);
-                        }
-                        else {
-                            switch (AliveStatus) {
-                                case ThreadStatus.ThreadIs404:
-                                    newThread.LastStatus = ThreadStatus.ThreadIs404;
-                                    break;
-                                case ThreadStatus.ThreadIsAborted:
-                                    newThread.LastStatus = ThreadStatus.ThreadIsAborted;
-                                    break;
-                            }
-                            newThread.ManageThread(ThreadEvent.ThreadWasGone);
-                        }
+                    ListViewItem lvi = new ListViewItem();
+                    lvi.Name = ThreadURL;
+                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                    lvi.ImageIndex = (int)newThread.Chan;
+                    lvi.SubItems[clStatus.Index].Text = "Creating";
+                    lvi.SubItems[clThread.Index].Text = "/" + newThread.ThreadBoard + "/ - " + newThread.ThreadID;
+                    lvi.SubItems[clName.Index].Text = ThreadURL;
 
+                    lvThreads.Items.Add(lvi);
+
+                    ThreadURLs.Add(ThreadURL);
+                    ThreadAliveStatuses.Add(ThreadStatus.ThreadIsAlive);
+                    ThreadDownloadForms.Add(newThread);
+                    ThreadNames.Add(ThreadURL);
+
+                    if (chkCreateThreadInTheBackground.Checked) {
                         newThread.Hide();
-                    }
-                    else {
-                        newThread.ManageThread(ThreadEvent.StartDownload);
-                        ThreadsModified = true;
                     }
 
                     newThread.Opacity = 100;
                     newThread.ShowInTaskbar = true;
+
+                    newThread.ManageThread(ThreadEvent.StartDownload);
+                    ThreadsModified = true;
                     return true;
                 }
             }
             else {
                 return false;
             }
+        }
+        /// <summary>
+        /// Adds a new thread to the queue via saved threads.
+        /// </summary>
+        /// <param name="Info"></param>
+        /// <returns></returns>
+        public bool AddNewThread(SavedThreadInfo Info) {
+            if (Chans.SupportedChan(Info.ThreadURL) && !ThreadURLs.Contains(Info.ThreadURL)) {
+                frmDownloader newThread = new frmDownloader();
+                newThread.Chan = Chans.GetChanType(Info.ThreadURL);
+                switch (newThread.Chan) {
+                    case ChanType.None:
+                        newThread.Dispose();
+                        return false;
+                }
+                newThread.Name = Info.ThreadURL;
+                newThread.ThreadURL = Info.ThreadURL;
+                newThread.ManageThread(ThreadEvent.ParseForInfo);
+                newThread.Show();
+                newThread.Hide();
+
+                ListViewItem lvi = new ListViewItem();
+                lvi.Name = Info.ThreadURL;
+                lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+
+                lvi.ImageIndex = (int)newThread.Chan;
+                lvi.SubItems[clStatus.Index].Text = "Creating";
+                lvi.SubItems[clThread.Index].Text = "/" + newThread.ThreadBoard + "/ - " + newThread.ThreadID;
+
+                lvThreads.Items.Add(lvi);
+
+                newThread.Opacity = 100;
+                newThread.ShowInTaskbar = true;
+
+                ThreadURLs.Add(Info.ThreadURL);
+                ThreadAliveStatuses.Add(ThreadStatus.ThreadIsAlive);
+                ThreadDownloadForms.Add(newThread);
+                if (Info.CustomName) {
+                    ThreadNames.Add(Info.ThreadName);
+                    lvi.SubItems[clName.Index].Text = Info.ThreadName;
+                    newThread.CustomName = true;
+                }
+                else {
+                    ThreadNames.Add(Info.ThreadURL);
+                    lvi.SubItems[clName.Index].Text = Info.ThreadURL;
+                }
+
+                newThread.ManageThread(ThreadEvent.StartDownload);
+                return true;
+            }
+
+            return false;
         }
         /// <summary>
         /// The method to determine if the application should exit, while also performing last-second saving for threads and form location/size.
@@ -217,7 +254,7 @@ namespace YChanEx {
                     switch (MessageBox.Show("You have threads in the queue. Do you want to save them for later?", "YChanEx", MessageBoxButtons.YesNoCancel)) {
                         case DialogResult.Yes:
                             if (ThreadsModified) {
-                                Chans.SaveThreads(ThreadURLs, ThreadAliveStatuses);
+                                ProgramSettings.SaveThreads(ThreadURLs, ThreadAliveStatuses);
                             }
                             break;
                         case DialogResult.Cancel:
@@ -225,10 +262,11 @@ namespace YChanEx {
                             return false;
                     }
                 }
-                else if (General.Default.SaveQueueOnExit) {
-                    if (ThreadsModified) {
-                        Chans.SaveThreads(ThreadURLs, ThreadAliveStatuses);
-                    }
+            }
+
+            if (General.Default.SaveQueueOnExit) {
+                if (ThreadsModified) {
+                    ProgramSettings.SaveThreads(ThreadURLs, ThreadAliveStatuses, ThreadNames);
                 }
             }
 
@@ -238,6 +276,8 @@ namespace YChanEx {
 
             Saved.Default.MainFormLocation = this.Location;
             Saved.Default.MainFormSize = this.Size;
+            Saved.Default.SaveThreadInTheBackground = chkCreateThreadInTheBackground.Checked;
+            Saved.Default.MainFormColumnSizes = ProgramSettings.GetColumnSizes(clIcon.Width, clStatus.Width, clThread.Width, clName.Width);
             Saved.Default.Save();
 
             for (int i = 0; i < ThreadDownloadForms.Count; i++) {
@@ -269,28 +309,47 @@ namespace YChanEx {
         }
         private void frmMain_Load(object sender, EventArgs e) {
             if (General.Default.SaveQueueOnExit && !Program.IsDebug) {
-                string[] ThreadArray = Chans.LoadThreads().Split('\n');
-                if (ThreadArray != null && ThreadArray.Length > 0) {
-                    for (int ThreadArrayIndex = 0; ThreadArrayIndex < ThreadArray.Length; ThreadArrayIndex++) {
-                        // assume the thread is alive unless it's confirmed false in the threads.dat file
-                        ThreadStatus AliveStatus = ThreadStatus.ThreadReloaded;
-                        string ThreadAtIndex = ThreadArray[ThreadArrayIndex];
-                        string URL = ThreadAtIndex.Split('=')[0].Trim(' ');
+                if (File.Exists(Program.ApplicationFilesLocation + "\\threads.dat")) {
+                    string[] ThreadArray = ProgramSettings.LoadThreadsAsString().Split('\n');
+                    if (ThreadArray != null && ThreadArray.Length > 0) {
+                        for (int ThreadArrayIndex = 0; ThreadArrayIndex < ThreadArray.Length; ThreadArrayIndex++) {
+                            // assume the thread is alive unless it's confirmed false in the threads.dat file
+                            SavedThreadInfo newInfo = new SavedThreadInfo();
+                            string ThreadAtIndex = ThreadArray[ThreadArrayIndex];
+                            newInfo.ThreadURL = ThreadAtIndex.Split('=')[0].Trim(' ');
 
-                        // if the thread.dat contains an equal sign, try to parse it.
-                        if (ThreadAtIndex.Contains("=")) {
-                            string IsAliveString = ThreadAtIndex.Split('=')[1].ToLower().Trim(' ');
-                            switch (IsAliveString.ToLower()) {
-                                case "1":
-                                    AliveStatus = ThreadStatus.ThreadIs404;
-                                    break;
-                                case "2":
-                                    AliveStatus = ThreadStatus.ThreadIsAborted;
-                                    break;
+                            // if the thread.dat contains an equal sign, try to parse it.
+                            if (ThreadAtIndex.Contains("=")) {
+                                string IsAliveString = ThreadAtIndex.Split('=')[1].ToLower().Trim(' ');
+                                switch (IsAliveString.ToLower()) {
+                                    case "101":
+                                        newInfo.Status = ThreadStatus.ThreadIs404;
+                                        break;
+                                    case "102":
+                                        newInfo.Status = ThreadStatus.ThreadIsAborted;
+                                        break;
+                                    default:
+                                        newInfo.Status = ThreadStatus.ThreadIsAlive;
+                                        break;
+                                }
                             }
-                        }
+                            else {
+                                newInfo.Status = ThreadStatus.ThreadIsAlive;
+                            }
 
-                        AddNewThread(URL, true, AliveStatus);
+                            newInfo.ThreadName = null;
+
+                            AddNewThread(newInfo);
+                        }
+                    }
+
+                    File.Delete(Program.ApplicationFilesLocation + "\\threads.dat");
+                }
+
+                if (File.Exists(Program.ApplicationFilesLocation + "\\threads.xml")) {
+                    List<SavedThreadInfo> Threads = ProgramSettings.LoadThreads();
+                    for (int i = 0; i < Threads.Count; i++) {
+                        AddNewThread(Threads[i]);
                     }
                 }
             }
@@ -305,6 +364,15 @@ namespace YChanEx {
             if (Saved.Default.MainFormSize != default(System.Drawing.Size)) {
                 this.Size = Saved.Default.MainFormSize;
             }
+            if (!string.IsNullOrEmpty(Saved.Default.MainFormColumnSizes)) {
+                List<int> Sizes = ProgramSettings.GetColumnSizes(Saved.Default.MainFormColumnSizes.Split('|'));
+                clIcon.Width = Sizes[0];
+                clStatus.Width = Sizes[1];
+                clThread.Width = Sizes[2];
+                clName.Width = Sizes[3];
+            }
+
+            chkCreateThreadInTheBackground.Checked = Saved.Default.SaveThreadInTheBackground;
 
             UpdateChecker.CheckForUpdate();
         }
@@ -320,7 +388,7 @@ namespace YChanEx {
             }
         }
         private void frmMain_SizeChanged(object sender, EventArgs e) {
-            if (General.Default.MinimizeToTray && this.WindowState == FormWindowState.Minimized) {
+            if (this.WindowState == FormWindowState.Minimized && General.Default.MinimizeToTray) {
                 this.WindowState = FormWindowState.Normal;
                 this.Hide();
                 if (!niTray.Visible) {
@@ -351,6 +419,16 @@ namespace YChanEx {
             frmAbout About = new frmAbout();
             About.ShowDialog();
         }
+        private void txtThreadURL_KeyPress(object sender, KeyPressEventArgs e) {
+            switch (e.KeyChar) {
+                case (char)Keys.Enter:
+                    if (AddNewThread(txtThreadURL.Text)) {
+                        txtThreadURL.Clear();
+                    }
+                    e.Handled = true;
+                    break;
+            }
+        }
         private void btnAdd_Click(object sender, EventArgs e) {
             if (AddNewThread(txtThreadURL.Text)) {
                 txtThreadURL.Clear();
@@ -366,17 +444,19 @@ namespace YChanEx {
             if (lvThreads.SelectedIndices.Count > 0) {
                 mStatus.Enabled = true;
 
-                if (lvThreads.SelectedIndices.Count == 1) {
-                    if (ThreadAliveStatuses[lvThreads.SelectedIndices[0]] != ThreadStatus.ThreadIsAlive) {
-                        mRetryDownload.Enabled = true;
-                    }
-                    else {
-                        mRetryDownload.Enabled = false;
-                    }
-                }
-                else {
-                    mRetryDownload.Enabled = false;
-                }
+                //if (lvThreads.SelectedIndices.Count == 1) {
+                //    mSetCustomName.Enabled = true;
+                //    if (ThreadAliveStatuses[lvThreads.SelectedIndices[0]] != ThreadStatus.ThreadIsAlive) {
+                //        mRetryDownload.Enabled = true;
+                //    }
+                //    else {
+                //        mRetryDownload.Enabled = false;
+                //    }
+                //}
+                //else {
+                //    mRetryDownload.Enabled = false;
+                //    mSetCustomName.Enabled = false;
+                //}
 
                 mOpenDownloadFolder.Enabled = true;
                 mOpenThreadInBrowser.Enabled = true;
@@ -388,6 +468,7 @@ namespace YChanEx {
             else {
                 mStatus.Enabled = false;
                 mRetryDownload.Enabled = false;
+                mSetCustomName.Enabled = false;
 
                 mOpenDownloadFolder.Enabled = false;
                 mOpenThreadInBrowser.Enabled = false;
@@ -433,6 +514,62 @@ namespace YChanEx {
                     mRetryDownload.Enabled = false;
                 }
             }
+        }
+        private void mSetCustomName_Click(object sender, EventArgs e) {
+            if (lvThreads.SelectedIndices.Count > 0) {
+                frmNewName newName = new frmNewName();
+                newName.txtNewName.Text = lvThreads.Items[lvThreads.SelectedIndices[0]].SubItems[clName.Index].Text;
+                switch (newName.ShowDialog()) {
+                    case System.Windows.Forms.DialogResult.OK:
+                        if (!string.IsNullOrEmpty(newName.txtNewName.Text)) {
+                            lvThreads.Items[lvThreads.SelectedIndices[0]].SubItems[clName.Index].Text = newName.txtNewName.Text;
+                            ThreadNames[lvThreads.SelectedIndices[0]] = newName.txtNewName.Text;
+                        }
+                        break;
+                }
+                newName.Dispose();
+            }
+            //using (Form newName = new Form())
+            //using (TextBox threadName = new TextBox())
+            //using (Button cancelName = new Button())
+            //using (Button setName = new Button()){
+            //    newName.FormBorderStyle = FormBorderStyle.FixedSingle;
+            //    newName.MaximizeBox = false;
+            //    newName.MinimizeBox = false;
+            //    newName.Name = "NewName-" + ThreadDownloadForms[lvThreads.SelectedIndices[0]].ThreadID;
+            //    newName.Size = new System.Drawing.Size(300, 130);
+            //    newName.StartPosition = FormStartPosition.CenterScreen;
+            //    newName.Text = "Set thread name";
+
+            //    threadName.Location = new System.Drawing.Point(12, 20);
+            //    threadName.Name = "txtThreadName";
+            //    threadName.Size = new System.Drawing.Size(258, 20);
+            //    newName.Controls.Add(threadName);
+
+            //    cancelName.Click += (s, arg) => {
+            //        this.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            //    };
+            //    cancelName.Location = new System.Drawing.Point(114, 58);
+            //    cancelName.Name = "btnCancel";
+            //    cancelName.Size = new System.Drawing.Size(75, 23);
+            //    cancelName.Text = "Cancel";
+            //    newName.Controls.Add(cancelName);
+
+            //    setName.Click += (s, arg) => {
+            //        this.DialogResult = System.Windows.Forms.DialogResult.OK;
+            //    };
+            //    setName.Location = new System.Drawing.Point(195, 58);
+            //    setName.Name = "btnSetName";
+            //    setName.Size = new System.Drawing.Size(75, 23);
+            //    setName.Text = "Set name";
+            //    newName.Controls.Add(setName);
+
+            //    switch (newName.ShowDialog()) {
+            //        case System.Windows.Forms.DialogResult.OK:
+            //            lvThreads.Items[lvThreads.SelectedIndices[0]].SubItems[clName.Index].Text = threadName.Text;
+            //            break;
+            //    }
+            //}
         }
         private void mOpenDownloadFolder_Click(object sender, EventArgs e) {
             if (lvThreads.SelectedIndices.Count > 0) {
@@ -515,5 +652,6 @@ namespace YChanEx {
             }
         }
         #endregion
+
     }
 }

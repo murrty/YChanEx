@@ -136,4 +136,29 @@ namespace YChanEx {
             set { _RetrievedThreadName = value; }
         }
     }
+
+    public sealed class SavedThreadInfo {
+        private string _ThreadURL;
+        private ThreadStatus _Status;
+        private string _ThreadName;
+        private bool _CustomName;
+
+        public string ThreadURL {
+            get { return _ThreadURL; }
+            set { _ThreadURL = value; }
+        }
+        public ThreadStatus Status {
+            get { return _Status; }
+            set { _Status = value; }
+        }
+
+        public string ThreadName {
+            get { return _ThreadName; }
+            set { _ThreadName = value; }
+        }
+        public bool CustomName {
+            get { return _CustomName; }
+            set { _CustomName = value; }
+        }
+    }
 }

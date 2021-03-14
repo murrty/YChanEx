@@ -46,19 +46,19 @@ namespace YChanEx {
         /// <summary>
         /// The thread was alive when it was saved.
         /// </summary>
-        ThreadAlive = 100,
+        ThreadIsAlive = 100,
         /// <summary>
         /// The thread 404'd
         /// </summary>
-        Thread404 = 101,
+        ThreadIs404 = 101,
         /// <summary>
         /// The thread was aborted.
         /// </summary>
-        ThreadAborted = 102,
+        ThreadIsAborted = 102,
         /// <summary>
         /// The thread is not allowed to view the content.
         /// </summary>
-        ThreadNotAllowed = 103,
+        ThreadIsNotAllowed = 103,
 
         /// <summary>
         /// The thread is retrying the download.
@@ -284,6 +284,155 @@ namespace YChanEx {
             }
             return null;
         }
+        public static string CleanURL(string URL) {
+            string NewURL = string.Empty;
+            if (URL.StartsWith("http://")) {
+                NewURL = "https://" + URL.Substring(7, URL.Length - 7);
+            }
+            if (NewURL.StartsWith("https://www.")) {
+                NewURL = "https://" + NewURL.Substring(12, NewURL.Length - 12);
+            }
+            return NewURL;
+        }
+    }
+
+    class ProgramSettings {
+        public static List<int> GetColumnSizes(string[] ColumnSizesString) {
+            List<int> Sizes = new List<int>();
+            for (int i = 0; i < ColumnSizesString.Length; i++) {
+                Sizes.Add(int.Parse(ColumnSizesString[i]));
+            }
+            return Sizes;
+        }
+
+        public static string GetColumnSizes(int Column, int Column2, int Column3, int Column4) {
+            return Column + "|" + Column2 + "|" + Column3 + "|" + Column4;
+        }
+
+        public static bool SaveThreads(List<string> ThreadURLs, List<ThreadStatus> ThreadStatus) {
+            if (General.Default.SaveQueueOnExit) {
+                try {
+                    string FileContentBuffer = string.Empty;
+                    for (int i = 0; i < ThreadURLs.Count; i++) {
+                        FileContentBuffer += ThreadURLs[i].Replace("=", "%61").Replace("|", "%124") + " = " + (int)ThreadStatus[i] + "\n";
+                    }
+                    FileContentBuffer = FileContentBuffer.Trim('\n');
+
+                    File.WriteAllText(Program.ApplicationFilesLocation + "\\threads.dat", FileContentBuffer);
+                    return true;
+                }
+                catch (Exception ex) {
+                    ErrorLog.ReportException(ex);
+                    return false;
+                }
+            }
+            return false;
+        }
+        public static bool SaveThreads(List<string> ThreadURLs, List<ThreadStatus> ThreadStatus, List<string> ThreadNames) {
+            try {
+                XmlDocument doc = new XmlDocument();
+                XmlDeclaration xmlDec = doc.CreateXmlDeclaration("1.0", "UTF-8", null);
+                XmlElement xmlRoot = doc.DocumentElement;
+                doc.InsertBefore(xmlDec, xmlRoot);
+                XmlElement xmlBody = doc.CreateElement(string.Empty, "body", string.Empty);
+                doc.AppendChild(xmlBody);
+
+                if (ThreadURLs.Count != 0 && ThreadStatus.Count != 0 && ThreadNames.Count != 0) {
+                    for (int i = 0; i < ThreadURLs.Count; i++) {
+                        int Status = (int)ThreadStatus[i];
+                        XmlElement xmlThreadParent = doc.CreateElement(string.Empty, "thread", string.Empty);
+                        xmlBody.AppendChild(xmlThreadParent);
+
+                        XmlElement xmlThreadURL = doc.CreateElement(string.Empty, "url", string.Empty);
+                        XmlText xmlTextThreadURL = doc.CreateTextNode(ThreadURLs[i]);
+                        xmlThreadURL.AppendChild(xmlTextThreadURL);
+                        xmlThreadParent.AppendChild(xmlThreadURL);
+
+                        XmlElement xmlThreadStatus = doc.CreateElement(string.Empty, "status", string.Empty);
+                        XmlText xmlTextStatus = doc.CreateTextNode(Status.ToString());
+                        xmlThreadStatus.AppendChild(xmlTextStatus);
+                        xmlThreadParent.AppendChild(xmlThreadStatus);
+
+                        XmlElement xmlThreadName = doc.CreateElement(string.Empty, "name", string.Empty);
+                        XmlElement xmlCustomName = doc.CreateElement(string.Empty, "customname", string.Empty);
+                        if (ThreadNames[i] != ThreadURLs[i]) {
+                            XmlText xmlTextThreadName = doc.CreateTextNode(ThreadNames[i]);
+                            xmlThreadName.AppendChild(xmlTextThreadName);
+                            xmlThreadParent.AppendChild(xmlThreadName);
+
+                            XmlText xmlTextCustomName = doc.CreateTextNode("true");
+                            xmlCustomName.AppendChild(xmlTextCustomName);
+                            xmlThreadParent.AppendChild(xmlCustomName);
+                        }
+                        else {
+                            XmlText xmlTextThreadName = doc.CreateTextNode("");
+                            xmlThreadName.AppendChild(xmlTextThreadName);
+                            xmlThreadParent.AppendChild(xmlThreadName);
+
+                            XmlText xmlTextCustomName = doc.CreateTextNode("false");
+                            xmlCustomName.AppendChild(xmlTextCustomName);
+                            xmlThreadParent.AppendChild(xmlCustomName);
+                        }
+                    }
+                }
+
+                doc.Save(Program.ApplicationFilesLocation + "\\threads.xml");
+                return true;
+            }
+            catch (Exception) {
+                throw;
+            }
+        }
+        public static string LoadThreadsAsString() {
+            try {
+                if (System.IO.File.Exists(Program.ApplicationFilesLocation + "\\threads.dat")) {
+                    return System.IO.File.ReadAllText(Program.ApplicationFilesLocation + "\\threads.dat").Replace("\r", "").Trim('\n');
+                }
+                return string.Empty;
+            }
+            catch (Exception ex) {
+                ErrorLog.ReportException(ex);
+                return string.Empty;
+            }
+        }
+        public static List<SavedThreadInfo> LoadThreads() {
+            if (File.Exists(Program.ApplicationFilesLocation + "\\threads.xml")) {
+                List<SavedThreadInfo> Threads = new List<SavedThreadInfo>();
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(File.ReadAllText(Program.ApplicationFilesLocation + "\\threads.xml"));
+                XmlNodeList xmlThreads = xmlDoc.DocumentElement.SelectNodes("/body/thread");
+
+                for (int i = 0; i < xmlThreads.Count; i++) {
+                    SavedThreadInfo CurrentThread = new SavedThreadInfo();
+                    XmlNodeList xmlURLs = xmlThreads[i].SelectNodes("url");
+                    XmlNodeList xmlStatus = xmlThreads[i].SelectNodes("status");
+                    XmlNodeList xmlName = xmlThreads[i].SelectNodes("name");
+                    XmlNodeList xmlCustomName = xmlThreads[i].SelectNodes("customname");
+
+                    CurrentThread.ThreadURL = xmlURLs[0].InnerText;
+                    CurrentThread.Status = (ThreadStatus)int.Parse(xmlStatus[0].InnerText);
+                    if (string.IsNullOrEmpty(xmlName[i].InnerText)) {
+                        CurrentThread.ThreadName = null;
+                    }
+                    else {
+                        CurrentThread.ThreadName = xmlName[0].InnerText;
+                    }
+                    switch (xmlCustomName[i].InnerText) {
+                        case "true":
+                            CurrentThread.CustomName = true;
+                            break;
+                        default:
+                            CurrentThread.CustomName = false;
+                            break;
+                    }
+
+                    Threads.Add(CurrentThread);
+                }
+
+                return Threads;
+            }
+            else return null;
+        }
     }
 
     /// <summary>
@@ -367,50 +516,6 @@ namespace YChanEx {
 
             return ChanType.None;
         }
-
-        public static bool SaveThreads(List<string> ThreadURLs, List<ThreadStatus> ThreadStatus) {
-            if (General.Default.SaveQueueOnExit) {
-                try {
-                    string FileContentBuffer = string.Empty;
-                    for (int i = 0; i < ThreadURLs.Count; i++) {
-                        FileContentBuffer += ThreadURLs[i].Replace("=", "%61").Replace("|", "%124") + " = " + ThreadStatus[i].ToString() + "\n";
-                    }
-                    FileContentBuffer = FileContentBuffer.Trim('\n');
-
-                    File.WriteAllText(Program.ApplicationFilesLocation + "\\threads.dat", FileContentBuffer);
-                    return true;
-                }
-                catch (Exception ex) {
-                    ErrorLog.ReportException(ex);
-                    return false;
-                }
-            }
-            return false;
-        }
-        public static string LoadThreads() {
-            try {
-                if (System.IO.File.Exists(Program.ApplicationFilesLocation + "\\threads.dat")) {
-                    return System.IO.File.ReadAllText(Program.ApplicationFilesLocation + "\\threads.dat").Replace("\r", "").Trim('\n');
-                }
-                return string.Empty;
-            }
-            catch (Exception ex) {
-                ErrorLog.ReportException(ex);
-                return string.Empty;
-            }
-        }
-
-        public static string CleanURL(string URL) {
-            string NewURL = string.Empty;
-            if (URL.StartsWith("http://")) {
-                NewURL = "https://" + URL.Substring(7, URL.Length - 7);
-            }
-            if (NewURL.StartsWith("https://www.")) {
-                NewURL = "https://" + NewURL.Substring(12, NewURL.Length - 12);
-            }
-            return NewURL;
-        }
-
     }
 
     /// <summary>
