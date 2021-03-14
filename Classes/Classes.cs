@@ -34,9 +34,13 @@ namespace YChanEx {
         /// </summary>
         ThreadDownloading = 2,
         /// <summary>
+        /// The thread was not modified since last scan.
+        /// </summary>
+        ThreadNotModified = 3,
+        /// <summary>
         /// The thread is reloading into memory.
         /// </summary>
-        ThreadReloaded = 3,
+        ThreadReloaded = 4,
 
 
         /// <summary>
@@ -52,28 +56,67 @@ namespace YChanEx {
         /// </summary>
         ThreadAborted = 102,
         /// <summary>
+        /// The thread is not allowed to view the content.
+        /// </summary>
+        ThreadNotAllowed = 103,
+
+        /// <summary>
+        /// The thread is retrying the download.
+        /// </summary>
+        ThreadRetrying = 666,
+        /// <summary>
         /// The thread wasn't downloaded properly.
         /// </summary>
-        ThreadImproperlyDownloaded = 103,
+        ThreadImproperlyDownloaded = 777,
+        /// <summary>
+        /// The thread information wasn't given when the thread download started.
+        /// </summary>
+        ThreadInfoNotSet = 888,
         /// <summary>
         /// The thread encountered an unknown error.
         /// </summary>
-        ThreadUnknownError = 104
+        ThreadUnknownError = 999,
+        /// <summary>
+        /// Thread is requesting to update the name
+        /// </summary>
+        ThreadUpdateName = 1111,
     }
 
     /// <summary>
-    /// Enumeration of the thread events available
+    /// Enumeration of the thread events
     /// </summary>
     public enum ThreadEvent : int {
         /// <summary>
-        /// The thread has 404'd.
+        /// The thread should parse the given information
         /// </summary>
-        Thread404 = 0,
+        ParseForInfo = 0,
         /// <summary>
-        /// The thread has been aborted.
+        /// The thread should start to download
         /// </summary>
-        ThreadAborted = 1
+        StartDownload = 1,
+        /// <summary>
+        /// The thread should update itself and wait until next download
+        /// </summary>
+        AfterDownload = 2,
+        /// <summary>
+        /// The thread should abort because the user requested it
+        /// </summary>
+        AbortDownload = 3,
+        /// <summary>
+        /// The thread should retry because the user requested it
+        /// </summary>
+        RetryDownload = 4,
+        /// <summary>
+        /// The thread was 404'd or aborted when it was added.
+        /// </summary>
+        ThreadWasGone = 5,
+
+        /// <summary>
+        /// The thread should abort because the application is closing.
+        /// </summary>
+        AbortForClosing = 999
     }
+
     /// <summary>
     /// Enumeration of the chan types available
     /// </summary>
@@ -227,6 +270,20 @@ namespace YChanEx {
                 throw;
             }
         }
+
+        public static string GetAPILink(ChanType Type) {
+            switch (Type) {
+                case ChanType.FourChan:
+                    return "https://a.4cdn.org/{0}/thread/{1}.json";
+                case ChanType.FourTwentyChan:
+                    return "https://api.420chan.org/{0}/res/{1}.json";
+                case ChanType.EightChan:
+                    return "https://8chan.moe/{0}/res/{1}.json";
+                case ChanType.EightKun:
+                    return "https://8kun.top/{0}/res/{1}.json";
+            }
+            return null;
+        }
     }
 
     /// <summary>
@@ -353,16 +410,6 @@ namespace YChanEx {
             }
             return NewURL;
         }
-
-    }
-    /// <summary>
-    /// Contains string.Format-ready strings for *chan API links
-    /// </summary>
-    class ChanApiLinks {
-        public static readonly string FourChan = "https://a.4cdn.org/{0}/thread/{1}.json";
-        public static readonly string FourTwentyChan = "https://api.420chan.org/{0}/res/{1}.json";
-        public static readonly string EightChan = "https://8chan.moe/{0}/res/{1}.json";
-        public static readonly string EightKun = "https://8kun.top/{0}/res/{1}.json";
 
     }
 

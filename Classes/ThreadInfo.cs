@@ -19,7 +19,6 @@ namespace YChanEx {
 
         private ThreadStatus _Status;
         private bool _ThreadInfoSet;
-        private bool _ThreadHasScanned;
 
         private DateTime _LastModified;
         private string _LastThreadHTML;
@@ -75,13 +74,6 @@ namespace YChanEx {
         public bool ThreadInfoSet {
             get { return _ThreadInfoSet; }
             set { _ThreadInfoSet = value; }
-        }
-        /// <summary>
-        /// Gets or sets the bool ThreadHasScanned of the ThreadInfo, used to determine if the thread has scanned.
-        /// </summary>
-        public bool ThreadHasScanned {
-            get { return _ThreadHasScanned; }
-            set { _ThreadHasScanned = value; }
         }
 
         /// <summary>
