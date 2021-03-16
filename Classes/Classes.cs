@@ -582,6 +582,10 @@ namespace YChanEx {
                         return "Traditional Games";
                     case "sp":
                         return "Sports";
+                    case "xs":
+                        return "Extreme Sports";
+                    case "pw":
+                        return "Professional Wrestling";
                     case "asp":
                         return "Alternative Sports";
                     case "sci":
