@@ -23,7 +23,6 @@ namespace YChanEx {
         public ThreadInfo CurrentThread;                            // all, the ThreadInfo relating to the current thread.
 
         public ThreadStatus LastStatus;
-        public bool CustomName;
 
         private Thread DownloadThread;              // all, the main download thread.
         private Thread TimerIdle;                   // all, the timer idler for when the settings form is open.
@@ -425,6 +424,10 @@ namespace YChanEx {
                             lbScanTimer.Text = "Aborted";
                             CurrentThread.Status = ThreadStatus.ThreadIsAborted;
                             break;
+                        case ThreadStatus.ThreadIsArchived:
+                            lbScanTimer.Text = "Archived";
+                            CurrentThread.Status = ThreadStatus.ThreadIsArchived;
+                            break;
                     }
                     ManageThread(ThreadEvent.ParseForInfo);
                     break;
@@ -447,7 +450,7 @@ namespace YChanEx {
                     ThreadNameBuffer = "4chan thread - {0} - {1}";
                     if (Downloads.Default.UseThreadName && CurrentThread.RetrievedThreadName) {
                         this.Text = string.Format(ThreadNameBuffer, BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadName);
-                        if (ApplyToMainForm && !CustomName) {
+                        if (ApplyToMainForm && !CurrentThread.SetCustomName) {
                             MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, ThreadStatus.ThreadUpdateName);
                         }
                     }
@@ -459,7 +462,7 @@ namespace YChanEx {
                     ThreadNameBuffer = "420chan thread - {0} - {1}";
                     if (Downloads.Default.UseThreadName && CurrentThread.RetrievedThreadName) {
                         this.Text = string.Format(ThreadNameBuffer, BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadName);
-                        if (ApplyToMainForm && !CustomName) {
+                        if (ApplyToMainForm && !CurrentThread.SetCustomName) {
                             MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, ThreadStatus.ThreadUpdateName);
                         }
                     }
@@ -471,7 +474,7 @@ namespace YChanEx {
                     ThreadNameBuffer = "7chan thread - {0} - {1}";
                     if (Downloads.Default.UseThreadName && CurrentThread.RetrievedThreadName) {
                         this.Text = string.Format(ThreadNameBuffer, BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadName);
-                        if (ApplyToMainForm && !CustomName) {
+                        if (ApplyToMainForm && !CurrentThread.SetCustomName) {
                             MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, ThreadStatus.ThreadUpdateName);
                         }
                     }
@@ -483,7 +486,7 @@ namespace YChanEx {
                     ThreadNameBuffer = "8chan thread - {0} - {1}";
                     if (Downloads.Default.UseThreadName && CurrentThread.RetrievedThreadName) {
                         this.Text = string.Format(ThreadNameBuffer, BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadName);
-                        if (ApplyToMainForm && !CustomName) {
+                        if (ApplyToMainForm && !CurrentThread.SetCustomName) {
                             MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, ThreadStatus.ThreadUpdateName);
                         }
                     }
@@ -495,7 +498,7 @@ namespace YChanEx {
                     ThreadNameBuffer = "8kun thread - {0} - {1}";
                     if (Downloads.Default.UseThreadName && CurrentThread.RetrievedThreadName) {
                         this.Text = string.Format(ThreadNameBuffer, BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadName);
-                        if (ApplyToMainForm && !CustomName) {
+                        if (ApplyToMainForm && !CurrentThread.SetCustomName) {
                             MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, ThreadStatus.ThreadUpdateName);
                         }
                     }
@@ -507,7 +510,7 @@ namespace YChanEx {
                     ThreadNameBuffer = "fchan thread - {0} - {1}";
                     if (Downloads.Default.UseThreadName && CurrentThread.RetrievedThreadName) {
                         this.Text = string.Format(ThreadNameBuffer, BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadName);
-                        if (ApplyToMainForm && !CustomName) {
+                        if (ApplyToMainForm && !CurrentThread.SetCustomName) {
                             MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, ThreadStatus.ThreadUpdateName);
                         }
                     }
@@ -519,7 +522,7 @@ namespace YChanEx {
                     ThreadNameBuffer = "u18chan thread - {0} - {1}";
                     if (Downloads.Default.UseThreadName && CurrentThread.RetrievedThreadName) {
                         this.Text = string.Format(ThreadNameBuffer, BoardTitles.FourChan(CurrentThread.ThreadBoard), CurrentThread.ThreadName);
-                        if (ApplyToMainForm && !CustomName) {
+                        if (ApplyToMainForm && !CurrentThread.SetCustomName) {
                             MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, ThreadStatus.ThreadUpdateName);
                         }
                     }

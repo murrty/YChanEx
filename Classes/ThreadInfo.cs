@@ -177,6 +177,14 @@ namespace YChanEx {
         /// <para>Used for easier thread identification.</para>
         /// </summary>
         public bool RetrievedThreadName = false;
+        /// <summary>
+        /// Determines if a custom name was set.
+        /// </summary>
+        public bool SetCustomName = false;
+        /// <summary>
+        /// The user-set custom name.
+        /// </summary>
+        public string CustomName = null;
 
     }
 
@@ -184,9 +192,11 @@ namespace YChanEx {
     /// Skeleton of the threads that have been saved by the application.
     /// </summary>
     public sealed class SavedThreadInfo {
-        public string ThreadURL;
-        public ThreadStatus Status;
-        public string ThreadName;
-        public bool CustomName;
+        public string ThreadURL = null;
+        public ThreadStatus Status = ThreadStatus.UnknownStatus;
+        public bool RetrievedThreadName = false;
+        public string ThreadName = null;
+        public bool SetCustomName = false;
+        public string CustomName = null;
     }
 }
