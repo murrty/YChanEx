@@ -257,7 +257,6 @@ namespace YChanEx {
 
                 #region StartDownload
                 case ThreadEvent.StartDownload:
-                    lbNotModified.Visible = false;
                     switch (Chan) {
                         case ChanType.FourChan:
                             if (DownloadPath != Downloads.Default.DownloadPath + "\\4chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID) {
@@ -346,7 +345,7 @@ namespace YChanEx {
                             CountdownToNextScan = Downloads.Default.ScannerDelay - 1;
                             if (Program.IsDebug) {
                                 CountdownToNextScan = 9;
-                            }
+                            }lvImages.Items[CurrentThread.DownloadedImagesCount].ImageIndex = 3;
                             lbScanTimer.Text = "File 404, retrying";
                             tmrScan.Start();
                             break;
@@ -657,15 +656,15 @@ namespace YChanEx {
         private void HandleWebException(WebException WebEx, string CurrentURL) {
             switch (((HttpWebResponse)WebEx.Response).StatusCode) {
                 case HttpStatusCode.NotModified:
+                    CurrentThread.Status = ThreadStatus.ThreadNotModified;
+                    break;
+                case HttpStatusCode.NotFound:
                     if (CurrentThread.DownloadingFiles) {
                         CurrentThread.Status = ThreadStatus.ThreadFile404;
                     }
                     else {
-                        CurrentThread.Status = ThreadStatus.ThreadNotModified;
+                        CurrentThread.Status = ThreadStatus.ThreadIs404;
                     }
-                    break;
-                case HttpStatusCode.NotFound:
-                    CurrentThread.Status = ThreadStatus.ThreadIs404;
                     break;
                 case HttpStatusCode.Forbidden:
                     CurrentThread.Status = ThreadStatus.ThreadIsNotAllowed;
@@ -1338,7 +1337,7 @@ namespace YChanEx {
                             continue;
                         }
                         string FileID = CurrentThread.ThreadID;
-                        if (PostIndex > 1) {
+                        if (PostIndex > 0) {
                             FileID += "-" + (PostIndex + 1).ToString();
                         }
                         if (!FileIDs.Contains(FileID)) {
@@ -1423,7 +1422,7 @@ namespace YChanEx {
                                 continue;
                             }
                             string FileID = xmlPostID[0].InnerText;
-                            if (FilePathIndex > 1) {
+                            if (FilePathIndex > 0) {
                                 FileID += "-" + (FilePathIndex + 1).ToString();
                             }
                             if (!FileIDs.Contains(FileID)) {
