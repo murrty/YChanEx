@@ -12,22 +12,30 @@ namespace YChanEx {
     /// <para>This contains all private information of the thread to reduce clutter on the main class.</para>
     /// </summary>
     public sealed class ThreadInfo {
-        private ChanType _ChanID;
-        private string _ThreadURL;
-        private string _ThreadID;
-        private string _ThreadBoard;
+        private ChanType _ChanID = ChanType.None;
+        private string _ThreadURL = null;
+        private string _ThreadID = null;
+        private string _ThreadBoard = null;
 
-        private ThreadStatus _Status;
-        private bool _ThreadInfoSet;
+        private ThreadStatus _Status = ThreadStatus.UnknownStatus;
+        private bool _ThreadInfoSet = false;
 
-        private DateTime _LastModified;
-        private string _LastThreadHTML;
-        private CookieContainer _ThreadCookieContainer;
+        private DateTime _LastModified = default(DateTime);
+        private string _LastThreadHTML = null;
+        private CookieContainer _ThreadCookieContainer = null;
 
-        private string _BoardName;
-        private bool _RetrievedBoardName;
-        private string _ThreadName;
-        private bool _RetrievedThreadName;
+        private string _BoardName = null;
+        private bool _RetrievedBoardName = false;
+        private string _ThreadName = null;
+        private bool _RetrievedThreadName = false;
+
+        private int _ThreadImagesCount = 0;
+        private int _DownloadedImagesCount = 0;
+        private int _ExtraFilesImageCount = 0;
+        private int _ThreadPostsCount = 0;
+        private bool _DownloadingFiles = false;
+        private bool _FileWas404 = false;
+        private int _RetryCountFor404 = 0;
 
         /// <summary>
         /// Gets or sets the ChanType Chan of the ThreadInfo, used to determine which *chan is going to be downloaded.
@@ -104,7 +112,7 @@ namespace YChanEx {
         }
 
         /// <summary>
-        /// Gets or sets the bool BoardName of the ThreadInfo, used to hold the name of the board for chans that allow custom boards.
+        /// Gets or sets the string BoardName of the ThreadInfo, used to hold the name of the board for chans that allow custom boards.
         /// <para>So far, it's 8chan and 8kun.</para>
         /// </summary>
         public string BoardName {
@@ -121,7 +129,7 @@ namespace YChanEx {
         }
         /// <summary>
         /// Gets or sets the ThreadName of the ThreadInfo, used to hold the name of the thread.
-        /// <para>Not implemented.</para>
+        /// <para>Used for easier thread identification.</para>
         /// </summary>
         public string ThreadName {
             get { return _ThreadName; }
@@ -129,14 +137,74 @@ namespace YChanEx {
         }
         /// <summary>
         /// Gets or sets the RetrievedThreadName of the ThreadInfo, used to determine of the ThreadName was retrieved.
-        /// <para>Not implemented.</para>
+        /// <para>Used for easier thread identification.</para>
         /// </summary>
         public bool RetrievedThreadName {
             get { return _RetrievedThreadName; }
             set { _RetrievedThreadName = value; }
         }
+
+        /// <summary>
+        /// Gets or sets the int ThreadImagesCount of the thread, used to count the images in the thread.
+        /// <para>Used by all chans.</para>
+        /// </summary>
+        public int ThreadImagesCount {
+            get { return _ThreadImagesCount; }
+            set { _ThreadImagesCount = value; }
+        }
+        /// <summary>
+        /// Gets or sets the int DownloadImagesCount of the thread, used the count the downloaded images.
+        /// <para>Used by all chans.</para>
+        /// </summary>
+        public int DownloadedImagesCount {
+            get { return _DownloadedImagesCount; }
+            set { _DownloadedImagesCount = value; }
+        }
+        /// <summary>
+        /// Gets or sets the ExtraFilesImageCount of the thread, used to count the extra images in the thread.
+        /// <para>Used by 8kun.</para>
+        /// </summary>
+        public int ExtraFilesImageCount {
+            get { return _ExtraFilesImageCount; }
+            set { _ExtraFilesImageCount = value; }
+        }
+        /// <summary>
+        /// Gets or sets the int ThreadPostsCount of the thread, used to count the posts parsed.
+        /// <para>Used by 8chan and 8kun.</para>
+        /// </summary>
+        public int ThreadPostsCount {
+            get { return _ThreadPostsCount; }
+            set { _ThreadPostsCount = value; }
+        }
+        /// <summary>
+        /// Gets or sets bool DownloadingFiles of the thread, to determine if a thread is currently downloading images.
+        /// <para>Used by all chans.</para>
+        /// </summary>
+        public bool DownloadingFiles {
+            get { return _DownloadingFiles; }
+            set { _DownloadingFiles = value; }
+        }
+        /// <summary>
+        /// Gets or sets the bool FileWas404 to determine if the file should be attempted to be redownloaded.
+        /// <para>Used by all chans.</para>
+        /// </summary>
+        public bool FileWas404 {
+            get { return _FileWas404; }
+            set { _FileWas404 = value; }
+        }
+        /// <summary>
+        /// Gets or sets the int RetryCountFor404 to keep track of the redownload attemps.
+        /// <para>Used by all chans.</para>
+        /// </summary>
+        public int RetryCountFor404 {
+            get { return _RetryCountFor404; }
+            set { _RetryCountFor404 = value; }
+        }
     }
 
+    /// <summary>
+    /// Skeleton of the threads that have been saved by the application.
+    /// </summary>
     public sealed class SavedThreadInfo {
         private string _ThreadURL;
         private ThreadStatus _Status;
