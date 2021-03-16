@@ -130,6 +130,7 @@ namespace YChanEx {
             switch (CurrentThread.Status) {
                 case ThreadStatus.ThreadIs404:
                 case ThreadStatus.ThreadIsAborted:
+                case ThreadStatus.ThreadIsArchived:
                     ManageThread(ThreadEvent.RetryDownload);
                     break;
                 default:
@@ -706,7 +707,6 @@ namespace YChanEx {
                 string ThreadJSON = null;
                 string ThreadHTML = null;
                 string CurrentURL = null;
-                bool Archived = false;
 
                 try {
 
@@ -844,9 +844,7 @@ namespace YChanEx {
                             }
                         }
 
-                        if (xmlArchived.Count > 0) {
-                            Archived = true;
-                        }
+                        CurrentThread.ThreadArchived = xmlArchived.Count > 0;
 
                         this.BeginInvoke(new MethodInvoker(() => {
                             lbTotalFiles.Text = CurrentThread.ThreadImagesCount.ToString();
@@ -920,7 +918,7 @@ namespace YChanEx {
                 }
                 #endregion
                 finally {
-                    if (Archived) {
+                    if (CurrentThread.ThreadArchived) {
                         CurrentThread.Status = ThreadStatus.ThreadIsArchived;
                     }
                     this.BeginInvoke((MethodInvoker)delegate() {
