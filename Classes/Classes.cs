@@ -391,6 +391,90 @@ namespace YChanEx {
                 throw;
             }
         }
+        public static bool SaveThreads(List<ThreadInfo> ThreadInfo){
+            try {
+                XmlDocument doc = new XmlDocument();
+                XmlDeclaration xmlDec = doc.CreateXmlDeclaration("1.0", "UTF-8", null);
+                XmlElement xmlRoot = doc.DocumentElement;
+                doc.InsertBefore(xmlDec, xmlRoot);
+                XmlElement xmlBody = doc.CreateElement(string.Empty, "body", string.Empty);
+                doc.AppendChild(xmlBody);
+
+                if (ThreadInfo.Count > 0) {
+                    for (int i = 0; i < ThreadInfo.Count; i++) {
+                        XmlElement xmlThreadParent = doc.CreateElement(string.Empty, "thread", string.Empty);
+                        xmlBody.AppendChild(xmlThreadParent);
+
+                        XmlElement xmlThreadURL = doc.CreateElement(string.Empty, "url", string.Empty);
+                        XmlText xmlTextThreadURL = doc.CreateTextNode(ThreadInfo[i].ThreadURL);
+                        xmlThreadURL.AppendChild(xmlTextThreadURL);
+                        xmlThreadParent.AppendChild(xmlThreadURL);
+
+                        int Status = (int)ThreadInfo[i].Status;
+                        XmlElement xmlThreadStatus = doc.CreateElement(string.Empty, "status", string.Empty);
+                        XmlText xmlTextStatus = doc.CreateTextNode(Status.ToString());
+                        xmlThreadStatus.AppendChild(xmlTextStatus);
+                        xmlThreadParent.AppendChild(xmlThreadStatus);
+
+                        XmlElement xmlThreadName = doc.CreateElement(string.Empty, "name", string.Empty);
+                        XmlElement xmlCustomName = doc.CreateElement(string.Empty, "customname", string.Empty);
+                        if (ThreadInfo[i].RetrievedThreadName) {
+                            XmlText xmlTextThreadName = doc.CreateTextNode(ThreadInfo[i].ThreadName);
+                            xmlThreadName.AppendChild(xmlTextThreadName);
+                            xmlThreadParent.AppendChild(xmlThreadName);
+
+                            XmlText xmlTextCustomName = doc.CreateTextNode("true");
+                            xmlCustomName.AppendChild(xmlTextCustomName);
+                            xmlThreadParent.AppendChild(xmlCustomName);
+                        }
+                        else {
+                            XmlText xmlTextThreadName = doc.CreateTextNode("");
+                            xmlThreadName.AppendChild(xmlTextThreadName);
+                            xmlThreadParent.AppendChild(xmlThreadName);
+
+                            XmlText xmlTextCustomName = doc.CreateTextNode("false");
+                            xmlCustomName.AppendChild(xmlTextCustomName);
+                            xmlThreadParent.AppendChild(xmlCustomName);
+                        }
+                        if (ThreadInfo[i].FileIDs.Count > 0) {
+                            XmlElement xmlFilesRoot = doc.CreateElement(string.Empty, "files", string.Empty);
+                            xmlThreadParent.AppendChild(xmlFilesRoot);
+                            for (int j = 0; j < ThreadInfo[i].FileIDs.Count; j++) {
+                                XmlElement xmlPost = doc.CreateElement(string.Empty, "file", string.Empty);
+
+                                XmlElement xmlID = doc.CreateElement(string.Empty, "id", string.Empty);
+                                XmlText xmlTextID = doc.CreateTextNode(ThreadInfo[i].FileIDs[j]);
+                                xmlID.AppendChild(xmlTextID);
+                                xmlPost.AppendChild(xmlID);
+
+                                XmlElement xmlExtension = doc.CreateElement(string.Empty, "extension", string.Empty);
+                                XmlText xmlTextExtension = doc.CreateTextNode(ThreadInfo[i].FileExtensions[j]);
+                                xmlExtension.AppendChild(xmlTextExtension);
+                                xmlPost.AppendChild(xmlExtension);
+
+                                XmlElement xmlOriginalName = doc.CreateElement(string.Empty, "originalname", string.Empty);
+                                XmlText xmlTextOriginalName = doc.CreateTextNode(ThreadInfo[i].FileOriginalNames[j]);
+                                xmlOriginalName.AppendChild(xmlTextOriginalName);
+                                xmlPost.AppendChild(xmlOriginalName);
+
+                                XmlElement xmlHash = doc.CreateElement(string.Empty, "hash", string.Empty);
+                                XmlText xmlTextHash = doc.CreateTextNode(ThreadInfo[i].FileHashes[j]);
+                                xmlHash.AppendChild(xmlTextHash);
+                                xmlPost.AppendChild(xmlHash);
+
+                                xmlFilesRoot.AppendChild(xmlPost);
+                            }
+                        }
+                    }
+                }
+
+                doc.Save(Program.ApplicationFilesLocation + "\\threads.xml");
+                return true;
+            }
+            catch (Exception) {
+                throw;
+            }
+        }
         public static string LoadThreadsAsString() {
             try {
                 if (System.IO.File.Exists(Program.ApplicationFilesLocation + "\\threads.dat")) {
