@@ -419,13 +419,13 @@ namespace YChanEx {
 
                     CurrentThread.ThreadURL = xmlURLs[0].InnerText;
                     CurrentThread.Status = (ThreadStatus)int.Parse(xmlStatus[0].InnerText);
-                    if (string.IsNullOrEmpty(xmlName[i].InnerText)) {
+                    if (string.IsNullOrEmpty(xmlName[0].InnerText)) {
                         CurrentThread.ThreadName = null;
                     }
                     else {
                         CurrentThread.ThreadName = xmlName[0].InnerText;
                     }
-                    switch (xmlCustomName[i].InnerText) {
+                    switch (xmlCustomName[0].InnerText) {
                         case "true":
                             CurrentThread.CustomName = true;
                             break;
