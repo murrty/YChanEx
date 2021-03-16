@@ -19,7 +19,6 @@ namespace YChanEx {
 
         public frmSettings() {
             InitializeComponent();
-            this.Icon = Properties.Resources.YChanEx;
             Program.SettingsOpen = true;
             LoadSettings();
         }
@@ -37,6 +36,7 @@ namespace YChanEx {
             chkAllowFileNamesGreaterThan255.Checked = Downloads.Default.AllowFileNamesGreaterThan255;
             chkDownloadHTML.Checked = Downloads.Default.SaveHTML;
             chkDownloadThumbnails.Checked = Downloads.Default.SaveThumbnails;
+            chkRetrieveThreadName.Checked = Downloads.Default.UseThreadName;
 
             chkShowTrayIcon.Checked = General.Default.ShowTrayIcon;
             chkMinimizeToTray.Checked = General.Default.MinimizeToTray;
@@ -59,6 +59,7 @@ namespace YChanEx {
             Downloads.Default.AllowFileNamesGreaterThan255 = chkAllowFileNamesGreaterThan255.Checked;
             Downloads.Default.SaveHTML = chkDownloadHTML.Checked;
             Downloads.Default.SaveThumbnails = chkDownloadThumbnails.Checked;
+            Downloads.Default.UseThreadName = chkRetrieveThreadName.Checked;
 
             General.Default.ShowTrayIcon = chkShowTrayIcon.Checked;
             General.Default.MinimizeToTray = chkMinimizeToTray.Checked;
@@ -70,8 +71,8 @@ namespace YChanEx {
             if (!string.IsNullOrEmpty(txtUserAgent.Text)) {
                 Advanced.Default.UserAgent = txtUserAgent.Text;
             }
-            else if (Advanced.Default.UserAgent != "Mozilla/5.0 (X11; Linux i686; rv:64.0) Gecko/20100101 Firefox/64.0") {
-                Advanced.Default.UserAgent = "Mozilla/5.0 (X11; Linux i686; rv:64.0) Gecko/20100101 Firefox/64.0";
+            else if (Advanced.Default.UserAgent != "Mozilla/5.0 (X11; Linux i686; rv:64.0) Gecko/20100101 Firefox/84.0") {
+                Advanced.Default.UserAgent = "Mozilla/5.0 (X11; Linux i686; rv:64.0) Gecko/20100101 Firefox/84.0";
             }
             Advanced.Default.DisableScanWhenOpeningSettings = chkDisableScannerWhenOpeningSettings.Checked;
             Advanced.Default.SilenceErrors = chkSilenceErrors.Checked;
@@ -161,6 +162,10 @@ namespace YChanEx {
 
         private void btnSCan_Click(object sender, EventArgs e) {
             this.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+        }
+
+        private void btnOpenLocalFiles_Click(object sender, EventArgs e) {
+            System.Diagnostics.Process.Start(Program.ApplicationFilesLocation);
         }
 
         private void lvRegex_SelectedIndexChanged(object sender, EventArgs e) {
