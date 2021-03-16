@@ -360,6 +360,15 @@ namespace YChanEx {
                             tmrScan.Start();
                             break;
 
+                        case ThreadStatus.ThreadIsArchived:
+                            lbScanTimer.Text = "Archived";
+                            lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
+                            this.Icon = Properties.Resources.YChanEx404;
+
+                            MainFormInstance.SetItemStatus(CurrentThread.ThreadURL, CurrentThread.Status);
+                            btnAbortRetry.Text = "Rescan";
+                            break;
+
                         case ThreadStatus.ThreadDownloading:
                         case ThreadStatus.Waiting:
                         case ThreadStatus.ThreadNotModified:
@@ -551,7 +560,8 @@ namespace YChanEx {
         }
         #endregion
 
-
+        // TODO: Don't skip API parsing if a file is 404'd.
+        // There could be new posts! it'd be a shame to skip them.
         #region Shared Chan Logic
         /// <summary>
         /// Retrieve the HTML of a given Thread URL for parsing or aesthetics.
@@ -696,6 +706,7 @@ namespace YChanEx {
                 string ThreadJSON = null;
                 string ThreadHTML = null;
                 string CurrentURL = null;
+                bool Archived = false;
 
                 try {
 
@@ -742,6 +753,7 @@ namespace YChanEx {
                         XmlNodeList xmlFileName = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/filename");
                         XmlNodeList xmlExt = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/ext");
                         XmlNodeList xmlHash = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/md5");
+                        XmlNodeList xmlArchived = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/archived");
 
                         for (int FileIdIndex = 0; FileIdIndex < xmlFileID.Count; FileIdIndex++) {
                             if (xmlFileID[FileIdIndex] == null) {
@@ -832,6 +844,10 @@ namespace YChanEx {
                             }
                         }
 
+                        if (xmlArchived.Count > 0) {
+                            Archived = true;
+                        }
+
                         this.BeginInvoke(new MethodInvoker(() => {
                             lbTotalFiles.Text = CurrentThread.ThreadImagesCount.ToString();
                             lbLastModified.Text = "last modified: " + CurrentThread.LastModified.ToString();
@@ -904,6 +920,9 @@ namespace YChanEx {
                 }
                 #endregion
                 finally {
+                    if (Archived) {
+                        CurrentThread.Status = ThreadStatus.ThreadIsArchived;
+                    }
                     this.BeginInvoke((MethodInvoker)delegate() {
                         ManageThread(ThreadEvent.AfterDownload);
                     });

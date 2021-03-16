@@ -38,9 +38,13 @@ namespace YChanEx {
         /// </summary>
         ThreadNotModified = 3,
         /// <summary>
+        /// The file from the thread has 404'd.
+        /// </summary>
+        ThreadFile404 = 4,
+        /// <summary>
         /// The thread is reloading into memory.
         /// </summary>
-        ThreadReloaded = 4,
+        ThreadReloaded = 6,
 
 
         /// <summary>
@@ -56,9 +60,13 @@ namespace YChanEx {
         /// </summary>
         ThreadIsAborted = 102,
         /// <summary>
+        /// The thread was archived.
+        /// </summary>
+        ThreadIsArchived = 103,
+        /// <summary>
         /// The thread is not allowed to view the content.
         /// </summary>
-        ThreadIsNotAllowed = 103,
+        ThreadIsNotAllowed = 104,
 
         /// <summary>
         /// The thread is retrying the download.

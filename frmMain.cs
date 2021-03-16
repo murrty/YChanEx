@@ -12,8 +12,6 @@ namespace YChanEx {
         private List<string> ThreadURLs = new List<string>();                           // The list of Thread URLs
         private List<ThreadStatus> ThreadAliveStatuses = new List<ThreadStatus>();      // the list of Thread statuses
         private List<string> ThreadNames = new List<string>();                          // the list of Thread names
-        //private List<Tuple<string, frmDownloader, ThreadStatus>> Threads =
-        //    new List<Tuple<string, frmDownloader, ThreadStatus>>();
 
         private bool Icon404WasShown = false;   // Determines if the 404 icon has been shown on the tray.
         private bool ThreadsModified = false;   // Determines if the threads lists were modified to resave them.
@@ -37,7 +35,7 @@ namespace YChanEx {
                     lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = "Waiting";
                     break;
                 case ThreadStatus.ThreadNotModified:
-                    lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = "Not Modified";
+                    lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = "No new posts";
                     break;
                 case ThreadStatus.ThreadScanning:
                     lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = "Scanning";
@@ -46,7 +44,7 @@ namespace YChanEx {
                     lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = "Downloading";
                     break;
                 case ThreadStatus.ThreadIs404:
-                    ThreadAliveStatuses[ThreadIndex] = ThreadStatus.ThreadIs404;
+                    ThreadAliveStatuses[ThreadIndex] = Status;
                     niTray.BalloonTipText = ThreadDownloadForms[ThreadIndex].CurrentThread.ThreadID + " on /" + ThreadDownloadForms[ThreadIndex].CurrentThread.ThreadBoard + "/ has 404'd";
                     switch (ThreadDownloadForms[ThreadIndex].CurrentThread.Chan) {
                         case ChanType.FourChan:
@@ -85,9 +83,14 @@ namespace YChanEx {
                     lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = "404'd";
                     break;
                 case ThreadStatus.ThreadIsAborted:
-                    ThreadAliveStatuses[ThreadIndex] = ThreadStatus.ThreadIsAborted;
+                    ThreadAliveStatuses[ThreadIndex] = Status;
                     ThreadsModified = true;
                     lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = "Aborted";
+                    break;
+                case ThreadStatus.ThreadIsArchived:
+                    ThreadAliveStatuses[ThreadIndex] = Status;
+                    ThreadsModified = true;
+                    lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = "Archived";
                     break;
                 case ThreadStatus.ThreadReloaded:
                     lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = "Reloaded";
@@ -241,8 +244,10 @@ namespace YChanEx {
         /// <returns>True, if the application is allowed to exit. False, if the application isn't allowed to exit.</returns>
         public bool ApplicationShouldExit() {
             bool ExitApplication = true;
+            bool WasMinimized = false;
 
             if (General.Default.MinimizeInsteadOfExiting) {
+                WasMinimized = true;
                 this.WindowState = FormWindowState.Normal;
                 this.Hide();
                 ExitApplication = false;
@@ -250,13 +255,20 @@ namespace YChanEx {
             }
 
             if (lvThreads.Items.Count > 0) {
-                if (General.Default.ShowExitWarning) {
-                    switch (MessageBox.Show("You have threads in the queue. Do you want to save them for later?", "YChanEx", MessageBoxButtons.YesNoCancel)) {
+                if (General.Default.ShowExitWarning && !WasMinimized) {
+                    switch (MessageBox.Show("You have threads currently being downloaded. Would you like to minimize instead of quitting?", "YChanEx", MessageBoxButtons.YesNoCancel)) {
                         case DialogResult.Yes:
-                            if (ThreadsModified) {
-                                ProgramSettings.SaveThreads(ThreadURLs, ThreadAliveStatuses);
+                            ExitApplication = false;
+                            if (General.Default.MinimizeToTray) {
+                                this.Hide();
+                                if (!niTray.Visible) {
+                                    niTray.Visible = true;
+                                }
                             }
-                            break;
+                            else {
+                                this.WindowState = FormWindowState.Minimized;
+                            }
+                            return false;
                         case DialogResult.Cancel:
                             ExitApplication = false;
                             return false;
@@ -308,7 +320,7 @@ namespace YChanEx {
             lvThreads.ContextMenu = cmThreads;
         }
         private void frmMain_Load(object sender, EventArgs e) {
-            if (General.Default.SaveQueueOnExit && !Program.IsDebug) {
+            if (General.Default.SaveQueueOnExit) {
                 if (File.Exists(Program.ApplicationFilesLocation + "\\threads.dat")) {
                     string[] ThreadArray = ProgramSettings.LoadThreadsAsString().Split('\n');
                     if (ThreadArray != null && ThreadArray.Length > 0) {
