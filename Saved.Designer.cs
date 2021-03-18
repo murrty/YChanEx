@@ -58,5 +58,29 @@ namespace YChanEx {
                 this["DownloadFormSize"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool SaveThreadInTheBackground {
+            get {
+                return ((bool)(this["SaveThreadInTheBackground"]));
+            }
+            set {
+                this["SaveThreadInTheBackground"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string MainFormColumnSizes {
+            get {
+                return ((string)(this["MainFormColumnSizes"]));
+            }
+            set {
+                this["MainFormColumnSizes"] = value;
+            }
+        }
     }
 }

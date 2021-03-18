@@ -34,6 +34,7 @@
             this.cmThreads = new System.Windows.Forms.ContextMenu();
             this.mStatus = new System.Windows.Forms.MenuItem();
             this.mRetryDownload = new System.Windows.Forms.MenuItem();
+            this.mSetCustomName = new System.Windows.Forms.MenuItem();
             this.mThreadsSep = new System.Windows.Forms.MenuItem();
             this.mOpenDownloadFolder = new System.Windows.Forms.MenuItem();
             this.mOpenThreadInBrowser = new System.Windows.Forms.MenuItem();
@@ -41,19 +42,23 @@
             this.mCopyThreadID = new System.Windows.Forms.MenuItem();
             this.mThreadsSep2 = new System.Windows.Forms.MenuItem();
             this.mRemove = new System.Windows.Forms.MenuItem();
-            this.lvThreads = new YChanEx.VistaListView();
-            this.clStatus = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.clThread = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.cmTray = new System.Windows.Forms.ContextMenu();
             this.mTrayShowYChanEx = new System.Windows.Forms.MenuItem();
             this.mTraySep = new System.Windows.Forms.MenuItem();
             this.mTrayExit = new System.Windows.Forms.MenuItem();
+            this.ilIcons = new System.Windows.Forms.ImageList(this.components);
+            this.chkCreateThreadInTheBackground = new System.Windows.Forms.CheckBox();
+            this.lvThreads = new YChanEx.VistaListView();
+            this.clIcon = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.clStatus = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.clThread = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.clName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.SuspendLayout();
             // 
             // btnAdd
             // 
             this.btnAdd.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnAdd.Location = new System.Drawing.Point(282, 2);
+            this.btnAdd.Location = new System.Drawing.Point(422, 2);
             this.btnAdd.Name = "btnAdd";
             this.btnAdd.Size = new System.Drawing.Size(48, 25);
             this.btnAdd.TabIndex = 1;
@@ -67,8 +72,9 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtThreadURL.Location = new System.Drawing.Point(12, 5);
             this.txtThreadURL.Name = "txtThreadURL";
-            this.txtThreadURL.Size = new System.Drawing.Size(264, 20);
-            this.txtThreadURL.TabIndex = 2;
+            this.txtThreadURL.Size = new System.Drawing.Size(404, 22);
+            this.txtThreadURL.TabIndex = 0;
+            this.txtThreadURL.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtThreadURL_KeyPress);
             // 
             // mmMain
             // 
@@ -91,6 +97,7 @@
             // niTray
             // 
             this.niTray.BalloonTipIcon = System.Windows.Forms.ToolTipIcon.Error;
+            this.niTray.Icon = global::YChanEx.Properties.Resources.YChanEx;
             this.niTray.Text = "YChanEx";
             this.niTray.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.niTray_MouseDoubleClick);
             // 
@@ -104,6 +111,7 @@
             this.cmThreads.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.mStatus,
             this.mRetryDownload,
+            this.mSetCustomName,
             this.mThreadsSep,
             this.mOpenDownloadFolder,
             this.mOpenThreadInBrowser,
@@ -116,83 +124,60 @@
             // mStatus
             // 
             this.mStatus.Index = 0;
-            this.mStatus.Text = "View Status";
+            this.mStatus.Text = "View status(es)";
             this.mStatus.Click += new System.EventHandler(this.mStatus_Click);
             // 
             // mRetryDownload
             // 
             this.mRetryDownload.Index = 1;
-            this.mRetryDownload.Text = "Retry Download";
+            this.mRetryDownload.Text = "Retry download";
             this.mRetryDownload.Click += new System.EventHandler(this.mRetryDownload_Click);
+            // 
+            // mSetCustomName
+            // 
+            this.mSetCustomName.Index = 2;
+            this.mSetCustomName.Text = "Set custom name";
+            this.mSetCustomName.Click += new System.EventHandler(this.mSetCustomName_Click);
             // 
             // mThreadsSep
             // 
-            this.mThreadsSep.Index = 2;
+            this.mThreadsSep.Index = 3;
             this.mThreadsSep.Text = "-";
             // 
             // mOpenDownloadFolder
             // 
-            this.mOpenDownloadFolder.Index = 3;
-            this.mOpenDownloadFolder.Text = "Open download folder";
+            this.mOpenDownloadFolder.Index = 4;
+            this.mOpenDownloadFolder.Text = "Open download folder(s)";
             this.mOpenDownloadFolder.Click += new System.EventHandler(this.mOpenDownloadFolder_Click);
             // 
             // mOpenThreadInBrowser
             // 
-            this.mOpenThreadInBrowser.Index = 4;
-            this.mOpenThreadInBrowser.Text = "Open thread in browser";
+            this.mOpenThreadInBrowser.Index = 5;
+            this.mOpenThreadInBrowser.Text = "Open thread(s) in browser";
             this.mOpenThreadInBrowser.Click += new System.EventHandler(this.mOpenThreadInBrowser_Click);
             // 
             // mCopyThreadURL
             // 
-            this.mCopyThreadURL.Index = 5;
-            this.mCopyThreadURL.Text = "Copy thread url";
+            this.mCopyThreadURL.Index = 6;
+            this.mCopyThreadURL.Text = "Copy thread url(s)";
             this.mCopyThreadURL.Click += new System.EventHandler(this.mCopyThreadURL_Click);
             // 
             // mCopyThreadID
             // 
-            this.mCopyThreadID.Index = 6;
-            this.mCopyThreadID.Text = "Copy thread ID";
+            this.mCopyThreadID.Index = 7;
+            this.mCopyThreadID.Text = "Copy thread id(s)";
             this.mCopyThreadID.Click += new System.EventHandler(this.mCopyThreadID_Click);
             // 
             // mThreadsSep2
             // 
-            this.mThreadsSep2.Index = 7;
+            this.mThreadsSep2.Index = 8;
             this.mThreadsSep2.Text = "-";
             // 
             // mRemove
             // 
-            this.mRemove.Index = 8;
-            this.mRemove.Text = "Remove";
+            this.mRemove.Index = 9;
+            this.mRemove.Text = "Remove thread(s)";
             this.mRemove.Click += new System.EventHandler(this.mRemove_Click);
-            // 
-            // lvThreads
-            // 
-            this.lvThreads.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.lvThreads.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.clStatus,
-            this.clThread});
-            this.lvThreads.EnableVistaView = true;
-            this.lvThreads.FullRowSelect = true;
-            this.lvThreads.Location = new System.Drawing.Point(0, 33);
-            this.lvThreads.MultiSelect = false;
-            this.lvThreads.Name = "lvThreads";
-            this.lvThreads.Size = new System.Drawing.Size(342, 178);
-            this.lvThreads.TabIndex = 3;
-            this.lvThreads.UseCompatibleStateImageBehavior = false;
-            this.lvThreads.View = System.Windows.Forms.View.Details;
-            this.lvThreads.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.lvThreads_MouseDoubleClick);
-            // 
-            // clStatus
-            // 
-            this.clStatus.Text = "Status";
-            this.clStatus.Width = 74;
-            // 
-            // clThread
-            // 
-            this.clThread.Text = "Threads";
-            this.clThread.Width = 260;
             // 
             // cmTray
             // 
@@ -218,14 +203,76 @@
             this.mTrayExit.Text = "Exit";
             this.mTrayExit.Click += new System.EventHandler(this.mTrayExit_Click);
             // 
+            // ilIcons
+            // 
+            this.ilIcons.ColorDepth = System.Windows.Forms.ColorDepth.Depth16Bit;
+            this.ilIcons.ImageSize = new System.Drawing.Size(16, 16);
+            this.ilIcons.TransparentColor = System.Drawing.Color.Transparent;
+            // 
+            // chkCreateThreadInTheBackground
+            // 
+            this.chkCreateThreadInTheBackground.AutoSize = true;
+            this.chkCreateThreadInTheBackground.Location = new System.Drawing.Point(12, 33);
+            this.chkCreateThreadInTheBackground.Name = "chkCreateThreadInTheBackground";
+            this.chkCreateThreadInTheBackground.Size = new System.Drawing.Size(194, 17);
+            this.chkCreateThreadInTheBackground.TabIndex = 2;
+            this.chkCreateThreadInTheBackground.Text = "Create thread in the background";
+            this.chkCreateThreadInTheBackground.UseVisualStyleBackColor = true;
+            // 
+            // lvThreads
+            // 
+            this.lvThreads.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lvThreads.AutoArrange = false;
+            this.lvThreads.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.clIcon,
+            this.clStatus,
+            this.clThread,
+            this.clName});
+            this.lvThreads.EnableVistaView = true;
+            this.lvThreads.FullRowSelect = true;
+            this.lvThreads.Location = new System.Drawing.Point(0, 56);
+            this.lvThreads.Name = "lvThreads";
+            this.lvThreads.Size = new System.Drawing.Size(482, 234);
+            this.lvThreads.SmallImageList = this.ilIcons;
+            this.lvThreads.TabIndex = 3;
+            this.lvThreads.UseCompatibleStateImageBehavior = false;
+            this.lvThreads.View = System.Windows.Forms.View.Details;
+            this.lvThreads.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.lvThreads_MouseDoubleClick);
+            // 
+            // clIcon
+            // 
+            this.clIcon.Text = "*";
+            this.clIcon.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.clIcon.Width = 24;
+            // 
+            // clStatus
+            // 
+            this.clStatus.Text = "Status";
+            this.clStatus.Width = 90;
+            // 
+            // clThread
+            // 
+            this.clThread.Text = "Threads";
+            this.clThread.Width = 90;
+            // 
+            // clName
+            // 
+            this.clName.Text = "Name";
+            this.clName.Width = 290;
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(342, 211);
+            this.ClientSize = new System.Drawing.Size(482, 292);
+            this.Controls.Add(this.chkCreateThreadInTheBackground);
             this.Controls.Add(this.lvThreads);
             this.Controls.Add(this.txtThreadURL);
             this.Controls.Add(this.btnAdd);
+            this.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Icon = global::YChanEx.Properties.Resources.YChanEx;
             this.Menu = this.mmMain;
             this.MinimumSize = new System.Drawing.Size(350, 250);
             this.Name = "frmMain";
@@ -265,6 +312,11 @@
         private System.Windows.Forms.MenuItem mCopyThreadURL;
         private System.Windows.Forms.MenuItem mCopyThreadID;
         private System.Windows.Forms.MenuItem mThreadsSep2;
+        private System.Windows.Forms.ColumnHeader clName;
+        private System.Windows.Forms.ImageList ilIcons;
+        private System.Windows.Forms.ColumnHeader clIcon;
+        private System.Windows.Forms.CheckBox chkCreateThreadInTheBackground;
+        private System.Windows.Forms.MenuItem mSetCustomName;
     }
 }
 

@@ -169,7 +169,7 @@ namespace YChanEx {
                             CurrentThread.ThreadID = URLSplit[URLSplit.Length - 1].Split('#')[0];
                             CurrentThread.BoardName = BoardTitles.FourChan(CurrentThread.ThreadBoard);
                             this.Text = string.Format("4chan thread - {0} - {1}", CurrentThread.BoardName, CurrentThread.ThreadID);
-                            CurrentThread.ThreadHTML = ChanHTML.GetHTMLBase(CurrentThread.Chan, CurrentThread);
+                            CurrentThread.ThreadHTML = HtmlControl.GetHTMLBase(CurrentThread.Chan, CurrentThread);
 
                             CurrentThread.DownloadPath = Downloads.Default.DownloadPath + "\\4chan\\" + CurrentThread.ThreadBoard + "\\" + CurrentThread.ThreadID;
                             break;
@@ -778,7 +778,7 @@ namespace YChanEx {
                         XmlNodeList xmlArchived = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/archived");
 
                         if (Downloads.Default.UseThreadName && !CurrentThread.RetrievedThreadName) {
-                            string xmlOpComment = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/com")[0].InnerText.Replace("<br>"," ").Replace("<wbr>"," ");
+                            string xmlOpComment = xmlDoc.DocumentElement.SelectNodes("/root/posts/item/com")[0].InnerText.Replace("<br>"," ").Replace("<wbr>","");
                             if (xmlOpComment.Length > 64) {
                                 xmlOpComment = xmlOpComment.Substring(0, 64);
                             }
@@ -928,7 +928,7 @@ namespace YChanEx {
                                         CurrentPost.PostComment = string.Empty;
                                     }
 
-                                    CurrentThread.ThreadHTML += ChanHTML.GetPostForHTML(CurrentPost, PostIndex == 0);
+                                    CurrentThread.ThreadHTML += HtmlControl.GetPostForHTML(CurrentPost, PostIndex == 0);
                                 }
 
                                 CurrentThread.ParsedPosts.Add(xmlPostNumber[PostIndex].InnerText);
@@ -985,7 +985,7 @@ namespace YChanEx {
                     }
 
                     if (YChanEx.Downloads.Default.SaveHTML) {
-                        File.WriteAllText(CurrentThread.DownloadPath + "\\Thread.html", CurrentThread.ThreadHTML + ChanHTML.GetHTMLFooter());
+                        File.WriteAllText(CurrentThread.DownloadPath + "\\Thread.html", CurrentThread.ThreadHTML + HtmlControl.GetHTMLFooter());
                     }
                     CurrentThread.DownloadingFiles = false;
                     #endregion

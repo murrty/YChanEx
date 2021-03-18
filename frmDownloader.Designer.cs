@@ -52,6 +52,7 @@
             this.clExt = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clFileName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clHash = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.btnPauseTimer = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // tmrScan
@@ -263,28 +264,41 @@
             // clID
             // 
             this.clID.Text = "ID";
-            this.clID.Width = 98;
+            this.clID.Width = 110;
             // 
             // clExt
             // 
             this.clExt.Text = "Ext";
-            this.clExt.Width = 52;
+            this.clExt.Width = 46;
             // 
             // clFileName
             // 
             this.clFileName.Text = "Original filename";
-            this.clFileName.Width = 185;
+            this.clFileName.Width = 201;
             // 
             // clHash
             // 
             this.clHash.Text = "File Hash";
-            this.clHash.Width = 114;
+            this.clHash.Width = 106;
+            // 
+            // btnPauseTimer
+            // 
+            this.btnPauseTimer.Enabled = false;
+            this.btnPauseTimer.Location = new System.Drawing.Point(219, 257);
+            this.btnPauseTimer.Name = "btnPauseTimer";
+            this.btnPauseTimer.Size = new System.Drawing.Size(75, 23);
+            this.btnPauseTimer.TabIndex = 15;
+            this.btnPauseTimer.Text = "Pause Tmr";
+            this.btnPauseTimer.UseVisualStyleBackColor = true;
+            this.btnPauseTimer.Visible = false;
+            this.btnPauseTimer.Click += new System.EventHandler(this.btnPauseTimer_Click);
             // 
             // frmDownloader
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(492, 320);
+            this.Controls.Add(this.btnPauseTimer);
             this.Controls.Add(this.lbTotalFiles);
             this.Controls.Add(this.lbDownloadedFiles);
             this.Controls.Add(this.btnAbortRetry);
@@ -298,6 +312,8 @@
             this.Controls.Add(this.lbNumberOfFiles);
             this.Controls.Add(this.lvImages);
             this.Controls.Add(this.lbFileCountSeparator);
+            this.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Icon = global::YChanEx.Properties.Resources.YChanEx;
             this.MinimumSize = new System.Drawing.Size(500, 350);
             this.Name = "frmDownloader";
             this.Opacity = 0D;
@@ -336,6 +352,7 @@
         private System.Windows.Forms.MenuItem mOpenThreadInBrowser;
         private System.Windows.Forms.MenuItem mCopyThreadID;
         private System.Windows.Forms.MenuItem mCopyThreadURL;
+        private System.Windows.Forms.Button btnPauseTimer;
 
     }
 }

@@ -16,7 +16,6 @@ namespace YChanEx {
         public frmException() {
             InitializeComponent();
             loadLanguage();
-            this.Icon = Properties.Resources.YChanEx;
             DateTime TimeNow = DateTime.Now;
             lbDate.Text = string.Format("{0}/{1}/{2} {3}:{4}:{5}", TimeNow.Year, TimeNow.Month, TimeNow.Day, TimeNow.Hour, TimeNow.Minute, TimeNow.Second);
         }

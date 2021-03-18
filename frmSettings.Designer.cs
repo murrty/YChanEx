@@ -25,19 +25,19 @@
         private void InitializeComponent() {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmSettings));
-            System.Windows.Forms.ListViewItem listViewItem12 = new System.Windows.Forms.ListViewItem("4chan URL");
-            System.Windows.Forms.ListViewItem listViewItem13 = new System.Windows.Forms.ListViewItem("420chan URL");
-            System.Windows.Forms.ListViewItem listViewItem14 = new System.Windows.Forms.ListViewItem(new string[] {
+            System.Windows.Forms.ListViewItem listViewItem1 = new System.Windows.Forms.ListViewItem("4chan URL");
+            System.Windows.Forms.ListViewItem listViewItem2 = new System.Windows.Forms.ListViewItem("420chan URL");
+            System.Windows.Forms.ListViewItem listViewItem3 = new System.Windows.Forms.ListViewItem(new string[] {
             "7chan URL",
             "1"}, -1);
-            System.Windows.Forms.ListViewItem listViewItem15 = new System.Windows.Forms.ListViewItem("7chan Posts");
-            System.Windows.Forms.ListViewItem listViewItem16 = new System.Windows.Forms.ListViewItem("8chan URL");
-            System.Windows.Forms.ListViewItem listViewItem17 = new System.Windows.Forms.ListViewItem("8kun URL");
-            System.Windows.Forms.ListViewItem listViewItem18 = new System.Windows.Forms.ListViewItem("fchan URL");
-            System.Windows.Forms.ListViewItem listViewItem19 = new System.Windows.Forms.ListViewItem("fchan Files");
-            System.Windows.Forms.ListViewItem listViewItem20 = new System.Windows.Forms.ListViewItem("fchan IDs");
-            System.Windows.Forms.ListViewItem listViewItem21 = new System.Windows.Forms.ListViewItem("u18chan URL");
-            System.Windows.Forms.ListViewItem listViewItem22 = new System.Windows.Forms.ListViewItem("u18chan Posts");
+            System.Windows.Forms.ListViewItem listViewItem4 = new System.Windows.Forms.ListViewItem("7chan Posts");
+            System.Windows.Forms.ListViewItem listViewItem5 = new System.Windows.Forms.ListViewItem("8chan URL");
+            System.Windows.Forms.ListViewItem listViewItem6 = new System.Windows.Forms.ListViewItem("8kun URL");
+            System.Windows.Forms.ListViewItem listViewItem7 = new System.Windows.Forms.ListViewItem("fchan URL");
+            System.Windows.Forms.ListViewItem listViewItem8 = new System.Windows.Forms.ListViewItem("fchan Files");
+            System.Windows.Forms.ListViewItem listViewItem9 = new System.Windows.Forms.ListViewItem("fchan IDs");
+            System.Windows.Forms.ListViewItem listViewItem10 = new System.Windows.Forms.ListViewItem("u18chan URL");
+            System.Windows.Forms.ListViewItem listViewItem11 = new System.Windows.Forms.ListViewItem("u18chan Posts");
             this.tcMain = new System.Windows.Forms.TabControl();
             this.tabDownloads = new System.Windows.Forms.TabPage();
             this.chkRetrieveThreadName = new System.Windows.Forms.CheckBox();
@@ -67,6 +67,11 @@
             this.chkDisableScannerWhenOpeningSettings = new System.Windows.Forms.CheckBox();
             this.txtUserAgent = new YChanEx.HintTextBox();
             this.lbUserAgent = new System.Windows.Forms.Label();
+            this.tabRegex = new System.Windows.Forms.TabPage();
+            this.lbRegexHint = new System.Windows.Forms.Label();
+            this.lvRegex = new System.Windows.Forms.ListView();
+            this.txtRegex = new YChanEx.HintTextBox();
+            this.lbRegexInfo = new System.Windows.Forms.Label();
             this.tabReset = new System.Windows.Forms.TabPage();
             this.chkEnableSettingsReset = new System.Windows.Forms.CheckBox();
             this.chkResetRegexSettings = new System.Windows.Forms.CheckBox();
@@ -74,11 +79,6 @@
             this.chkResetApplicationSettings = new System.Windows.Forms.CheckBox();
             this.chkResetDownloadSettings = new System.Windows.Forms.CheckBox();
             this.btnResetSettings = new System.Windows.Forms.Button();
-            this.tabRegex = new System.Windows.Forms.TabPage();
-            this.lbRegexHint = new System.Windows.Forms.Label();
-            this.lvRegex = new System.Windows.Forms.ListView();
-            this.txtRegex = new YChanEx.HintTextBox();
-            this.lbRegexInfo = new System.Windows.Forms.Label();
             this.btnUserScript = new System.Windows.Forms.Button();
             this.btnProtocol = new System.Windows.Forms.Button();
             this.btnSCan = new System.Windows.Forms.Button();
@@ -89,8 +89,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.numTimer)).BeginInit();
             this.tabApplication.SuspendLayout();
             this.tabAdvanced.SuspendLayout();
-            this.tabReset.SuspendLayout();
             this.tabRegex.SuspendLayout();
+            this.tabReset.SuspendLayout();
             this.SuspendLayout();
             // 
             // tcMain
@@ -210,7 +210,9 @@
             this.chkDownloadHTML.Size = new System.Drawing.Size(106, 17);
             this.chkDownloadHTML.TabIndex = 23;
             this.chkDownloadHTML.Text = "Download HTML";
-            this.ttSettings.SetToolTip(this.chkDownloadHTML, "Downloads thread HTML files as Thread.html in the thread folder.");
+            this.ttSettings.SetToolTip(this.chkDownloadHTML, "Downloads thread HTML files as Thread.html in the thread folder.\r\n\r\nChans that su" +
+        "pport APIs output cleaner html files, while HTML-parsed chans\r\nmay still look ug" +
+        "ly.");
             this.chkDownloadHTML.UseVisualStyleBackColor = true;
             // 
             // numTimer
@@ -455,6 +457,74 @@
             this.lbUserAgent.TabIndex = 0;
             this.lbUserAgent.Text = "User-Agent";
             // 
+            // tabRegex
+            // 
+            this.tabRegex.Controls.Add(this.lbRegexHint);
+            this.tabRegex.Controls.Add(this.lvRegex);
+            this.tabRegex.Controls.Add(this.txtRegex);
+            this.tabRegex.Controls.Add(this.lbRegexInfo);
+            this.tabRegex.Location = new System.Drawing.Point(4, 22);
+            this.tabRegex.Name = "tabRegex";
+            this.tabRegex.Padding = new System.Windows.Forms.Padding(3);
+            this.tabRegex.Size = new System.Drawing.Size(384, 144);
+            this.tabRegex.TabIndex = 4;
+            this.tabRegex.Text = "Regex";
+            this.tabRegex.UseVisualStyleBackColor = true;
+            // 
+            // lbRegexHint
+            // 
+            this.lbRegexHint.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lbRegexHint.Location = new System.Drawing.Point(116, 46);
+            this.lbRegexHint.Name = "lbRegexHint";
+            this.lbRegexHint.Size = new System.Drawing.Size(262, 65);
+            this.lbRegexHint.TabIndex = 3;
+            this.lbRegexHint.Text = "This is the URL to direct the parser to the 4chan API.";
+            this.lbRegexHint.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // lvRegex
+            // 
+            this.lvRegex.Items.AddRange(new System.Windows.Forms.ListViewItem[] {
+            listViewItem1,
+            listViewItem2,
+            listViewItem3,
+            listViewItem4,
+            listViewItem5,
+            listViewItem6,
+            listViewItem7,
+            listViewItem8,
+            listViewItem9,
+            listViewItem10,
+            listViewItem11});
+            this.lvRegex.Location = new System.Drawing.Point(3, 40);
+            this.lvRegex.MultiSelect = false;
+            this.lvRegex.Name = "lvRegex";
+            this.lvRegex.Size = new System.Drawing.Size(107, 101);
+            this.lvRegex.TabIndex = 2;
+            this.lvRegex.UseCompatibleStateImageBehavior = false;
+            this.lvRegex.View = System.Windows.Forms.View.SmallIcon;
+            this.lvRegex.SelectedIndexChanged += new System.EventHandler(this.lvRegex_SelectedIndexChanged);
+            // 
+            // txtRegex
+            // 
+            this.txtRegex.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtRegex.Location = new System.Drawing.Point(116, 114);
+            this.txtRegex.Name = "txtRegex";
+            this.txtRegex.Size = new System.Drawing.Size(262, 22);
+            this.txtRegex.TabIndex = 1;
+            this.txtRegex.TextHint = "No regex pattern selected.";
+            this.txtRegex.TextChanged += new System.EventHandler(this.txtRegex_TextChanged);
+            // 
+            // lbRegexInfo
+            // 
+            this.lbRegexInfo.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lbRegexInfo.Location = new System.Drawing.Point(8, 3);
+            this.lbRegexInfo.Name = "lbRegexInfo";
+            this.lbRegexInfo.Size = new System.Drawing.Size(370, 34);
+            this.lbRegexInfo.TabIndex = 0;
+            this.lbRegexInfo.Text = "This tab allows you to change Regex patterns if they change.\r\nYou\'re better off l" +
+    "eaving these set empty if you\'re unsure.";
+            this.lbRegexInfo.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // tabReset
             // 
             this.tabReset.Controls.Add(this.chkEnableSettingsReset);
@@ -541,74 +611,6 @@
             this.btnResetSettings.UseVisualStyleBackColor = true;
             this.btnResetSettings.Click += new System.EventHandler(this.btnResetSettings_Click);
             // 
-            // tabRegex
-            // 
-            this.tabRegex.Controls.Add(this.lbRegexHint);
-            this.tabRegex.Controls.Add(this.lvRegex);
-            this.tabRegex.Controls.Add(this.txtRegex);
-            this.tabRegex.Controls.Add(this.lbRegexInfo);
-            this.tabRegex.Location = new System.Drawing.Point(4, 22);
-            this.tabRegex.Name = "tabRegex";
-            this.tabRegex.Padding = new System.Windows.Forms.Padding(3);
-            this.tabRegex.Size = new System.Drawing.Size(384, 144);
-            this.tabRegex.TabIndex = 4;
-            this.tabRegex.Text = "Regex";
-            this.tabRegex.UseVisualStyleBackColor = true;
-            // 
-            // lbRegexHint
-            // 
-            this.lbRegexHint.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lbRegexHint.Location = new System.Drawing.Point(116, 46);
-            this.lbRegexHint.Name = "lbRegexHint";
-            this.lbRegexHint.Size = new System.Drawing.Size(262, 65);
-            this.lbRegexHint.TabIndex = 3;
-            this.lbRegexHint.Text = "This is the URL to direct the parser to the 4chan API.";
-            this.lbRegexHint.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // lvRegex
-            // 
-            this.lvRegex.Items.AddRange(new System.Windows.Forms.ListViewItem[] {
-            listViewItem12,
-            listViewItem13,
-            listViewItem14,
-            listViewItem15,
-            listViewItem16,
-            listViewItem17,
-            listViewItem18,
-            listViewItem19,
-            listViewItem20,
-            listViewItem21,
-            listViewItem22});
-            this.lvRegex.Location = new System.Drawing.Point(3, 40);
-            this.lvRegex.MultiSelect = false;
-            this.lvRegex.Name = "lvRegex";
-            this.lvRegex.Size = new System.Drawing.Size(107, 101);
-            this.lvRegex.TabIndex = 2;
-            this.lvRegex.UseCompatibleStateImageBehavior = false;
-            this.lvRegex.View = System.Windows.Forms.View.SmallIcon;
-            this.lvRegex.SelectedIndexChanged += new System.EventHandler(this.lvRegex_SelectedIndexChanged);
-            // 
-            // txtRegex
-            // 
-            this.txtRegex.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtRegex.Location = new System.Drawing.Point(116, 114);
-            this.txtRegex.Name = "txtRegex";
-            this.txtRegex.Size = new System.Drawing.Size(262, 22);
-            this.txtRegex.TabIndex = 1;
-            this.txtRegex.TextHint = "No regex pattern selected.";
-            this.txtRegex.TextChanged += new System.EventHandler(this.txtRegex_TextChanged);
-            // 
-            // lbRegexInfo
-            // 
-            this.lbRegexInfo.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lbRegexInfo.Location = new System.Drawing.Point(8, 3);
-            this.lbRegexInfo.Name = "lbRegexInfo";
-            this.lbRegexInfo.Size = new System.Drawing.Size(370, 34);
-            this.lbRegexInfo.TabIndex = 0;
-            this.lbRegexInfo.Text = "This tab allows you to change Regex patterns if they change.\r\nYou\'re better off l" +
-    "eaving these set empty if you\'re unsure.";
-            this.lbRegexInfo.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
             // btnUserScript
             // 
             this.btnUserScript.Location = new System.Drawing.Point(12, 173);
@@ -687,10 +689,10 @@
             this.tabApplication.PerformLayout();
             this.tabAdvanced.ResumeLayout(false);
             this.tabAdvanced.PerformLayout();
-            this.tabReset.ResumeLayout(false);
-            this.tabReset.PerformLayout();
             this.tabRegex.ResumeLayout(false);
             this.tabRegex.PerformLayout();
+            this.tabReset.ResumeLayout(false);
+            this.tabReset.PerformLayout();
             this.ResumeLayout(false);
 
         }

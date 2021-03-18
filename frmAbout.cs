@@ -1,4 +1,4 @@
-﻿using System;
+﻿ using System;
 using System.Diagnostics;
 using System.Windows.Forms;
 
@@ -9,10 +9,15 @@ namespace YChanEx {
         public frmAbout() {
             InitializeComponent();
             pbIcon.Image = Properties.Resources.ychanex32;
-            pbIcon.Cursor = new Cursor(NativeMethods.SetCursor(NativeMethods.LoadCursor(IntPtr.Zero, (IntPtr)32649)));
+            pbIcon.Cursor = new Cursor(NativeMethods.LoadCursor(IntPtr.Zero, (IntPtr)32649));
         }
         private void frmAbout_Shown(object sender, EventArgs e) {
-            lbVersion.Text = "v" + Properties.Settings.Default.AppVersion.ToString();
+            if (Properties.Settings.Default.IsPreRelease) {
+                lbVersion.Text = "v" + Properties.Settings.Default.PreReleaseVersion;
+            }
+            else {
+                lbVersion.Text = "v" + Properties.Settings.Default.AppVersion.ToString();
+            }
             if (Program.IsDebug) {
                 lbVersion.Text += " (debug)";
             }

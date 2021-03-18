@@ -21,7 +21,6 @@ namespace YChanEx {
             //btnUpdateAvailableOk.Text = lang.btnUpdateAvailableOk;
             lbUpdateAvailableUpdateVersion.Text = "Update version: " + Cloud.UpdateVersion;
             lbUpdateAvailableCurrentVersion.Text = "Current version: " + Properties.Settings.Default.AppVersion.ToString();
-            this.Icon = Properties.Resources.YChanEx;
 
         }
         private void frmUpdateAvailable_Load(object sender, EventArgs e) {

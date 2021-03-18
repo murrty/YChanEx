@@ -111,6 +111,7 @@
             this.Controls.Add(this.lbHeader);
             this.Controls.Add(this.llbCheckForUpdates);
             this.Controls.Add(this.llbGithub);
+            this.Icon = Properties.Resources.YChanEx;
             this.MaximizeBox = false;
             this.MaximumSize = new System.Drawing.Size(280, 180);
             this.MinimumSize = new System.Drawing.Size(280, 180);
