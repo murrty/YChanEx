@@ -36,9 +36,8 @@ namespace YChanEx {
             if (Properties.Settings.Default.FirstTime) {
                 switch (MessageBox.Show("Would you like to specify a download path now? If not, it'll default to the current direcotry.", "YChanEx", MessageBoxButtons.YesNo)) {
                     case DialogResult.Yes:
-                        using (Ookii.Dialogs.WinForms.VistaFolderBrowserDialog fbd = new Ookii.Dialogs.WinForms.VistaFolderBrowserDialog()) {
+                        using (FolderBrowserDialog fbd = new FolderBrowserDialog()) {
                             fbd.Description = "Select a folder to download to";
-                            fbd.UseDescriptionForTitle = true;
                             fbd.SelectedPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\Downloads";
                             if (fbd.ShowDialog() == DialogResult.OK) {
                                 Downloads.Default.DownloadPath = fbd.SelectedPath;
