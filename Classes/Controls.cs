@@ -174,14 +174,22 @@ namespace YChanEx {
     }
     #endregion
 
-    class WebClientMethod : WebClient {
+    class WebClientExtended : WebClient {
         public string Method { get; set; }
+        public DateTime? IfModifiedSince { get; set; }
 
         protected override WebRequest GetWebRequest(Uri address) {
             WebRequest Request = base.GetWebRequest(address);
-            if (!string.IsNullOrEmpty(Method))
+            if (!string.IsNullOrEmpty(Method)) {
                 Request.Method = Method;
+            }
 
+            var httpWebRequest = Request as HttpWebRequest;
+            if (httpWebRequest != null && IfModifiedSince != null) {
+                httpWebRequest.IfModifiedSince = IfModifiedSince.Value;
+                IfModifiedSince = null;
+            }
+            
             return Request;
         }
     }

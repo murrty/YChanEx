@@ -126,10 +126,15 @@ namespace YChanEx {
         public int HideModifiedLabelAt = 0;
 
         /// <summary>
-        /// The status of the thread, used to determine what's happening.
+        /// The overall status of the thread. (Alive/404/Aborted/Archived).
         /// <seealso cref="ThreadStatus"/>
         /// </summary>
-        public ThreadStatus Status = ThreadStatus.UnknownStatus;
+        public ThreadStatus OverallStatus = ThreadStatus.NoStatusSet;
+        /// <summary>
+        /// The status of the thread, used to determine what's happening in the thread.
+        /// <seealso cref="ThreadStatus"/>
+        /// </summary>
+        public ThreadStatus CurrentActivity = ThreadStatus.NoStatusSet;
         /// <summary>
         /// Determines if the ThreadInfo has been set.
         /// </summary>
@@ -193,7 +198,7 @@ namespace YChanEx {
     /// </summary>
     public sealed class SavedThreadInfo {
         public string ThreadURL = null;
-        public ThreadStatus Status = ThreadStatus.UnknownStatus;
+        public ThreadStatus Status = ThreadStatus.NoStatusSet;
         public bool RetrievedThreadName = false;
         public string ThreadName = null;
         public bool SetCustomName = false;

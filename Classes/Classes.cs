@@ -19,7 +19,7 @@ namespace YChanEx {
         /// <summary>
         /// The thread has an unknown status.
         /// </summary>
-        UnknownStatus = -1,
+        NoStatusSet = -1,
 
         /// <summary>
         /// The thread is waiting for the delay to rescan.
@@ -42,6 +42,10 @@ namespace YChanEx {
         /// </summary>
         ThreadFile404 = 4,
         /// <summary>
+        /// The thread is not allowed to view the content.
+        /// </summary>
+        ThreadIsNotAllowed = 5,
+        /// <summary>
         /// The thread is reloading into memory.
         /// </summary>
         ThreadReloaded = 6,
@@ -63,10 +67,6 @@ namespace YChanEx {
         /// The thread was archived.
         /// </summary>
         ThreadIsArchived = 103,
-        /// <summary>
-        /// The thread is not allowed to view the content.
-        /// </summary>
-        ThreadIsNotAllowed = 104,
 
         /// <summary>
         /// The thread is retrying the download.
@@ -215,7 +215,7 @@ namespace YChanEx {
                 if (!Directory.Exists(Destination)) {
                     Directory.CreateDirectory(Destination);
                 }
-                using (WebClientMethod wc = new WebClientMethod()) {
+                using (WebClientExtended wc = new WebClientExtended()) {
                     wc.Method = "GET";
                     wc.Headers.Add(HttpRequestHeader.UserAgent, YChanEx.Advanced.Default.UserAgent);
 
@@ -249,7 +249,7 @@ namespace YChanEx {
                 if (!Directory.Exists(Destination)) {
                     Directory.CreateDirectory(Destination);
                 }
-                using (WebClientMethod wc = new WebClientMethod()) {
+                using (WebClientExtended wc = new WebClientExtended()) {
                     wc.Method = "GET";
                     wc.Headers.Add(HttpRequestHeader.UserAgent, YChanEx.Advanced.Default.UserAgent);
                     wc.Headers.Add(HttpRequestHeader.Cookie, RequiredCookie);
@@ -317,80 +317,6 @@ namespace YChanEx {
             return Column + "|" + Column2 + "|" + Column3 + "|" + Column4;
         }
 
-        public static bool SaveThreads(List<string> ThreadURLs, List<ThreadStatus> ThreadStatus) {
-            if (General.Default.SaveQueueOnExit) {
-                try {
-                    string FileContentBuffer = string.Empty;
-                    for (int i = 0; i < ThreadURLs.Count; i++) {
-                        FileContentBuffer += ThreadURLs[i].Replace("=", "%61").Replace("|", "%124") + " = " + (int)ThreadStatus[i] + "\n";
-                    }
-                    FileContentBuffer = FileContentBuffer.Trim('\n');
-
-                    File.WriteAllText(Program.ApplicationFilesLocation + "\\threads.dat", FileContentBuffer);
-                    return true;
-                }
-                catch (Exception ex) {
-                    ErrorLog.ReportException(ex);
-                    return false;
-                }
-            }
-            return false;
-        }
-        public static bool SaveThreads(List<string> ThreadURLs, List<ThreadStatus> ThreadStatus, List<string> ThreadNames) {
-            try {
-                XmlDocument doc = new XmlDocument();
-                XmlDeclaration xmlDec = doc.CreateXmlDeclaration("1.0", "UTF-8", null);
-                XmlElement xmlRoot = doc.DocumentElement;
-                doc.InsertBefore(xmlDec, xmlRoot);
-                XmlElement xmlBody = doc.CreateElement(string.Empty, "body", string.Empty);
-                doc.AppendChild(xmlBody);
-
-                if (ThreadURLs.Count != 0 && ThreadStatus.Count != 0 && ThreadNames.Count != 0) {
-                    for (int i = 0; i < ThreadURLs.Count; i++) {
-                        int Status = (int)ThreadStatus[i];
-                        XmlElement xmlThreadParent = doc.CreateElement(string.Empty, "thread", string.Empty);
-                        xmlBody.AppendChild(xmlThreadParent);
-
-                        XmlElement xmlThreadURL = doc.CreateElement(string.Empty, "url", string.Empty);
-                        XmlText xmlTextThreadURL = doc.CreateTextNode(ThreadURLs[i]);
-                        xmlThreadURL.AppendChild(xmlTextThreadURL);
-                        xmlThreadParent.AppendChild(xmlThreadURL);
-
-                        XmlElement xmlThreadStatus = doc.CreateElement(string.Empty, "status", string.Empty);
-                        XmlText xmlTextStatus = doc.CreateTextNode(Status.ToString());
-                        xmlThreadStatus.AppendChild(xmlTextStatus);
-                        xmlThreadParent.AppendChild(xmlThreadStatus);
-
-                        XmlElement xmlThreadName = doc.CreateElement(string.Empty, "name", string.Empty);
-                        XmlElement xmlCustomName = doc.CreateElement(string.Empty, "customname", string.Empty);
-                        if (ThreadNames[i] != ThreadURLs[i]) {
-                            XmlText xmlTextThreadName = doc.CreateTextNode(ThreadNames[i]);
-                            xmlThreadName.AppendChild(xmlTextThreadName);
-                            xmlThreadParent.AppendChild(xmlThreadName);
-
-                            XmlText xmlTextCustomName = doc.CreateTextNode("true");
-                            xmlCustomName.AppendChild(xmlTextCustomName);
-                            xmlThreadParent.AppendChild(xmlCustomName);
-                        }
-                        else {
-                            XmlText xmlTextThreadName = doc.CreateTextNode("");
-                            xmlThreadName.AppendChild(xmlTextThreadName);
-                            xmlThreadParent.AppendChild(xmlThreadName);
-
-                            XmlText xmlTextCustomName = doc.CreateTextNode("false");
-                            xmlCustomName.AppendChild(xmlTextCustomName);
-                            xmlThreadParent.AppendChild(xmlCustomName);
-                        }
-                    }
-                }
-
-                doc.Save(Program.ApplicationFilesLocation + "\\threads.xml");
-                return true;
-            }
-            catch (Exception) {
-                throw;
-            }
-        }
         public static bool SaveThreads(List<ThreadInfo> ThreadInfo){
             try {
                 XmlDocument doc = new XmlDocument();
@@ -411,11 +337,11 @@ namespace YChanEx {
                         xmlThreadParent.AppendChild(xmlThreadURL);
 
 
-                        int Status = (int)ThreadInfo[i].Status;
-                        XmlElement xmlThreadStatus = doc.CreateElement(string.Empty, "status", string.Empty);
-                        XmlText xmlTextStatus = doc.CreateTextNode(Status.ToString());
-                        xmlThreadStatus.AppendChild(xmlTextStatus);
-                        xmlThreadParent.AppendChild(xmlThreadStatus);
+                        int Status = (int)ThreadInfo[i].OverallStatus;
+                        XmlElement xmlOverallStatus = doc.CreateElement(string.Empty, "overallstatus", string.Empty);
+                        XmlText xmlTextOverallStatus = doc.CreateTextNode(Status.ToString());
+                        xmlOverallStatus.AppendChild(xmlTextOverallStatus);
+                        xmlThreadParent.AppendChild(xmlOverallStatus);
 
 
                         XmlElement xmlGotThreadName = doc.CreateElement(string.Empty, "gotthreadname", string.Empty);
@@ -512,14 +438,14 @@ namespace YChanEx {
                 for (int i = 0; i < xmlThreads.Count; i++) {
                     SavedThreadInfo CurrentThread = new SavedThreadInfo();
                     XmlNodeList xmlURLs = xmlThreads[i].SelectNodes("url");
-                    XmlNodeList xmlStatus = xmlThreads[i].SelectNodes("status");
+                    XmlNodeList xmlOverallStatus = xmlThreads[i].SelectNodes("overallstatus");
                     XmlNodeList xmlGotThreadName = xmlThreads[i].SelectNodes("gotthreadname");
                     XmlNodeList xmlThreadName = xmlThreads[i].SelectNodes("threadname");
                     XmlNodeList xmlSetCustomName = xmlThreads[i].SelectNodes("setcustomname");
                     XmlNodeList xmlCustomName = xmlThreads[i].SelectNodes("customname");
 
                     CurrentThread.ThreadURL = xmlURLs[0].InnerText;
-                    CurrentThread.Status = (ThreadStatus)int.Parse(xmlStatus[0].InnerText);
+                    CurrentThread.Status = (ThreadStatus)int.Parse(xmlOverallStatus[0].InnerText);
                     switch (xmlGotThreadName[0].InnerText) {
                         case "true":
                             CurrentThread.RetrievedThreadName = true;
@@ -667,6 +593,14 @@ namespace YChanEx {
                     #region Video Games
                     case "v":
                         return "Video Games";
+                    case "vrpg":
+                        return "Video Games/RPG";
+                    case "vmg":
+                        return "Video Games/Mobile";
+                    case "vst":
+                        return "Video Games/Strategy";
+                    case "vm":
+                        return "Video Games/Multiplayer";
                     case "vg":
                         return "Video Game Generals";
                     case "vp":
