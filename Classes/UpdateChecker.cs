@@ -11,10 +11,10 @@ namespace YChanEx {
         public static GitData GitData = GitData.GetInstance();
 
         public static void CheckForUpdate(bool ForceCheck = false) {
-            //if (Program.IsDebug) {
+            if (Program.IsDebug) {
             //    Debug.Print("-version " + GitData.UpdateVersion + " -name " + System.AppDomain.CurrentDomain.FriendlyName);
-            //    return;
-            //}
+                return;
+            }
 
             if (!General.Default.EnableUpdates && !ForceCheck) { return; }
 

@@ -1163,6 +1163,22 @@ namespace YChanEx {
             }
         }
     }
+    class BoardSubtitles {
+        public static string GetSubtitle(ChanType Chan, string Board) {
+            switch (Chan) {
+                case ChanType.FourChan:
+                    switch (Board.ToLower()) {
+                        case "trash": case "b":
+                            return "The stories and information posted here are artistic works of fiction and falsehood.<br>Only a fool would take anything posted here as fact.";
+
+                        default:
+                            return string.Empty;
+                    }
+                default:
+                    return string.Empty;
+            }
+        }
+    }
 
     /// <summary>
     /// The Regex strings for detecting the chans.

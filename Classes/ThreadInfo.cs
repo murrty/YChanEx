@@ -34,6 +34,10 @@ namespace YChanEx {
         /// The path that the thread will be downloaded to.
         /// </summary>
         public string DownloadPath = null;
+        /// <summary>
+        /// The HTML of the thread, custom build for YOUR CONVENIENCE.
+        /// </summary>
+        public string ThreadHTML = null;
 
         /// <summary>
         /// The list of file ids displayed on the form.
@@ -51,6 +55,10 @@ namespace YChanEx {
         /// The list of File Hashes displayed on the form.
         /// </summary>
         public List<string> FileHashes = new List<string>();
+        /// <summary>
+        /// The list of posts that have been parsed.
+        /// </summary>
+        public List<string> ParsedPosts = new List<string>();
 
         /// <summary>
         /// The list of image files that will be downloaded.
@@ -163,8 +171,8 @@ namespace YChanEx {
         public bool ThreadArchived = false;
 
         /// <summary>
-        /// The board name of the thread if not supported in <seealso cref="BoardTitles"/>.
-        /// <para>So far, it's 8chan and 8kun.</para>
+        /// The board name of the thread retrieved from <seealso cref="BoardTitles"/>.
+        /// <para>Chans that support user-made boards requires the name to be parsed from HTML.</para>
         /// </summary>
         public string BoardName = null;
         /// <summary>
@@ -190,6 +198,10 @@ namespace YChanEx {
         /// The user-set custom name.
         /// </summary>
         public string CustomName = null;
+        /// <summary>
+        /// Determines if the thread name was integrated into the HTML.
+        /// </summary>
+        public bool HtmlTheadNameSet = false;
 
     }
 
@@ -203,5 +215,24 @@ namespace YChanEx {
         public string ThreadName = null;
         public bool SetCustomName = false;
         public string CustomName = null;
+    }
+
+    public sealed class PostInfo {
+        public string PostID = null;
+        public string PostDate = null;
+        public string PosterName = null;
+        public string PostSubject = null;
+        public string PostComment = null;
+        public string PostOriginalName = null;
+        public string PostFileExtension = null;
+        public string PostWidth = null;
+        public string PostHeight = null;
+        public string PostThumbnailWidth = null;
+        public string PostThumbnailHeight = null;
+        public string PostFileID = null;
+        public string PostFileSize = null;
+
+        public bool PostContainsFile = false;
+        public string PostOutputFileName = null;
     }
 }
