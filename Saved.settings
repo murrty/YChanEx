@@ -3,15 +3,15 @@
   <Profiles />
   <Settings>
     <Setting Name="MainFormLocation" Type="System.Drawing.Point" Scope="User">
-      <Value Profile="(Default)">0, 0</Value>
+      <Value Profile="(Default)">-32000, -32000</Value>
     </Setting>
     <Setting Name="MainFormSize" Type="System.Drawing.Size" Scope="User">
-      <Value Profile="(Default)">0, 0</Value>
+      <Value Profile="(Default)">-32000, -32000</Value>
     </Setting>
     <Setting Name="DownloadFormSize" Type="System.Drawing.Size" Scope="User">
-      <Value Profile="(Default)">0, 0</Value>
+      <Value Profile="(Default)">-32000, -32000</Value>
     </Setting>
-    <Setting Name="SaveThreadInTheBackground" Type="System.Boolean" Scope="User">
+    <Setting Name="CreateThreadInTheBackground" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="MainFormColumnSizes" Type="System.String" Scope="User">

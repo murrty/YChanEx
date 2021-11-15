@@ -168,8 +168,7 @@ namespace YChanEx {
         public static readonly string[] InvalidFileCharacters = new string[] { "\\", "/", ":", "*", "?", "\"", "<", ">", "|" };
         public static readonly string EmptyXML = "<root type=\"array\"></root>";
 
-        [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]
-        public static string GetJsonToXml(string InputURL, DateTime ModifiedSince = default(DateTime)) {
+        public static string GetJsonToXml(string InputURL, DateTime ModifiedSince = default) {
             try {
                 string JSONOutput = null;
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
@@ -414,18 +413,6 @@ namespace YChanEx {
             }
             catch (Exception) {
                 throw;
-            }
-        }
-        public static string LoadThreadsAsString() {
-            try {
-                if (System.IO.File.Exists(Program.ApplicationFilesLocation + "\\threads.dat")) {
-                    return System.IO.File.ReadAllText(Program.ApplicationFilesLocation + "\\threads.dat").Replace("\r", "").Trim('\n');
-                }
-                return string.Empty;
-            }
-            catch (Exception ex) {
-                ErrorLog.ReportException(ex);
-                return string.Empty;
             }
         }
         public static List<SavedThreadInfo> LoadThreads() {
@@ -1174,6 +1161,7 @@ namespace YChanEx {
                         default:
                             return string.Empty;
                     }
+
                 default:
                     return string.Empty;
             }

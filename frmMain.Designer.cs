@@ -48,6 +48,7 @@
             this.mTrayExit = new System.Windows.Forms.MenuItem();
             this.ilIcons = new System.Windows.Forms.ImageList(this.components);
             this.chkCreateThreadInTheBackground = new System.Windows.Forms.CheckBox();
+            this.mAddThread = new System.Windows.Forms.MenuItem();
             this.lvThreads = new YChanEx.VistaListView();
             this.clIcon = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clStatus = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -58,7 +59,7 @@
             // btnAdd
             // 
             this.btnAdd.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnAdd.Location = new System.Drawing.Point(422, 2);
+            this.btnAdd.Location = new System.Drawing.Point(442, 2);
             this.btnAdd.Name = "btnAdd";
             this.btnAdd.Size = new System.Drawing.Size(48, 25);
             this.btnAdd.TabIndex = 1;
@@ -72,7 +73,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtThreadURL.Location = new System.Drawing.Point(12, 5);
             this.txtThreadURL.Name = "txtThreadURL";
-            this.txtThreadURL.Size = new System.Drawing.Size(404, 22);
+            this.txtThreadURL.Size = new System.Drawing.Size(424, 22);
             this.txtThreadURL.TabIndex = 0;
             this.txtThreadURL.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtThreadURL_KeyPress);
             // 
@@ -183,6 +184,7 @@
             // 
             this.cmTray.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.mTrayShowYChanEx,
+            this.mAddThread,
             this.mTraySep,
             this.mTrayExit});
             // 
@@ -194,12 +196,12 @@
             // 
             // mTraySep
             // 
-            this.mTraySep.Index = 1;
+            this.mTraySep.Index = 2;
             this.mTraySep.Text = "-";
             // 
             // mTrayExit
             // 
-            this.mTrayExit.Index = 2;
+            this.mTrayExit.Index = 3;
             this.mTrayExit.Text = "Exit";
             this.mTrayExit.Click += new System.EventHandler(this.mTrayExit_Click);
             // 
@@ -219,6 +221,12 @@
             this.chkCreateThreadInTheBackground.Text = "Create thread in the background";
             this.chkCreateThreadInTheBackground.UseVisualStyleBackColor = true;
             // 
+            // mAddThread
+            // 
+            this.mAddThread.Index = 1;
+            this.mAddThread.Text = "Add Thread (Clipboard)";
+            this.mAddThread.Click += new System.EventHandler(this.mAddThread_Click);
+            // 
             // lvThreads
             // 
             this.lvThreads.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -232,9 +240,10 @@
             this.clName});
             this.lvThreads.EnableVistaView = true;
             this.lvThreads.FullRowSelect = true;
+            this.lvThreads.HideSelection = false;
             this.lvThreads.Location = new System.Drawing.Point(0, 56);
             this.lvThreads.Name = "lvThreads";
-            this.lvThreads.Size = new System.Drawing.Size(482, 234);
+            this.lvThreads.Size = new System.Drawing.Size(502, 193);
             this.lvThreads.SmallImageList = this.ilIcons;
             this.lvThreads.TabIndex = 3;
             this.lvThreads.UseCompatibleStateImageBehavior = false;
@@ -266,7 +275,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(482, 292);
+            this.ClientSize = new System.Drawing.Size(502, 251);
             this.Controls.Add(this.chkCreateThreadInTheBackground);
             this.Controls.Add(this.lvThreads);
             this.Controls.Add(this.txtThreadURL);
@@ -280,6 +289,7 @@
             this.Text = "YChanEx";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmMain_FormClosing);
             this.Load += new System.EventHandler(this.frmMain_Load);
+            this.Shown += new System.EventHandler(this.frmMain_Shown);
             this.SizeChanged += new System.EventHandler(this.frmMain_SizeChanged);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -317,6 +327,7 @@
         private System.Windows.Forms.ColumnHeader clIcon;
         private System.Windows.Forms.CheckBox chkCreateThreadInTheBackground;
         private System.Windows.Forms.MenuItem mSetCustomName;
+        private System.Windows.Forms.MenuItem mAddThread;
     }
 }
 

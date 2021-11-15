@@ -483,6 +483,7 @@
             // 
             // lvRegex
             // 
+            this.lvRegex.HideSelection = false;
             this.lvRegex.Items.AddRange(new System.Windows.Forms.ListViewItem[] {
             listViewItem1,
             listViewItem2,
@@ -620,6 +621,7 @@
             this.btnUserScript.Text = "Userscript";
             this.ttSettings.SetToolTip(this.btnUserScript, "Install the userscript for the application");
             this.btnUserScript.UseVisualStyleBackColor = true;
+            this.btnUserScript.Click += new System.EventHandler(this.btnUserScript_Click);
             // 
             // btnProtocol
             // 

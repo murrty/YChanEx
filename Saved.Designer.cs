@@ -12,7 +12,7 @@ namespace YChanEx {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "12.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.10.0.0")]
     internal sealed partial class Saved : global::System.Configuration.ApplicationSettingsBase {
         
         private static Saved defaultInstance = ((Saved)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Saved())));
@@ -25,7 +25,7 @@ namespace YChanEx {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0, 0")]
+        [global::System.Configuration.DefaultSettingValueAttribute("-32000, -32000")]
         public global::System.Drawing.Point MainFormLocation {
             get {
                 return ((global::System.Drawing.Point)(this["MainFormLocation"]));
@@ -37,7 +37,7 @@ namespace YChanEx {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0, 0")]
+        [global::System.Configuration.DefaultSettingValueAttribute("-32000, -32000")]
         public global::System.Drawing.Size MainFormSize {
             get {
                 return ((global::System.Drawing.Size)(this["MainFormSize"]));
@@ -49,7 +49,7 @@ namespace YChanEx {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0, 0")]
+        [global::System.Configuration.DefaultSettingValueAttribute("-32000, -32000")]
         public global::System.Drawing.Size DownloadFormSize {
             get {
                 return ((global::System.Drawing.Size)(this["DownloadFormSize"]));
@@ -62,12 +62,12 @@ namespace YChanEx {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool SaveThreadInTheBackground {
+        public bool CreateThreadInTheBackground {
             get {
-                return ((bool)(this["SaveThreadInTheBackground"]));
+                return ((bool)(this["CreateThreadInTheBackground"]));
             }
             set {
-                this["SaveThreadInTheBackground"] = value;
+                this["CreateThreadInTheBackground"] = value;
             }
         }
         

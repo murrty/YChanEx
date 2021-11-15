@@ -40,9 +40,17 @@ namespace YChanEx {
         public string ThreadHTML = null;
 
         /// <summary>
-        /// The list of file ids displayed on the form.
+        /// The list of post IDs that have been parsed.
+        /// </summary>
+        public List<string> ParsedPostIDs = new List<string>();
+        /// <summary>
+        /// The list of file IDs displayed on the form.
         /// </summary>
         public List<string> FileIDs = new List<string>();
+        /// <summary>
+        /// Contains the post ID of the image. Used for tracking the post in the parsed posts list.
+        /// </summary>
+        public List<string> ImagePostIDs = new List<string>();
         /// <summary>
         /// The list of file extensions displayed on the form.
         /// </summary>
@@ -55,10 +63,6 @@ namespace YChanEx {
         /// The list of File Hashes displayed on the form.
         /// </summary>
         public List<string> FileHashes = new List<string>();
-        /// <summary>
-        /// The list of posts that have been parsed.
-        /// </summary>
-        public List<string> ParsedPosts = new List<string>();
 
         /// <summary>
         /// The list of image files that will be downloaded.
@@ -97,11 +101,6 @@ namespace YChanEx {
         /// <para>Used by all chans.</para>
         /// </summary>
         public int DownloadedImagesCount = 0;
-        /// <summary>
-        /// Counts the extra files in a post.
-        /// <para>Used by 8kun.</para>
-        /// </summary>
-        public int ExtraFilesImageCount = 0;
         /// <summary>
         /// The amount of posts counted up to.
         /// <para>Used by 8chan and 8kun.</para>
@@ -217,22 +216,72 @@ namespace YChanEx {
         public string CustomName = null;
     }
 
+    /// <summary>
+    /// Contains information about the post.
+    /// <para>Only used if SaveHTML is enabled.</para>
+    /// </summary>
     public sealed class PostInfo {
+        /// <summary>
+        /// The ID of the post.
+        /// </summary>
         public string PostID = null;
+        /// <summary>
+        /// The date of the post.
+        /// </summary>
         public string PostDate = null;
+        /// <summary>
+        /// The displayed name of the poser.
+        /// </summary>
         public string PosterName = null;
+        /// <summary>
+        /// The subject of the post (Usually the OP)
+        /// </summary>
         public string PostSubject = null;
+        /// <summary>
+        /// The comment on the post.
+        /// </summary>
         public string PostComment = null;
+        /// <summary>
+        /// The original file name (if the post contains a image)
+        /// </summary>
         public string PostOriginalName = null;
+        /// <summary>
+        /// The extension of the file (if the post contains a image)
+        /// </summary>
         public string PostFileExtension = null;
+        /// <summary>
+        /// The width of the file (if the post contains a image)
+        /// </summary>
         public string PostWidth = null;
+        /// <summary>
+        /// The height of the file (if the post contains a image)
+        /// </summary>
         public string PostHeight = null;
+        /// <summary>
+        /// The width of the file thumbnail (if the post contains a image)
+        /// </summary>
         public string PostThumbnailWidth = null;
+        /// <summary>
+        /// The Height of the file thumbnail (if the post contains a image)
+        /// </summary>
         public string PostThumbnailHeight = null;
+        /// <summary>
+        /// The unique file ID of the file (if the post contains a image)
+        /// </summary>
         public string PostFileID = null;
+        /// <summary>
+        /// The file size (in bytes) of the file (if the post contains a image)
+        /// </summary>
         public string PostFileSize = null;
 
+        /// <summary>
+        /// Determines if the post contains a file.
+        /// </summary>
         public bool PostContainsFile = false;
+        /// <summary>
+        /// The file name that is saved through the application.
+        /// <para>This may differ if save original file name and/or prevent duplicates is enabled.</para>
+        /// </summary>
         public string PostOutputFileName = null;
     }
 }

@@ -310,5 +310,9 @@ namespace YChanEx {
             chkEnableSettingsReset.Checked = false;
             btnResetSettings.Enabled = false;
         }
+
+        private void btnUserScript_Click(object sender, EventArgs e) {
+
+        }
     }
 }
