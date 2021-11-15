@@ -4,8 +4,8 @@ using System.Runtime.InteropServices;
 namespace YChanEx {
     public class Win32 {
 
-        public const int WM_COPYDATA = 0xDEAD;  // Tee
-        public const int WM_SHOWFORM = 0xBABE;  // Hee
+        public const int WM_COPYDATA = 0x004A;
+        public const int WM_SHOWFORM = 0x0040;
 
         public struct CopyDataStruct : IDisposable {
             public IntPtr dwData;
