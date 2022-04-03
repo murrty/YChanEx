@@ -1,11 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace YChanEx {
+
+    /// <summary>
+    /// Enumeration of file download status, that determines the current state of the file.
+    /// </summary>
+    public enum FileDownloadStatus {
+        /// <summary>
+        /// No attempt to download the file has occurred yet.
+        /// <para>A download attempt will occur.</para>
+        /// </summary>
+        Undownloaded,
+        /// <summary>
+        /// The file successfully downloaded.
+        /// <para>No download attempt will occur for this file again.</para>
+        /// </summary>
+        Downloaded,
+        /// <summary>
+        /// The file was given a 404, and is assumed to be deleted.
+        /// <para>No download attempt will occur for this file again.</para>
+        /// </summary>
+        Error404,
+        /// <summary>
+        /// The file was not able to be downloaded.
+        /// <para>A download attempt will occur.</para>
+        /// </summary>
+        Error
+    }
 
     /// <summary>
     /// Skeleton of thread downloads, used as a maintainer of thread information such as thread URL, ID, board, status.
@@ -17,7 +40,7 @@ namespace YChanEx {
         /// The chan type that will be parsed.
         /// <seealso cref="ThreadStatus"/>
         /// </summary>
-        public ChanType Chan = ChanType.None;
+        public ChanType Chan = ChanType.Unsupported;
         /// <summary>
         /// The URL of the thread that will be downloaded.
         /// </summary>
@@ -42,54 +65,58 @@ namespace YChanEx {
         /// <summary>
         /// The list of post IDs that have been parsed.
         /// </summary>
-        public List<string> ParsedPostIDs = new List<string>();
+        public List<string> ParsedPostIDs = new();
         /// <summary>
         /// The list of file IDs displayed on the form.
         /// </summary>
-        public List<string> FileIDs = new List<string>();
+        public List<string> FileIDs = new();
         /// <summary>
         /// Contains the post ID of the image. Used for tracking the post in the parsed posts list.
         /// </summary>
-        public List<string> ImagePostIDs = new List<string>();
+        public List<string> ImagePostIDs = new();
         /// <summary>
         /// The list of file extensions displayed on the form.
         /// </summary>
-        public List<string> FileExtensions = new List<string>();
+        public List<string> FileExtensions = new();
         /// <summary>
         /// The list of original file names displayed on the form.
         /// </summary>
-        public List<string> FileOriginalNames = new List<string>();
+        public List<string> FileOriginalNames = new();
         /// <summary>
         /// The list of File Hashes displayed on the form.
         /// </summary>
-        public List<string> FileHashes = new List<string>();
+        public List<string> FileHashes = new();
 
         /// <summary>
         /// The list of image files that will be downloaded.
         /// </summary>
-        public List<string> ImageFiles = new List<string>();
+        public List<string> ImageFiles = new();
         /// <summary>
         /// The list of thumbnail files that will be downloaded.
         /// </summary>
-        public List<string> ThumbnailFiles = new List<string>();
+        public List<string> ThumbnailFiles = new();
         /// <summary>
         /// The list of file names that will be set to the file that gets downloaded.
         /// </summary>
-        public List<string> FileNames = new List<string>();
+        public List<string> FileNames = new();
         /// <summary>
         /// The list of thumbnail file names that will be set to the file that gets downloaded.
         /// </summary>
-        public List<string> ThumbnailNames = new List<string>();
+        public List<string> ThumbnailNames = new();
         /// <summary>
         /// The list of files that are duplicated in a thread.
         /// <para>If a file exists with the name, it'll be added here.</para>
         /// </summary>
-        public List<string> FileNamesDupes = new List<string>();
+        public List<string> FileNamesDupes = new();
         /// <summary>
         /// The list of the count of duped files.
         /// <para>If a file exists with the name, the amount that appears will be added here.</para>
         /// </summary>
-        public List<int> FileNamesDupesCount = new List<int>();
+        public List<int> FileNamesDupesCount = new();
+        /// <summary>
+        /// The list of the <see cref="FileDownloadStatus"/> of the file.
+        /// </summary>
+        public List<FileDownloadStatus> FileStatus = new();
 
         /// <summary>
         /// Counts the images in the thread when they were added.
@@ -152,7 +179,7 @@ namespace YChanEx {
         /// <para>Uses "If-Modified-Since" header on HttpWebRequests to prevent overload.</para>
         /// <para>All download logic includes this, but only a few actually make use of it.</para>
         /// </summary>
-        public DateTime LastModified = default(DateTime);
+        public DateTime LastModified = default;
         /// <summary>
         /// The HTML source of the thread that has been scanned.
         /// <para>This is used on the threads that do not make use of LastModified by comparing old HTML to new HTML.</para>
@@ -175,32 +202,44 @@ namespace YChanEx {
         /// </summary>
         public string BoardName = null;
         /// <summary>
-        /// Determines if the board name has been retrieved.
+        /// Determines if the board name has been retrieved, either from HTML or  <seealso cref="BoardTitles"/>.
         /// <para>Prevents unneccessary parsing.</para>
         /// </summary>
         public bool RetrievedBoardName = false;
         /// <summary>
-        /// The name of the thread, given by OP.
+        /// The name of the thread, given by OP of the Thread.
         /// <para>Used for easier thread identification.</para>
         /// </summary>
         public string ThreadName = null;
         /// <summary>
-        /// Determines if the thread name has been retrieved.
+        /// Determines if the thread name has been retrieved from the current thread, either through API or HTML parsing.
         /// <para>Used for easier thread identification.</para>
         /// </summary>
         public bool RetrievedThreadName = false;
         /// <summary>
-        /// Determines if a custom name was set.
+        /// Determines if a custom name was set for the thread.
         /// </summary>
         public bool SetCustomName = false;
         /// <summary>
-        /// The user-set custom name.
+        /// The user-set name for the thread. Only appears in the main form listview, and the thread form text.
         /// </summary>
         public string CustomName = null;
         /// <summary>
-        /// Determines if the thread name was integrated into the HTML.
+        /// Determines if the thread name was set into the HTML that will be saved.
         /// </summary>
-        public bool HtmlTheadNameSet = false;
+        public bool HtmlThreadNameSet = false;
+
+        public ThreadInfo(SavedThreadInfo SavedInfo, ChanType NewType) {
+            Chan = NewType;
+            ThreadURL = SavedInfo.ThreadURL;
+            RetrievedThreadName = SavedInfo.RetrievedThreadName;
+            ThreadName = SavedInfo.ThreadName;
+            SetCustomName = SavedInfo.SetCustomName;
+            CustomName = SavedInfo.CustomName;
+            OverallStatus = ThreadStatus.ThreadIsAlive;
+        }
+
+        public ThreadInfo() { }
 
     }
 
@@ -284,4 +323,5 @@ namespace YChanEx {
         /// </summary>
         public string PostOutputFileName = null;
     }
+
 }

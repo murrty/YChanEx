@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
@@ -132,7 +133,7 @@ namespace YChanEx {
         /// <summary>
         /// No chan was selected to download.
         /// </summary>
-        None = -1,
+        Unsupported = -1,
         /// <summary>
         /// 4chan(nel) was selected to download.
         /// </summary>
@@ -165,41 +166,24 @@ namespace YChanEx {
     #endregion
 
     class Networking {
-        public static readonly string[] InvalidFileCharacters = new string[] { "\\", "/", ":", "*", "?", "\"", "<", ">", "|" };
-        public static readonly string EmptyXML = "<root type=\"array\"></root>";
 
         public static string GetJsonToXml(string InputURL, DateTime ModifiedSince = default) {
             try {
-                string JSONOutput = null;
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(InputURL);
-                Request.UserAgent = YChanEx.Advanced.Default.UserAgent;
+                Request.UserAgent = Config.Settings.Advanced.UserAgent;
                 Request.Method = "GET";
-
-                if (ModifiedSince != default(DateTime)) {
+                if (ModifiedSince != default) {
                     Request.IfModifiedSince = ModifiedSince;
                 }
+                using HttpWebResponse Response = (HttpWebResponse)Request.GetResponse();
+                using Stream ResponseStream = Response.GetResponseStream();
+                using StreamReader Reader = new(ResponseStream);
+                string JSONString = Reader.ReadToEnd();
 
-                using (var Response = (HttpWebResponse)Request.GetResponse())
-                using (var ResponseStream = Response.GetResponseStream())
-                using (var Reader = new StreamReader(ResponseStream)) {
-                    string JSONString = Reader.ReadToEnd();
-                    byte[] JSONBytes = Encoding.ASCII.GetBytes(JSONString);
-                    using (var MemoryStream = new MemoryStream(JSONBytes)) {
-                        var Quotas = new XmlDictionaryReaderQuotas();
-                        var JSONReader = JsonReaderWriterFactory.CreateJsonReader(MemoryStream, Quotas);
-                        var XMLJSON = XDocument.Load(JSONReader);
-                        JSONOutput = XMLJSON.ToString();
-                    }
-                }
-
+                ApiHandler.ConvertJsonToXml(JSONString, out string JSONOutput);
                 GC.Collect();
-
-                if (JSONOutput != null && JSONOutput != EmptyXML) {
-                    return JSONOutput;
-                }
-
-                return null;
+                return JSONOutput;
             }
             catch (WebException) {
                 throw;
@@ -209,64 +193,33 @@ namespace YChanEx {
             }
         }
 
-        public static bool DownloadFile(string FileURL, string Destination, string FileName) {
+        public static bool DownloadFile(Uri FileURL, string Destination, string FileName, string RequiredCookie = null) {
             try {
                 if (!Directory.Exists(Destination)) {
                     Directory.CreateDirectory(Destination);
                 }
-                using (WebClientExtended wc = new WebClientExtended()) {
-                    wc.Method = "GET";
-                    wc.Headers.Add(HttpRequestHeader.UserAgent, YChanEx.Advanced.Default.UserAgent);
-
-                    string FullFileName = Destination + "\\" + FileName;
-
-                    if (FullFileName.Length > 255 && !Downloads.Default.AllowFileNamesGreaterThan255) {
-                        string FileExtension = FileName.Split('.')[FileName.Split('.').Length - 1];
-                        string OldFileName = FileName;
-                        FileName = FullFileName.Substring(0, (255 - FileExtension.Length - 1));
-                        File.WriteAllText(Destination + "\\" + FileName + ".txt", OldFileName);
-
-                        FullFileName = Destination + "\\" + FileName;
-                    }
-
-                    if (!File.Exists(FullFileName)) {
-                        wc.DownloadFile(FileURL, FullFileName);
-                    }
+                using murrty.classcontrols.ExtendedWebClient wc = new();
+                wc.Method = murrty.classcontrols.HttpMethod.GET;
+                wc.UserAgent = Config.Settings.Advanced.UserAgent;
+                if (RequiredCookie != null) {
+                    wc.AddCookie(RequiredCookie.Split('=')[0], RequiredCookie[(RequiredCookie.IndexOf('=') + 1)..], FileURL.Host);
                 }
 
-                return true;
-            }
-            catch (WebException) {
-                throw;
-            }
-            catch (Exception) {
-                throw;
-            }
-        }
-        public static bool DownloadFile(string FileURL, string Destination, string FileName, string RequiredCookie) {
-            try {
-                if (!Directory.Exists(Destination)) {
-                    Directory.CreateDirectory(Destination);
+                string FullFileName = Destination + "\\" + FileName;
+
+                if (FullFileName.Length > 255 && !Config.Settings.Downloads.AllowFileNamesGreaterThan255) {
+                    string FileExtension = FileName.Split('.')[^1];
+                    string OldFileName = FileName;
+                    FileName = FullFileName[..(255 - FileExtension.Length - 1)];
+                    File.WriteAllText(Destination + "\\" + FileName + ".txt", OldFileName);
+
+                    FullFileName = Destination + "\\" + FileName;
                 }
-                using (WebClientExtended wc = new WebClientExtended()) {
-                    wc.Method = "GET";
-                    wc.Headers.Add(HttpRequestHeader.UserAgent, YChanEx.Advanced.Default.UserAgent);
-                    wc.Headers.Add(HttpRequestHeader.Cookie, RequiredCookie);
-                    string FullFileName = Destination + "\\" + FileName;
 
-                    if (FullFileName.Length > 255 && !Downloads.Default.AllowFileNamesGreaterThan255) {
-                        string FileExtension = FileName.Split('.')[FileName.Split('.').Length - 1];
-                        string OldFileName = FileName;
-                        FileName = FullFileName.Substring(0, (255 - FileExtension.Length - 1));
-                        File.WriteAllText(Destination + "\\" + FileName + ".txt", OldFileName);
-
-                        FullFileName = Destination + "\\" + FileName;
-                    }
-
-                    if (!File.Exists(FullFileName)) {
-                        wc.DownloadFile(FileURL, FullFileName);
-                    }
+                if (!File.Exists(FullFileName)) {
+                    wc.DownloadFile(FileURL, FullFileName);
                 }
+
 
                 return true;
             }
@@ -279,46 +232,198 @@ namespace YChanEx {
         }
 
         public static string GetAPILink(ChanType Type) {
-            switch (Type) {
-                case ChanType.FourChan:
-                    return "https://a.4cdn.org/{0}/thread/{1}.json";
-                case ChanType.FourTwentyChan:
-                    return "https://api.420chan.org/{0}/res/{1}.json";
-                case ChanType.EightChan:
-                    return "https://8chan.moe/{0}/res/{1}.json";
-                case ChanType.EightKun:
-                    return "https://8kun.top/{0}/res/{1}.json";
-            }
-            return null;
+            return Type switch {
+                ChanType.FourChan => "https://a.4cdn.org/{0}/thread/{1}.json",
+                ChanType.FourTwentyChan => "https://api.420chan.org/{0}/res/{1}.json",
+                ChanType.EightChan => "https://8chan.moe/{0}/res/{1}.json",
+                ChanType.EightKun => "https://8kun.top/{0}/res/{1}.json",
+                _ => null
+            };
         }
+
         public static string CleanURL(string URL) {
             string NewURL = string.Empty;
             if (URL.StartsWith("http://")) {
-                NewURL = "https://" + URL.Substring(7, URL.Length - 7);
+                NewURL = "https://" + URL[7..];
             }
             if (NewURL.StartsWith("https://www.")) {
-                NewURL = "https://" + NewURL.Substring(12, NewURL.Length - 12);
+                NewURL = "https://" + NewURL[12..];
             }
             return NewURL;
         }
+
     }
 
+    /// <summary>
+    /// Contains usability methods to handle API things.
+    /// </summary>
+    class ApiHandler {
+
+        public const string EmptyXML = "<root type=\"array\"></root>";
+
+        public static bool ConvertJsonToXml(string Json, out string Xml) {
+            try {
+                Xml = null;
+                using MemoryStream MemoryStream = new(Encoding.ASCII.GetBytes(Json));
+                Xml = XDocument.Load(JsonReaderWriterFactory.CreateJsonReader(MemoryStream, new())).ToString();
+                MemoryStream.Flush();
+                MemoryStream.Dispose();
+                return Xml != EmptyXML && !string.IsNullOrWhiteSpace(Xml);
+            }
+            catch { throw; }
+        }
+
+        public static string CleanURL(string URL) {
+            if (URL.StartsWith("http://")) {
+                URL = URL[7..];
+            }
+            if (URL.StartsWith("www.")) {
+                URL = URL[4..];
+            }
+            if (URL.StartsWith("fchan.us")) {
+                URL = "http://" + URL;
+            }
+            else {
+                if (!URL.StartsWith("https://")) {
+                    URL = "https://" + URL;
+                }
+            }
+            return URL;
+        }
+    }
+
+    /// <summary>
+    /// Contains usability methods governing local files.
+    /// </summary>
+    class FileHandler {
+
+        /// <summary>
+        /// The Dictionary of illegal file name characters.
+        /// </summary>
+        private static readonly Dictionary<string, string> IllegalCharacters = new() {
+            { "\\", "_" },
+            { "/",  "_" },
+            { ":",  "_" },
+            { "*",  "_" },
+            { "?",  "_" },
+            { "\"", "_" },
+            { "<",  "_" },
+            { ">",  "_" },
+            { "|",  "_" }
+        };
+
+        /// <summary>
+        /// Replaces the illegal file name characters in a string.
+        /// </summary>
+        /// <param name="Input">The string to replace bad characters.</param>
+        /// <returns>The string with the illegal characters filtered out.</returns>
+        public static string ReplaceIllegalCharacters(string Input) {
+            return IllegalCharacters.Aggregate(Input, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
+        }
+
+        /// <summary>
+        /// Replaces the illegal file name characters in a string.
+        /// </summary>
+        /// <param name="Input">The string to replace bad characters.</param>
+        /// <param name="ReplacementCharacter">The <see cref="string"/> replacement character to replace it with.</param>
+        /// <returns>The string with the illegal characters filtered out.</returns>
+        public static string ReplaceIllegalCharacters(string Input, string ReplacementCharacter) {
+            return IllegalCharacters.Aggregate(Input, (current, replacement) => current.Replace(replacement.Key, ReplacementCharacter));
+        }
+
+        /// <summary>
+        /// Return the name of the file, and the extension of the file.
+        /// </summary>
+        /// <param name="Input">The <see cref="string"/> input to parse.</param>
+        /// <param name="FileName">The <see cref="string"/> output name of the file.</param>
+        /// <param name="FileExt">The <see cref="string"/> output extension of the file.</param>
+        /// <returns>If <paramref name="Input"/> was parsed properly. True regardless, because there's no reason not to.</returns>
+        public static bool StripFileNameAndExtension(string Input, out string FileName, out string FileExt) {
+            try {
+                while (Input.Contains("\\")) Input = Input[(Input.IndexOf("\\") + 1)..];
+                FileName = Input[..Input.IndexOf(".")];
+                if (Input.Contains(".")) FileExt = Input.Split('.')[^1];
+                else FileExt = string.Empty;
+                return true;
+            }
+            catch { throw; }
+        }
+
+        /// <summary>
+        /// Generates a short 64-char thread name for the title and main form for easier identification.
+        /// </summary>
+        /// <param name="Subtitle">The subtitle of the post, IE the main thing about it. Optional.</param>
+        /// <param name="Comment">The main post text, containing the message in the post.</param>
+        /// <param name="FallbackName">The fallback name that will be used if the new name isn't a usable name.</param>
+        /// <returns>If either the subtitle or comment contain text, returns them either grouped or solo; otherwise, the thread ID.</returns>
+        public static string GetShortThreadName(string Subtitle, string Comment, string FallbackName) {
+            string NewName = string.Empty;
+
+            if (string.IsNullOrEmpty(FallbackName)) {
+                FallbackName = "No fallback name";
+            }
+
+            if (Subtitle is not null) {
+                NewName = Subtitle = Subtitle.Trim();
+            }
+
+            if (Comment is not null) {
+                NewName += (Subtitle is not null && Subtitle.Length > 0 && Comment.Length > 0 ? " - " : "") + Comment.Trim();
+            }
+
+            if (NewName.Length > 0) {
+                NewName = NewName
+                    .Replace("<br><br>", " ") // New lines
+                    .Replace("<br>", " ")
+                    .Replace("<wbr>", "") // Weird inserts between URLs
+                    .Replace("<span class=\"quote\">", "") // >implying text xd
+                    .Replace("</span>", "") // close of >implying text xd
+                    //.Replace("&gt;", ">")  // These are fixed by WebUtility.HtmlDecode.
+                    //.Replace("&lt;", "<")  // But I'm keeping them commented.
+                    //.Replace("&amp;", "&") // Just in case.
+                    .Replace("</a>", "") // the end of any quote-link urls.
+                    .Trim(); // Cleans up any trailing spaces, new-line and the windows \n, too.
+
+                NewName = Regex.Replace(NewName, "<a href=\\\"(.*?)\\\" class=\\\"quotelink\\\">", "");
+                NewName = WebUtility.HtmlDecode(NewName);
+
+                if (NewName.Length > 64) {
+                    NewName = NewName[..64];
+                }
+
+                NewName = NewName.Trim();
+            }
+
+            return NewName.Length > 0 ? NewName : FallbackName;
+        }
+
+    }
+
+    /// <summary>
+    /// Contains usability methods governing the application events.
+    /// </summary>
     class ProgramSettings {
-        public static List<int> GetColumnSizes(string[] ColumnSizesString) {
-            List<int> Sizes = new List<int>();
-            for (int i = 0; i < ColumnSizesString.Length; i++) {
-                Sizes.Add(int.Parse(ColumnSizesString[i]));
+
+        public static List<int> GetColumnSizes(string ColumnSizesString) {
+            string[] KnownSizes =
+                ColumnSizesString.Contains('|') ? ColumnSizesString.Split('|') : (ColumnSizesString.Contains(',') ? ColumnSizesString.Split(',') : new string[] { });
+            List<int> Sizes = new();
+            if (KnownSizes.Length == 4) {
+                for (int i = 0; i < 4; i++) {
+                    if (int.TryParse(KnownSizes[i], out int Size)) {
+                        Sizes.Add(Size);
+                    }
+                }
             }
             return Sizes;
         }
 
-        public static string GetColumnSizes(int Column, int Column2, int Column3, int Column4) {
-            return Column + "|" + Column2 + "|" + Column3 + "|" + Column4;
-        }
+        public static string GetColumnSizes(int Column, int Column2, int Column3, int Column4) =>
+            Column + "," + Column2 + "," + Column3 + "," + Column4;
 
         public static bool SaveThreads(List<ThreadInfo> ThreadInfo){
             try {
-                XmlDocument doc = new XmlDocument();
+                XmlDocument doc = new();
                 XmlDeclaration xmlDec = doc.CreateXmlDeclaration("1.0", "UTF-8", null);
                 XmlElement xmlRoot = doc.DocumentElement;
                 doc.InsertBefore(xmlDec, xmlRoot);
@@ -408,22 +513,24 @@ namespace YChanEx {
                     }
                 }
 
-                doc.Save(Program.ApplicationFilesLocation + "\\threads.xml");
+                if (!Directory.Exists(Path.GetDirectoryName(Config.Settings.SavedThreadsPath)))
+                    Directory.CreateDirectory(Path.GetDirectoryName(Config.Settings.SavedThreadsPath));
+
+                doc.Save(Config.Settings.SavedThreadsPath);
                 return true;
             }
-            catch (Exception) {
-                throw;
-            }
+            catch { throw; }
         }
+
         public static List<SavedThreadInfo> LoadThreads() {
-            if (File.Exists(Program.ApplicationFilesLocation + "\\threads.xml")) {
-                List<SavedThreadInfo> Threads = new List<SavedThreadInfo>();
-                XmlDocument xmlDoc = new XmlDocument();
-                xmlDoc.LoadXml(File.ReadAllText(Program.ApplicationFilesLocation + "\\threads.xml"));
+            if (File.Exists(Config.Settings.SavedThreadsPath)) {
+                List<SavedThreadInfo> Threads = new();
+                XmlDocument xmlDoc = new();
+                xmlDoc.LoadXml(File.ReadAllText(Config.Settings.SavedThreadsPath));
                 XmlNodeList xmlThreads = xmlDoc.DocumentElement.SelectNodes("/body/thread");
 
                 for (int i = 0; i < xmlThreads.Count; i++) {
-                    SavedThreadInfo CurrentThread = new SavedThreadInfo();
+                    SavedThreadInfo CurrentThread = new();
                     XmlNodeList xmlURLs = xmlThreads[i].SelectNodes("url");
                     XmlNodeList xmlOverallStatus = xmlThreads[i].SelectNodes("overallstatus");
                     XmlNodeList xmlGotThreadName = xmlThreads[i].SelectNodes("gotthreadname");
@@ -437,7 +544,7 @@ namespace YChanEx {
                         case "true":
                             CurrentThread.RetrievedThreadName = true;
                             if (xmlThreadName.Count > 0) {
-                                CurrentThread.ThreadName = xmlThreadName[0].InnerText;
+                                CurrentThread.ThreadName = WebUtility.HtmlDecode(xmlThreadName[0].InnerText);
                             }
                             else {
                                 CurrentThread.ThreadName = string.Empty;
@@ -464,6 +571,7 @@ namespace YChanEx {
             }
             else return null;
         }
+
     }
 
     /// <summary>
@@ -471,699 +579,523 @@ namespace YChanEx {
     /// Most backend is here, except for individual chan apis and parsing.
     /// </summary>
     class Chans {
-        public static bool SupportedChan(string URL) {
-            Regex Matcher = new Regex(ChanRegex.FourChanURL);
+
+        /// <summary>
+        /// Class containing default regular expression patterns that was last known to work.
+        /// </summary>
+        internal class DefaultRegex {
+            public const string FourChanURL =
+                "(boards.)?4chan(nel)?.org\\/[a-zA-Z0-9]*?\\/thread[0-9]*";
+
+            public const string FourTwentyChanURL =
+                "boards.420chan.org\\/[a-zA-Z0-9]*?\\/thread/[0-9]*";
+
+            public const string SevenChanURL =
+                "7chan.org\\/[a-zA-Z0-9]*?\\/res\\/[0-9]*.[^0-9]*";
+
+            public const string SevenChanPosts =
+                "(?<=<a target=\"_blank\" href=\").*?( class=\"thumb\")";
+
+            public const string SevenChanHtmlMonkeyPosts =
+                "div[class:=\"post\"][id:=\"^([0-9]+)\"]";
+
+            public const string EightChanURL =
+                "8chan[.moe|.se|.cc]+\\/[a-zA-Z0-9]*?\\/res\\/[0-9]*.[^0-9]*";
+
+            public const string EightKunURL =
+                "8kun.top\\/[a-zA-Z0-9]*?\\/res\\/[0-9]*.[^0-9]*";
+
+            public const string fchanURL =
+                "fchan.us\\/[a-zA-Z0-9]*?\\/res\\/[0-9]*.[^0-9]*";
+
+            public const string fchanFiles =
+                "(?<=File: <a target=\"_blank\" href=\").*?(?=</a>)";
+
+            public const string fchanIDs =
+                "(?=<img id=\"img).*?(\" src=\")";
+
+            public const string u18chanURL =
+                "u18chan.com\\/(.*?)[a-zA-Z0-9]*?\\/topic\\/[0-9]*";
+
+            public const string u18chanPosts =
+                "(?<=a href=\").*?(_image\" style=\"width: )";
+        }
+
+        /// <summary>
+        /// Whether the input <paramref name="URL"/> is supported by the program, with <paramref name="Type"/> as the output <see cref="ChanType"/> if true.
+        /// </summary>
+        /// <param name="URL">The URL to the thread that is requested to be parsed.</param>
+        /// <param name="Type">The out-ChanType chan of the url.</param>
+        /// <returns></returns>
+        public static bool SupportedChan(string URL, out ChanType Type) {
+            Regex Matcher = new(string.IsNullOrWhiteSpace(Config.Settings.Regex.FourChanURL) ? DefaultRegex.FourChanURL : Config.Settings.Regex.FourChanURL);
             if (Matcher.IsMatch(URL)) {
+                Type = ChanType.FourChan;
                 return true;
             }
 
-            Matcher = new Regex(ChanRegex.FourTwentyChanURL);
+            Matcher = new Regex(string.IsNullOrWhiteSpace(Config.Settings.Regex.FourTwentyChanURL) ? DefaultRegex.FourTwentyChanURL : Config.Settings.Regex.FourTwentyChanURL);
             if (Matcher.IsMatch(URL)) {
+                Type = ChanType.FourTwentyChan;
                 return true;
             }
 
-            Matcher = new Regex(ChanRegex.SevenChanURL);
+            Matcher = new Regex(string.IsNullOrWhiteSpace(Config.Settings.Regex.SevenChanURL) ? DefaultRegex.SevenChanURL : Config.Settings.Regex.SevenChanURL);
             if (Matcher.IsMatch(URL)) {
+                Type = ChanType.SevenChan;
                 return true;
             }
 
-            Matcher = new Regex(ChanRegex.EightChanURL);
+            Matcher = new Regex(string.IsNullOrWhiteSpace(Config.Settings.Regex.EightChanURL) ? DefaultRegex.EightChanURL : Config.Settings.Regex.EightChanURL);
             if (Matcher.IsMatch(URL)) {
+                Type = ChanType.EightChan;
                 return true;
             }
 
-            Matcher = new Regex(ChanRegex.EightKunURL);
+            Matcher = new Regex(string.IsNullOrWhiteSpace(Config.Settings.Regex.EightKunURL) ? DefaultRegex.EightKunURL : Config.Settings.Regex.EightKunURL);
             if (Matcher.IsMatch(URL)) {
+                Type = ChanType.EightKun;
                 return true;
             }
 
-            Matcher = new Regex(ChanRegex.fchanURL);
+            Matcher = new Regex(string.IsNullOrWhiteSpace(Config.Settings.Regex.fchanURL) ? DefaultRegex.fchanURL : Config.Settings.Regex.fchanURL);
             if (Matcher.IsMatch(URL)) {
+                Type = ChanType.fchan;
                 return true;
             }
 
-            Matcher = new Regex(ChanRegex.u18chanURL);
+            Matcher = new Regex(string.IsNullOrWhiteSpace(Config.Settings.Regex.u18chanURL) ? DefaultRegex.u18chanURL : Config.Settings.Regex.u18chanURL);
             if (Matcher.IsMatch(URL)) {
+                Type = ChanType.u18chan;
                 return true;
             }
 
+            Type = ChanType.Unsupported;
             return false;
         }
-        public static ChanType GetChanType(string URL) {
-            Regex Matcher = new Regex(ChanRegex.FourChanURL);
-            if (Matcher.IsMatch(URL)) {
-                return ChanType.FourChan;
-            }
 
-            Matcher = new Regex(ChanRegex.FourTwentyChanURL);
-            if (Matcher.IsMatch(URL)) {
-                return ChanType.FourTwentyChan;
-            }
+        /// <summary>
+        /// Gets the board subtitle. Usually a disclaimer.
+        /// </summary>
+        /// <param name="Chan"></param>
+        /// <param name="Board"></param>
+        /// <returns></returns>
+        public static string GetBoardSubtitle(ChanType Chan, string Board) {
+            return Chan switch {
 
-            Matcher = new Regex(ChanRegex.SevenChanURL);
-            if (Matcher.IsMatch(URL)) {
-                return ChanType.SevenChan;
-            }
+                ChanType.FourChan => Board.ToLower() switch {
+                    "trash" or
+                    "b" => "The stories and information posted here are artistic works of fiction and falsehood.<br>Only a fool would take anything posted here as fact.",
+                    
+                    _ => "The content archived here is not owned or endorsed by 4chan or YChanEx.",
+                },
 
-            Matcher = new Regex(ChanRegex.EightChanURL);
-            if (Matcher.IsMatch(URL)) {
-                return ChanType.EightChan;
-            }
+                ChanType.FourTwentyChan => "The content archived here is not owned or endorsed by 420chan or YChanEx.",
 
-            Matcher = new Regex(ChanRegex.EightKunURL);
-            if (Matcher.IsMatch(URL)) {
-                return ChanType.EightKun;
-            }
+                ChanType.SevenChan => "The content archived here is not owned or endorsed by 7chan or YChanEx.",
 
-            Matcher = new Regex(ChanRegex.fchanURL);
-            if (Matcher.IsMatch(URL)) {
-                return ChanType.fchan;
-            }
+                ChanType.EightChan => "The content archived here is not owned or endorsed by 8chan or YChanEx.",
 
-            Matcher = new Regex(ChanRegex.u18chanURL);
-            if (Matcher.IsMatch(URL)) {
-                return ChanType.u18chan;
-            }
+                ChanType.EightKun => "The content archived here is not owned or endorsed by 8kun or YChanEx.",
 
-            return ChanType.None;
+                ChanType.fchan => "The content archived here is not owned or endorsed by fchan or YChanEx.",
+
+                ChanType.u18chan => "The content archived here is not owned or endorsed by u18chan or YChanEx.",
+
+                _ => string.Empty,
+            };
         }
-    }
 
-    /// <summary>
-    /// The strings for all board titles in chans.
-    /// </summary>
-    class BoardTitles {
-        public static string FourChan(string Board, bool OverrideRequirement = false) {
-            if (General.Default.UseFullBoardNameForTitle || OverrideRequirement) {
-                switch (Board.ToLower()) {
-                    #region Japanese Culture
-                    case "a":
-                        return "Anime & Manga";
-                    case "c":
-                        return "Anime/Cute";
-                    case "w":
-                        return "Anime/Wallpapers";
-                    case "m":
-                        return "Mecha";
-                    case "cgl":
-                        return "Cosplay & EGL";
-                    case "cm":
-                        return "Cute/Male";
-                    case "f":
-                        return "Flash";
-                    case "n":
-                        return "Transportation";
-                    case "jp":
-                        return "Otaku Culture";
-                    #endregion
-
-                    #region Video Games
-                    case "v":
-                        return "Video Games";
-                    case "vrpg":
-                        return "Video Games/RPG";
-                    case "vmg":
-                        return "Video Games/Mobile";
-                    case "vst":
-                        return "Video Games/Strategy";
-                    case "vm":
-                        return "Video Games/Multiplayer";
-                    case "vg":
-                        return "Video Game Generals";
-                    case "vp":
-                        return "Pokémon";
-                    case "vr":
-                        return "Retro Games";
-                    #endregion
-
-                    #region Interests
-                    case "co":
-                        return "Comics & Cartoons";
-                    case "g":
-                        return "Technology";
-                    case "tv":
-                        return "Television & Film";
-                    case "k":
-                        return "Weapons";
-                    case "o":
-                        return "Auto";
-                    case "an":
-                        return "Animals & Nature";
-                    case "tg":
-                        return "Traditional Games";
-                    case "sp":
-                        return "Sports";
-                    case "xs":
-                        return "Extreme Sports";
-                    case "pw":
-                        return "Professional Wrestling";
-                    case "asp":
-                        return "Alternative Sports";
-                    case "sci":
-                        return "Science & Math";
-                    case "his":
-                        return "History & Humanities";
-                    case "int":
-                        return "International";
-                    case "out":
-                        return "Outdoors";
-                    case "toy":
-                        return "Toys";
-
-                    #endregion
-
-                    #region Creative
-                    case "i":
-                        return "Oekaki";
-                    case "po":
-                        return "Papercraft & Origami";
-                    case "p":
-                        return "Photography";
-                    case "ck":
-                        return "Food & Cooking";
-                    case "ic":
-                        return "Artwork/Critique";
-                    case "wg":
-                        return "Wallpapers/General";
-                    case "lit":
-                        return "Literature";
-                    case "mu":
-                        return "Music";
-                    case "fa":
-                        return "Fashion";
-                    case "3":
-                        return "3DCG";
-                    case "gd":
-                        return "Graphic Design";
-                    case "diy":
-                        return "Do It Yourself";
-                    case "wsg":
-                        return "Worksafe GIF";
-                    case "qst":
-                        return "Quests";
-                    #endregion
-
-                    #region Other
-                    case "biz":
-                        return "Business & Finance";
-                    case "trv":
-                        return "Travel";
-                    case "fit":
-                        return "Fitness";
-                    case "x":
-                        return "Paranormal";
-                    case "adv":
-                        return "Advice";
-                    case "lgbt":
-                        return "Lesbian, Gay, Bisexual, & Transgender";
-                    case "mlp":
-                        return "My Little Pony"; // disgusting.
-                    case "news":
-                        return "Current News";
-                    case "wsr":
-                        return "Worksafe Requests";
-                    case "vip":
-                        return "Very Important Posts";
-                    #endregion
-
-                    #region Misc
-                    case "b":
-                        return "Random";
-                    case "r9k":
-                        return "ROBOT9001";
-                    case "pol":
-                        return "Politically Incorrect";
-                    case "bant":
-                        return "International/Random";
-                    case "soc":
-                        return "Cams & Meetups";
-                    case "s4s":
-                        return "Shit 4chan Says";
-                    #endregion
-
-                    #region Adult
-                    case "s":
-                        return "Sexy Beautiful Women";
-                    case "hc":
-                        return "Hardcore";
-                    case "hm":
-                        return "Handsome Men";
-                    case "h":
-                        return "Hentai";
-                    case "e":
-                        return "Ecchi";
-                    case "u":
-                        return "Yuri";
-                    case "d":
-                        return "Hentai/Alternative";
-                    case "y":
-                        return "Yaoi";
-                    case "t":
-                        return "Torrents";
-                    case "hr":
-                        return "High Resolution";
-                    case "gif":
-                        return "Adult GIF";
-                    case "aco":
-                        return "Adult Cartoons";
-                    case "r":
-                        return "Adult Requests";
-                    #endregion
-
-                    #region Unlisted
-                    case "trash":
-                        return "Off-Topic";
-                    case "qa":
-                        return "Question & Answer";
-                    #endregion
-
-                    default:
-                        return "Unknown board";
-                }
-            }
-            else {
-                return Board;
-            }
-        }
-        public static string FourTwentyChan(string Board) {
-            if (General.Default.UseFullBoardNameForTitle) {
-                switch (Board.ToLower()) {
-                    #region Drugs
-                    case "weed":
-                        return "Cannabis Discussion";
-                    case "hooch":
-                        return "Alcohol Discussion";
-                    case "mdma":
-                        return "Ecstasy Discussion";
-                    case "psy":
-                        return "Psychedelic Discussion";
-                    case "stim":
-                        return "Stimulant Discussion";
-                    case "dis":
-                        return "Dissociative Discussion";
-                    case "opi":
-                        return "Opiate Discussion";
-                    case "vape":
-                        return "Vaping Discussion";
-                    case "tobacco":
-                        return "Tobacco Discussion";
-                    case "benz":
-                        return "Benzo Discussion";
-                    case "deli":
-                        return "Deliriant Discussion";
-                    case "other":
-                        return "Other Drugs Discussion";
-                    case "jenk":
-                        return "Jenkem Discussion";
-                    case "detox":
-                        return "Detoxing & Rehabilitation";
-                    #endregion
-
-                    #region Lifestye
-                    case "qq":
-                        return "Personal Issues";
-                    case "dr":
-                        return "Dream Discussion";
-                    case "ana":
-                        return "Fitness";
-                    case "nom":
-                        return "Food, Munchies & Cooking";
-                    case "vroom":
-                        return "Travel & Transportation";
-                    case "st":
-                        return "Style & Fashion";
-                    case "nra":
-                        return "Weapons Discussion";
-                    case "sd":
-                        return "Sexuality Discussion";
-                    case "cd":
-                        return "Transgender Discussion";
-                    #endregion
-
-                    #region Academia
-                    case "art":
-                        return "Art & Okekai";
-                    case "sagan":
-                        return "Space... the Final Frontier";
-                    case "lang":
-                        return "World Languages";
-                    case "stem":
-                        return "Science, Technology, Engineering & Mathematics";
-                    case "his":
-                        return "History Discussion";
-                    case "crops":
-                        return "Growing & Botany";
-                    case "howto":
-                        return "Guides & Tutorials";
-                    case "law":
-                        return "Law Discussion";
-                    case "lit":
-                        return "Books & Literature";
-                    case "med":
-                        return "Medicine & Health";
-                    case "pss":
-                        return "Philosophy & Social Sciences";
-                    case "tech":
-                        return "Computers & Tech Support";
-                    case "prog":
-                        return "Programming";
-                    #endregion
-
-                    #region Media
-                    case "1701":
-                        return "Star Trek Discussion";
-                    case "sport":
-                        return "Sports";
-                    case "mtv":
-                        return "Movies & Television";
-                    case "f":
-                        return "Flash";
-                    case "m":
-                        return "Music & Production";
-                    case "mma":
-                        return "Mixed Martial Arts Discussion";
-                    case "616":
-                        return "Comics & Web Comics Discussion";
-                    case "a":
-                        return "Anime & Manga Discussion";
-                    case "wooo":
-                        return "Professional Wrestling Discussion";
-                    case "n":
-                        return "World News";
-                    case "vg":
-                        return "Video Games Discussion";
-                    case "po":
-                        return "Pokémon Discussion";
-                    case "tg":
-                        return "Traditional Games";
-                    #endregion
-
-                    #region Miscellanea
-                    case "420":
-                        return "420chan Discussion & Staff Interaction";
-                    case "b":
-                        return "Random & High Stuff";
-                    case "spooky":
-                        return "Paranormal Discussion";
-                    case "dino":
-                        return "Dinosaur Discussion";
-                    case "fo":
-                        return "Post-apocalyptic";
-                    case "ani":
-                        return "Animal Discussion";
-                    case "nj":
-                        return "Netjester AI Conversation Chamber";
-                    case "nc":
-                        return "Net Characters";
-                    case "tinfoil":
-                        return "Conspiracy Theories";
-                    case "w":
-                        return "Dumb Wallpapers Below";
-                    #endregion
-
-                    #region Adult
-                    case "h":
-                        return "Hentai";
-                    #endregion
-
-                    default:
-                        return "Unknown board";
-                }
-            }
-            else {
-                return Board;
-            }
-        }
-        public static string SevenChan(string Board) {
-            if (General.Default.UseFullBoardNameForTitle) {
-                switch (Board.ToLower()) {
-                    #region 7chan & Related services
-                    case "7ch":
-                        return "Site Discussion";
-                    case "ch7":
-                        return "Channel7 & Radio 7";
-                    case "irc":
-                        return "Internet Relay Circlejerk";
-                    #endregion
-
-                    #region VIP
-                    case "777":
-                        return "gardening";
-                    case "VIP":
-                        return "Very Important Posters";
-                    case "civ":
-                        return "Civics";
-                    case "vip6":
-                        return "IPv6 for VIP";
-                    #endregion
-
-                    #region Premium Content
-                    case "b":
-                        return "Random";
-                    case "banner":
-                        return "Banners";
-                    case "f":
-                        return "Flash";
-                    case "gfc":
-                        return "Grahpics Manipulation";
-                    case "fail":
-                        return "Failure";
-                    #endregion
-
-                    #region SFW
-                    case "class":
-                        return "The Finer Things";
-                    case "co":
-                        return "Comics and Cartoons";
-                    case "eh":
-                        return "Particularly uninteresting conversation";
-                    case "fit":
-                        return "Fitness & Health";
-                    case "halp":
-                        return "Technical Support";
-                    case "jew":
-                        return "Thrifty Living";
-                    case "lit":
-                        return "Literature";
-                    case "phi":
-                        return "Philosophy";
-                    case "pr":
-                        return "Programming";
-                    case "rnb":
-                        return "Rage and Baww";
-                    case "sci":
-                        return "Science, Technology, Engineering, and Mathematics";
-                    case "tg":
-                        return "Tabletop Games";
-                    case "w":
-                        return "Weapons";
-                    case "zom":
-                        return "Zombies";
-                    #endregion
-
-                    #region General
-                    case "a":
-                        return "Anime & Manga";
-                    case "grim":
-                        return "Cold, Grim & Miserable";
-                    case "hi":
-                        return "History and Culture";
-                    case "me":
-                        return "Film, Music & Television";
-                    case "rx":
-                        return "Drugs";
-                    case "vg":
-                        return "Video Games";
-                    case "wp":
-                        return "Wallpapers";
-                    case "x":
-                        return "Paranormal & Conspiracy";
-                    #endregion
-
-                    #region Porn
-                    case "cake":
-                        return "Delicious";
-                    case "cd":
-                        return "Crossdressing";
-                    case "d":
-                        return "Alternative Hentai";
-                    case "di":
-                        return "Sexy Beautiful Traps";
-                    case "elit":
-                        return "Erotic Literature";
-                    case "fag":
-                        return "Men Discussion";
-                    case "fur":
-                        return "Furry";
-                    case "gif":
-                        return "Animated GIFs";
-                    case "h":
-                        return "Hentai";
-                    case "men":
-                        return "Sexy Beautiful Men";
-                    case "pco":
-                        return "Porn Comics";
-                    case "s":
-                        return "Sexy Beautiful Women";
-                    case "sm":
-                        return "Shotacon"; // Why shotacon but no lolicon?
-                    case "ss":
-                        return "Straight Shotacon"; // again, why shotacon but no lolicon?
-                    case "unf":
-                        return "Uniforms";
-                    case "v":
-                        return "The Vineyard";
-                    #endregion
-
-                    default:
-                        return "Unknown board";
-                }
-            }
-            else {
-                return Board;
-            }
-        }
-        public static string EightChan(string BoardOrDescription, bool IsDescription = false) {
-            if (IsDescription) {
-                return BoardOrDescription.Replace("<p id=\"labelDescription\">", "").Replace("</p>", "");
-            }
-            else {
-                //if (General.Default.UseFullBoardNameForTitle) {
-                //return BoardOrDescription.Replace("<p id=\"labelName\">", "").Replace("</p>", "").Replace("/ - ", "|").Split('|')[1];
-                //}
-                //else {
-                return BoardOrDescription;
-                //}
-            }
-        }
-        public static string EightKun(string BoardOrDescription, bool IsDescription = false) {
-            if (IsDescription) {
-                return BoardOrDescription.Replace("<div class=\"subtitle\">", "").Replace("<p>", "");
-            }
-            else {
-                if (General.Default.UseFullBoardNameForTitle) {
-                    //return BoardOrDescription.Replace("<h1>", "").Replace("</h1>", "").Replace("/ - ", "|").Split('|')[1];
-                    return BoardOrDescription;
-                }
-                else {
-                    return BoardOrDescription;
-                }
-            }
-        }
-        public static string fchan(string Board) {
-            if (General.Default.UseFullBoardNameForTitle) {
-                switch (Board.ToLower()) {
-                    #region Normal image boards
-                    case "f":
-                        return "female";
-                    case "m":
-                        return "male";
-                    case "h":
-                        return "herm";
-                    case "s":
-                        return "straight";
-                    case "toon":
-                        return "toon";
-                    case "a":
-                        return "alternative";
-                    case "ah":
-                        return "alternative (hard)";
-                    case "c":
-                        return "clean";
-                    #endregion
-
-                    #region Specialized image boards
-                    case "artist":
-                        return "artist";
-                    case "crit":
-                        return "critique";
-                    case "b":
-                        return "banners";
-                    #endregion
-
-                    default:
-                        return "Unknown board";
-                }
-            }
-            else {
-                return Board;
-            }
-        }
-        public static string u18chan(string Board) {
-            if (General.Default.UseFullBoardNameForTitle) {
-                switch (Board.ToLower()) {
-                    #region Furry Related
-                    case "fur":
-                        return "Furries";
-                    case "c":
-                        return "Furry Comics";
-                    case "gfur":
-                        return "Gay Furries";
-                    case "gc":
-                        return "Gay Furry Comics";
-                    case "i":
-                        return "Intersex";
-                    case "rs":
-                        return "Request & Source";
-                    case "a":
-                        return "Animated";
-                    case "cute":
-                        return "Cute";
-                    #endregion
-
-                    #region The Basement
-                    case "pb":
-                        return "Post Your Naked Body";
-                    case "p":
-                        return "Ponies"; // Why, honestly, WHY?
-                    case "f":
-                        return "Feral";
-                    case "cub":
-                        return "Cub";
-                    case "gore":
-                        return "Gore";
-                    #endregion
-
-                    #region General
-                    case "d":
-                        return "Discussion";
-                    case "mu":
-                        return "Music";
-                    case "w":
-                        return "Wallpapers";
-                    case "v":
-                        return "Video Games";
-                    case "lo":
-                        return "Lounge";
-                    case "tech":
-                        return "Technology";
-                    case "lit":
-                        return "Literature";
-                    #endregion
-
-                    default:
-                        return "Unknown board";
-                }
-            }
-            else {
-                return Board;
-            }
-        }
-    }
-    class BoardSubtitles {
-        public static string GetSubtitle(ChanType Chan, string Board) {
+        /// <summary>
+        /// Gets the full chan title from the board id.
+        /// </summary>
+        /// <param name="Chan">The <see cref="ChanType"/> to parse the name from.</param>
+        /// <param name="Board">The board (or extra info) to parse from.</param>
+        /// <param name="OverrideOrDescription">If it should override the settings check for HTML, or if it's obtaining the info from the description</param>
+        /// <returns>The string value of the title. If none is parse, it'll return the input board.</returns>
+        public static string GetFullBoardName(ChanType Chan, string Board, bool OverrideOrDescription = false) {
             switch (Chan) {
-                case ChanType.FourChan:
-                    switch (Board.ToLower()) {
-                        case "trash": case "b":
-                            return "The stories and information posted here are artistic works of fiction and falsehood.<br>Only a fool would take anything posted here as fact.";
 
-                        default:
-                            return string.Empty;
+                case ChanType.FourChan: {
+                    if (Config.Settings.General.UseFullBoardNameForTitle || OverrideOrDescription) {
+                        return Board.ToLower() switch {
+
+                            #region Japanese Culture
+                            "a"   => "Anime & Manga",
+                            "c"   => "Anime/Cute",
+                            "w"   => "Anime/Wallpapers",
+                            "m"   => "Mecha",
+                            "cgl" => "Cosplay & EGL",
+                            "cm"  => "Cute/Male",
+                            "f"   => "Flash",
+                            "n"   => "Transportation",
+                            "jp"  => "Otaku Culture",
+                            #endregion
+
+                            #region Video Games
+                            "v"    => "Video Games",
+                            "vrpg" => "Video Games/RPG",
+                            "vmg"  => "Video Games/Mobile",
+                            "vst"  => "Video Games/Strategy",
+                            "vm"   => "Video Games/Multiplayer",
+                            "vg"   => "Video Game Generals",
+                            "vp"   => "Pokémon",
+                            "vr"   => "Retro Games",
+                            #endregion
+
+                            #region Interests
+                            "co"  => "Comics & Cartoons",
+                            "g"   => "Technology",
+                            "tv"  => "Television & Film",
+                            "k"   => "Weapons",
+                            "o"   => "Auto",
+                            "an"  => "Animals & Nature",
+                            "tg"  => "Traditional Games",
+                            "sp"  => "Sports",
+                            "xs"  => "Extreme Sports",
+                            "pw"  => "Professional Wrestling",
+                            "asp" => "Alternative Sports",
+                            "sci" => "Science & Math",
+                            "his" => "History & Humanities",
+                            "int" => "International",
+                            "out" => "Outdoors",
+                            "toy" => "Toys",
+
+                            #endregion
+
+                            #region Creative
+                            "i"   => "Oekaki",
+                            "po"  => "Papercraft & Origami",
+                            "p"   => "Photography",
+                            "ck"  => "Food & Cooking",
+                            "ic"  => "Artwork/Critique",
+                            "wg"  => "Wallpapers/General",
+                            "lit" => "Literature",
+                            "mu"  => "Music",
+                            "fa"  => "Fashion",
+                            "3"   => "3DCG",
+                            "gd"  => "Graphic Design",
+                            "diy" => "Do It Yourself",
+                            "wsg" => "Worksafe GIF",
+                            "qst" => "Quests",
+                            #endregion
+
+                            #region Other
+                            "biz"  => "Business & Finance",
+                            "trv"  => "Travel",
+                            "fit"  => "Fitness",
+                            "x"    => "Paranormal",
+                            "adv"  => "Advice",
+                            "lgbt" => "Lesbian, Gay, Bisexual, & Transgender",
+                            "mlp"  => "My Little Pony", // disgusting.
+                            "news" => "Current News",
+                            "wsr"  => "Worksafe Requests",
+                            "vip"  => "Very Important Posts",
+                            #endregion
+
+                            #region Misc
+                            "b"    => "Random",
+                            "r9k"  => "ROBOT9001",
+                            "pol"  => "Politically Incorrect",
+                            "bant" => "International/Random",
+                            "soc"  => "Cams & Meetups",
+                            "s4s"  => "Shit 4chan Says",
+                            #endregion
+
+                            #region Adult
+                            "s"   => "Sexy Beautiful Women",
+                            "hc"  => "Hardcore",
+                            "hm"  => "Handsome Men",
+                            "h"   => "Hentai",
+                            "e"   => "Ecchi",
+                            "u"   => "Yuri",
+                            "d"   => "Hentai/Alternative",
+                            "y"   => "Yaoi",
+                            "t"   => "Torrents",
+                            "hr"  => "High Resolution",
+                            "gif" => "Adult GIF",
+                            "aco" => "Adult Cartoons",
+                            "r"   => "Adult Requests",
+                            #endregion
+
+                            #region Unlisted
+                            "trash" => "Off-Topic",
+                            "qa"    => "Question & Answer",
+                            #endregion
+
+                            _ => $"{Board} (Unknown board)"
+
+                        };
                     }
+                    else return Board;
+                }
 
-                default:
-                    return string.Empty;
+                case ChanType.FourTwentyChan: {
+                    if (Config.Settings.General.UseFullBoardNameForTitle || OverrideOrDescription) {
+                        return Board.ToLower() switch {
+
+                            #region Drugs
+                            "weed" => "Cannabis Discussion",
+                            "hooch" => "Alcohol Discussion",
+                            "mdma" => "Ecstasy Discussion",
+                            "psy" => "Psychedelic Discussion",
+                            "stim" => "Stimulant Discussion",
+                            "dis" => "Dissociative Discussion",
+                            "opi" => "Opiate Discussion",
+                            "vape" => "Vaping Discussion",
+                            "tobacco" => "Tobacco Discussion",
+                            "benz" => "Benzo Discussion",
+                            "deli" => "Deliriant Discussion",
+                            "other" => "Other Drugs Discussion",
+                            "jenk" => "Jenkem Discussion",
+                            "detox" => "Detoxing & Rehabilitation",
+                            #endregion
+
+                            #region Lifestye
+                            "qq" => "Personal Issues",
+                            "dr" => "Dream Discussion",
+                            "ana" => "Fitness",
+                            "nom" => "Food, Munchies & Cooking",
+                            "vroom" => "Travel & Transportation",
+                            "st" => "Style & Fashion",
+                            "nra" => "Weapons Discussion",
+                            "sd" => "Sexuality Discussion",
+                            "cd" => "Transgender Discussion",
+                            #endregion
+
+                            #region Academia
+                            "art" => "Art & Okekai",
+                            "sagan" => "Space... the Final Frontier",
+                            "lang" => "World Languages",
+                            "stem" => "Science, Technology, Engineering & Mathematics",
+                            "his" => "History Discussion",
+                            "crops" => "Growing & Botany",
+                            "howto" => "Guides & Tutorials",
+                            "law" => "Law Discussion",
+                            "lit" => "Books & Literature",
+                            "med" => "Medicine & Health",
+                            "pss" => "Philosophy & Social Sciences",
+                            "tech" => "Computers & Tech Support",
+                            "prog" => "Programming",
+                            #endregion
+
+                            #region Media
+                            "1701" => "Star Trek Discussion",
+                            "sport" => "Sports",
+                            "mtv" => "Movies & Television",
+                            "f" => "Flash",
+                            "m" => "Music & Production",
+                            "mma" => "Mixed Martial Arts Discussion",
+                            "616" => "Comics & Web Comics Discussion",
+                            "a" => "Anime & Manga Discussion",
+                            "wooo" => "Professional Wrestling Discussion",
+                            "n" => "World News",
+                            "vg" => "Video Games Discussion",
+                            "po" => "Pokémon Discussion",
+                            "tg" => "Traditional Games",
+                            #endregion
+
+                            #region Miscellanea
+                            "420" => "420chan Discussion & Staff Interaction",
+                            "b" => "Random & High Stuff",
+                            "spooky" => "Paranormal Discussion",
+                            "dino" => "Dinosaur Discussion",
+                            "fo" => "Post-apocalyptic",
+                            "ani" => "Animal Discussion",
+                            "nj" => "Netjester AI Conversation Chamber",
+                            "nc" => "Net Characters",
+                            "tinfoil" => "Conspiracy Theories",
+                            "w" => "Dumb Wallpapers Below",
+                            #endregion
+
+                            #region Adult
+                            "h" => "Hentai",
+                            #endregion
+
+                            _ => $"{Board} (Unknown board)"
+
+                        };
+                    }
+                    else return Board;
+                }
+
+                case ChanType.SevenChan: {
+                    if (Config.Settings.General.UseFullBoardNameForTitle || OverrideOrDescription) {
+                        return Board.ToLower() switch {
+
+                            #region 7chan & Related services
+                            "7ch" => "Site Discussion",
+                            "ch7" => "Channel7 & Radio 7",
+                            "irc" => "Internet Relay Circlejerk",
+                            #endregion
+
+                            #region VIP
+                            "777" => "gardening",
+                            "VIP" => "Very Important Posters",
+                            "civ" => "Civics",
+                            "vip6" => "IPv6 for VIP",
+                            #endregion
+
+                            #region Premium Content
+                            "b" => "Random",
+                            "banner" => "Banners",
+                            "f" => "Flash",
+                            "gfc" => "Grahpics Manipulation",
+                            "fail" => "Failure",
+                            #endregion
+
+                            #region SFW
+                            "class" => "The Finer Things",
+                            "co" => "Comics and Cartoons",
+                            "eh" => "Particularly uninteresting conversation",
+                            "fit" => "Fitness & Health",
+                            "halp" => "Technical Support",
+                            "jew" => "Thrifty Living",
+                            "lit" => "Literature",
+                            "phi" => "Philosophy",
+                            "pr" => "Programming",
+                            "rnb" => "Rage and Baww",
+                            "sci" => "Science, Technology, Engineering, and Mathematics",
+                            "tg" => "Tabletop Games",
+                            "w" => "Weapons",
+                            "zom" => "Zombies",
+                            #endregion
+
+                            #region General
+                            "a" => "Anime & Manga",
+                            "grim" => "Cold, Grim & Miserable",
+                            "hi" => "History and Culture",
+                            "me" => "Film, Music & Television",
+                            "rx" => "Drugs",
+                            "vg" => "Video Games",
+                            "wp" => "Wallpapers",
+                            "x" => "Paranormal & Conspiracy",
+                            #endregion
+
+                            #region Porn
+                            "cake" => "Delicious",
+                            "cd" => "Crossdressing",
+                            "d" => "Alternative Hentai",
+                            "di" => "Sexy Beautiful Traps",
+                            "elit" => "Erotic Literature",
+                            "fag" => "Men Discussion",
+                            "fur" => "Furry",
+                            "gif" => "Animated GIFs",
+                            "h" => "Hentai",
+                            "men" => "Sexy Beautiful Men",
+                            "pco" => "Porn Comics",
+                            "s" => "Sexy Beautiful Women",
+                            "sm" => "Shotacon",
+                            "ss" => "Straight Shotacon",
+                            "unf" => "Uniforms",
+                            "v" => "The Vineyard",
+                            #endregion
+
+                            _ => $"{Board} (Unknown board)"
+
+                        };
+                    }
+                    else return Board;
+                }
+
+                case ChanType.EightChan: {
+                    if (OverrideOrDescription) {
+                        return Board.Replace("<p id=\"labelDescription\">", "").Replace("</p>", "");
+                    }
+                    else {
+                        //if (General.Default.UseFullBoardNameForTitle) {
+                        //return BoardOrDescription.Replace("<p id=\"labelName\">", "").Replace("</p>", "").Replace("/ - ", "|").Split('|')[1];
+                        //}
+                        //else {
+                        return Board;
+                        //}
+                    }
+                }
+
+                case ChanType.EightKun: {
+                    if (OverrideOrDescription) {
+                        return Board.Replace("<div class=\"subtitle\">", "").Replace("<p>", "");
+                    }
+                    else {
+                        if (Config.Settings.General.UseFullBoardNameForTitle) {
+                            //return BoardOrDescription.Replace("<h1>", "").Replace("</h1>", "").Replace("/ - ", "|").Split('|')[1];
+                            return Board;
+                        }
+                        else {
+                            return Board;
+                        }
+                    }
+                }
+
+                case ChanType.fchan: {
+                    if (Config.Settings.General.UseFullBoardNameForTitle || OverrideOrDescription) {
+                        return Board.ToLower() switch {
+
+                            #region Normal image boards
+                            "f" => "female",
+                            "m" => "male",
+                            "h" => "herm",
+                            "s" => "straight",
+                            "toon" => "toon",
+                            "a" => "alternative",
+                            "ah" => "alternative (hard)",
+                            "c" => "clean",
+                            #endregion
+
+                            #region Specialized image boards
+                            "artist" => "artist",
+                            "crit" => "critique",
+                            "b" => "banners",
+                            #endregion
+
+                            _ => $"{Board} (Unknown board)"
+                        };
+                    }
+                    else return Board;
+                }
+
+                case ChanType.u18chan: {
+                    if (Config.Settings.General.UseFullBoardNameForTitle || OverrideOrDescription) {
+                        return Board.ToLower() switch {
+
+                            #region Furry Related
+                            "fur" => "Furries",
+                            "c" => "Furry Comics",
+                            "gfur" => "Gay Furries",
+                            "gc" => "Gay Furry Comics",
+                            "i" => "Intersex",
+                            "rs" => "Request & Source",
+                            "a" => "Animated",
+                            "cute" => "Cute",
+                            #endregion
+
+                            #region The Basement
+                            "pb" => "Post Your Naked Body",
+                            "p" => "Ponies", // Why, honestly, WHY?
+                            "f" => "Feral",
+                            "cub" => "Cub",
+                            "gore" => "Gore",
+                            #endregion
+
+                            #region General
+                            "d" => "Discussion",
+                            "mu" => "Music",
+                            "w" => "Wallpapers",
+                            "v" => "Video Games",
+                            "lo" => "Lounge",
+                            "tech" => "Technology",
+                            "lit" => "Literature",
+                            #endregion
+
+                            _ => $"{Board} (Unknown board)"
+
+                        };
+                    }
+                    else return Board;
+                }
+
+                default: return Board;
+
             }
         }
     }
@@ -1172,140 +1104,13 @@ namespace YChanEx {
     /// The Regex strings for detecting the chans.
     /// </summary>
     class ChanRegex {
-        public static class DefaultRegex {
-            public static readonly string FourChanURL =
-                "boards.4chan(nel)?.org/[a-zA-Z0-9]*?/thread[0-9]*";
-            public static readonly string FourTwentyChanURL =
-                "boards.420chan.org/[a-zA-Z0-9]*?/thread/[0-9]*";
-            public static readonly string SevenChanURL =
-                "7chan.org/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*";
-            public static readonly string SevenChanPosts =
-                "(?<=<a target=\"_blank\" href=\").*?( class=\"thumb\")";
-            public static readonly string EightChanURL =
-                "8chan.moe/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*";
-            public static readonly string EightKunURL =
-                "8kun.top/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*";
-            public static readonly string fchanURL =
-                "fchan.us/[a-zA-Z0-9]*?/res/[0-9]*.[^0-9]*";
-            public static readonly string fchanFiles =
-                "(?<=File: <a target=\"_blank\" href=\").*?(?=</a>)";
-            public static readonly string fchanIDs =
-                "(?=<img id=\"img).*?(\" src=\")";
-            public static readonly string u18chanURL =
-                "u18chan.com/(.*?)[a-zA-Z0-9]*?/topic/[0-9]*";
-            public static readonly string u18chanPosts =
-                "(?<=a href=\").*?(_image\" style=\"width: )";
-        }
-        public static string FourChanURL {
-            get {
-                if (!string.IsNullOrEmpty(RegexStrings.Default.FourChanURL)) {
-                    return RegexStrings.Default.FourChanURL;
-                }
-                else {
-                    return DefaultRegex.FourChanURL;
-                }
-            }
-        }
-        public static string FourTwentyChanURL {
-            get {
-                if (!string.IsNullOrEmpty(RegexStrings.Default.FourTwentyChanURL)) {
-                    return RegexStrings.Default.FourTwentyChanURL;
-                }
-                else {
-                    return DefaultRegex.FourTwentyChanURL;
-                }
-            }
-        }
-        public static string SevenChanURL {
-            get {
-                if (!string.IsNullOrEmpty(RegexStrings.Default.SevenChanURL)) {
-                    return RegexStrings.Default.SevenChanURL;
-                }
-                else {
-                    return DefaultRegex.SevenChanURL;
-                }
-            }
-        }
-        public static string SevenChanPosts {
-            get {
-                if (!string.IsNullOrEmpty(RegexStrings.Default.SevenChanPosts)) {
-                    return RegexStrings.Default.SevenChanPosts;
-                }
-                else {
-                    return DefaultRegex.SevenChanPosts;
-                }
-            }
-        }
-        public static string EightChanURL {
-            get {
-                if (!string.IsNullOrEmpty(RegexStrings.Default.EightChanURL)) {
-                    return RegexStrings.Default.EightChanURL;
-                }
-                else {
-                    return DefaultRegex.EightChanURL;
-                }
-            }
-        }
-        public static string EightKunURL {
-            get {
-                if (!string.IsNullOrEmpty(RegexStrings.Default.EightKunURL)) {
-                    return RegexStrings.Default.EightKunURL;
-                }
-                else {
-                    return DefaultRegex.EightKunURL;
-                }
-            }
-        }
-        public static string fchanURL {
-            get {
-                if (!string.IsNullOrEmpty(RegexStrings.Default.fchanURL)) {
-                    return RegexStrings.Default.fchanURL;
-                }
-                else {
-                    return DefaultRegex.fchanURL;
-                }
-            }
-        }
-        public static string fchanNames {
-            get {
-                if (!string.IsNullOrEmpty(RegexStrings.Default.fchanIDs)) {
-                    return RegexStrings.Default.fchanIDs;
-                }
-                else {
-                    return DefaultRegex.fchanFiles;
-                }
-            }
-        }
-        public static string fchanIDs {
-            get {
-                if (!string.IsNullOrEmpty(RegexStrings.Default.fchanIDs)) {
-                    return RegexStrings.Default.fchanIDs;
-                }
-                else {
-                    return DefaultRegex.fchanIDs;
-                }
-            }
-        }
-        public static string u18chanURL {
-            get {
-                if (!string.IsNullOrEmpty(RegexStrings.Default.u18chanURL)) {
-                    return RegexStrings.Default.u18chanURL;
-                }
-                else {
-                    return DefaultRegex.u18chanURL;
-                }
-            }
-        }
-        public static string u18chanPosts {
-            get {
-                if (!string.IsNullOrEmpty(RegexStrings.Default.u18chanPosts)) {
-                    return RegexStrings.Default.u18chanPosts;
-                }
-                else {
-                    return DefaultRegex.u18chanPosts;
-                }
-            }
-        }
+        public static string SevenChanPosts =>
+            string.IsNullOrWhiteSpace(Config.Settings.Regex.SevenChanPosts) ? Chans.DefaultRegex.SevenChanPosts : Config.Settings.Regex.SevenChanPosts;
+        public static string fchanNames =>
+            string.IsNullOrWhiteSpace(Config.Settings.Regex.fchanIDs) ? Chans.DefaultRegex.fchanFiles : Config.Settings.Regex.fchanIDs;
+        public static string fchanIDs =>
+            string.IsNullOrWhiteSpace(Config.Settings.Regex.fchanIDs) ? Chans.DefaultRegex.fchanIDs : Config.Settings.Regex.fchanIDs;
+        public static string u18chanPosts =>
+            string.IsNullOrWhiteSpace(Config.Settings.Regex.u18chanPosts) ? Chans.DefaultRegex.u18chanPosts : Config.Settings.Regex.u18chanPosts;
     }
-
 }

@@ -2,39 +2,85 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Security.Principal;
 using System.Threading;
 using System.Windows.Forms;
 
 namespace YChanEx {
     static class Program {
 
-        // TODO: Add a class for settings to save them locally, or portably in an ini
-
-        private static readonly GuidAttribute ProgramGUID = (GuidAttribute)System.Reflection.Assembly.GetExecutingAssembly().GetCustomAttributes(typeof(GuidAttribute), true)[0];
+        /// <summary>
+        /// The Program GUID used for Mutex one-instance enforcement.
+        /// </summary>
+        private static readonly GuidAttribute ProgramGUID =
+            (GuidAttribute)System.Reflection.Assembly.GetExecutingAssembly().GetCustomAttributes(typeof(GuidAttribute), true)[0];
+        /// <summary>
+        /// The Mutex for one-instance enforcement.
+        /// </summary>
         private static Mutex mtx;
-        private static frmMain MainForm;                    // Main form instance
-        private static volatile bool IsSettingsOpen = false;// Detects if the settings form is open
-        public static volatile bool IsDebug = false;        // Enables debug methods and logic
-        public static readonly string ApplicationFilesLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\YChanEx";
+        /// <summary>
+        /// The <see cref="frmMain"/> form.
+        /// </summary>
+        private static frmMain MainForm; // Keep it private, or no?
 
+        /// <summary>
+        /// Whether to load saved threads while debugging.
+        /// </summary>
+        public static bool LoadThreadsInDebug = true;
+        /// <summary>
+        /// If debug mode is active.
+        /// </summary>
+        public static volatile bool IsDebug = false;
+        /// <summary>
+        /// If the application is admin.
+        /// </summary>
+        public static bool IsAdmin = false;
+        /// <summary>
+        /// The local application data folder path for YChanEx, to store threads when not using the INI file.
+        /// </summary>
+        public static readonly string ApplicationFilesLocation =
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\YChanEx";
+        /// <summary>
+        /// The full path of the application.
+        /// </summary>
+        public static readonly string FullApplicationPath =
+            System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
 
-        public static bool SettingsOpen {
-            get { return IsSettingsOpen; }
-            set { IsSettingsOpen = value; }
-        }
+        /// <summary>
+        /// If the settings form is currently open. Used to pause scanning.
+        /// </summary>
+        public static bool SettingsOpen { get; set; }
 
         [STAThread]
         static void Main() {
-            // Create new mutex thread for single-instance
-            mtx = new Mutex(true, ProgramGUID.Value);
+            Console.WriteLine("Welcome to the amazing world of: Loading application.");
+
+#if DEBUG
+            IsDebug = true;
+#endif
 
             // Check debug and enable form stuff
-            EnableDebug();
+            IsAdmin = new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
+            // Create new mutex thread for single-instance
+            mtx = new Mutex(true, ProgramGUID.Value);
+
             // Check if there's already a program running with this mutex.
-            if (mtx.WaitOne(TimeSpan.Zero, true)) {
+            if (mtx.WaitOne(TimeSpan.Zero, true) || IsDebug) {
+
+                // Check the protocol, if it's active.
+                SystemRegistry.CheckProtocol();
+
+                // If the '--protocol' arg is present, we create the protocol.
+                foreach (string arg in Environment.GetCommandLineArgs()) {
+                    if (arg == "--protocol") {
+                        SystemRegistry.CreateProtocol();
+                        break;
+                    }
+                }
+
                 // Set the TLS version to 1.2
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
@@ -43,31 +89,33 @@ namespace YChanEx {
                     ThisProgram.PriorityClass = System.Diagnostics.ProcessPriorityClass.BelowNormal;
                 }
 
+                // Load the settings.
+                Config.Settings.Load();
+
                 // Check for "FirstTime" flag in the default settings of the application
-                if (Properties.Settings.Default.FirstTime) {
+                if (!IsDebug && Properties.Settings.Default.FirstTime) {
                     switch (MessageBox.Show("Would you like to specify a download path now? If not, it'll default to the current direcotry.", "YChanEx", MessageBoxButtons.YesNo)) {
-                        case DialogResult.Yes:
-                            using (FolderBrowserDialog fbd = new FolderBrowserDialog()) {
-                                fbd.Description = "Select a folder to download to";
-                                fbd.SelectedPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\Downloads";
-                                if (fbd.ShowDialog() == DialogResult.OK) {
-                                    Downloads.Default.DownloadPath = fbd.SelectedPath;
-                                }
-                                else {
-                                    MessageBox.Show("Downloads will be saved at \"" + Environment.CurrentDirectory + "\". You can change this at any time in the settings.", "YChanEx");
-                                    Downloads.Default.DownloadPath = Environment.CurrentDirectory;
-                                }
+                        case DialogResult.Yes: {
+                            using BetterFolderBrowserNS.BetterFolderBrowser fbd = new();
+                            fbd.Title = "Select a folder to download to";
+                            fbd.RootFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\Downloads";
+                            if (fbd.ShowDialog() == DialogResult.OK) {
+                                Config.Settings.Downloads.DownloadPath = fbd.SelectedPath;
                             }
-                            break;
-                        case DialogResult.No:
+                            else {
+                                MessageBox.Show("Downloads will be saved at \"" + Environment.CurrentDirectory + "\". You can change this at any time in the settings.", "YChanEx");
+                                Config.Settings.Downloads.DownloadPath = Environment.CurrentDirectory;
+                            }
+                        } break;
+                        case DialogResult.No: {
                             MessageBox.Show("Downloads will be saved at \"" + Environment.CurrentDirectory + "\". You can change this at any time in the settings.", "YChanEx");
-                                    Downloads.Default.DownloadPath = Environment.CurrentDirectory;
-                            break;
+                            Config.Settings.Downloads.DownloadPath = Environment.CurrentDirectory;
+                        } break;
                     }
 
-                    Properties.Settings.Default.FirstTime = false;
-                    Properties.Settings.Default.Save();
-                    Downloads.Default.Save();
+                    Config.Settings.Initialization.FirstTime = false;
+                    Config.Settings.Initialization.Save();
+                    Config.Settings.Downloads.Save();
                 }
 
                 // Create and run the main form
@@ -78,43 +126,44 @@ namespace YChanEx {
                 mtx.ReleaseMutex();
             }
             else {
-                // Get the currently running programs
-
                 // Check arguments
-                List<string> SentArguments = new List<string>();
+                List<string> SentArguments = new();
+                bool SetProtocol = false;
                 foreach (string argument in Environment.GetCommandLineArgs()) {
                     if (argument.StartsWith("ychanex:")) {
-                        SentArguments.Add(argument.Substring(8));
+                        SentArguments.Add(argument);
+                    }
+                    else if (argument == "--protocol" && !SetProtocol) {
+                        SystemRegistry.CreateProtocol();
+                        SetProtocol = true;
                     }
                 }
 
-                IntPtr hwnd = (IntPtr)Win32.FindWindow(null, "YChanEx");
-                Win32.CopyDataStruct CDS = new Win32.CopyDataStruct();
-
-                try {
-                    if (SentArguments.Count > 0) {
-                        string argument = string.Join("|", SentArguments);
-                        CDS.cbData = (argument.Length + 1) * 2;
-                        CDS.lpData = Win32.LocalAlloc(0x40, CDS.cbData);
-                        Marshal.Copy(argument.ToCharArray(), 0, CDS.lpData, argument.Length);
-                        CDS.dwData = (IntPtr)1;
-                        Win32.SendMessage(hwnd, Win32.WM_COPYDATA, IntPtr.Zero, ref CDS);
+                int hwnd = Win32.FindWindow(null, "YChanEx");
+                if (hwnd != 0) {
+                    Win32.CopyDataStruct DataStruct = new();
+                    try {
+                        if (SentArguments.Count > 0) {
+                            string Threads = string.Join("|", SentArguments);
+                            DataStruct.cbData = (Threads.Length + 1) * 2;
+                            DataStruct.lpData = Win32.LocalAlloc(0x40, DataStruct.cbData);
+                            Marshal.Copy(Threads.ToCharArray(), 0, DataStruct.lpData, Threads.Length);
+                            DataStruct.dwData = (IntPtr)1;
+                            Win32.SendMessage((IntPtr)hwnd, Win32.WM_COPYDATA, IntPtr.Zero, ref DataStruct);
+                        }
+                        else {
+                            Win32.SendMessage((IntPtr)hwnd, Win32.WM_SHOWFORM, IntPtr.Zero, ref DataStruct);
+                        }
+                        Console.WriteLine("Hey, whats up? I shoved some info to the other program.");
+                        Thread.Sleep(1500);
                     }
-                    else {
-                        Win32.SendMessage(hwnd, Win32.WM_SHOWFORM, IntPtr.Zero, ref CDS);
+                    finally {
+                        DataStruct.Dispose();
                     }
-                }
-                finally {
-                    CDS.Dispose();
                 }
             }
 
             Console.WriteLine("It is now safe to turn off your application.");
-        }
-
-        [System.Diagnostics.Conditional("DEBUG")]
-        static void EnableDebug() {
-            IsDebug = true;
         }
 
     }

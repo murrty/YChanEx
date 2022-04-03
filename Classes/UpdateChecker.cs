@@ -16,49 +16,47 @@ namespace YChanEx {
                 return;
             }
 
-            if (!General.Default.EnableUpdates && !ForceCheck) { return; }
+            if (!Config.Settings.General.EnableUpdates && !ForceCheck) { return; }
 
 
             if (GitData.UpdateAvailable) {
-                using (frmUpdateAvailable Update = new frmUpdateAvailable()) {
-                    Update.BlockSkip = ForceCheck;
-                    switch (Update.ShowDialog()) {
-                        case DialogResult.Yes:
-                            try {
-                                UpdateApplication();
-                            }
-                            catch (Exception ex) {
-                                ErrorLog.ReportException(ex);
-                                return;
-                            }
-                            break;
-                    }
+                using frmUpdateAvailable Update = new();
+                Update.BlockSkip = ForceCheck;
+                switch (Update.ShowDialog()) {
+                    case DialogResult.Yes:
+                        try {
+                            UpdateApplication();
+                        }
+                        catch (Exception ex) {
+                            murrty.classes.Log.ReportException(ex);
+                            return;
+                        }
+                        break;
                 }
             }
             else {
-                Thread checkUpdates = new Thread(() => {
+                Thread checkUpdates = new(() => {
                     if (GitData.UpdateVersion == "-1" || ForceCheck) {
                         decimal GitVersion = GetGitVersion(0);
                         if (IsUpdateAvailable(GitVersion)) {
                             GitData.UpdateAvailable = true;
                             if (GitVersion != Properties.Settings.Default.SkippedVersion || ForceCheck) {
-                                using (frmUpdateAvailable Update = new frmUpdateAvailable()) {
-                                    Update.BlockSkip = ForceCheck;
-                                    switch (Update.ShowDialog()) {
-                                        case DialogResult.Yes:
-                                            try {
-                                                UpdateApplication();
-                                            }
-                                            catch (Exception ex) {
-                                                ErrorLog.ReportException(ex);
-                                                return;
-                                            }
-                                            break;
-                                        case DialogResult.Ignore:
-                                            Properties.Settings.Default.SkippedVersion = GitVersion;
-                                            Properties.Settings.Default.Save();
-                                            break;
-                                    }
+                                using frmUpdateAvailable Update = new();
+                                Update.BlockSkip = ForceCheck;
+                                switch (Update.ShowDialog()) {
+                                    case DialogResult.Yes:
+                                        try {
+                                            UpdateApplication();
+                                        }
+                                        catch (Exception ex) {
+                                            murrty.classes.Log.ReportException(ex);
+                                            return;
+                                        }
+                                        break;
+                                    case DialogResult.Ignore:
+                                        Properties.Settings.Default.SkippedVersion = GitVersion;
+                                        Properties.Settings.Default.Save();
+                                        break;
                                 }
                             }
                         }
@@ -92,7 +90,7 @@ namespace YChanEx {
                 if (xml == null)
                     return null;
 
-                XmlDocument doc = new XmlDocument();
+                XmlDocument doc = new();
                 doc.LoadXml(xml);
                 XmlNodeList xmlTag = doc.DocumentElement.SelectNodes("/root/tag_name");
 
@@ -112,7 +110,7 @@ namespace YChanEx {
 
             }
             catch (Exception ex) {
-                ErrorLog.ReportException(ex);
+                murrty.classes.Log.ReportException(ex);
                 return null;
             }
         }
@@ -123,7 +121,7 @@ namespace YChanEx {
                 if (xml == null)
                     return -1;
 
-                XmlDocument doc = new XmlDocument();
+                XmlDocument doc = new();
                 doc.LoadXml(xml);
                 XmlNodeList xmlTag = doc.DocumentElement.SelectNodes("/root/tag_name");
 
@@ -142,18 +140,18 @@ namespace YChanEx {
                 }
             }
             catch (Exception ex) {
-                ErrorLog.ReportException(ex);
+                murrty.classes.Log.ReportException(ex);
                 return -1;
             }
         }
 
         public static bool IsUpdateAvailable(decimal cloudVersion) {
             try {
-                if (Properties.Settings.Default.AppVersion < cloudVersion) { return true; }
+                if (Properties.Settings.Default.CurrentVersion < cloudVersion) { return true; }
                 else { return false; }
             }
             catch (Exception ex) {
-                ErrorLog.ReportException(ex);
+                murrty.classes.Log.ReportException(ex);
                 return false;
             }
         }
@@ -176,7 +174,7 @@ namespace YChanEx {
             }
         }
 
-        private static GitData GitDataInstance = new GitData();
+        private static readonly GitData GitDataInstance = new();
         private static volatile string UpdateVersionString = "-1";
         private static volatile string UpdateNameString = "UpdateNameString";
         private static volatile string UpdateBodyString = "UpdateBodyString";

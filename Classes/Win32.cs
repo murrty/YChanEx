@@ -2,8 +2,10 @@
 using System.Runtime.InteropServices;
 
 namespace YChanEx {
+
     public class Win32 {
 
+        #region Structs
         public const int WM_COPYDATA = 0x004A;
         public const int WM_SHOWFORM = 0x0040;
 
@@ -12,9 +14,10 @@ namespace YChanEx {
             public int cbData;
             public IntPtr lpData;
 
+            [Obsolete("THIS IS LITERALLY A MEMORY LEAK, But why is it not working now?")]
             public void Dispose() {
                 if (this.lpData != IntPtr.Zero) {
-                    LocalFree(this.lpData);
+                    //LocalFree(this.lpData);
                     this.lpData = IntPtr.Zero;
                 }
             }
@@ -32,7 +35,9 @@ namespace YChanEx {
             public uint time;
             public System.Drawing.Point p;
         }
+        #endregion
 
+        #region Native Methods
         /// <summary>
         /// The FindWindow function retrieves a handle to the top-level 
         /// window whose class name and window name match the specified strings.
@@ -60,6 +65,7 @@ namespace YChanEx {
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern IntPtr LocalFree(IntPtr p);
+        #endregion
 
         /// <summary>
         /// Constructor
@@ -72,5 +78,7 @@ namespace YChanEx {
         /// </summary>
         ~Win32() {
         }
+
     }
+
 }
