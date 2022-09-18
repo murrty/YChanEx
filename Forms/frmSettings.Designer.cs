@@ -25,24 +25,15 @@
         private void InitializeComponent() {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmSettings));
-            System.Windows.Forms.ListViewItem listViewItem1 = new System.Windows.Forms.ListViewItem("4chan URL");
-            System.Windows.Forms.ListViewItem listViewItem2 = new System.Windows.Forms.ListViewItem("420chan URL");
-            System.Windows.Forms.ListViewItem listViewItem3 = new System.Windows.Forms.ListViewItem(new string[] {
-            "7chan URL",
-            "1"}, -1);
-            System.Windows.Forms.ListViewItem listViewItem4 = new System.Windows.Forms.ListViewItem("7chan Posts");
-            System.Windows.Forms.ListViewItem listViewItem5 = new System.Windows.Forms.ListViewItem("8chan URL");
-            System.Windows.Forms.ListViewItem listViewItem6 = new System.Windows.Forms.ListViewItem("8kun URL");
-            System.Windows.Forms.ListViewItem listViewItem7 = new System.Windows.Forms.ListViewItem("fchan URL");
-            System.Windows.Forms.ListViewItem listViewItem8 = new System.Windows.Forms.ListViewItem("fchan Files");
-            System.Windows.Forms.ListViewItem listViewItem9 = new System.Windows.Forms.ListViewItem("fchan IDs");
-            System.Windows.Forms.ListViewItem listViewItem10 = new System.Windows.Forms.ListViewItem("u18chan URL");
-            System.Windows.Forms.ListViewItem listViewItem11 = new System.Windows.Forms.ListViewItem("u18chan Posts");
+            System.Windows.Forms.ListViewItem listViewItem1 = new System.Windows.Forms.ListViewItem("fchan Files");
+            System.Windows.Forms.ListViewItem listViewItem2 = new System.Windows.Forms.ListViewItem("fchan IDs");
+            System.Windows.Forms.ListViewItem listViewItem3 = new System.Windows.Forms.ListViewItem("u18chan Posts");
             this.tcMain = new System.Windows.Forms.TabControl();
             this.tabDownloads = new System.Windows.Forms.TabPage();
-            this.chkRetrieveThreadName = new System.Windows.Forms.CheckBox();
+            this.chkAutoRemoveDeadThreads = new System.Windows.Forms.CheckBox();
+            this.chkCleanThreadHTML = new System.Windows.Forms.CheckBox();
             this.chkAllowFileNamesGreaterThan255 = new System.Windows.Forms.CheckBox();
-            this.txtSavePath = new YChanEx.HintTextBox();
+            this.txtSavePath = new murrty.controls.ExtendedTextBox();
             this.chkPreventDuplicates = new System.Windows.Forms.CheckBox();
             this.chkSaveOriginalFileNames = new System.Windows.Forms.CheckBox();
             this.chkDownloadThumbnails = new System.Windows.Forms.CheckBox();
@@ -54,6 +45,7 @@
             this.chkMoveExistingDownloads = new System.Windows.Forms.CheckBox();
             this.lbScanDelaySeconds = new System.Windows.Forms.Label();
             this.tabApplication = new System.Windows.Forms.TabPage();
+            this.chkSaveDownloadHistory = new System.Windows.Forms.CheckBox();
             this.chkMinimizeInsteadOfExiting = new System.Windows.Forms.CheckBox();
             this.chkUseFullBoardNameForTitle = new System.Windows.Forms.CheckBox();
             this.chkSaveDownloadQueueOnExit = new System.Windows.Forms.CheckBox();
@@ -65,12 +57,12 @@
             this.btnOpenLocalFiles = new System.Windows.Forms.Button();
             this.chkSilenceErrors = new System.Windows.Forms.CheckBox();
             this.chkDisableScannerWhenOpeningSettings = new System.Windows.Forms.CheckBox();
-            this.txtUserAgent = new YChanEx.HintTextBox();
+            this.txtUserAgent = new murrty.controls.ExtendedTextBox();
             this.lbUserAgent = new System.Windows.Forms.Label();
             this.tabRegex = new System.Windows.Forms.TabPage();
             this.lbRegexHint = new System.Windows.Forms.Label();
             this.lvRegex = new System.Windows.Forms.ListView();
-            this.txtRegex = new YChanEx.HintTextBox();
+            this.txtRegex = new murrty.controls.ExtendedTextBox();
             this.lbRegexInfo = new System.Windows.Forms.Label();
             this.tabReset = new System.Windows.Forms.TabPage();
             this.chkEnableSettingsReset = new System.Windows.Forms.CheckBox();
@@ -81,8 +73,8 @@
             this.btnResetSettings = new System.Windows.Forms.Button();
             this.btnUserScript = new System.Windows.Forms.Button();
             this.btnProtocol = new System.Windows.Forms.Button();
-            this.btnSCan = new System.Windows.Forms.Button();
-            this.btnSSave = new System.Windows.Forms.Button();
+            this.btnCancel = new System.Windows.Forms.Button();
+            this.btnSave = new System.Windows.Forms.Button();
             this.ttSettings = new System.Windows.Forms.ToolTip(this.components);
             this.tcMain.SuspendLayout();
             this.tabDownloads.SuspendLayout();
@@ -104,12 +96,13 @@
             this.tcMain.Location = new System.Drawing.Point(0, 0);
             this.tcMain.Name = "tcMain";
             this.tcMain.SelectedIndex = 0;
-            this.tcMain.Size = new System.Drawing.Size(392, 170);
+            this.tcMain.Size = new System.Drawing.Size(394, 170);
             this.tcMain.TabIndex = 0;
             // 
             // tabDownloads
             // 
-            this.tabDownloads.Controls.Add(this.chkRetrieveThreadName);
+            this.tabDownloads.Controls.Add(this.chkAutoRemoveDeadThreads);
+            this.tabDownloads.Controls.Add(this.chkCleanThreadHTML);
             this.tabDownloads.Controls.Add(this.chkAllowFileNamesGreaterThan255);
             this.tabDownloads.Controls.Add(this.txtSavePath);
             this.tabDownloads.Controls.Add(this.chkPreventDuplicates);
@@ -125,23 +118,34 @@
             this.tabDownloads.Location = new System.Drawing.Point(4, 22);
             this.tabDownloads.Name = "tabDownloads";
             this.tabDownloads.Padding = new System.Windows.Forms.Padding(3);
-            this.tabDownloads.Size = new System.Drawing.Size(384, 144);
+            this.tabDownloads.Size = new System.Drawing.Size(386, 144);
             this.tabDownloads.TabIndex = 0;
             this.tabDownloads.Text = "Downloads";
             this.tabDownloads.UseVisualStyleBackColor = true;
             // 
-            // chkRetrieveThreadName
+            // chkAutoRemoveDeadThreads
             // 
-            this.chkRetrieveThreadName.AutoSize = true;
-            this.chkRetrieveThreadName.Location = new System.Drawing.Point(195, 112);
-            this.chkRetrieveThreadName.Name = "chkRetrieveThreadName";
-            this.chkRetrieveThreadName.Size = new System.Drawing.Size(168, 17);
-            this.chkRetrieveThreadName.TabIndex = 33;
-            this.chkRetrieveThreadName.Text = "Retrieve and use thread name";
-            this.ttSettings.SetToolTip(this.chkRetrieveThreadName, "Uses the OP\'s post to identify the thread in the download form and the main form." +
-        "\r\n\r\nSome sites already do this in the HTML title, while others require more pars" +
-        "ing.");
-            this.chkRetrieveThreadName.UseVisualStyleBackColor = true;
+            this.chkAutoRemoveDeadThreads.AutoSize = true;
+            this.chkAutoRemoveDeadThreads.Location = new System.Drawing.Point(194, 112);
+            this.chkAutoRemoveDeadThreads.Name = "chkAutoRemoveDeadThreads";
+            this.chkAutoRemoveDeadThreads.Size = new System.Drawing.Size(150, 17);
+            this.chkAutoRemoveDeadThreads.TabIndex = 35;
+            this.chkAutoRemoveDeadThreads.Text = "Auto-remove dead threads";
+            this.ttSettings.SetToolTip(this.chkAutoRemoveDeadThreads, "Automatically removes any threads that 404 (or archived after scanning and downlo" +
+        "ad) from the queue\r\n\r\nDefault: Off");
+            this.chkAutoRemoveDeadThreads.UseVisualStyleBackColor = true;
+            // 
+            // chkCleanThreadHTML
+            // 
+            this.chkCleanThreadHTML.AutoSize = true;
+            this.chkCleanThreadHTML.Location = new System.Drawing.Point(265, 66);
+            this.chkCleanThreadHTML.Name = "chkCleanThreadHTML";
+            this.chkCleanThreadHTML.Size = new System.Drawing.Size(85, 17);
+            this.chkCleanThreadHTML.TabIndex = 34;
+            this.chkCleanThreadHTML.Text = "Clean HTML";
+            this.ttSettings.SetToolTip(this.chkCleanThreadHTML, "The HTML that gets downloaded will be clean and readable, if you read the raw HTM" +
+        "L\r\n\r\nDefault: Off");
+            this.chkCleanThreadHTML.UseVisualStyleBackColor = true;
             // 
             // chkAllowFileNamesGreaterThan255
             // 
@@ -156,6 +160,14 @@
             // 
             // txtSavePath
             // 
+            this.txtSavePath.ButtonAlignment = murrty.controls.ButtonAlignment.Left;
+            this.txtSavePath.ButtonCursor = System.Windows.Forms.Cursors.Default;
+            this.txtSavePath.ButtonFont = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtSavePath.ButtonImageIndex = -1;
+            this.txtSavePath.ButtonImageKey = "";
+            this.txtSavePath.ButtonSize = new System.Drawing.Size(22, 19);
+            this.txtSavePath.ButtonText = "";
+            this.txtSavePath.ButtonTextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.txtSavePath.Location = new System.Drawing.Point(68, 11);
             this.txtSavePath.Name = "txtSavePath";
             this.txtSavePath.ReadOnly = true;
@@ -174,7 +186,8 @@
             this.chkPreventDuplicates.TabIndex = 27;
             this.chkPreventDuplicates.Text = "Prevent duplicates";
             this.ttSettings.SetToolTip(this.chkPreventDuplicates, "Prevents duplicates of original file names by adding the index of the file\r\nto th" +
-        "e prefix of the file name.\r\n\r\nExample: [002] FileName.jpg");
+        "e prefix of the file name.\r\n\r\nExample: FileName (Duplicate).jpg, FileName (Dupli" +
+        "cate 2).jpg...\r\n\r\nDefault: Off");
             this.chkPreventDuplicates.UseVisualStyleBackColor = true;
             // 
             // chkSaveOriginalFileNames
@@ -185,34 +198,32 @@
             this.chkSaveOriginalFileNames.Size = new System.Drawing.Size(136, 17);
             this.chkSaveOriginalFileNames.TabIndex = 26;
             this.chkSaveOriginalFileNames.Text = "Save original file names";
-            this.ttSettings.SetToolTip(this.chkSaveOriginalFileNames, "Saves files as their uploaded file names, instead of generated file IDs.\r\n\r\nExamp" +
-        "le: FileName.jpg");
+            this.ttSettings.SetToolTip(this.chkSaveOriginalFileNames, "Saves files as their uploaded file names, instead of generated file IDs\r\n\r\nDefaul" +
+        "t: Off");
             this.chkSaveOriginalFileNames.UseVisualStyleBackColor = true;
             // 
             // chkDownloadThumbnails
             // 
             this.chkDownloadThumbnails.AutoSize = true;
-            this.chkDownloadThumbnails.Location = new System.Drawing.Point(195, 89);
+            this.chkDownloadThumbnails.Location = new System.Drawing.Point(153, 89);
             this.chkDownloadThumbnails.Name = "chkDownloadThumbnails";
             this.chkDownloadThumbnails.Size = new System.Drawing.Size(126, 17);
             this.chkDownloadThumbnails.TabIndex = 24;
             this.chkDownloadThumbnails.Text = "Download thumbnails";
-            this.ttSettings.SetToolTip(this.chkDownloadThumbnails, "Downloads thumbnails for files in the thumb folder.\r\n\r\nThis is a good option to i" +
-        "nclude with Download HTML, but may take\r\nup more disk space for the image thumbn" +
-        "ails.");
+            this.ttSettings.SetToolTip(this.chkDownloadThumbnails, "Downloads thumbnails for files in the thumb folder\r\n\r\nThis is a good option to in" +
+        "clude with Download HTML, but may take\r\nup more disk space for the image thumbna" +
+        "ils\r\n\r\nDefault: Off");
             this.chkDownloadThumbnails.UseVisualStyleBackColor = true;
             // 
             // chkDownloadHTML
             // 
             this.chkDownloadHTML.AutoSize = true;
-            this.chkDownloadHTML.Location = new System.Drawing.Point(195, 66);
+            this.chkDownloadHTML.Location = new System.Drawing.Point(153, 66);
             this.chkDownloadHTML.Name = "chkDownloadHTML";
             this.chkDownloadHTML.Size = new System.Drawing.Size(106, 17);
             this.chkDownloadHTML.TabIndex = 23;
             this.chkDownloadHTML.Text = "Download HTML";
-            this.ttSettings.SetToolTip(this.chkDownloadHTML, "Downloads thread HTML files as Thread.html in the thread folder.\r\n\r\nChans that su" +
-        "pport APIs output cleaner html files, while HTML-parsed chans\r\nmay still look ug" +
-        "ly.");
+            this.ttSettings.SetToolTip(this.chkDownloadHTML, "Saves HTML of thread data after images download\r\n\r\nDefault: Off");
             this.chkDownloadHTML.UseVisualStyleBackColor = true;
             // 
             // numTimer
@@ -294,6 +305,7 @@
             // 
             // tabApplication
             // 
+            this.tabApplication.Controls.Add(this.chkSaveDownloadHistory);
             this.tabApplication.Controls.Add(this.chkMinimizeInsteadOfExiting);
             this.tabApplication.Controls.Add(this.chkUseFullBoardNameForTitle);
             this.tabApplication.Controls.Add(this.chkSaveDownloadQueueOnExit);
@@ -304,10 +316,21 @@
             this.tabApplication.Location = new System.Drawing.Point(4, 22);
             this.tabApplication.Name = "tabApplication";
             this.tabApplication.Padding = new System.Windows.Forms.Padding(3);
-            this.tabApplication.Size = new System.Drawing.Size(384, 144);
+            this.tabApplication.Size = new System.Drawing.Size(386, 144);
             this.tabApplication.TabIndex = 1;
             this.tabApplication.Text = "Application";
             this.tabApplication.UseVisualStyleBackColor = true;
+            // 
+            // chkSaveDownloadHistory
+            // 
+            this.chkSaveDownloadHistory.AutoSize = true;
+            this.chkSaveDownloadHistory.Location = new System.Drawing.Point(213, 98);
+            this.chkSaveDownloadHistory.Name = "chkSaveDownloadHistory";
+            this.chkSaveDownloadHistory.Size = new System.Drawing.Size(132, 17);
+            this.chkSaveDownloadHistory.TabIndex = 33;
+            this.chkSaveDownloadHistory.Text = "Save download history";
+            this.ttSettings.SetToolTip(this.chkSaveDownloadHistory, "Saves the history of threads added to the queue\r\n\r\nDefault: Off");
+            this.chkSaveDownloadHistory.UseVisualStyleBackColor = true;
             // 
             // chkMinimizeInsteadOfExiting
             // 
@@ -318,7 +341,7 @@
             this.chkMinimizeInsteadOfExiting.TabIndex = 32;
             this.chkMinimizeInsteadOfExiting.Text = "Hide the program instead of exiting";
             this.ttSettings.SetToolTip(this.chkMinimizeInsteadOfExiting, "When exiting the program, it\'ll minimize to the tray instead of exit.\r\nYou\'ll hav" +
-        "e to exit using the tray icon.");
+        "e to exit using the tray icon.\r\n\r\nDefault: Off");
             this.chkMinimizeInsteadOfExiting.UseVisualStyleBackColor = true;
             // 
             // chkUseFullBoardNameForTitle
@@ -335,12 +358,13 @@
             // chkSaveDownloadQueueOnExit
             // 
             this.chkSaveDownloadQueueOnExit.AutoSize = true;
-            this.chkSaveDownloadQueueOnExit.Location = new System.Drawing.Point(109, 98);
+            this.chkSaveDownloadQueueOnExit.Location = new System.Drawing.Point(41, 98);
             this.chkSaveDownloadQueueOnExit.Name = "chkSaveDownloadQueueOnExit";
             this.chkSaveDownloadQueueOnExit.Size = new System.Drawing.Size(166, 17);
             this.chkSaveDownloadQueueOnExit.TabIndex = 29;
             this.chkSaveDownloadQueueOnExit.Text = "Save download queue on exit";
-            this.ttSettings.SetToolTip(this.chkSaveDownloadQueueOnExit, "Saves the download queue to an xml file on the application\'s exit.");
+            this.ttSettings.SetToolTip(this.chkSaveDownloadQueueOnExit, "Saves the download queue to an xml file on the application\'s exit.\r\n\r\nDefault: On" +
+        "");
             this.chkSaveDownloadQueueOnExit.UseVisualStyleBackColor = true;
             // 
             // chkEnableUpdates
@@ -351,7 +375,7 @@
             this.chkEnableUpdates.Size = new System.Drawing.Size(99, 17);
             this.chkEnableUpdates.TabIndex = 30;
             this.chkEnableUpdates.Text = "Enable updates";
-            this.ttSettings.SetToolTip(this.chkEnableUpdates, "Enables checking for updates for this application.");
+            this.ttSettings.SetToolTip(this.chkEnableUpdates, "Enables checking for updates for this application.\r\n\r\nDefault: On");
             this.chkEnableUpdates.UseVisualStyleBackColor = true;
             // 
             // chkShowExitWarning
@@ -363,7 +387,7 @@
             this.chkShowExitWarning.TabIndex = 29;
             this.chkShowExitWarning.Text = "Show exit warning";
             this.ttSettings.SetToolTip(this.chkShowExitWarning, "Shows a warning to minimize instead of exiting if there are threads\r\ncurrently in" +
-        " the download queue.");
+        " the download queue.\r\n\r\nDefault: Off");
             this.chkShowExitWarning.UseVisualStyleBackColor = true;
             // 
             // chkMinimizeToTray
@@ -374,7 +398,7 @@
             this.chkMinimizeToTray.Size = new System.Drawing.Size(97, 17);
             this.chkMinimizeToTray.TabIndex = 28;
             this.chkMinimizeToTray.Text = "Minimize to tray";
-            this.ttSettings.SetToolTip(this.chkMinimizeToTray, "Minimizes the program to the system\'s tray");
+            this.ttSettings.SetToolTip(this.chkMinimizeToTray, "Minimizes the program to the system\'s tray\r\n\r\nDefault: On");
             this.chkMinimizeToTray.UseVisualStyleBackColor = true;
             // 
             // chkShowTrayIcon
@@ -385,7 +409,7 @@
             this.chkShowTrayIcon.Size = new System.Drawing.Size(95, 17);
             this.chkShowTrayIcon.TabIndex = 27;
             this.chkShowTrayIcon.Text = "Show tray icon";
-            this.ttSettings.SetToolTip(this.chkShowTrayIcon, "Shows the ychanex icon in the system tray");
+            this.ttSettings.SetToolTip(this.chkShowTrayIcon, "Shows the YChanEx icon in the system tray\r\n\r\nDefault: Off");
             this.chkShowTrayIcon.UseVisualStyleBackColor = true;
             // 
             // tabAdvanced
@@ -398,7 +422,7 @@
             this.tabAdvanced.Location = new System.Drawing.Point(4, 22);
             this.tabAdvanced.Name = "tabAdvanced";
             this.tabAdvanced.Padding = new System.Windows.Forms.Padding(3);
-            this.tabAdvanced.Size = new System.Drawing.Size(384, 144);
+            this.tabAdvanced.Size = new System.Drawing.Size(386, 144);
             this.tabAdvanced.TabIndex = 2;
             this.tabAdvanced.Text = "Advanced";
             this.tabAdvanced.UseVisualStyleBackColor = true;
@@ -423,9 +447,7 @@
             this.chkSilenceErrors.Size = new System.Drawing.Size(89, 17);
             this.chkSilenceErrors.TabIndex = 3;
             this.chkSilenceErrors.Text = "Silence errors";
-            this.ttSettings.SetToolTip(this.chkSilenceErrors, "Does not display any errors that may arise from any problems that may occur.\r\n\r\nN" +
-        "ot recommended to enable, but may help if there are an uptick in errors\r\nthat do" +
-        "n\'t effect the your regular use.");
+            this.ttSettings.SetToolTip(this.chkSilenceErrors, resources.GetString("chkSilenceErrors.ToolTip"));
             this.chkSilenceErrors.UseVisualStyleBackColor = true;
             // 
             // chkDisableScannerWhenOpeningSettings
@@ -441,6 +463,14 @@
             // 
             // txtUserAgent
             // 
+            this.txtUserAgent.ButtonAlignment = murrty.controls.ButtonAlignment.Left;
+            this.txtUserAgent.ButtonCursor = System.Windows.Forms.Cursors.Default;
+            this.txtUserAgent.ButtonFont = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtUserAgent.ButtonImageIndex = -1;
+            this.txtUserAgent.ButtonImageKey = "";
+            this.txtUserAgent.ButtonSize = new System.Drawing.Size(22, 19);
+            this.txtUserAgent.ButtonText = "";
+            this.txtUserAgent.ButtonTextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.txtUserAgent.Location = new System.Drawing.Point(74, 26);
             this.txtUserAgent.Name = "txtUserAgent";
             this.txtUserAgent.Size = new System.Drawing.Size(302, 20);
@@ -466,7 +496,7 @@
             this.tabRegex.Location = new System.Drawing.Point(4, 22);
             this.tabRegex.Name = "tabRegex";
             this.tabRegex.Padding = new System.Windows.Forms.Padding(3);
-            this.tabRegex.Size = new System.Drawing.Size(384, 144);
+            this.tabRegex.Size = new System.Drawing.Size(386, 144);
             this.tabRegex.TabIndex = 4;
             this.tabRegex.Text = "Regex";
             this.tabRegex.UseVisualStyleBackColor = true;
@@ -487,15 +517,7 @@
             this.lvRegex.Items.AddRange(new System.Windows.Forms.ListViewItem[] {
             listViewItem1,
             listViewItem2,
-            listViewItem3,
-            listViewItem4,
-            listViewItem5,
-            listViewItem6,
-            listViewItem7,
-            listViewItem8,
-            listViewItem9,
-            listViewItem10,
-            listViewItem11});
+            listViewItem3});
             this.lvRegex.Location = new System.Drawing.Point(3, 40);
             this.lvRegex.MultiSelect = false;
             this.lvRegex.Name = "lvRegex";
@@ -507,6 +529,14 @@
             // 
             // txtRegex
             // 
+            this.txtRegex.ButtonAlignment = murrty.controls.ButtonAlignment.Left;
+            this.txtRegex.ButtonCursor = System.Windows.Forms.Cursors.Default;
+            this.txtRegex.ButtonFont = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtRegex.ButtonImageIndex = -1;
+            this.txtRegex.ButtonImageKey = "";
+            this.txtRegex.ButtonSize = new System.Drawing.Size(22, 21);
+            this.txtRegex.ButtonText = "";
+            this.txtRegex.ButtonTextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.txtRegex.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtRegex.Location = new System.Drawing.Point(116, 114);
             this.txtRegex.Name = "txtRegex";
@@ -537,7 +567,7 @@
             this.tabReset.Location = new System.Drawing.Point(4, 22);
             this.tabReset.Name = "tabReset";
             this.tabReset.Padding = new System.Windows.Forms.Padding(3);
-            this.tabReset.Size = new System.Drawing.Size(384, 144);
+            this.tabReset.Size = new System.Drawing.Size(386, 144);
             this.tabReset.TabIndex = 3;
             this.tabReset.Text = "Reset";
             this.tabReset.UseVisualStyleBackColor = true;
@@ -625,7 +655,7 @@
             // 
             // btnProtocol
             // 
-            this.btnProtocol.Enabled = false;
+            this.btnProtocol.FlatStyle = System.Windows.Forms.FlatStyle.System;
             this.btnProtocol.Location = new System.Drawing.Point(93, 173);
             this.btnProtocol.Name = "btnProtocol";
             this.btnProtocol.Size = new System.Drawing.Size(116, 24);
@@ -634,28 +664,29 @@
             this.ttSettings.SetToolTip(this.btnProtocol, "Install the protocol for the userscript");
             this.btnProtocol.UseVisualStyleBackColor = true;
             this.btnProtocol.Visible = false;
+            this.btnProtocol.Click += new System.EventHandler(this.btnProtocol_Click);
             // 
-            // btnSCan
+            // btnCancel
             // 
-            this.btnSCan.Location = new System.Drawing.Point(307, 173);
-            this.btnSCan.Name = "btnSCan";
-            this.btnSCan.Size = new System.Drawing.Size(75, 24);
-            this.btnSCan.TabIndex = 23;
-            this.btnSCan.Text = "&Cancel";
-            this.ttSettings.SetToolTip(this.btnSCan, "Does not save any settings changed.\r\n");
-            this.btnSCan.UseVisualStyleBackColor = true;
-            this.btnSCan.Click += new System.EventHandler(this.btnSCan_Click);
+            this.btnCancel.Location = new System.Drawing.Point(307, 173);
+            this.btnCancel.Name = "btnCancel";
+            this.btnCancel.Size = new System.Drawing.Size(75, 24);
+            this.btnCancel.TabIndex = 23;
+            this.btnCancel.Text = "&Cancel";
+            this.ttSettings.SetToolTip(this.btnCancel, "Does not save any settings changed.\r\n");
+            this.btnCancel.UseVisualStyleBackColor = true;
+            this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
             // 
-            // btnSSave
+            // btnSave
             // 
-            this.btnSSave.Location = new System.Drawing.Point(226, 173);
-            this.btnSSave.Name = "btnSSave";
-            this.btnSSave.Size = new System.Drawing.Size(75, 24);
-            this.btnSSave.TabIndex = 22;
-            this.btnSSave.Text = "&Save";
-            this.ttSettings.SetToolTip(this.btnSSave, "Saves the settings.");
-            this.btnSSave.UseVisualStyleBackColor = true;
-            this.btnSSave.Click += new System.EventHandler(this.btnSSave_Click);
+            this.btnSave.Location = new System.Drawing.Point(226, 173);
+            this.btnSave.Name = "btnSave";
+            this.btnSave.Size = new System.Drawing.Size(75, 24);
+            this.btnSave.TabIndex = 22;
+            this.btnSave.Text = "&Save";
+            this.ttSettings.SetToolTip(this.btnSave, "Saves the settings.");
+            this.btnSave.UseVisualStyleBackColor = true;
+            this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
             // 
             // ttSettings
             // 
@@ -670,11 +701,11 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.ClientSize = new System.Drawing.Size(392, 205);
-            this.Controls.Add(this.btnSSave);
+            this.ClientSize = new System.Drawing.Size(394, 207);
+            this.Controls.Add(this.btnSave);
             this.Controls.Add(this.btnUserScript);
             this.Controls.Add(this.btnProtocol);
-            this.Controls.Add(this.btnSCan);
+            this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.tcMain);
             this.Icon = global::YChanEx.Properties.Resources.YChanEx;
             this.MaximizeBox = false;
@@ -713,13 +744,13 @@
         private System.Windows.Forms.TabPage tabReset;
         private System.Windows.Forms.Button btnUserScript;
         private System.Windows.Forms.Button btnProtocol;
-        private System.Windows.Forms.Button btnSCan;
-        private System.Windows.Forms.Button btnSSave;
+        private System.Windows.Forms.Button btnCancel;
+        private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.CheckBox chkPreventDuplicates;
         private System.Windows.Forms.CheckBox chkSaveOriginalFileNames;
         private System.Windows.Forms.CheckBox chkDownloadThumbnails;
         private System.Windows.Forms.CheckBox chkDownloadHTML;
-        private HintTextBox txtSavePath;
+        private murrty.controls.ExtendedTextBox txtSavePath;
         private System.Windows.Forms.CheckBox chkUseFullBoardNameForTitle;
         private System.Windows.Forms.CheckBox chkEnableUpdates;
         private System.Windows.Forms.CheckBox chkShowExitWarning;
@@ -730,11 +761,11 @@
         private System.Windows.Forms.Label lbUserAgent;
         private System.Windows.Forms.CheckBox chkSilenceErrors;
         private System.Windows.Forms.CheckBox chkDisableScannerWhenOpeningSettings;
-        private HintTextBox txtUserAgent;
+        private murrty.controls.ExtendedTextBox txtUserAgent;
         private System.Windows.Forms.Button btnOpenLocalFiles;
         private System.Windows.Forms.TabPage tabRegex;
         private System.Windows.Forms.Label lbRegexInfo;
-        private HintTextBox txtRegex;
+        private murrty.controls.ExtendedTextBox txtRegex;
         private System.Windows.Forms.ListView lvRegex;
         private System.Windows.Forms.CheckBox chkAllowFileNamesGreaterThan255;
         private System.Windows.Forms.CheckBox chkMinimizeInsteadOfExiting;
@@ -746,6 +777,8 @@
         private System.Windows.Forms.Button btnResetSettings;
         private System.Windows.Forms.CheckBox chkEnableSettingsReset;
         private System.Windows.Forms.Label lbScanDelaySeconds;
-        private System.Windows.Forms.CheckBox chkRetrieveThreadName;
+        private System.Windows.Forms.CheckBox chkCleanThreadHTML;
+        private System.Windows.Forms.CheckBox chkSaveDownloadHistory;
+        private System.Windows.Forms.CheckBox chkAutoRemoveDeadThreads;
     }
 }

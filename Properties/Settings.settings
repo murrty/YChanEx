@@ -1,24 +1,5 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="YChanEx.Properties" GeneratedClassName="Settings">
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)">
   <Profiles />
-  <Settings>
-    <Setting Name="AppVersion" Type="System.Decimal" Scope="Application">
-      <Value Profile="(Default)">2.0</Value>
-    </Setting>
-    <Setting Name="DebugDate" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">2021-11-10</Value>
-    </Setting>
-    <Setting Name="SkippedVersion" Type="System.Decimal" Scope="User">
-      <Value Profile="(Default)">0</Value>
-    </Setting>
-    <Setting Name="FirstTime" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
-    <Setting Name="PreReleaseVersion" Type="System.String" Scope="User">
-      <Value Profile="(Default)">2.1pre-2</Value>
-    </Setting>
-    <Setting Name="IsPreRelease" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
-  </Settings>
+  <Settings />
 </SettingsFile>
