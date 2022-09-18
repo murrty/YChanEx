@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace YChanEx {
@@ -16,13 +17,6 @@ namespace YChanEx {
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern IntPtr LoadCursor(IntPtr hInstance, IntPtr lpCursorName);
         #endregion
-
-
-        [DllImport("kernel32", CharSet = CharSet.Unicode)]
-        public static extern int WritePrivateProfileString(string lpAppName, string lpKeyName, string lpDefault, string lpFileName);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
-        public static extern uint GetPrivateProfileString(string lpAppName, string lpKeyName, string lpDefault, StringBuilder lpReturnedString, uint nSize, string lpFileName);
 
     }
 }

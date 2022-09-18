@@ -41,8 +41,11 @@
             this.mOpenThreadInBrowser = new System.Windows.Forms.MenuItem();
             this.mCopyThreadID = new System.Windows.Forms.MenuItem();
             this.mCopyThreadURL = new System.Windows.Forms.MenuItem();
-            this.mCopyThreadApiUrl = new System.Windows.Forms.MenuItem();
             this.btnAbortRetry = new System.Windows.Forms.Button();
+            this.lbFileCountSeparator = new System.Windows.Forms.Label();
+            this.lbDownloadedFiles = new System.Windows.Forms.Label();
+            this.lbTotalFiles = new System.Windows.Forms.Label();
+            this.ilStatus = new System.Windows.Forms.ImageList(this.components);
             this.cmPosts = new System.Windows.Forms.ContextMenu();
             this.mOpenImages = new System.Windows.Forms.MenuItem();
             this.mRemoveImages = new System.Windows.Forms.MenuItem();
@@ -60,13 +63,13 @@
             this.mRemoveImagesFromThread = new System.Windows.Forms.MenuItem();
             this.mRemoveImagesFromBoth = new System.Windows.Forms.MenuItem();
             this.btnPauseTimer = new System.Windows.Forms.Button();
-            this.btnClose = new System.Windows.Forms.Button();
-            this.btnOpenFolder = new murrty.controls.SplitButton();
-            this.lvImages = new murrty.controls.VistaListView();
+            this.btnOpenFolder = new YChanEx.SplitButton();
+            this.lvImages = new YChanEx.VistaListView();
             this.clID = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clExt = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clFileName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clHash = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.btnClose = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // tmrScan
@@ -81,9 +84,9 @@
             this.lbNumberOfFiles.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lbNumberOfFiles.Location = new System.Drawing.Point(12, 248);
             this.lbNumberOfFiles.Name = "lbNumberOfFiles";
-            this.lbNumberOfFiles.Size = new System.Drawing.Size(134, 17);
+            this.lbNumberOfFiles.Size = new System.Drawing.Size(99, 17);
             this.lbNumberOfFiles.TabIndex = 1;
-            this.lbNumberOfFiles.Text = "number of files:  0 / 0";
+            this.lbNumberOfFiles.Text = "number of files:";
             this.ttDownloader.SetToolTip(this.lbNumberOfFiles, "The total number of files in the thread (scanned)");
             // 
             // lbTimeToRescan
@@ -126,10 +129,10 @@
             // 
             // lbNotModified
             // 
-            this.lbNotModified.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.lbNotModified.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lbNotModified.AutoSize = true;
             this.lbNotModified.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lbNotModified.Location = new System.Drawing.Point(201, 282);
+            this.lbNotModified.Location = new System.Drawing.Point(203, 286);
             this.lbNotModified.Name = "lbNotModified";
             this.lbNotModified.Size = new System.Drawing.Size(83, 17);
             this.lbNotModified.TabIndex = 7;
@@ -168,8 +171,7 @@
             this.mOpenThreadDownloadFolder,
             this.mOpenThreadInBrowser,
             this.mCopyThreadID,
-            this.mCopyThreadURL,
-            this.mCopyThreadApiUrl});
+            this.mCopyThreadURL});
             // 
             // mOpenThreadDownloadFolder
             // 
@@ -195,12 +197,6 @@
             this.mCopyThreadURL.Text = "Copy thread URL";
             this.mCopyThreadURL.Click += new System.EventHandler(this.mCopyThreadURL_Click);
             // 
-            // mCopyThreadApiUrl
-            // 
-            this.mCopyThreadApiUrl.Index = 4;
-            this.mCopyThreadApiUrl.Text = "Copy thread API URL";
-            this.mCopyThreadApiUrl.Click += new System.EventHandler(this.mCopyThreadApiUrl_Click);
-            // 
             // btnAbortRetry
             // 
             this.btnAbortRetry.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -211,6 +207,45 @@
             this.btnAbortRetry.Text = "Abort";
             this.btnAbortRetry.UseVisualStyleBackColor = true;
             this.btnAbortRetry.Click += new System.EventHandler(this.btnAbortRetry_Click);
+            // 
+            // lbFileCountSeparator
+            // 
+            this.lbFileCountSeparator.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.lbFileCountSeparator.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lbFileCountSeparator.Location = new System.Drawing.Point(116, 247);
+            this.lbFileCountSeparator.Name = "lbFileCountSeparator";
+            this.lbFileCountSeparator.Size = new System.Drawing.Size(64, 17);
+            this.lbFileCountSeparator.TabIndex = 11;
+            this.lbFileCountSeparator.Text = "/";
+            this.lbFileCountSeparator.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // lbDownloadedFiles
+            // 
+            this.lbDownloadedFiles.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.lbDownloadedFiles.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lbDownloadedFiles.Location = new System.Drawing.Point(108, 248);
+            this.lbDownloadedFiles.Name = "lbDownloadedFiles";
+            this.lbDownloadedFiles.Size = new System.Drawing.Size(36, 17);
+            this.lbDownloadedFiles.TabIndex = 13;
+            this.lbDownloadedFiles.Text = "0";
+            this.lbDownloadedFiles.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // lbTotalFiles
+            // 
+            this.lbTotalFiles.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.lbTotalFiles.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lbTotalFiles.Location = new System.Drawing.Point(152, 248);
+            this.lbTotalFiles.Name = "lbTotalFiles";
+            this.lbTotalFiles.Size = new System.Drawing.Size(36, 17);
+            this.lbTotalFiles.TabIndex = 14;
+            this.lbTotalFiles.Text = "0";
+            this.lbTotalFiles.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // ilStatus
+            // 
+            this.ilStatus.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit;
+            this.ilStatus.ImageSize = new System.Drawing.Size(16, 16);
+            this.ilStatus.TransparentColor = System.Drawing.Color.Fuchsia;
             // 
             // cmPosts
             // 
@@ -340,7 +375,7 @@
             // 
             this.btnPauseTimer.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnPauseTimer.Enabled = false;
-            this.btnPauseTimer.Location = new System.Drawing.Point(395, 223);
+            this.btnPauseTimer.Location = new System.Drawing.Point(209, 250);
             this.btnPauseTimer.Name = "btnPauseTimer";
             this.btnPauseTimer.Size = new System.Drawing.Size(75, 23);
             this.btnPauseTimer.TabIndex = 15;
@@ -349,21 +384,10 @@
             this.btnPauseTimer.Visible = false;
             this.btnPauseTimer.Click += new System.EventHandler(this.btnPauseTimer_Click);
             // 
-            // btnClose
-            // 
-            this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnClose.Location = new System.Drawing.Point(395, 278);
-            this.btnClose.Name = "btnClose";
-            this.btnClose.Size = new System.Drawing.Size(75, 23);
-            this.btnClose.TabIndex = 17;
-            this.btnClose.Text = "Close";
-            this.btnClose.UseVisualStyleBackColor = true;
-            this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
-            // 
             // btnOpenFolder
             // 
             this.btnOpenFolder.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnOpenFolder.ContextMenu = this.cmThreadActions;
+            this.btnOpenFolder.DropDownContextMenu = this.cmThreadActions;
             this.btnOpenFolder.FlatStyle = System.Windows.Forms.FlatStyle.System;
             this.btnOpenFolder.Location = new System.Drawing.Point(290, 278);
             this.btnOpenFolder.Name = "btnOpenFolder";
@@ -384,14 +408,13 @@
             this.clFileName,
             this.clHash});
             this.lvImages.ContextMenu = this.cmPosts;
-            this.lvImages.HideSelection = false;
+            this.lvImages.EnableVistaView = true;
             this.lvImages.Location = new System.Drawing.Point(12, 12);
             this.lvImages.Name = "lvImages";
             this.lvImages.Size = new System.Drawing.Size(458, 209);
             this.lvImages.TabIndex = 0;
             this.lvImages.UseCompatibleStateImageBehavior = false;
             this.lvImages.View = System.Windows.Forms.View.Details;
-            this.lvImages.VistaView = true;
             this.lvImages.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.lvImages_KeyPress);
             this.lvImages.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.lvImages_MouseDoubleClick);
             // 
@@ -415,21 +438,34 @@
             this.clHash.Text = "File Hash";
             this.clHash.Width = 106;
             // 
+            // btnClose
+            // 
+            this.btnClose.Location = new System.Drawing.Point(395, 278);
+            this.btnClose.Name = "btnClose";
+            this.btnClose.Size = new System.Drawing.Size(75, 23);
+            this.btnClose.TabIndex = 17;
+            this.btnClose.Text = "Close";
+            this.btnClose.UseVisualStyleBackColor = true;
+            this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
+            // 
             // frmDownloader
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(484, 315);
-            this.Controls.Add(this.lbScanTimer);
+            this.ClientSize = new System.Drawing.Size(482, 313);
             this.Controls.Add(this.btnClose);
             this.Controls.Add(this.lbPostsParsed);
+            this.Controls.Add(this.lbTotalFiles);
+            this.Controls.Add(this.lbDownloadedFiles);
             this.Controls.Add(this.btnAbortRetry);
             this.Controls.Add(this.lbNotModified);
             this.Controls.Add(this.btnOpenFolder);
             this.Controls.Add(this.lbLastModified);
+            this.Controls.Add(this.lbScanTimer);
             this.Controls.Add(this.lbTimeToRescan);
             this.Controls.Add(this.lbNumberOfFiles);
             this.Controls.Add(this.lvImages);
+            this.Controls.Add(this.lbFileCountSeparator);
             this.Controls.Add(this.btnPauseTimer);
             this.Controls.Add(this.btnForce404);
             this.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -447,7 +483,7 @@
 
         #endregion
 
-        private murrty.controls.VistaListView lvImages;
+        private VistaListView lvImages;
         private System.Windows.Forms.ColumnHeader clID;
         private System.Windows.Forms.ColumnHeader clExt;
         private System.Windows.Forms.ColumnHeader clFileName;
@@ -460,9 +496,13 @@
         private System.Windows.Forms.ToolTip ttDownloader;
         private System.Windows.Forms.Label lbNotModified;
         private System.Windows.Forms.Button btnForce404;
-        private murrty.controls.SplitButton btnOpenFolder;
+        private SplitButton btnOpenFolder;
         private System.Windows.Forms.ContextMenu cmThreadActions;
         private System.Windows.Forms.Button btnAbortRetry;
+        private System.Windows.Forms.Label lbFileCountSeparator;
+        private System.Windows.Forms.Label lbDownloadedFiles;
+        private System.Windows.Forms.Label lbTotalFiles;
+        private System.Windows.Forms.ImageList ilStatus;
         private System.Windows.Forms.MenuItem mOpenThreadDownloadFolder;
         private System.Windows.Forms.MenuItem mOpenThreadInBrowser;
         private System.Windows.Forms.MenuItem mCopyThreadID;
@@ -486,6 +526,6 @@
         private System.Windows.Forms.MenuItem mShowInExplorer;
         private System.Windows.Forms.MenuItem mDebug;
         private System.Windows.Forms.Button btnClose;
-        private System.Windows.Forms.MenuItem mCopyThreadApiUrl;
+
     }
 }

@@ -123,26 +123,21 @@
   <metadata name="tabDownloads.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
-  <metadata name="chkAutoRemoveDeadThreads.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+  <metadata name="chkRetrieveThreadName.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
   <metadata name="ttSettings.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
-  </metadata>
-  <metadata name="chkCleanThreadHTML.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>True</value>
   </metadata>
   <metadata name="chkAllowFileNamesGreaterThan255.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
   <data name="chkAllowFileNamesGreaterThan255.ToolTip" xml:space="preserve">
     <value>This allows file names to be saved with their full original name if their length is greater than 255.
-It's not recommended to use this without the proper environment
+It's not recommended to use this without the proper environment.
 
 Any file names with large lengths will be reduced to the 255 in length,
-and the full original name will be saved with the same name in ".txt" format.
-
-Default: Off</value>
+and the full original name will be saved with the same name in ".txt" format.</value>
   </data>
   <metadata name="txtSavePath.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
@@ -180,9 +175,6 @@ Default: Off</value>
   <metadata name="tabApplication.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
-  <metadata name="chkSaveDownloadHistory.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>True</value>
-  </metadata>
   <metadata name="chkMinimizeInsteadOfExiting.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
@@ -193,9 +185,7 @@ Default: Off</value>
     <value>Displays the title of the board in the title of the thread form instead of the short name.
 
 On certain sites that allow you to manage your own board (8chan and 8kun), the board name is derived
-from downloading the HTML once when the thread gets downloaded.
-
-Default: Off</value>
+from downloading the HTML once when the thread gets downloaded.</value>
   </data>
   <metadata name="chkSaveDownloadQueueOnExit.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
@@ -221,14 +211,6 @@ Default: Off</value>
   <metadata name="chkSilenceErrors.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
-  <data name="chkSilenceErrors.ToolTip" xml:space="preserve">
-    <value>Does not display any errors that may arise from any problems that may occur.
-
-Not recommended to enable, but may help if there are an uptick in errors
-that don't effect the your regular use.
-
-Default: Off</value>
-  </data>
   <metadata name="chkDisableScannerWhenOpeningSettings.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
@@ -237,9 +219,7 @@ Default: Off</value>
 
 This prevents any changes from not applying if a thread is waiting to scan.
 This does not prevent any changes if a thread is in the process of
-scanning or downloading.
-
-Default: On</value>
+scanning or downloading.</value>
   </data>
   <metadata name="txtUserAgent.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
@@ -289,10 +269,10 @@ Default: On</value>
   <metadata name="btnProtocol.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
-  <metadata name="btnCancel.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+  <metadata name="btnSCan.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
-  <metadata name="btnSave.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+  <metadata name="btnSSave.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
   <metadata name="$this.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
