@@ -97,12 +97,12 @@ namespace YChanEx {
                 ThreadLoader = new Thread(() => {
                     try {
                         if (Config.Settings.General.SaveQueueOnExit) {
-                            var SavedThreads = new List<ThreadData>().LoadThreads();
+                            var SavedThreads = new List<ThreadData>().LoadThreads(out List<string> FilePaths);
                             if (SavedThreads.Count > 0) {
                                 for (int i = 0; i < SavedThreads.Count; i++) {
                                     try {
                                         this.Invoke(() => {
-                                            AddNewThread(SavedThreads[i]);
+                                            AddNewThread(SavedThreads[i], FilePaths[i]);
                                         });
                                     }
                                     catch (Exception ex) {
@@ -295,7 +295,7 @@ namespace YChanEx {
         /// </summary>
         /// <param name="Info"></param>
         /// <returns></returns>
-        private bool AddNewThread(ThreadData Info) {
+        private bool AddNewThread(ThreadData Info, string InfoPath) {
             Info.ThreadURL = Networking.CleanURL(Info.ThreadURL);
             if (Chans.SupportedChan(Info.ThreadURL, out ChanType ReceivedType) && !ThreadURLs.Contains(Info.ThreadURL)) {
                 switch (ReceivedType) {
@@ -306,6 +306,8 @@ namespace YChanEx {
                 ThreadInfo NewInfo = new(Info, ReceivedType) {
                     ThreadIndex = ThreadURLs.Count - 1
                 };
+                NewInfo.SavedThreadJson = InfoPath;
+                NewInfo.UpdateJsonPath();
                 frmDownloader newThread = new(this);
                 newThread.Name = Info.ThreadURL;
                 newThread.CurrentThread = NewInfo;

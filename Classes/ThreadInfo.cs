@@ -113,12 +113,14 @@ public sealed class ThreadInfo {
             ChanType.u18chan => "u18chan-",
             _ => throw new InvalidOperationException(nameof(ChanType))
         }}{this.Data.ThreadBoard}-{this.Data.ThreadID}.thread.json";
-        if (Config.Settings.General.AutoSaveThreads && System.IO.File.Exists(SavedThreadJson)) {
-            System.IO.File.Move(SavedThreadJson, NewFile);
-        }
-        SavedThreadJson = NewFile;
-    }
 
+        if (SavedThreadJson != NewFile) {
+            if (System.IO.File.Exists(SavedThreadJson))
+                System.IO.File.Move(SavedThreadJson, NewFile);
+
+            SavedThreadJson = NewFile;
+        }
+    }
 }
 
 public sealed class ThreadData {

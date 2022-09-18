@@ -26,5 +26,10 @@ internal static class Extensions {
 
         return value.Length == 0;
     }
+    public static void ForEach<T>(this IEnumerable<T> enumerable, Action<T> a) {
+        foreach (T item in enumerable)
+            a(item);
+    }
+
     public static string ReplaceWhitespace(this string str, string replacement = " ") => System.Text.RegularExpressions.Regex.Replace(str, @"\s+", replacement, System.Text.RegularExpressions.RegexOptions.Compiled);
 }

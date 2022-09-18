@@ -27,6 +27,22 @@ internal static class ProgramSettings {
 
     public static bool SaveThreads(this List<ThreadInfo> Data){
         try {
+            //if (Directory.Exists(Config.Settings.SavedThreadsPath)) {
+            //    FileInfo[] Files = new DirectoryInfo(Config.Settings.SavedThreadsPath)
+            //        .GetFiles("*.thread.json", SearchOption.TopDirectoryOnly);
+
+            //    if (Files.Length > 0)
+            //        Files.ForEach((f) => { f.Delete(); });
+            //}
+
+            //if (Data.Count > 0) {
+            //    if (!Directory.Exists(Config.Settings.SavedThreadsPath))
+            //        Directory.CreateDirectory(Config.Settings.SavedThreadsPath);
+
+            //    for (int i = 0; i < Data.Count; i++)
+            //        File.WriteAllText(Data[i].SavedThreadJson, Data[i].Data.JsonSerialize());
+            //}
+
             List<string> Files = new();
             if (Directory.Exists($"{Config.Settings.SavedThreadsPath}")) {
                 DirectoryInfo ExistingFiles = new(Config.Settings.SavedThreadsPath);
@@ -75,13 +91,14 @@ internal static class ProgramSettings {
         catch { throw; }
     }
 
-    public static List<ThreadData> LoadThreads(this List<ThreadData> list) {
+    public static List<ThreadData> LoadThreads(this List<ThreadData> list, out List<string> FilePaths) {
         if (list == null)
             list = new();
         else
             list.Clear();
 
         List<FileInfo> SavedFiles = new();
+        FilePaths = new();
 
         DirectoryInfo ScanningDirectory;
         if (Directory.Exists($"{Config.Settings.SavedThreadsPath}")) {
@@ -95,6 +112,7 @@ internal static class ProgramSettings {
         if (SavedFiles.Count > 0) {
             for (int i = 0; i < SavedFiles.Count; i++) {
                 list.Add(File.ReadAllText(SavedFiles[i].FullName).JsonDeserialize<ThreadData>());
+                FilePaths.Add(SavedFiles[i].FullName);
             }
         }
 
