@@ -69,8 +69,19 @@ namespace YChanEx {
                 btnPauseTimer.Visible = true;
             }
             lvImages.SmallImageList = Program.DownloadImages;
+
+            this.Load += (s, e) => {
+                if (Config.ValidPoint(Config.Settings.Saved.DownloadFormLocation)) {
+                    this.StartPosition = FormStartPosition.Manual;
+                    this.Location = Config.Settings.Saved.DownloadFormLocation;
+                }
+                if (Config.ValidSize(Config.Settings.Saved.DownloadFormSize))
+                    this.Size = Config.Settings.Saved.DownloadFormSize;
+            };
         }
         private void frmDownloader_FormClosing(object sender, FormClosingEventArgs e) {
+            Config.Settings.Saved.DownloadFormLocation = this.Location;
+            Config.Settings.Saved.DownloadFormSize = this.Size;
             e.Cancel = true;
             this.Hide();
         }
@@ -593,12 +604,18 @@ namespace YChanEx {
                         } break;
 
                         case ThreadStatus.ThreadIs404: {
-                            lbScanTimer.Text = "404'd";
-                            lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
-                            this.Icon = Properties.Resources.YChanEx404;
+                            if (Config.Settings.Downloads.AutoRemoveDeadThreads) {
+                                MainFormInstance.ThreadKilled(CurrentThread);
+                                return;
+                            }
+                            else {
+                                lbScanTimer.Text = "404'd";
+                                lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
+                                this.Icon = Properties.Resources.YChanEx404;
 
-                            MainFormInstance.SetItemStatus(CurrentThread.ThreadIndex, CurrentThread.CurrentActivity);
-                            btnAbortRetry.Text = "Retry";
+                                MainFormInstance.SetItemStatus(CurrentThread.ThreadIndex, CurrentThread.CurrentActivity);
+                                btnAbortRetry.Text = "Retry";
+                            }
                         } break;
 
                         case ThreadStatus.ThreadFile404: {
@@ -621,13 +638,19 @@ namespace YChanEx {
                         } break;
 
                         case ThreadStatus.ThreadIsArchived: {
-                            lbScanTimer.Text = "Archived";
-                            lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
-                            this.Icon = Properties.Resources.YChanEx404;
+                            if (Config.Settings.Downloads.AutoRemoveDeadThreads) {
+                                MainFormInstance.ThreadKilled(CurrentThread);
+                                return;
+                            }
+                            else {
+                                lbScanTimer.Text = "Archived";
+                                lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
+                                this.Icon = Properties.Resources.YChanEx404;
 
-                            MainFormInstance.SetItemStatus(CurrentThread.ThreadIndex, CurrentThread.CurrentActivity);
-                            btnAbortRetry.Text = "Rescan";
-                            CurrentThread.ThreadModified = true;
+                                MainFormInstance.SetItemStatus(CurrentThread.ThreadIndex, CurrentThread.CurrentActivity);
+                                btnAbortRetry.Text = "Rescan";
+                                CurrentThread.ThreadModified = true;
+                            }
                         } break;
 
                         case ThreadStatus.ThreadDownloading:
@@ -697,27 +720,6 @@ namespace YChanEx {
                     ManageThread(ThreadEvent.StartDownload);
                 } break;
 
-                case ThreadEvent.ThreadWasGone: {
-                    this.Icon = Properties.Resources.YChanEx404;
-                    lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
-                    btnAbortRetry.Text = "Retry";
-                    switch (LastStatus) {
-                        case ThreadStatus.ThreadIs404:
-                            lbScanTimer.Text = "404'd";
-                            CurrentThread.CurrentActivity = ThreadStatus.ThreadIs404;
-                            break;
-                        case ThreadStatus.ThreadIsAborted:
-                            lbScanTimer.Text = "Aborted";
-                            CurrentThread.CurrentActivity = ThreadStatus.ThreadIsAborted;
-                            break;
-                        case ThreadStatus.ThreadIsArchived:
-                            lbScanTimer.Text = "Archived";
-                            CurrentThread.CurrentActivity = ThreadStatus.ThreadIsArchived;
-                            break;
-                    }
-                    ManageThread(ThreadEvent.ParseForInfo);
-                } break;
-
                 case ThreadEvent.AbortForClosing: {
                     if (DownloadThread != null && DownloadThread.IsAlive) {
                         DownloadThread.Abort();
@@ -725,6 +727,14 @@ namespace YChanEx {
                 } break;
 
                 case ThreadEvent.ReloadThread: {
+                    if (Config.Settings.Downloads.AutoRemoveDeadThreads && CurrentThread.CurrentActivity switch {
+                        ThreadStatus.ThreadIs404 or ThreadStatus.ThreadIsArchived or _ when CurrentThread.Data.ThreadArchived => true,
+                        _ => false
+                    }) {
+                        MainFormInstance.ThreadKilled(CurrentThread);
+                        return;
+                    }
+
                     string ThreadName = "Unparsed";
 
                     switch (CurrentThread.Chan) {
@@ -814,9 +824,8 @@ namespace YChanEx {
                     this.Text = ThreadName;
                     CurrentThread.UpdateJsonPath();
 
-                    if (CurrentThread.Data.DownloadPath != null) {
+                    if (CurrentThread.Data.DownloadPath != null)
                         btnOpenFolder.Enabled = true;
-                    }
 
                     if (CurrentThread.Data.FileIDs.Count > 0) {
                         for (int i = 0; i < CurrentThread.Data.FileIDs.Count; i++) {
@@ -1494,10 +1503,10 @@ namespace YChanEx {
                 #region Finally block
 
                 finally {
-                    if (CurrentThread.Data.ThreadArchived) {
+                    if (CurrentThread.Data.ThreadArchived)
                         CurrentThread.CurrentActivity = ThreadStatus.ThreadIsArchived;
-                    }
-                    this?.Invoke((MethodInvoker)delegate () {
+
+                    this?.BeginInvoke(() => {
                         ManageThread(ThreadEvent.AfterDownload);
                     });
                 }

@@ -24,9 +24,8 @@ public enum ThreadEvent : int {
     /// </summary>
     RetryDownload = 4,
     /// <summary>
-    /// The thread was 404'd or aborted when it was added.
+    /// The thread is being reloaded from a saved file.
     /// </summary>
-    ThreadWasGone = 5,
     ReloadThread = 6,
 
     /// <summary>

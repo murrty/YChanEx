@@ -78,7 +78,7 @@
     <Compile Include="Classes\HtmlMonkey\Selector.cs" />
     <Compile Include="Classes\HtmlMonkey\SelectorCollection.cs" />
     <Compile Include="Classes\HtmlMonkey\TextParser.cs" />
-    <Compile Include="Classes\IMainForm.cs" />
+    <Compile Include="Interfaces\IMainForm.cs" />
     <Compile Include="Enums\ThreadEvent.cs" />
     <Compile Include="Enums\ThreadStatus.cs" />
     <Compile Include="Classes\Threads\EightChanThread.cs" />

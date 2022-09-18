@@ -29,9 +29,11 @@ namespace YChanEx {
             chkDownloadHTML.Checked = Config.Settings.Downloads.SaveHTML;
             chkCleanThreadHTML.Checked = Config.Settings.Downloads.CleanThreadHTML;
             chkDownloadThumbnails.Checked = Config.Settings.Downloads.SaveThumbnails;
+            chkAutoRemoveDeadThreads.Checked = Config.Settings.Downloads.AutoRemoveDeadThreads;
 
             chkShowTrayIcon.Checked = Config.Settings.General.ShowTrayIcon;
             chkMinimizeToTray.Checked = Config.Settings.General.MinimizeToTray;
+            chkMinimizeInsteadOfExiting.Checked = Config.Settings.General.MinimizeInsteadOfExiting;
             chkShowExitWarning.Checked = Config.Settings.General.ShowExitWarning;
             chkEnableUpdates.Checked = Config.Settings.General.EnableUpdates;
             chkUseFullBoardNameForTitle.Checked = Config.Settings.General.UseFullBoardNameForTitle;
@@ -64,9 +66,11 @@ namespace YChanEx {
             Config.Settings.Downloads.SaveHTML = chkDownloadHTML.Checked;
             Config.Settings.Downloads.CleanThreadHTML = chkCleanThreadHTML.Checked;
             Config.Settings.Downloads.SaveThumbnails = chkDownloadThumbnails.Checked;
+            Config.Settings.Downloads.AutoRemoveDeadThreads = chkAutoRemoveDeadThreads.Checked;
 
             Config.Settings.General.ShowTrayIcon = chkShowTrayIcon.Checked;
             Config.Settings.General.MinimizeToTray = chkMinimizeToTray.Checked;
+            Config.Settings.General.MinimizeInsteadOfExiting = chkMinimizeInsteadOfExiting.Checked;
             Config.Settings.General.ShowExitWarning = chkShowExitWarning.Checked;
             Config.Settings.General.EnableUpdates = chkEnableUpdates.Checked;
             Config.Settings.General.UseFullBoardNameForTitle = chkUseFullBoardNameForTitle.Checked;

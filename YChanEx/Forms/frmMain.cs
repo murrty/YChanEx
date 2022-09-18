@@ -90,6 +90,12 @@ namespace YChanEx {
         }
 
         /// <summary>
+        /// Removes the thread if it was killed (archived or 404)
+        /// </summary>
+        /// <param name="Thread"></param>
+        public void ThreadKilled(ThreadInfo Thread) => RemoveThread(Thread);
+
+        /// <summary>
         /// Checks the threads from the saved queue, and the arguments.
         /// </summary>
         private void CheckThreads() {
@@ -367,18 +373,19 @@ namespace YChanEx {
                         Threads[Thread.ThreadIndex].ManageThread(ThreadEvent.AbortDownload);
                     }
 
-                    if (System.IO.File.Exists(Thread.SavedThreadJson)) {
+                    if (System.IO.File.Exists(Thread.SavedThreadJson))
                         System.IO.File.Delete(Thread.SavedThreadJson);
-                    }
 
                     Threads[Thread.ThreadIndex].Dispose();
                     Threads.RemoveAt(Thread.ThreadIndex);
                     ThreadURLs.RemoveAt(Thread.ThreadIndex);
                     lvThreads.Items.RemoveAt(Thread.ThreadIndex);
 
-                    for (int i = Thread.ThreadIndex; i < Threads.Count; i++) {
-                        Threads[i].CurrentThread.ThreadIndex--;
-                        Threads[i].CurrentThread.UpdateJsonPath();
+                    if (Threads.Count > 0) {
+                        for (int i = Thread.ThreadIndex; i < Threads.Count; i++) {
+                            Threads[i].CurrentThread.ThreadIndex--;
+                            Threads[i].CurrentThread.UpdateJsonPath();
+                        }
                     }
 
                     niTray.Text = "YChanEx - " + lvThreads.Items.Count + " threads";
