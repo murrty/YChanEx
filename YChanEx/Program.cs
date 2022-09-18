@@ -176,8 +176,8 @@ namespace YChanEx {
                     IntPtr hwnd = CopyData.FindWindow(null, "YChanEx");
                     if (hwnd != IntPtr.Zero) {
                         if (Arguments.URLs.Count > 0) {
-                            CopyData.SentData Data = new() { Argument = string.Join("|", Arguments.URLs) };
-                            CopyData.CopyDataStruct DataStruct = new();
+                            SentData Data = new() { Argument = string.Join("|", Arguments.URLs) };
+                            CopyDataStruct DataStruct = new();
                             IntPtr CopyDataBuffer = IntPtr.Zero;
                             IntPtr DataBuffer = IntPtr.Zero;
                             try {
