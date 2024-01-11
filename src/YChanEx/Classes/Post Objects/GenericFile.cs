@@ -51,8 +51,14 @@ public sealed class GenericFile {
     [DataMember(Name = "saved_file")]
     public string? SavedFile { get; set; }
 
+    [DataMember(Name = "saved_file_name")]
+    public string? SavedFileName { get; set; }
+
     [DataMember(Name = "saved_thumbnail_file")]
     public string? SavedThumbnailFile { get; set; }
+
+    [DataMember(Name = "saved_thumbnail_file_name")]
+    public string? SavedThumbnailFileName { get; set; }
 
     [IgnoreDataMember]
     public ListViewItem ListViewItem { get; set; } = null!;

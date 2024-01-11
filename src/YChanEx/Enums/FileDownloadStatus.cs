@@ -22,5 +22,10 @@ public enum FileDownloadStatus : byte {
     /// The file was not able to be downloaded.
     /// <para>A download attempt will occur.</para>
     /// </summary>
-    Error = 3
+    Error = 3,
+    /// <summary>
+    /// The file was removed from the thread.<para/>
+    /// <para>No download attempt will occur for this file again.</para>
+    /// </summary>
+    RemovedFromThread = 4,
 }

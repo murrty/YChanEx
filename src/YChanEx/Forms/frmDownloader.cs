@@ -23,43 +23,59 @@ public partial class frmDownloader : Form {
     private delegate Task DownloadStream(Stream HttpStream, Stream Output, CancellationToken token);
     private const int DefaultBuffer = 81920;
 
-    // download the images in the lists.
-    // indexes are:
-    // 0 = waiting
-    // 1 = downloading
-    // 2 = completed
-    // 3 = error
-    // 4 = 404
-    // 5 = reloaded (downloaded)
-    // 6 = reloaded (missing)
-
-    // TODO: Hash matching (if supported), offer to retry downloading.
-
     private static HttpClient DownloadClient;
     private static HttpMessageHandler DownloadClientHandler;
     private static CookieContainer CookieContainer;
     private static readonly DownloadStream StreamCallback;
-    private static readonly bool Throttle = false;
-    private static readonly int ThrottleSize = 0;
+    private static readonly bool Throttle;
+    private static readonly int ThrottleSize;
     private static readonly int ThrottleBufferSize;
     internal static ImageList DownloadImages = new();
+    const int WaitingImage = 0;
+    const int DownloadingImage = 1;
+    const int FinishedImage = 2;
+    const int ErrorImage = 3;
+    const int _404Image = 4;
+    const int ReloadedDownloadedImage = 5;
+    const int ReloadedMissingImage = 6;
+    const int RemovedFromThreadImage = 7;
 
-    static frmDownloader() {
-        DownloadImages.ColorDepth = ColorDepth.Depth32Bit;
-        DownloadImages.Images.Add(Properties.Resources.waiting);            // 0
-        DownloadImages.Images.Add(Properties.Resources.downloading);        // 1
-        DownloadImages.Images.Add(Properties.Resources.finished);           // 2
-        DownloadImages.Images.Add(Properties.Resources.error);              // 3
-        DownloadImages.Images.Add(Properties.Resources._404);               // 4
-        DownloadImages.Images.Add(Properties.Resources.reloaded_downloaded);// 5
-        DownloadImages.Images.Add(Properties.Resources.reloaded_missing);   // 6
-        RecreateDownloadClient();
+    private const string DefaultEmptyFileName = "ychanex-emptyname";
+    /// <summary>
+    /// The IMainFormInterface to interface with the main form,
+    /// used for updating the main form with this forms' threads' status, or name.
+    /// </summary>
+    private readonly IMainFom MainFormInstance;
 
-        Throttle = false;
-        ThrottleSize = Initialization.ThrottleSize;
-        ThrottleBufferSize = Math.Min(ThrottleSize, DefaultBuffer);
-        StreamCallback = Throttle ? ThrottledWriteToStreamAsync : WriteToStreamAsync;
-    }
+    /// <summary>
+    /// The ThreadInfo containing all information about this forms' thread.
+    /// </summary>
+    public ThreadInfo ThreadInfo;
+    public ThreadStatus LastStatus;
+
+    /// <summary>
+    /// The thread for the thread parser/downloader
+    /// </summary>
+    private Thread? DownloadThread;
+    /// <summary>
+    /// The thread that's used to delay the rescanner.
+    /// </summary>
+    private Thread? TimerIdle;
+    /// <summary>
+    /// The reste vent that is used to block the thread during idle.
+    /// </summary>
+    private readonly ManualResetEventSlim ResetThread;
+
+    // Mostly-debug
+    /// <summary>
+    /// Pauses the file downloader 100ms between each file,
+    /// used to prevent sending too many requests.
+    /// </summary>
+    private const bool PauseBetweenFiles = true;
+    /// <summary>
+    /// The cancellation token that will be used to kill the main loop.
+    /// </summary>
+    private CancellationTokenSource CancellationToken;
 
     [MemberNotNull(nameof(DownloadClient), nameof(DownloadClientHandler), nameof(CookieContainer))]
     public static void RecreateDownloadClient() {
@@ -92,43 +108,23 @@ public partial class frmDownloader : Form {
         DownloadClient.DefaultRequestHeaders.UserAgent.ParseAdd(Advanced.UserAgent);
     }
 
-    #region Variables
-    private const string DefaultEmptyFileName = "ychanex-emptyname";
-    /// <summary>
-    /// The IMainFormInterface to interface with the main form,
-    /// used for updating the main form with this forms' threads' status, or name.
-    /// </summary>
-    private readonly IMainFom MainFormInstance;     // all, the instance of the main for for modifying it
-                                                    // when anything major changes in the download form.
+    static frmDownloader() {
+        DownloadImages.ColorDepth = ColorDepth.Depth32Bit;
+        DownloadImages.Images.Add(Properties.Resources.waiting);            // 0
+        DownloadImages.Images.Add(Properties.Resources.downloading);        // 1
+        DownloadImages.Images.Add(Properties.Resources.finished);           // 2
+        DownloadImages.Images.Add(Properties.Resources.error);              // 3
+        DownloadImages.Images.Add(Properties.Resources._404);               // 4
+        DownloadImages.Images.Add(Properties.Resources.reloaded_downloaded);// 5
+        DownloadImages.Images.Add(Properties.Resources.reloaded_missing);   // 6
+        DownloadImages.Images.Add(Properties.Resources.removed_from_thread);// 7
+        RecreateDownloadClient();
 
-    /// <summary>
-    /// The ThreadInfo containing all information about this forms' thread.
-    /// </summary>
-    public ThreadInfo ThreadInfo;                   // all, the ThreadInfo relating to the current thread.
-    public ThreadStatus LastStatus;                 // ???
-
-    /// <summary>
-    /// The thread for the thread parser/downloader
-    /// </summary>
-    private Thread? DownloadThread;                  // all, the main download thread.
-    /// <summary>
-    /// The thread that's used to delay the rescanner.
-    /// </summary>
-    private Thread? TimerIdle;                       // all, the timer idler for when the settings form is open.
-    /// <summary>
-    /// The reste vent that is used to block the thread during idle.
-    /// </summary>
-    private readonly ManualResetEventSlim ResetThread;  // all, reset event.
-
-    // Mostly-debug
-    /// <summary>
-    /// Pauses the file downloader 100ms between each file,
-    /// used to prevent sending too many requests.
-    /// </summary>
-    private const bool PauseBetweenFiles = true;    // all, temp pauses between file downloads.
-    #endregion
-
-    #region Form Controls
+        Throttle = false;
+        ThrottleSize = Initialization.ThrottleSize;
+        ThrottleBufferSize = Math.Min(ThrottleSize, DefaultBuffer);
+        StreamCallback = Throttle ? ThrottledWriteToStreamAsync : WriteToStreamAsync;
+    }
     public frmDownloader(IMainFom MainForm, ThreadInfo ThreadInfo) {
         InitializeComponent();
         MainFormInstance = MainForm;
@@ -152,6 +148,7 @@ public partial class frmDownloader : Form {
         }
         lvImages.SmallImageList = DownloadImages;
         ResetThread = new();
+        CancellationToken = new();
     }
 
     private void frmDownloader_FormClosing(object sender, FormClosingEventArgs e) {
@@ -206,21 +203,27 @@ public partial class frmDownloader : Form {
         }
     }
     private void lvImages_MouseDoubleClick(object sender, MouseEventArgs e) {
-        //for (int i = 0; i < lvImages.SelectedIndices.Count; i++) {
-        //    if (File.Exists(CurrentThread.Data.DownloadPath + "\\" + CurrentThread.Data.FileNames[lvImages.SelectedIndices[i]])) {
-        //        Process.Start(CurrentThread.Data.DownloadPath + "\\" + CurrentThread.Data.FileNames[lvImages.SelectedIndices[i]]);
-        //    }
-        //}
+        for (int Post = 0; Post < lvImages.SelectedIndices.Count; Post++) {
+            if (lvImages.Items[Post].Tag is not GenericFile PostFile) {
+                continue;
+            }
+            if (File.Exists(ThreadInfo.Data.DownloadPath + "\\" + PostFile.SavedFile)) {
+                Process.Start(ThreadInfo.Data.DownloadPath + "\\" + PostFile.SavedFile);
+            }
+        }
     }
     private void lvImages_KeyPress(object sender, KeyPressEventArgs e) {
-        //if (e.KeyChar == (char)Keys.Return) {
-        //    for (int i = 0; i < lvImages.SelectedIndices.Count; i++) {
-        //        if (File.Exists(CurrentThread.Data.DownloadPath + "\\" + CurrentThread.Data.FileNames[lvImages.SelectedIndices[i]])) {
-        //            Process.Start(CurrentThread.Data.DownloadPath + "\\" + CurrentThread.Data.FileNames[lvImages.SelectedIndices[i]]);
-        //        }
-        //    }
-        //    e.Handled = true;
-        //}
+        if (e.KeyChar == (char)Keys.Return) {
+            for (int Post = 0; Post < lvImages.SelectedIndices.Count; Post++) {
+                if (lvImages.Items[Post].Tag is not GenericFile PostFile) {
+                    continue;
+                }
+                if (File.Exists(ThreadInfo.Data.DownloadPath + "\\" + PostFile.SavedFile)) {
+                    Process.Start(ThreadInfo.Data.DownloadPath + "\\" + PostFile.SavedFile);
+                }
+            }
+            e.Handled = true;
+        }
     }
     private void btnForce404_Click(object sender, EventArgs e) {
         if (Program.DebugMode) {
@@ -247,7 +250,9 @@ public partial class frmDownloader : Form {
         }
     }
     private void btnOpenFolder_Click(object sender, EventArgs e) {
-        if (ThreadInfo.Data.DownloadPath == null) { return; }
+        if (ThreadInfo.Data.DownloadPath == null) {
+            return;
+        }
 
         if (Directory.Exists(ThreadInfo.Data.DownloadPath)) {
             Process.Start(ThreadInfo.Data.DownloadPath);
@@ -297,70 +302,115 @@ public partial class frmDownloader : Form {
     }
 
     private void mOpenImages_Click(object sender, EventArgs e) {
-        //for (int i = 0; i < lvImages.SelectedIndices.Count; i++) {
-        //    if (File.Exists(CurrentThread.Data.DownloadPath + "\\" + CurrentThread.Data.FileNames[lvImages.SelectedIndices[i]])) {
-        //        Process.Start(CurrentThread.Data.DownloadPath + "\\" + CurrentThread.Data.FileNames[lvImages.SelectedIndices[i]]);
-        //    }
-        //}
+        for (int Post = 0; Post < lvImages.SelectedIndices.Count; Post++) {
+            if (lvImages.Items[Post].Tag is not GenericFile PostFile) {
+                continue;
+            }
+            if (File.Exists(ThreadInfo.Data.DownloadPath + "\\" + PostFile.SavedFile)) {
+                Process.Start(ThreadInfo.Data.DownloadPath + "\\" + PostFile.SavedFile);
+            }
+        }
     }
     private void mRemoveImages_Click(object sender, EventArgs e) {
-        //for (int Post = lvImages.SelectedIndices.Count - 1; Post >= 0; Post--) {
-        //    RemoveFileFromSystem(lvImages.SelectedIndices[Post]);
-        //}
+        for (int Post = lvImages.SelectedIndices.Count - 1; Post >= 0; Post--) {
+            RemoveFileFromSystem();
+        }
     }
     private void mRemoveImagesFromSystem_Click(object sender, EventArgs e) {
-        //for (int Post = lvImages.SelectedIndices.Count - 1; Post >= 0; Post--) {
-        //    RemoveFileFromSystem(lvImages.SelectedIndices[Post]);
-        //}
+        for (int Post = lvImages.SelectedIndices.Count - 1; Post >= 0; Post--) {
+            RemoveFileFromSystem();
+        }
     }
     private void mRemoveImagesFromThread_Click(object sender, EventArgs e) {
-        //for (int Post = lvImages.SelectedIndices.Count - 1; Post >= 0; Post--) {
-        //    RemoveFileFromThread(lvImages.SelectedIndices[Post], CurrentThread.Data.ParsedPostIDs.IndexOf(CurrentThread.Data.ImagePostIDs[Post]));
-        //}
+        for (int Post = lvImages.SelectedIndices.Count - 1; Post >= 0; Post--) {
+            RemoveFileFromThread();
+        }
     }
     private void mRemoveImagesFromBoth_Click(object sender, EventArgs e) {
-        //for (int Post = lvImages.SelectedIndices.Count - 1; Post >= 0; Post--) {
-        //    RemoveFileFromSystem(lvImages.SelectedIndices[Post]);
-        //    RemoveFileFromThread(lvImages.SelectedIndices[Post], CurrentThread.Data.ParsedPostIDs.IndexOf(CurrentThread.Data.ImagePostIDs[Post]));
-        //}
+        for (int Post = lvImages.SelectedIndices.Count - 1; Post >= 0; Post--) {
+            RemoveFileFromSystem();
+            RemoveFileFromThread();
+        }
     }
 
     private void mCopyPostIDs_Click(object sender, EventArgs e) {
-        //string PostIDBuffer = string.Empty;
-        //for (int Post = 0; Post < lvImages.SelectedIndices.Count; Post++) {
-        //    PostIDBuffer += CurrentThread.Data.ImagePostIDs[Post] + "\r\n";
-        //}
+        StringBuilder ClipboardBuffer = new();
+        for (int Post = 0; Post < lvImages.SelectedIndices.Count; Post++) {
+            if (lvImages.Items[Post].Tag is not GenericFile PostFile) {
+                continue;
+            }
+            ClipboardBuffer.AppendLine(PostFile.Parent.PostId);
+        }
+
+        if (ClipboardBuffer.Length == 0) {
+            Clipboard.SetText(string.Empty);
+        }
+        Clipboard.SetText(ClipboardBuffer.ToString());
     }
     private void mCopyImageIDNames_Click(object sender, EventArgs e) {
-        //string PostNameIDBuffer = string.Empty;
-        //for (int Post = 0; Post < lvImages.SelectedIndices.Count; Post++) {
-        //    PostNameIDBuffer += CurrentThread.Data.FileIDs[Post] + "\r\n";
-        //}
+        StringBuilder ClipboardBuffer = new();
+        for (int Post = 0; Post < lvImages.SelectedIndices.Count; Post++) {
+            if (lvImages.Items[Post].Tag is not GenericFile PostFile) {
+                continue;
+            }
+            ClipboardBuffer.AppendLine(PostFile.FileId);
+        }
+
+        if (ClipboardBuffer.Length == 0) {
+            Clipboard.SetText(string.Empty);
+        }
+        Clipboard.SetText(ClipboardBuffer.ToString());
     }
     private void mCopyOriginalFileNames_Click(object sender, EventArgs e) {
-        //string PostOriginalFileNameBuffer = string.Empty;
-        //for (int Post = 0; Post < lvImages.SelectedIndices.Count; Post++) {
-        //    PostOriginalFileNameBuffer += CurrentThread.Data.FileOriginalNames[Post] + "\r\n";
-        //}
+        StringBuilder ClipboardBuffer = new();
+        for (int Post = 0; Post < lvImages.SelectedIndices.Count; Post++) {
+            if (lvImages.Items[Post].Tag is not GenericFile PostFile) {
+                continue;
+            }
+            ClipboardBuffer.AppendLine(PostFile.OriginalFileName);
+        }
+
+        if (ClipboardBuffer.Length == 0) {
+            Clipboard.SetText(string.Empty);
+        }
+        Clipboard.SetText(ClipboardBuffer.ToString());
     }
     private void mCopyDupeCheckedOriginalFileNames_Click(object sender, EventArgs e) {
-        //string PostDupeCheckedOriginalFileNameBuffer = string.Empty;
-        //for (int Post = 0; Post < lvImages.SelectedIndices.Count; Post++) {
-        //    int DupeIndex = CurrentThread.Data.FileNamesDupes.IndexOf(CurrentThread.Data.FileOriginalNames[Post]);
-        //    PostDupeCheckedOriginalFileNameBuffer += CurrentThread.Data.FileNamesDupes[DupeIndex] + "\r\n";
-        //}
+        StringBuilder ClipboardBuffer = new();
+        for (int Post = 0; Post < lvImages.SelectedIndices.Count; Post++) {
+            if (lvImages.Items[Post].Tag is not GenericFile PostFile) {
+                continue;
+            }
+            ClipboardBuffer.AppendLine(PostFile.SavedFileName);
+        }
+
+        if (ClipboardBuffer.Length == 0) {
+            Clipboard.SetText(string.Empty);
+        }
+        Clipboard.SetText(ClipboardBuffer.ToString());
     }
     private void mCopyFileHashes_Click(object sender, EventArgs e) {
-        //string PostFileHashBuffer = string.Empty;
-        //for (int Post = 0; Post < lvImages.SelectedIndices.Count; Post++) {
-        //    PostFileHashBuffer += CurrentThread.Data.FileHashes[Post] + "\r\n";
-        //}
+        StringBuilder ClipboardBuffer = new();
+        for (int Post = 0; Post < lvImages.SelectedIndices.Count; Post++) {
+            if (lvImages.Items[Post].Tag is not GenericFile PostFile || PostFile.FileHash == null) {
+                continue;
+            }
+            ClipboardBuffer.AppendLine(PostFile.FileHash);
+        }
+
+        if (ClipboardBuffer.Length == 0) {
+            Clipboard.SetText(string.Empty);
+        }
+        Clipboard.SetText(ClipboardBuffer.ToString());
     }
 
     private void mShowInExplorer_Click(object sender, EventArgs e) {
-        //for (int Post = 0; Post < lvImages.SelectedIndices.Count; Post++) {
-        //    Process.Start("explorer.exe", "/select, \"" + CurrentThread.Data.DownloadPath + "\\" + CurrentThread.Data.FileNames[lvImages.SelectedIndices[Post]] + "\"");
-        //}
+        for (int Post = 0; Post < lvImages.SelectedIndices.Count; Post++) {
+            if (lvImages.Items[Post].Tag is not GenericFile PostFile) {
+                continue;
+            }
+            Process.Start("explorer.exe", "/select, \"" + ThreadInfo.Data.DownloadPath + "\\" + PostFile.SavedFile + "\"");
+        }
     }
 
     private void cmPosts_Popup(object sender, EventArgs e) {
@@ -402,9 +452,7 @@ public partial class frmDownloader : Form {
             btnPauseTimer.Text = "Pause Tmr";
         }
     }
-    #endregion
 
-    #region Download & thread control
     public void ManageThread(ThreadEvent Event) {
         switch (Event) {
             case ThreadEvent.ParseForInfo: {
@@ -635,7 +683,7 @@ public partial class frmDownloader : Form {
                         ThreadInfo.FileWas404 = true;
                         MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadInfo.CurrentActivity);
                         ThreadInfo.CountdownToNextScan = Downloads.ScannerDelay - 1;
-                        lvImages.Items[ThreadInfo.Data.DownloadedImagesCount].ImageIndex = 3;
+                        lvImages.Items[ThreadInfo.Data.DownloadedImagesCount].ImageIndex = _404Image;
                         if (ThreadInfo.RetryCountFor404 == 4) {
                             ThreadInfo.RetryCountFor404 = 0;
                             ThreadInfo.FileWas404 = true;
@@ -718,8 +766,7 @@ public partial class frmDownloader : Form {
             } break;
 
             case ThreadEvent.RestartDownload: {
-                //CurrentThread.HideModifiedLabelAt = Downloads.ScannerDelay - 10;
-                ThreadInfo.HideModifiedLabelAt = 5;
+                ThreadInfo.HideModifiedLabelAt = Downloads.ScannerDelay - 10;
                 MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadScanning);
                 lbScanTimer.Text = "scanning now...";
                 ResetThread.Set();
@@ -729,6 +776,7 @@ public partial class frmDownloader : Form {
                 Debug.Print("AbortDownload called");
                 tmrScan.Stop();
                 ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsAborted;
+                CancellationToken.Cancel();
                 ResetThread.Set();
                 //if (DownloadThread?.IsAlive == true) {
                 //    DownloadThread.Abort();
@@ -760,14 +808,15 @@ public partial class frmDownloader : Form {
                 lbScanTimer.Text = "scanning now...";
                 btnAbortRetry.Text = "Abort";
                 tmrScan.Stop();
+                CancellationToken = new();
+                ResetThread.Set();
                 ManageThread(ThreadEvent.StartDownload);
             } break;
 
             case ThreadEvent.AbortForClosing: {
                 ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsAborted;
-                if (!ResetThread.IsSet) {
-                    ResetThread.Set();
-                }
+                CancellationToken.Cancel();
+                ResetThread.Set();
             } break;
 
             case ThreadEvent.ReloadThread: {
@@ -885,26 +934,26 @@ public partial class frmDownloader : Form {
                             ListViewItem lvi = new();
                             lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
                             lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
                             lvi.Name = File.FileId;
                             lvi.SubItems[0].Text = File.FileId;
                             lvi.SubItems[1].Text = File.FileExtension;
                             lvi.SubItems[2].Text = File.OriginalFileName;
                             switch (ThreadInfo.Chan) {
                                 case ChanType.FourChan:
-                                case ChanType.EightChan:
                                 case ChanType.EightKun: {
+                                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
                                     lvi.SubItems[3].Text = File.FileHash;
-                                }
-                                break;
+                                } break;
                             }
                             lvi.ImageIndex = File.Status switch {
                                 FileDownloadStatus.Downloaded  =>
-                                    System.IO.File.Exists(Path.Combine(ThreadInfo.Data.DownloadPath, File.SavedFile)) ? 5 : 6,
-                                FileDownloadStatus.Error => 3,
-                                FileDownloadStatus.FileNotFound => 4,
-                                _ => 0
+                                    System.IO.File.Exists(Path.Combine(ThreadInfo.Data.DownloadPath, File.SavedFile)) ?
+                                        ReloadedDownloadedImage : ReloadedMissingImage,
+                                FileDownloadStatus.Error => ErrorImage,
+                                FileDownloadStatus.FileNotFound => _404Image,
+                                _ => WaitingImage
                             };
+                            lvi.Tag = File;
                             File.ListViewItem = lvi;
                             this.Invoke(() => lvImages.Items.Add(lvi));
                         }
@@ -912,7 +961,7 @@ public partial class frmDownloader : Form {
                     ThreadInfo.ThreadHTML = new(HtmlControl.RebuildHTML(ThreadInfo));
                     lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount}";
                     lbPostsParsed.Text = $"posts parsed: {ThreadInfo.Data.ParsedPostIds.Count}";
-                    lbLastModified.Text = $"last modified: {ThreadInfo.Data.LastModified}";
+                    lbLastModified.Text = "last modified: " + GetLastModifiedTime();
                 }
             } break;
         }
@@ -939,7 +988,7 @@ public partial class frmDownloader : Form {
             }
             ThreadInfo.Data.DownloadedImagesCount--;
             lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount}";
-            Item.ImageIndex = 0;
+            Item.ImageIndex = WaitingImage;
             PostFile.Status = FileDownloadStatus.Undownloaded;
         }
     }
@@ -969,6 +1018,9 @@ public partial class frmDownloader : Form {
             PostFile.Parent.PostFiles.Remove(PostFile);
             ThreadInfo.Data.ThreadImagesCount--;
             ThreadInfo.Data.ThreadPostsCount--;
+            Item.ImageIndex = RemovedFromThreadImage;
+            PostFile.Status = FileDownloadStatus.RemovedFromThread;
+            ThreadInfo.ThreadModified = true;
             lvImages.Items.Remove(Item);
         }
 
@@ -1067,9 +1119,7 @@ public partial class frmDownloader : Form {
                 return;
         }
     }
-    #endregion
 
-    #region Async methods
     private async Task<HttpResponseMessage?> TryGetResponseIfModifiedAsync(HttpRequestMessage request, CancellationToken token) {
         // If-modified-since is a default header.
         // Any other headers must be added per-chan.
@@ -1198,7 +1248,7 @@ public partial class frmDownloader : Form {
 
                 if (PostFile.Status != FileDownloadStatus.Downloaded && PostFile.Status != FileDownloadStatus.FileNotFound) {
                     // Set the icon in the list to "Downloading".
-                    this.Invoke(() => PostFile.ListViewItem.ImageIndex = 1);
+                    this.Invoke(() => PostFile.ListViewItem.ImageIndex = DownloadingImage);
 
                     string FileDownloadPath = Path.Combine(ThreadInfo.Data.DownloadPath, PostFile.SavedFile);
                     string ThumbFileDownloadPath = Path.Combine(ThreadInfo.Data.DownloadPath, PostFile.SavedThumbnailFile);
@@ -1215,11 +1265,11 @@ public partial class frmDownloader : Form {
                         if (Response == null) {
                             if (ThreadInfo.StatusCode == HttpStatusCode.NotFound) {
                                 PostFile.Status = FileDownloadStatus.FileNotFound;
-                                this.Invoke(() => PostFile.ListViewItem.ImageIndex = 4);
+                                this.Invoke(() => PostFile.ListViewItem.ImageIndex = _404Image);
                             }
                             else {
                                 PostFile.Status = FileDownloadStatus.Error;
-                                this.Invoke(() => PostFile.ListViewItem.ImageIndex = 3);
+                                this.Invoke(() => PostFile.ListViewItem.ImageIndex = ErrorImage);
                             }
                         }
                         else {
@@ -1231,7 +1281,7 @@ public partial class frmDownloader : Form {
                             ThreadInfo.ThreadModified = true;
                             this.Invoke(() => {
                                 lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount}";
-                                PostFile.ListViewItem.ImageIndex = 2;
+                                PostFile.ListViewItem.ImageIndex = FinishedImage;
                             });
                         }
                     }
@@ -1241,7 +1291,7 @@ public partial class frmDownloader : Form {
                         ThreadInfo.ThreadModified = true;
                         this.Invoke(() => {
                             lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount}";
-                            PostFile.ListViewItem.ImageIndex = 2;
+                            PostFile.ListViewItem.ImageIndex = ReloadedDownloadedImage;
                         });
                     }
 
@@ -1273,7 +1323,7 @@ public partial class frmDownloader : Form {
             ThreadInfo.ThreadModified = false;
         }
     }
-    private async Task<bool> GetFile(HttpResponseMessage Response, string dest, CancellationToken token) {
+    private static async Task<bool> GetFile(HttpResponseMessage Response, string dest, CancellationToken token) {
         try {
             using Stream Content = await Response.Content.ReadAsStreamAsync();
             using FileStream Destination = new(
@@ -1291,7 +1341,6 @@ public partial class frmDownloader : Form {
             return false;
         }
     }
-
     private static async Task WriteToStreamAsync(Stream HttpStream, Stream Output, CancellationToken token) {
         byte[] buffer = new byte[DefaultBuffer];
         int bytesRead;
@@ -1309,9 +1358,7 @@ public partial class frmDownloader : Form {
             await ThrottledWriter.WriteAsync(buffer, 0, bytesRead, token).ConfigureAwait(false);
         }
     }
-    #endregion
 
-    #region Shared Chan Logic
     private string GetFilePrefix(string OriginalName, string Extension) {
         // replace any invalid file name characters.
         // some linux nerds can have invalid windows file names as file names
@@ -1336,13 +1383,19 @@ public partial class frmDownloader : Form {
         }
         return FileNamePrefix;
     }
+    private string GetLastModifiedTime() {
+        if (!ThreadInfo.Data.LastModified.HasValue) {
+            return "not supported";
+        }
+        return ThreadInfo.Data.LastModified.ToString();
+    }
     private void HandleBadFileName(GenericFile File) {
         Log.Write("Could not handle file " + File.FileId);
-        this.Invoke(() => File.ListViewItem.ImageIndex = 3);
+        this.Invoke(() => File.ListViewItem.ImageIndex = ErrorImage);
     }
     private void HandleBadThumbFileName(GenericFile File) {
         Log.Write("Could not handle thumb file " + File.FileId);
-        this.Invoke(() => File.ListViewItem.ImageIndex = 3);
+        this.Invoke(() => File.ListViewItem.ImageIndex = ErrorImage);
     }
     private void HandleStatusCode() {
         ThreadInfo.CurrentActivity = ThreadInfo.StatusCode switch {
@@ -1353,207 +1406,223 @@ public partial class frmDownloader : Form {
             _ => ThreadStatus.ThreadImproperlyDownloaded,
         };
     }
-    #endregion
+    private void UpdateThreadCounts() {
+        this.Invoke(() => {
+            lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount}";
+            lbPostsParsed.Text = "posts parsed: " + ThreadInfo.Data.ParsedPostIds.Count.ToString();
+            lbLastModified.Text = "last modified: " + GetLastModifiedTime();
+            lbScanTimer.Text = "Downloading files";
+            MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadDownloading);
+        });
+    }
 
     private void Register4chanThread() {
         this.DownloadThread = new Thread(() => {
-            // Check the thread board and id for null value
-            // Can't really parse the API without them.
-            if (string.IsNullOrWhiteSpace(ThreadInfo.Data.Board) || string.IsNullOrWhiteSpace(ThreadInfo.Data.Id)) {
-                ThreadInfo.CurrentActivity = ThreadStatus.ThreadInfoNotSet;
-                ManageThread(ThreadEvent.AfterDownload);
-                return;
-            }
+            try {
+                // Check the thread board and id for null value
+                // Can't really parse the API without them.
+                if (string.IsNullOrWhiteSpace(ThreadInfo.Data.Board) || string.IsNullOrWhiteSpace(ThreadInfo.Data.Id)) {
+                    ThreadInfo.CurrentActivity = ThreadStatus.ThreadInfoNotSet;
+                    ManageThread(ThreadEvent.AfterDownload);
+                    return;
+                }
 
-            // HTML
-            if (!ThreadInfo.ThreadReloaded) {
-                ThreadInfo.ThreadHTML = new(HtmlControl.GetHTMLBase(ThreadInfo));
-            }
+                // HTML
+                if (!ThreadInfo.ThreadReloaded) {
+                    ThreadInfo.ThreadHTML = new(HtmlControl.GetHTMLBase(ThreadInfo));
+                }
 
-            do {
-                // Set the activity to scanning.
-                ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
+                // Main loop
+                do {
+                    // Set the activity to scanning.
+                    ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
 
-                // Request that will be sent to the API.
-                HttpRequestMessage Request = new(HttpMethod.Get,
-                    $"https://a.4cdn.org/{ThreadInfo.Data.Board}/thread/{ThreadInfo.Data.Id}.json");
-                // Should more headers be added?
+                    // Request that will be sent to the API.
+                    HttpRequestMessage Request = new(HttpMethod.Get,
+                        $"https://a.4cdn.org/{ThreadInfo.Data.Board}/thread/{ThreadInfo.Data.Id}.json");
+                    // Should more headers be added?
 
-                // Try to get the response.
-                //using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.None)
-                //    .ConfigureAwait(false);
-                var ResponseTask = TryGetResponseIfModifiedAsync(Request, CancellationToken.None);
-                ResponseTask.Wait();
-                using var Response = ResponseTask.Result;
+                    // Try to get the response.
+                    //using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token)
+                    //    .ConfigureAwait(false);
+                    var ResponseTask = TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
+                    ResponseTask.Wait();
+                    using var Response = ResponseTask.Result;
+                    CancellationToken.Token.ThrowIfCancellationRequested();
 
-                // If the response is null, it's a bad result; break the thread.
-                if (Response == null) {
-                    HandleStatusCode();
-                    if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
-                        ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
-                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
-                        ResetThread.Reset();
-                        ResetThread.Wait();
-                        continue;
+                    // If the response is null, it's a bad result; break the thread.
+                    if (Response == null) {
+                        HandleStatusCode();
+                        if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
+                            ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
+                            this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+                            ResetThread.Reset();
+                            ResetThread.Wait();
+                            continue;
+                        }
+                        break;
                     }
-                    break;
-                }
 
-                // Get the json.
-                //string CurrentJson = await GetStringAsync(Response, CancellationToken.None)
-                //    .ConfigureAwait(false);
-                var JsonTask = GetStringAsync(Response, default);
-                JsonTask.Wait();
-                string CurrentJson = JsonTask.Result;
+                    // Get the json.
+                    //string CurrentJson = await GetStringAsync(Response, CancellationToken.Token)
+                    //    .ConfigureAwait(false);
+                    var JsonTask = GetStringAsync(Response, CancellationToken.Token);
+                    JsonTask.Wait();
+                    string CurrentJson = JsonTask.Result;
 
-                // Serialize the json data into a class object.
-                var ThreadData = CurrentJson.JsonDeserialize<FourChanThread>();
+                    // Serialize the json data into a class object.
+                    var ThreadData = CurrentJson.JsonDeserialize<FourChanThread>();
 
-                // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
-                if (ThreadData is null || ThreadData.posts.Length < 1) {
-                    ThreadInfo.CurrentActivity = ThreadStatus.NoThreadPosts;
-                    break;
-                }
+                    CancellationToken.Token.ThrowIfCancellationRequested();
 
-                // Checks if the thread name has been retrieved, and retrieves it if not.
-                // It was supposed to be an option, but honestly, it's not a problematic inclusion.
-                if (!ThreadInfo.Data.RetrievedThreadName && !ThreadInfo.Data.SetCustomName) {
-                    // NewName is the name that will be used to ID the thread.
-                    // If the comment doesn't exist, it'll just use the ID & URL.
-                    // If the length is 0, override the set info with the ID & URL.
-                    string NewName = FileHandler.GetShortThreadName(
-                        Subtitle: ThreadData.posts[0].sub,
-                        Comment: ThreadData.posts[0].com,
-                        FallbackName: ThreadInfo.Data.Id);
+                    // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
+                    if (ThreadData is null || ThreadData.posts.Length < 1) {
+                        ThreadInfo.CurrentActivity = ThreadStatus.NoThreadPosts;
+                        break;
+                    }
 
-                    // Update the data with the new name.
-                    ThreadInfo.Data.ThreadName = NewName;
-                    ThreadInfo.Data.RetrievedThreadName = true;
-                    ThreadInfo.ThreadHTML = ThreadInfo.ThreadHTML.Replace("<title></title>",
-                        $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 4chan</title>");
-                    ThreadInfo.Data.HtmlThreadNameSet = true;
+                    // Checks if the thread name has been retrieved, and retrieves it if not.
+                    // It was supposed to be an option, but honestly, it's not a problematic inclusion.
+                    if (!ThreadInfo.Data.RetrievedThreadName && !ThreadInfo.Data.SetCustomName) {
+                        // NewName is the name that will be used to ID the thread.
+                        // If the comment doesn't exist, it'll just use the ID & URL.
+                        // If the length is 0, override the set info with the ID & URL.
+                        string NewName = FileHandler.GetShortThreadName(
+                            Subtitle: ThreadData.posts[0].sub,
+                            Comment: ThreadData.posts[0].com,
+                            FallbackName: ThreadInfo.Data.Id);
 
-                    // Update the name application wide.
-                    this.Invoke(() => UpdateThreadName(true));
-                }
+                        // Update the data with the new name.
+                        ThreadInfo.Data.ThreadName = NewName;
+                        ThreadInfo.Data.RetrievedThreadName = true;
+                        ThreadInfo.ThreadHTML = ThreadInfo.ThreadHTML.Replace("<title></title>",
+                            $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 4chan</title>");
+                        ThreadInfo.Data.HtmlThreadNameSet = true;
 
-                // check for archive flag in the post.
-                ThreadInfo.Data.ThreadArchived = ThreadData.posts[0].archived;
+                        // Update the name application wide.
+                        this.Invoke(() => UpdateThreadName(true));
+                    }
 
-                // Start counting through the posts.
-                for (int PostIndex = 0; PostIndex < ThreadData.posts.Length; PostIndex++) {
-                    // Set the temporary post to the looped index post.
-                    FourChanPost Post = ThreadData.posts[PostIndex];
-                    string PostID = Post.no.ToString();
-                    if (!ThreadInfo.Data.ParsedPostIds.Contains(PostID)) {
-                        GenericPost CurrentPost = new(Post, ThreadInfo) {
-                            FirstPost = PostIndex == 0
-                        };
+                    // check for archive flag in the post.
+                    ThreadInfo.Data.ThreadArchived = ThreadData.posts[0].archived;
 
-                        if (CurrentPost.HasFiles) {
-                            var File = CurrentPost.PostFiles[0];
-                            string FileName = (Downloads.SaveOriginalFilenames ? File.OriginalFileName : File.FileId)!;
-                            string Prefix = GetFilePrefix(File.OriginalFileName!, File.FileExtension!);
-                            string ThumbFileName = File.ThumbnailFileName!;
+                    // Start counting through the posts.
+                    for (int PostIndex = 0; PostIndex < ThreadData.posts.Length; PostIndex++) {
+                        // Set the temporary post to the looped index post.
+                        FourChanPost Post = ThreadData.posts[PostIndex];
+                        string PostID = Post.no.ToString();
+                        if (!ThreadInfo.Data.ParsedPostIds.Contains(PostID)) {
+                            GenericPost CurrentPost = new(Post, ThreadInfo) {
+                                FirstPost = PostIndex == 0
+                            };
 
-                            if (!Downloads.AllowFileNamesGreaterThan255) {
-                                int FileNameLength = ThreadInfo.Data.DownloadPath.Length +
-                                    FileName.Length +
-                                    File.FileExtension!.Length +
-                                    Prefix.Length +
-                                    2; // ext period (1) and download path separator (1)
+                            if (CurrentPost.HasFiles) {
+                                var File = CurrentPost.PostFiles[0];
+                                string FileName = (Downloads.SaveOriginalFilenames ? File.OriginalFileName : File.FileId)!;
+                                string Prefix = GetFilePrefix(File.OriginalFileName!, File.FileExtension!);
+                                string ThumbFileName = File.ThumbnailFileName!;
+                                File.SavedFileName = Prefix + FileName;
+                                File.SavedThumbnailFile = ThumbFileName;
 
-                                if (FileNameLength > 255) {
-                                    int TrimSize = FileNameLength - 255;
-                                    if (FileName.Length <= TrimSize) {
-                                        HandleBadFileName(File);
-                                        continue;
-                                    }
-                                    FileName = FileName[..^TrimSize];
-                                }
+                                if (!Downloads.AllowFileNamesGreaterThan255) {
+                                    int FileNameLength = ThreadInfo.Data.DownloadPath.Length +
+                                        FileName.Length +
+                                        File.FileExtension!.Length +
+                                        Prefix.Length +
+                                        2; // ext period (1) and download path separator (1)
 
-                                if (Downloads.SaveThumbnails) {
-                                    int ThumbFileNameLength = ThreadInfo.Data.DownloadPath.Length +
-                                        ThumbFileName.Length +
-                                        File.ThumbnailFileExtension!.Length +
-                                        8; // ext period (1), path separators (2), "thumb" (5)
-
-                                    if (ThumbFileNameLength > 255) {
-                                        int TrimSize = ThumbFileNameLength - 255;
-                                        if (ThumbFileName.Length <= TrimSize) {
-                                            HandleBadThumbFileName(File);
+                                    if (FileNameLength > 255) {
+                                        int TrimSize = FileNameLength - 255;
+                                        if (FileName.Length <= TrimSize) {
+                                            HandleBadFileName(File);
                                             continue;
                                         }
-                                        ThumbFileName = ThumbFileName[..^TrimSize];
+                                        FileName = FileName[..^TrimSize];
+                                    }
+
+                                    if (Downloads.SaveThumbnails) {
+                                        int ThumbFileNameLength = ThreadInfo.Data.DownloadPath.Length +
+                                            ThumbFileName.Length +
+                                            File.ThumbnailFileExtension!.Length +
+                                            8; // ext period (1), path separators (2), "thumb" (5)
+
+                                        if (ThumbFileNameLength > 255) {
+                                            int TrimSize = ThumbFileNameLength - 255;
+                                            if (ThumbFileName.Length <= TrimSize) {
+                                                HandleBadThumbFileName(File);
+                                                continue;
+                                            }
+                                            ThumbFileName = ThumbFileName[..^TrimSize];
+                                        }
                                     }
                                 }
+
+                                File.SavedFile = Prefix + FileName + "." + File.FileExtension;
+                                File.SavedThumbnailFile = Path.Combine("thumb", ThumbFileName + "." + File.ThumbnailFileExtension);
+
+                                // add a new listviewitem to the listview for this image.
+                                ListViewItem lvi = new();
+                                lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                                lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                                lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                                lvi.Name = File.FileId;
+                                lvi.SubItems[0].Text = File.FileId;
+                                lvi.SubItems[1].Text = File.FileExtension;
+                                lvi.SubItems[2].Text = File.OriginalFileName + "." + File.FileExtension;
+                                lvi.SubItems[3].Text = File.FileHash;
+                                lvi.ImageIndex = WaitingImage;
+                                lvi.Tag = File;
+                                File.ListViewItem = lvi;
+                                this.Invoke(() => lvImages.Items.Add(lvi));
+
+                                ThreadInfo.Data.ThreadImagesCount++;
+                                ThreadInfo.Data.ThreadPostsCount++;
                             }
 
-                            File.SavedFile = Prefix + FileName + "." + File.FileExtension;
-                            File.SavedThumbnailFile = Path.Combine("thumb", ThumbFileName + "." + File.ThumbnailFileExtension);
-
-                            // add a new listviewitem to the listview for this image.
-                            ListViewItem lvi = new();
-                            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                            lvi.Name = File.FileId;
-                            lvi.SubItems[0].Text = File.FileId;
-                            lvi.SubItems[1].Text = File.FileExtension;
-                            lvi.SubItems[2].Text = File.OriginalFileName + "." + File.FileExtension;
-                            lvi.SubItems[3].Text = File.FileHash;
-                            lvi.ImageIndex = 0;
-                            File.ListViewItem = lvi;
-                            this.Invoke(() => lvImages.Items.Add(lvi));
-
-                            ThreadInfo.Data.ThreadImagesCount++;
-                            ThreadInfo.Data.ThreadPostsCount++;
+                            // add the new post to the data.
+                            ThreadInfo.ThreadHTML.Append(HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo));
+                            ThreadInfo.Data.ParsedPostIds.Add(PostID);
+                            ThreadInfo.Data.ThreadPosts.Add(CurrentPost);
+                            ThreadInfo.AddedNewPosts = ThreadInfo.ThreadModified = true;
                         }
 
-                        // add the new post to the data.
-                        ThreadInfo.ThreadHTML.Append(HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo));
-                        ThreadInfo.Data.ParsedPostIds.Add(PostID);
-                        ThreadInfo.Data.ThreadPosts.Add(CurrentPost);
-                        ThreadInfo.AddedNewPosts = ThreadInfo.ThreadModified = true;
+                        CancellationToken.Token.ThrowIfCancellationRequested();
                     }
-                }
 
-                // update the form totals and status.
-                this.Invoke(() => {
-                    lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount}";
-                    lbPostsParsed.Text = "posts parsed: " + ThreadInfo.Data.ParsedPostIds.Count.ToString();
-                    lbLastModified.Text = "last modified: " + ThreadInfo.Data.LastModified.ToString();
-                    lbScanTimer.Text = "Downloading files";
-                    MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadDownloading);
-                });
+                    // update the form totals and status.
+                    UpdateThreadCounts();
 
-                // Download files.
-                //await DownloadFilesAsync(CancellationToken.None)
-                //    .ConfigureAwait(false);
-                var DownloadTask = DownloadFilesAsync(default);
-                DownloadTask.Wait();
+                    // Download files.
+                    //await DownloadFilesAsync(CancellationToken.Token)
+                    //    .ConfigureAwait(false);
+                    var DownloadTask = DownloadFilesAsync(CancellationToken.Token);
+                    DownloadTask.Wait();
+                    CancellationToken.Token.ThrowIfCancellationRequested();
 
-                if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
-                    break;
-                }
+                    if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
+                        break;
+                    }
 
-                if (ThreadInfo.Data.ThreadArchived) {
-                    ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsArchived;
-                    break;
-                }
+                    if (ThreadInfo.Data.ThreadArchived) {
+                        ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsArchived;
+                        break;
+                    }
 
-                // Set the activity.
-                ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
+                    // Set the activity.
+                    ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
 
-                // Invoke the post-download management.
-                this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+                    // Invoke the post-download management.
+                    this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
 
-                // Synchronously wait, since this thread is separate.
-                ResetThread.Reset();
-                ResetThread.Wait();
+                    // Synchronously wait, since this thread is separate.
+                    ResetThread.Reset();
+                    ResetThread.Wait();
+                    CancellationToken.Token.ThrowIfCancellationRequested();
+                } while (ThreadInfo.CurrentActivity is not (ThreadStatus.ThreadIs404 or ThreadStatus.ThreadIsAborted or ThreadStatus.ThreadIsArchived));
             }
-            while (ThreadInfo.CurrentActivity is not (ThreadStatus.ThreadIs404 or ThreadStatus.ThreadIsAborted or ThreadStatus.ThreadIsArchived));
-
+            catch (ThreadAbortException) { }
+            catch (TaskCanceledException) { }
+            catch (OperationCanceledException) { }
             this.Invoke(() => Log.Write("Exiting thread " + ThreadInfo.CurrentActivity));
         }) {
             Name = $"4chan thread {ThreadInfo.Data.Board}/{ThreadInfo.Data.Id}"
@@ -1561,114 +1630,349 @@ public partial class frmDownloader : Form {
     }
     private void Register7chanThread() {
         this.DownloadThread = new Thread(() => {
-            // Check the thread board and id for null value
-            // Can't really parse the API without them.
-            if (string.IsNullOrWhiteSpace(ThreadInfo.Data.Board) || string.IsNullOrWhiteSpace(ThreadInfo.Data.Id)) {
-                ThreadInfo.CurrentActivity = ThreadStatus.ThreadInfoNotSet;
-                ManageThread(ThreadEvent.AfterDownload);
-                return;
-            }
+            try {
+                // Check the thread board and id for null value
+                // Can't really parse the API without them.
+                if (string.IsNullOrWhiteSpace(ThreadInfo.Data.Board) || string.IsNullOrWhiteSpace(ThreadInfo.Data.Id)) {
+                    ThreadInfo.CurrentActivity = ThreadStatus.ThreadInfoNotSet;
+                    ManageThread(ThreadEvent.AfterDownload);
+                    return;
+                }
 
-            // HTML
-            if (!ThreadInfo.ThreadReloaded) {
-                ThreadInfo.ThreadHTML = new(HtmlControl.GetHTMLBase(ThreadInfo));
-            }
+                // HTML
+                if (!ThreadInfo.ThreadReloaded) {
+                    ThreadInfo.ThreadHTML = new(HtmlControl.GetHTMLBase(ThreadInfo));
+                }
 
-            do {
-                // Set the activity to scanning.
-                ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
+                // Main loop
+                do {
+                    // Set the activity to scanning.
+                    ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
 
-                // Request that will be sent to the API.
-                HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.Data.Url);
-                // Should more headers be added?
+                    // Request that will be sent to the API.
+                    HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.Data.Url);
+                    // Should more headers be added?
 
-                // Try to get the response.
-                //using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.None)
-                //    .ConfigureAwait(false);
-                var ResponseTask = TryGetResponseIfModifiedAsync(Request, CancellationToken.None);
-                ResponseTask.Wait();
-                using var Response = ResponseTask.Result;
+                    // Try to get the response.
+                    //using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token)
+                    //    .ConfigureAwait(false);
+                    var ResponseTask = TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
+                    ResponseTask.Wait();
+                    using var Response = ResponseTask.Result;
+                    CancellationToken.Token.ThrowIfCancellationRequested();
 
-                // If the response is null, it's a bad result; break the thread.
-                if (Response == null) {
-                    HandleStatusCode();
-                    if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
-                        ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
-                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
-                        ResetThread.Reset();
-                        ResetThread.Wait();
-                        continue;
+                    // If the response is null, it's a bad result; break the thread.
+                    if (Response == null) {
+                        HandleStatusCode();
+                        if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
+                            ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
+                            this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+                            ResetThread.Reset();
+                            ResetThread.Wait();
+                            continue;
+                        }
+                        break;
                     }
-                    break;
+
+                    // Get the json.
+                    //string CurrentJson = await GetStringAsync(Response, CancellationToken.Token)
+                    //    .ConfigureAwait(false);
+                    var JsonTask = GetStringAsync(Response, CancellationToken.Token);
+                    JsonTask.Wait();
+                    string CurrentJson = JsonTask.Result;
+
+                    // Serialize the json data into a class object.
+                    SevenChanPost[] ThreadData;
+                    try {
+                        ThreadData = SevenChan.Generate(CurrentJson);
+                    }
+                    catch (Exception ex) {
+                        Log.ReportException(ex);
+                        ThreadInfo.CurrentActivity = ThreadStatus.FailedToParseThreadHtml;
+                        this.Invoke(() => ManageThread(ThreadEvent.AfterDownload));
+                        break;
+                    }
+
+                    CancellationToken.Token.ThrowIfCancellationRequested();
+
+                    // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
+                    if (ThreadData is null || ThreadData.Length < 1) {
+                        ThreadInfo.CurrentActivity = ThreadStatus.NoThreadPosts;
+                        break;
+                    }
+
+                    // Checks if the thread name has been retrieved, and retrieves it if not.
+                    // It was supposed to be an option, but honestly, it's not a problematic inclusion.
+                    if (!ThreadInfo.Data.RetrievedThreadName && !ThreadInfo.Data.SetCustomName) {
+                        // NewName is the name that will be used to ID the thread.
+                        // If the comment doesn't exist, it'll just use the ID & URL.
+                        // If the length is 0, override the set info with the ID & URL.
+                        string NewName = FileHandler.GetShortThreadName(
+                            Subtitle: ThreadData[0].Subject,
+                            Comment: ThreadData[0].MessageBody,
+                            FallbackName: ThreadInfo.Data.Id);
+
+                        // Update the data with the new name.
+                        ThreadInfo.Data.ThreadName = NewName;
+                        ThreadInfo.Data.RetrievedThreadName = true;
+                        ThreadInfo.ThreadHTML = ThreadInfo.ThreadHTML.Replace("<title></title>",
+                            $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 7chan</title>");
+                        ThreadInfo.Data.HtmlThreadNameSet = true;
+
+                        // Update the name application wide.
+                        this.Invoke(() => UpdateThreadName(true));
+                    }
+
+                    // check for archive flag in the post.
+                    //ThreadInfo.Data.ThreadArchived = ThreadData[0].Archived;
+
+                    // Start counting through the posts.
+                    for (int PostIndex = 0; PostIndex < ThreadData.Length; PostIndex++) {
+                        // Set the temporary post to the looped index post.
+                        SevenChanPost Post = ThreadData[PostIndex];
+                        string PostID = Post.PostId.ToString();
+                        if (!ThreadInfo.Data.ParsedPostIds.Contains(PostID)) {
+                            GenericPost CurrentPost = new(Post) {
+                                FirstPost = PostIndex == 0
+                            };
+
+                            if (CurrentPost.HasFiles) {
+                                // Ambiguous parsing multi-file posts
+                                for (int i = 0; i < CurrentPost.PostFiles.Count; i++) {
+                                    var File = CurrentPost.PostFiles[i];
+                                    string FileName = (Downloads.SaveOriginalFilenames ? File.OriginalFileName : File.FileId)!;
+                                    string Prefix = GetFilePrefix(File.OriginalFileName!, File.FileExtension!);
+                                    string ThumbFileName = File.ThumbnailFileName!;
+                                    File.SavedFileName = Prefix + FileName;
+                                    File.SavedThumbnailFile = ThumbFileName;
+
+                                    if (!Downloads.AllowFileNamesGreaterThan255) {
+                                        int FileNameLength = ThreadInfo.Data.DownloadPath.Length +
+                                            FileName.Length +
+                                            File.FileExtension!.Length +
+                                            Prefix.Length +
+                                            2; // ext period (1) and download path separator (1)
+
+                                        if (FileNameLength > 255) {
+                                            int TrimSize = FileNameLength - 255;
+                                            if (FileName.Length <= TrimSize) {
+                                                HandleBadFileName(File);
+                                                continue;
+                                            }
+                                            FileName = FileName[..^TrimSize];
+                                        }
+
+                                        if (Downloads.SaveThumbnails) {
+                                            int ThumbFileNameLength = ThreadInfo.Data.DownloadPath.Length +
+                                                ThumbFileName.Length +
+                                                File.ThumbnailFileExtension!.Length +
+                                                8; // ext period (1), path separators (2), "thumb" (5)
+
+                                            if (ThumbFileNameLength > 255) {
+                                                int TrimSize = ThumbFileNameLength - 255;
+                                                if (ThumbFileName.Length <= TrimSize) {
+                                                    HandleBadThumbFileName(File);
+                                                    continue;
+                                                }
+                                                ThumbFileName = ThumbFileName[..^TrimSize];
+                                            }
+                                        }
+                                    }
+
+                                    File.SavedFile = Prefix + FileName + "." + File.FileExtension;
+                                    File.SavedThumbnailFile = Path.Combine("thumb", ThumbFileName + "." + File.ThumbnailFileExtension);
+
+                                    // add a new listviewitem to the listview for this image.
+                                    ListViewItem lvi = new();
+                                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                                    //lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                                    lvi.Name = File.FileId;
+                                    lvi.SubItems[0].Text = File.FileId;
+                                    lvi.SubItems[1].Text = File.FileExtension;
+                                    lvi.SubItems[2].Text = File.OriginalFileName + "." + File.FileExtension;
+                                    //lvi.SubItems[3].Text = File.FileHash;
+                                    lvi.ImageIndex = WaitingImage;
+                                    lvi.Tag = File;
+                                    File.ListViewItem = lvi;
+                                    this.Invoke(() => lvImages.Items.Add(lvi));
+
+                                    ThreadInfo.Data.ThreadImagesCount++;
+                                    ThreadInfo.Data.ThreadPostsCount++;
+                                }
+                            }
+
+                            // add the new post to the data.
+                            ThreadInfo.ThreadHTML.Append(HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo));
+                            ThreadInfo.Data.ParsedPostIds.Add(PostID);
+                            ThreadInfo.Data.ThreadPosts.Add(CurrentPost);
+                            ThreadInfo.AddedNewPosts = ThreadInfo.ThreadModified = true;
+                        }
+
+                        CancellationToken.Token.ThrowIfCancellationRequested();
+                    }
+
+                    // update the form totals and status.
+                    UpdateThreadCounts();
+
+                    // Download files.
+                    //await DownloadFilesAsync(CancellationToken.Token)
+                    //    .ConfigureAwait(false);
+                    var DownloadTask = DownloadFilesAsync(CancellationToken.Token);
+                    DownloadTask.Wait();
+                    CancellationToken.Token.ThrowIfCancellationRequested();
+
+                    if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
+                        break;
+                    }
+
+                    if (ThreadInfo.Data.ThreadArchived) {
+                        ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsArchived;
+                        break;
+                    }
+
+                    // Set the activity.
+                    ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
+
+                    // Invoke the post-download management.
+                    this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+
+                    // Synchronously wait, since this thread is separate.
+                    ResetThread.Reset();
+                    ResetThread.Wait();
+                    CancellationToken.Token.ThrowIfCancellationRequested();
+                } while (ThreadInfo.CurrentActivity is not (ThreadStatus.ThreadIs404 or ThreadStatus.ThreadIsAborted or ThreadStatus.ThreadIsArchived));
+            }
+            catch (ThreadAbortException) { }
+            catch (TaskCanceledException) { }
+            catch (OperationCanceledException) { }
+            this.Invoke(() => Log.Write("Exiting thread " + ThreadInfo.CurrentActivity));
+        }) {
+            Name = $"7chan thread {ThreadInfo.Data.Board}/{ThreadInfo.Data.Id}"
+        };
+    }
+    private void Register8chanThread() {
+        this.DownloadThread = new Thread(() => {
+            try {
+                // Check the thread board and id for null value
+                // Can't really parse the API without them.
+                if (string.IsNullOrWhiteSpace(ThreadInfo.Data.Board) || string.IsNullOrWhiteSpace(ThreadInfo.Data.Id)) {
+                    ThreadInfo.CurrentActivity = ThreadStatus.ThreadInfoNotSet;
+                    ManageThread(ThreadEvent.AfterDownload);
+                    return;
                 }
 
-                // Get the json.
-                //string CurrentJson = await GetStringAsync(Response, CancellationToken.None)
-                //    .ConfigureAwait(false);
-                var JsonTask = GetStringAsync(Response, default);
-                JsonTask.Wait();
-                string CurrentJson = JsonTask.Result;
+                // Uri that is used for requests.
+                ThreadInfo.ThreadUri = new(ThreadInfo.Data.Url);
 
-                // Serialize the json data into a class object.
-                SevenChanPost[] ThreadData;
-                try {
-                    ThreadData = SevenChan.Generate(CurrentJson);
-                }
-                catch (Exception ex) {
-                    Log.ReportException(ex);
-                    ThreadInfo.CurrentActivity = ThreadStatus.FailedToParseThreadHtml;
-                    this.Invoke(() => ManageThread(ThreadEvent.AfterDownload));
-                    break;
-                }
-
-                // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
-                if (ThreadData is null || ThreadData.Length < 1) {
-                    ThreadInfo.CurrentActivity = ThreadStatus.NoThreadPosts;
-                    break;
+                // Retrieve the board data before the loop.
+                if (!ThreadInfo.ThreadReloaded) {
+                    var BoardTask = EightChan.GetBoardAsync(ThreadInfo.Data.Board, DownloadClient, CancellationToken.Token);
+                    BoardTask.Wait();
+                    var Board = BoardTask.Result;
+                    if (Board != null) {
+                        ThreadInfo.Data.BoardName = Board.BoardName;
+                        ThreadInfo.Data.BoardSubtitle = Board.BoardDescription;
+                    }
+                    else {
+                        Log.Write("Could not get the board name.");
+                    }
+                    ThreadInfo.Data.RetrievedBoardName = true;
+                    ThreadInfo.ThreadModified = true;
+                    ThreadInfo.ThreadHTML = new(HtmlControl.GetHTMLBase(ThreadInfo));
+                    CancellationToken.Token.ThrowIfCancellationRequested();
                 }
 
-                // Checks if the thread name has been retrieved, and retrieves it if not.
-                // It was supposed to be an option, but honestly, it's not a problematic inclusion.
-                if (!ThreadInfo.Data.RetrievedThreadName && !ThreadInfo.Data.SetCustomName) {
-                    // NewName is the name that will be used to ID the thread.
-                    // If the comment doesn't exist, it'll just use the ID & URL.
-                    // If the length is 0, override the set info with the ID & URL.
-                    string NewName = FileHandler.GetShortThreadName(
-                        Subtitle: ThreadData[0].Subject,
-                        Comment: ThreadData[0].MessageBody,
-                        FallbackName: ThreadInfo.Data.Id);
+                // Main loop
+                do {
+                    // Set the activity to scanning.
+                    ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
 
-                    // Update the data with the new name.
-                    ThreadInfo.Data.ThreadName = NewName;
-                    ThreadInfo.Data.RetrievedThreadName = true;
-                    ThreadInfo.ThreadHTML = ThreadInfo.ThreadHTML.Replace("<title></title>",
-                        $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 7chan</title>");
-                    ThreadInfo.Data.HtmlThreadNameSet = true;
+                    // Request that will be sent to the API.
+                    HttpRequestMessage Request = new(HttpMethod.Get,
+                        $"https://8chan.moe/{ThreadInfo.Data.Board}/res/{ThreadInfo.Data.Id}.json");
+                    // Should more headers be added?
 
-                    // Update the name application wide.
-                    this.Invoke(() => UpdateThreadName(true));
-                }
+                    // Try to get the response.
+                    //using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token)
+                    //    .ConfigureAwait(false);
+                    var ResponseTask = TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
+                    ResponseTask.Wait();
+                    using var Response = ResponseTask.Result;
+                    CancellationToken.Token.ThrowIfCancellationRequested();
 
-                // check for archive flag in the post.
-                //ThreadInfo.Data.ThreadArchived = ThreadData[0].Archived;
+                    // If the response is null, it's a bad result; break the thread.
+                    if (Response == null) {
+                        HandleStatusCode();
+                        if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
+                            ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
+                            this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+                            ResetThread.Reset();
+                            ResetThread.Wait();
+                            continue;
+                        }
+                        break;
+                    }
 
-                // Start counting through the posts.
-                for (int PostIndex = 0; PostIndex < ThreadData.Length; PostIndex++) {
-                    // Set the temporary post to the looped index post.
-                    SevenChanPost Post = ThreadData[PostIndex];
-                    string PostID = Post.PostId.ToString();
-                    if (!ThreadInfo.Data.ParsedPostIds.Contains(PostID)) {
-                        GenericPost CurrentPost = new(Post) {
-                            FirstPost = PostIndex == 0
+                    // Get the json.
+                    //string CurrentJson = await GetStringAsync(Response, CancellationToken.Token)
+                    //    .ConfigureAwait(false);
+                    var JsonTask = GetStringAsync(Response, CancellationToken.Token);
+                    JsonTask.Wait();
+                    string CurrentJson = JsonTask.Result;
+                    CancellationToken.Token.ThrowIfCancellationRequested();
+
+                    // Serialize the json data into a class object.
+                    var ThreadData = CurrentJson.JsonDeserialize<EightChanThread>();
+
+                    // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
+                    if (ThreadData is null) {
+                        ThreadInfo.CurrentActivity = ThreadStatus.NoThreadPosts;
+                        break;
+                    }
+
+                    CancellationToken.Token.ThrowIfCancellationRequested();
+
+                    // Checks if the thread name has been retrieved, and retrieves it if not.
+                    // It was supposed to be an option, but honestly, it's not a problematic inclusion.
+                    if (!ThreadInfo.Data.RetrievedThreadName && !ThreadInfo.Data.SetCustomName) {
+                        // NewName is the name that will be used to ID the thread.
+                        // If the comment doesn't exist, it'll just use the ID & URL.
+                        // If the length is 0, override the set info with the ID & URL.
+                        string NewName = FileHandler.GetShortThreadName(
+                            Subtitle: ThreadData.subject,
+                            Comment: ThreadData.message,
+                            FallbackName: ThreadInfo.Data.Id);
+
+                        // Update the data with the new name.
+                        ThreadInfo.Data.ThreadName = NewName;
+                        ThreadInfo.Data.RetrievedThreadName = true;
+                        ThreadInfo.ThreadHTML = ThreadInfo.ThreadHTML.Replace("<title></title>",
+                            $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 8chan</title>");
+                        ThreadInfo.Data.HtmlThreadNameSet = true;
+
+                        // Update the name application wide.
+                        this.Invoke(() => UpdateThreadName(true));
+                    }
+
+                    // check for archive flag in the post.
+                    ThreadInfo.Data.ThreadArchived = ThreadData.archived;
+
+                    // Parse the first post
+                    if (!ThreadInfo.Data.ParsedPostIds.Contains(ThreadData.threadId.ToString())) {
+                        string PostID = ThreadData.threadId.ToString();
+                        GenericPost CurrentPost = new(ThreadData, ThreadInfo) {
+                            FirstPost = true,
                         };
 
                         if (CurrentPost.HasFiles) {
-                            // Ambiguous parsing multi-file posts
                             for (int i = 0; i < CurrentPost.PostFiles.Count; i++) {
                                 var File = CurrentPost.PostFiles[i];
                                 string FileName = (Downloads.SaveOriginalFilenames ? File.OriginalFileName : File.FileId)!;
                                 string Prefix = GetFilePrefix(File.OriginalFileName!, File.FileExtension!);
                                 string ThumbFileName = File.ThumbnailFileName!;
+                                File.SavedFileName = Prefix + FileName;
+                                File.SavedThumbnailFile = ThumbFileName;
 
                                 if (!Downloads.AllowFileNamesGreaterThan255) {
                                     int FileNameLength = ThreadInfo.Data.DownloadPath.Length +
@@ -1716,7 +2020,8 @@ public partial class frmDownloader : Form {
                                 lvi.SubItems[1].Text = File.FileExtension;
                                 lvi.SubItems[2].Text = File.OriginalFileName + "." + File.FileExtension;
                                 //lvi.SubItems[3].Text = File.FileHash;
-                                lvi.ImageIndex = 0;
+                                lvi.ImageIndex = WaitingImage;
+                                lvi.Tag = File;
                                 File.ListViewItem = lvi;
                                 this.Invoke(() => lvImages.Items.Add(lvi));
 
@@ -1731,343 +2036,130 @@ public partial class frmDownloader : Form {
                         ThreadInfo.Data.ThreadPosts.Add(CurrentPost);
                         ThreadInfo.AddedNewPosts = ThreadInfo.ThreadModified = true;
                     }
-                }
 
-                // update the form totals and status.
-                this.Invoke(() => {
-                    lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount}";
-                    lbPostsParsed.Text = "posts parsed: " + ThreadInfo.Data.ParsedPostIds.Count.ToString();
-                    lbLastModified.Text = "last modified: " + ThreadInfo.Data.LastModified.ToString();
-                    lbScanTimer.Text = "Downloading files";
-                    MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadDownloading);
-                });
+                    CancellationToken.Token.ThrowIfCancellationRequested();
 
-                // Download files.
-                //await DownloadFilesAsync(CancellationToken.None)
-                //    .ConfigureAwait(false);
-                var DownloadTask = DownloadFilesAsync(default);
-                DownloadTask.Wait();
+                    // Start counting through the replies.
+                    if (ThreadData.posts?.Length > 0) {
+                        for (int PostIndex = 0; PostIndex < ThreadData.posts.Length; PostIndex++) {
+                            // Set the temporary post to the looped index post.
+                            EightChanPost Post = ThreadData.posts[PostIndex];
+                            string PostID = Post.postId.ToString();
+                            if (!ThreadInfo.Data.ParsedPostIds.Contains(PostID)) {
+                                GenericPost CurrentPost = new(Post, ThreadInfo) {
+                                    FirstPost = false,
+                                };
 
-                if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
-                    break;
-                }
+                                if (CurrentPost.HasFiles) {
+                                    for (int i = 0; i < CurrentPost.PostFiles.Count; i++) {
+                                        var File = CurrentPost.PostFiles[i];
+                                        string FileName = (Downloads.SaveOriginalFilenames ? File.OriginalFileName : File.FileId)!;
+                                        string Prefix = GetFilePrefix(File.OriginalFileName!, File.FileExtension!);
+                                        string ThumbFileName = File.ThumbnailFileName!;
+                                        File.SavedFileName = Prefix + FileName;
+                                        File.SavedThumbnailFile = ThumbFileName;
 
-                if (ThreadInfo.Data.ThreadArchived) {
-                    ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsArchived;
-                    break;
-                }
+                                        if (!Downloads.AllowFileNamesGreaterThan255) {
+                                            int FileNameLength = ThreadInfo.Data.DownloadPath.Length +
+                                                FileName.Length +
+                                                File.FileExtension!.Length +
+                                                Prefix.Length +
+                                                2; // ext period (1) and download path separator (1)
 
-                // Set the activity.
-                ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
-
-                // Invoke the post-download management.
-                this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
-
-                // Synchronously wait, since this thread is separate.
-                ResetThread.Reset();
-                ResetThread.Wait();
-            }
-            while (ThreadInfo.CurrentActivity is not (ThreadStatus.ThreadIs404 or ThreadStatus.ThreadIsAborted or ThreadStatus.ThreadIsArchived));
-
-            this.Invoke(() => Log.Write("Exiting thread " + ThreadInfo.CurrentActivity));
-        }) {
-            Name = $"7chan thread {ThreadInfo.Data.Board}/{ThreadInfo.Data.Id}"
-        };
-    }
-    private void Register8chanThread() {
-        this.DownloadThread = new Thread(() => {
-            // Check the thread board and id for null value
-            // Can't really parse the API without them.
-            if (string.IsNullOrWhiteSpace(ThreadInfo.Data.Board) || string.IsNullOrWhiteSpace(ThreadInfo.Data.Id)) {
-                ThreadInfo.CurrentActivity = ThreadStatus.ThreadInfoNotSet;
-                ManageThread(ThreadEvent.AfterDownload);
-                return;
-            }
-
-            // Uri that is used for requests.
-            ThreadInfo.ThreadUri = new(ThreadInfo.Data.Url);
-
-            // Retrieve the board data before the loop.
-            if (!ThreadInfo.ThreadReloaded) {
-                var BoardTask = EightChan.GetBoardAsync(ThreadInfo.Data.Board, DownloadClient, CancellationToken.None);
-                BoardTask.Wait();
-                var Board = BoardTask.Result;
-                if (Board != null) {
-                    ThreadInfo.Data.BoardName = Board.BoardName;
-                    ThreadInfo.Data.BoardSubtitle = Board.BoardDescription;
-                }
-                else {
-                    Log.Write("Could not get the board name.");
-                }
-                ThreadInfo.Data.RetrievedBoardName = true;
-                ThreadInfo.ThreadModified = true;
-                ThreadInfo.ThreadHTML = new(HtmlControl.GetHTMLBase(ThreadInfo));
-            }
-
-            do {
-                // Set the activity to scanning.
-                ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
-
-                // Request that will be sent to the API.
-                HttpRequestMessage Request = new(HttpMethod.Get,
-                    $"https://8chan.moe/{ThreadInfo.Data.Board}/res/{ThreadInfo.Data.Id}.json");
-                // Should more headers be added?
-
-                // Try to get the response.
-                //using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.None)
-                //    .ConfigureAwait(false);
-                var ResponseTask = TryGetResponseIfModifiedAsync(Request, CancellationToken.None);
-                ResponseTask.Wait();
-                using var Response = ResponseTask.Result;
-
-                // If the response is null, it's a bad result; break the thread.
-                if (Response == null) {
-                    HandleStatusCode();
-                    if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
-                        ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
-                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
-                        ResetThread.Reset();
-                        ResetThread.Wait();
-                        continue;
-                    }
-                    break;
-                }
-
-                // Get the json.
-                //string CurrentJson = await GetStringAsync(Response, CancellationToken.None)
-                //    .ConfigureAwait(false);
-                var JsonTask = GetStringAsync(Response, default);
-                JsonTask.Wait();
-                string CurrentJson = JsonTask.Result;
-
-                // Serialize the json data into a class object.
-                var ThreadData = CurrentJson.JsonDeserialize<EightChanThread>();
-
-                // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
-                if (ThreadData is null) {
-                    ThreadInfo.CurrentActivity = ThreadStatus.NoThreadPosts;
-                    break;
-                }
-
-                // Checks if the thread name has been retrieved, and retrieves it if not.
-                // It was supposed to be an option, but honestly, it's not a problematic inclusion.
-                if (!ThreadInfo.Data.RetrievedThreadName && !ThreadInfo.Data.SetCustomName) {
-                    // NewName is the name that will be used to ID the thread.
-                    // If the comment doesn't exist, it'll just use the ID & URL.
-                    // If the length is 0, override the set info with the ID & URL.
-                    string NewName = FileHandler.GetShortThreadName(
-                        Subtitle: ThreadData.subject,
-                        Comment: ThreadData.message,
-                        FallbackName: ThreadInfo.Data.Id);
-
-                    // Update the data with the new name.
-                    ThreadInfo.Data.ThreadName = NewName;
-                    ThreadInfo.Data.RetrievedThreadName = true;
-                    ThreadInfo.ThreadHTML = ThreadInfo.ThreadHTML.Replace("<title></title>",
-                        $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 8chan</title>");
-                    ThreadInfo.Data.HtmlThreadNameSet = true;
-
-                    // Update the name application wide.
-                    this.Invoke(() => UpdateThreadName(true));
-                }
-
-                // check for archive flag in the post.
-                ThreadInfo.Data.ThreadArchived = ThreadData.archived;
-
-                // Parse the first post
-                if (!ThreadInfo.Data.ParsedPostIds.Contains(ThreadData.threadId.ToString())) {
-                    string PostID = ThreadData.threadId.ToString();
-                    GenericPost CurrentPost = new(ThreadData, ThreadInfo) {
-                        FirstPost = true,
-                    };
-
-                    if (CurrentPost.HasFiles) {
-                        for (int i = 0; i < CurrentPost.PostFiles.Count; i++) {
-                            var File = CurrentPost.PostFiles[i];
-                            string FileName = (Downloads.SaveOriginalFilenames ? File.OriginalFileName : File.FileId)!;
-                            string Prefix = GetFilePrefix(File.OriginalFileName!, File.FileExtension!);
-                            string ThumbFileName = File.ThumbnailFileName!;
-
-                            if (!Downloads.AllowFileNamesGreaterThan255) {
-                                int FileNameLength = ThreadInfo.Data.DownloadPath.Length +
-                                    FileName.Length +
-                                    File.FileExtension!.Length +
-                                    Prefix.Length +
-                                    2; // ext period (1) and download path separator (1)
-
-                                if (FileNameLength > 255) {
-                                    int TrimSize = FileNameLength - 255;
-                                    if (FileName.Length <= TrimSize) {
-                                        HandleBadFileName(File);
-                                        continue;
-                                    }
-                                    FileName = FileName[..^TrimSize];
-                                }
-
-                                if (Downloads.SaveThumbnails) {
-                                    int ThumbFileNameLength = ThreadInfo.Data.DownloadPath.Length +
-                                        ThumbFileName.Length +
-                                        File.ThumbnailFileExtension!.Length +
-                                        8; // ext period (1), path separators (2), "thumb" (5)
-
-                                    if (ThumbFileNameLength > 255) {
-                                        int TrimSize = ThumbFileNameLength - 255;
-                                        if (ThumbFileName.Length <= TrimSize) {
-                                            HandleBadThumbFileName(File);
-                                            continue;
-                                        }
-                                        ThumbFileName = ThumbFileName[..^TrimSize];
-                                    }
-                                }
-                            }
-
-                            File.SavedFile = Prefix + FileName + "." + File.FileExtension;
-                            File.SavedThumbnailFile = Path.Combine("thumb", ThumbFileName + "." + File.ThumbnailFileExtension);
-
-                            // add a new listviewitem to the listview for this image.
-                            ListViewItem lvi = new();
-                            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                            //lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                            lvi.Name = File.FileId;
-                            lvi.SubItems[0].Text = File.FileId;
-                            lvi.SubItems[1].Text = File.FileExtension;
-                            lvi.SubItems[2].Text = File.OriginalFileName + "." + File.FileExtension;
-                            //lvi.SubItems[3].Text = File.FileHash;
-                            lvi.ImageIndex = 0;
-                            File.ListViewItem = lvi;
-                            this.Invoke(() => lvImages.Items.Add(lvi));
-
-                            ThreadInfo.Data.ThreadImagesCount++;
-                            ThreadInfo.Data.ThreadPostsCount++;
-                        }
-                    }
-
-                    // add the new post to the data.
-                    ThreadInfo.ThreadHTML.Append(HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo));
-                    ThreadInfo.Data.ParsedPostIds.Add(PostID);
-                    ThreadInfo.Data.ThreadPosts.Add(CurrentPost);
-                    ThreadInfo.AddedNewPosts = ThreadInfo.ThreadModified = true;
-                }
-
-                // Start counting through the replies.
-                if (ThreadData.posts?.Length > 0) {
-                    for (int PostIndex = 0; PostIndex < ThreadData.posts.Length; PostIndex++) {
-                        // Set the temporary post to the looped index post.
-                        EightChanPost Post = ThreadData.posts[PostIndex];
-                        string PostID = Post.postId.ToString();
-                        if (!ThreadInfo.Data.ParsedPostIds.Contains(PostID)) {
-                            GenericPost CurrentPost = new(Post, ThreadInfo) {
-                                FirstPost = false,
-                            };
-
-                            if (CurrentPost.HasFiles) {
-                                for (int i = 0; i < CurrentPost.PostFiles.Count; i++) {
-                                    var File = CurrentPost.PostFiles[i];
-                                    string FileName = (Downloads.SaveOriginalFilenames ? File.OriginalFileName : File.FileId)!;
-                                    string Prefix = GetFilePrefix(File.OriginalFileName!, File.FileExtension!);
-                                    string ThumbFileName = File.ThumbnailFileName!;
-
-                                    if (!Downloads.AllowFileNamesGreaterThan255) {
-                                        int FileNameLength = ThreadInfo.Data.DownloadPath.Length +
-                                            FileName.Length +
-                                            File.FileExtension!.Length +
-                                            Prefix.Length +
-                                            2; // ext period (1) and download path separator (1)
-
-                                        if (FileNameLength > 255) {
-                                            int TrimSize = FileNameLength - 255;
-                                            if (FileName.Length <= TrimSize) {
-                                                HandleBadFileName(File);
-                                                continue;
-                                            }
-                                            FileName = FileName[..^TrimSize];
-                                        }
-
-                                        if (Downloads.SaveThumbnails) {
-                                            int ThumbFileNameLength = ThreadInfo.Data.DownloadPath.Length +
-                                                ThumbFileName.Length +
-                                                File.ThumbnailFileExtension!.Length +
-                                                8; // ext period (1), path separators (2), "thumb" (5)
-
-                                            if (ThumbFileNameLength > 255) {
-                                                int TrimSize = ThumbFileNameLength - 255;
-                                                if (ThumbFileName.Length <= TrimSize) {
-                                                    HandleBadThumbFileName(File);
+                                            if (FileNameLength > 255) {
+                                                int TrimSize = FileNameLength - 255;
+                                                if (FileName.Length <= TrimSize) {
+                                                    HandleBadFileName(File);
                                                     continue;
                                                 }
-                                                ThumbFileName = ThumbFileName[..^TrimSize];
+                                                FileName = FileName[..^TrimSize];
+                                            }
+
+                                            if (Downloads.SaveThumbnails) {
+                                                int ThumbFileNameLength = ThreadInfo.Data.DownloadPath.Length +
+                                                    ThumbFileName.Length +
+                                                    File.ThumbnailFileExtension!.Length +
+                                                    8; // ext period (1), path separators (2), "thumb" (5)
+
+                                                if (ThumbFileNameLength > 255) {
+                                                    int TrimSize = ThumbFileNameLength - 255;
+                                                    if (ThumbFileName.Length <= TrimSize) {
+                                                        HandleBadThumbFileName(File);
+                                                        continue;
+                                                    }
+                                                    ThumbFileName = ThumbFileName[..^TrimSize];
+                                                }
                                             }
                                         }
+
+                                        File.SavedFile = Prefix + FileName + "." + File.FileExtension;
+                                        File.SavedThumbnailFile = Path.Combine("thumb", ThumbFileName + "." + File.ThumbnailFileExtension);
+
+                                        // add a new listviewitem to the listview for this image.
+                                        ListViewItem lvi = new();
+                                        lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                                        lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                                        lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                                        lvi.Name = File.FileId;
+                                        lvi.SubItems[0].Text = File.FileId;
+                                        lvi.SubItems[1].Text = File.FileExtension;
+                                        lvi.SubItems[2].Text = File.OriginalFileName + "." + File.FileExtension;
+                                        lvi.SubItems[3].Text = File.FileExtension;
+                                        lvi.ImageIndex = WaitingImage;
+                                        lvi.Tag = File;
+                                        File.ListViewItem = lvi;
+                                        this.Invoke(() => lvImages.Items.Add(lvi));
+
+                                        ThreadInfo.Data.ThreadImagesCount++;
+                                        ThreadInfo.Data.ThreadPostsCount++;
                                     }
-
-                                    File.SavedFile = Prefix + FileName + "." + File.FileExtension;
-                                    File.SavedThumbnailFile = Path.Combine("thumb", ThumbFileName + "." + File.ThumbnailFileExtension);
-
-                                    // add a new listviewitem to the listview for this image.
-                                    ListViewItem lvi = new();
-                                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                                    lvi.Name = File.FileId;
-                                    lvi.SubItems[0].Text = File.FileId;
-                                    lvi.SubItems[1].Text = File.FileExtension;
-                                    lvi.SubItems[2].Text = File.OriginalFileName + "." + File.FileExtension;
-                                    lvi.SubItems[3].Text = File.FileExtension;
-                                    lvi.ImageIndex = 0;
-                                    File.ListViewItem = lvi;
-                                    this.Invoke(() => lvImages.Items.Add(lvi));
-
-                                    ThreadInfo.Data.ThreadImagesCount++;
-                                    ThreadInfo.Data.ThreadPostsCount++;
                                 }
+
+                                // add the new post to the data.
+                                ThreadInfo.ThreadHTML.Append(HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo));
+                                ThreadInfo.Data.ParsedPostIds.Add(PostID);
+                                ThreadInfo.Data.ThreadPosts.Add(CurrentPost);
+                                ThreadInfo.AddedNewPosts = ThreadInfo.ThreadModified = true;
                             }
 
-                            // add the new post to the data.
-                            ThreadInfo.ThreadHTML.Append(HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo));
-                            ThreadInfo.Data.ParsedPostIds.Add(PostID);
-                            ThreadInfo.Data.ThreadPosts.Add(CurrentPost);
-                            ThreadInfo.AddedNewPosts = ThreadInfo.ThreadModified = true;
+                            CancellationToken.Token.ThrowIfCancellationRequested();
                         }
                     }
-                }
 
-                // update the form totals and status.
-                this.Invoke(() => {
-                    lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount}";
-                    lbPostsParsed.Text = "posts parsed: " + ThreadInfo.Data.ParsedPostIds.Count.ToString();
-                    lbLastModified.Text = "last modified: " + ThreadInfo.Data.LastModified.ToString();
-                    lbScanTimer.Text = "Downloading files";
-                    MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadDownloading);
-                });
+                    // update the form totals and status.
+                    UpdateThreadCounts();
 
-                // Download files.
-                //await DownloadFilesAsync(CancellationToken.None)
-                //    .ConfigureAwait(false);
-                var DownloadTask = DownloadFilesAsync(default);
-                DownloadTask.Wait();
+                    // Download files.
+                    //await DownloadFilesAsync(CancellationToken.Token)
+                    //    .ConfigureAwait(false);
+                    var DownloadTask = DownloadFilesAsync(CancellationToken.Token);
+                    DownloadTask.Wait();
+                    CancellationToken.Token.ThrowIfCancellationRequested();
 
-                if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
-                    break;
-                }
+                    if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
+                        break;
+                    }
 
-                if (ThreadInfo.Data.ThreadArchived) {
-                    ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsArchived;
-                    break;
-                }
+                    if (ThreadInfo.Data.ThreadArchived) {
+                        ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsArchived;
+                        break;
+                    }
 
-                // Set the activity.
-                ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
+                    // Set the activity.
+                    ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
 
-                // Invoke the post-download management.
-                this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+                    // Invoke the post-download management.
+                    this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
 
-                // Synchronously wait, since this thread is separate.
-                ResetThread.Reset();
-                ResetThread.Wait();
+                    // Synchronously wait, since this thread is separate.
+                    ResetThread.Reset();
+                    ResetThread.Wait();
+                    CancellationToken.Token.ThrowIfCancellationRequested();
+                } while (ThreadInfo.CurrentActivity is not (ThreadStatus.ThreadIs404 or ThreadStatus.ThreadIsAborted or ThreadStatus.ThreadIsArchived));
             }
-            while (ThreadInfo.CurrentActivity is not (ThreadStatus.ThreadIs404 or ThreadStatus.ThreadIsAborted or ThreadStatus.ThreadIsArchived));
-
+            catch (ThreadAbortException) { }
+            catch (TaskCanceledException) { }
+            catch (OperationCanceledException) { }
             this.Invoke(() => Log.Write("Exiting thread " + ThreadInfo.CurrentActivity));
         }) {
             Name = $"8chan thread {ThreadInfo.Data.Board}/{ThreadInfo.Data.Id}"
@@ -2076,118 +2168,351 @@ public partial class frmDownloader : Form {
     // Needs: Help. Like psychological help. Unused currently, 8kun dead.
     private void Register8kunThread() {
         this.DownloadThread = new Thread(() => {
-            // Check the thread board and id for null value
-            // Can't really parse the API without them.
-            if (string.IsNullOrWhiteSpace(ThreadInfo.Data.Board) || string.IsNullOrWhiteSpace(ThreadInfo.Data.Id)) {
-                ThreadInfo.CurrentActivity = ThreadStatus.ThreadInfoNotSet;
-                ManageThread(ThreadEvent.AfterDownload);
-                return;
-            }
-
-            // Retrieve the board data before the loop.
-            if (!ThreadInfo.ThreadReloaded) {
-                var BoardTask = EightKun.GetBoardAsync(ThreadInfo, DownloadClient, CancellationToken.None);
-                BoardTask.Wait();
-                var Board = BoardTask.Result;
-                if (Board != null) {
-                    ThreadInfo.Data.BoardName = Board.title;
-                    ThreadInfo.Data.BoardSubtitle = Board.subtitle;
+            try {
+                // Check the thread board and id for null value
+                // Can't really parse the API without them.
+                if (string.IsNullOrWhiteSpace(ThreadInfo.Data.Board) || string.IsNullOrWhiteSpace(ThreadInfo.Data.Id)) {
+                    ThreadInfo.CurrentActivity = ThreadStatus.ThreadInfoNotSet;
+                    ManageThread(ThreadEvent.AfterDownload);
+                    return;
                 }
-                else {
-                    Log.Write("Could not get the board name.");
-                }
-                ThreadInfo.Data.RetrievedBoardName = true;
-                ThreadInfo.ThreadModified = true;
-                ThreadInfo.ThreadHTML = new(HtmlControl.GetHTMLBase(ThreadInfo));
-            }
 
-            do {
-                // Set the activity to scanning.
-                ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
-
-                // Request that will be sent to the API.
-                HttpRequestMessage Request = new(HttpMethod.Get,
-                    $"https://8kun.top/{ThreadInfo.Data.Board}/res/{ThreadInfo.Data.Id}.json");
-                // Should more headers be added?
-
-                // Try to get the response.
-                //using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.None)
-                //    .ConfigureAwait(false);
-                var ResponseTask = TryGetResponseIfModifiedAsync(Request, CancellationToken.None);
-                ResponseTask.Wait();
-                using var Response = ResponseTask.Result;
-
-                // If the response is null, it's a bad result; break the thread.
-                if (Response == null) {
-                    HandleStatusCode();
-                    if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
-                        ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
-                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
-                        ResetThread.Reset();
-                        ResetThread.Wait();
-                        continue;
+                // Retrieve the board data before the loop.
+                if (!ThreadInfo.ThreadReloaded) {
+                    var BoardTask = EightKun.GetBoardAsync(ThreadInfo, DownloadClient, CancellationToken.Token);
+                    BoardTask.Wait();
+                    var Board = BoardTask.Result;
+                    if (Board != null) {
+                        ThreadInfo.Data.BoardName = Board.title;
+                        ThreadInfo.Data.BoardSubtitle = Board.subtitle;
                     }
-                    break;
+                    else {
+                        Log.Write("Could not get the board name.");
+                    }
+                    ThreadInfo.Data.RetrievedBoardName = true;
+                    ThreadInfo.ThreadModified = true;
+                    ThreadInfo.ThreadHTML = new(HtmlControl.GetHTMLBase(ThreadInfo));
+                    CancellationToken.Token.ThrowIfCancellationRequested();
                 }
 
-                // Get the json.
-                //string CurrentJson = await GetStringAsync(Response, CancellationToken.None)
-                //    .ConfigureAwait(false);
-                var JsonTask = GetStringAsync(Response, default);
-                JsonTask.Wait();
-                string CurrentJson = JsonTask.Result;
+                // Main loop
+                do {
+                    // Set the activity to scanning.
+                    ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
 
-                // Serialize the json data into a class object.
-                var ThreadData = CurrentJson.JsonDeserialize<EightKunThread>();
+                    // Request that will be sent to the API.
+                    HttpRequestMessage Request = new(HttpMethod.Get,
+                        $"https://8kun.top/{ThreadInfo.Data.Board}/res/{ThreadInfo.Data.Id}.json");
+                    // Should more headers be added?
 
-                // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
-                if (ThreadData is null) {
-                    ThreadInfo.CurrentActivity = ThreadStatus.NoThreadPosts;
-                    break;
+                    // Try to get the response.
+                    //using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token)
+                    //    .ConfigureAwait(false);
+                    var ResponseTask = TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
+                    ResponseTask.Wait();
+                    using var Response = ResponseTask.Result;
+                    CancellationToken.Token.ThrowIfCancellationRequested();
+
+                    // If the response is null, it's a bad result; break the thread.
+                    if (Response == null) {
+                        HandleStatusCode();
+                        if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
+                            ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
+                            this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+                            ResetThread.Reset();
+                            ResetThread.Wait();
+                            continue;
+                        }
+                        break;
+                    }
+
+                    // Get the json.
+                    //string CurrentJson = await GetStringAsync(Response, CancellationToken.Token)
+                    //    .ConfigureAwait(false);
+                    var JsonTask = GetStringAsync(Response, CancellationToken.Token);
+                    JsonTask.Wait();
+                    string CurrentJson = JsonTask.Result;
+                    CancellationToken.Token.ThrowIfCancellationRequested();
+
+                    // Serialize the json data into a class object.
+                    var ThreadData = CurrentJson.JsonDeserialize<EightKunThread>();
+
+                    // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
+                    if (ThreadData is null) {
+                        ThreadInfo.CurrentActivity = ThreadStatus.NoThreadPosts;
+                        break;
+                    }
+
+                    CancellationToken.Token.ThrowIfCancellationRequested();
+
+                    // Checks if the thread name has been retrieved, and retrieves it if not.
+                    // It was supposed to be an option, but honestly, it's not a problematic inclusion.
+                    if (!ThreadInfo.Data.RetrievedThreadName && !ThreadInfo.Data.SetCustomName) {
+                        // NewName is the name that will be used to ID the thread.
+                        // If the comment doesn't exist, it'll just use the ID & URL.
+                        // If the length is 0, override the set info with the ID & URL.
+                        string NewName = FileHandler.GetShortThreadName(
+                            Subtitle: ThreadData.posts[0].sub,
+                            Comment: ThreadData.posts[0].com,
+                            FallbackName: ThreadInfo.Data.Id);
+
+                        // Update the data with the new name.
+                        ThreadInfo.Data.ThreadName = NewName;
+                        ThreadInfo.Data.RetrievedThreadName = true;
+                        ThreadInfo.ThreadHTML = ThreadInfo.ThreadHTML.Replace("<title></title>",
+                            $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 8kun</title>");
+                        ThreadInfo.Data.HtmlThreadNameSet = true;
+
+                        // Update the name application wide.
+                        this.Invoke(() => UpdateThreadName(true));
+                    }
+
+                    // check for archive flag in the post.
+                    //ThreadInfo.Data.ThreadArchived = ThreadData.archived;
+
+                    // Start counting through the posts.
+                    if (ThreadData.posts?.Length > 0) {
+                        for (int PostIndex = 0; PostIndex < ThreadData.posts.Length; PostIndex++) {
+                            // Set the temporary post to the looped index post.
+                            EightKunPost Post = ThreadData.posts[PostIndex];
+                            string PostID = Post.no.ToString();
+                            if (!ThreadInfo.Data.ParsedPostIds.Contains(PostID)) {
+                                GenericPost CurrentPost = new(Post) {
+                                    FirstPost = false,
+                                };
+
+                                if (CurrentPost.HasFiles) {
+                                    for (int i = 0; i < CurrentPost.PostFiles.Count; i++) {
+                                        var File = CurrentPost.PostFiles[i];
+                                        string FileName = (Downloads.SaveOriginalFilenames ? File.OriginalFileName : File.FileId)!;
+                                        string Prefix = GetFilePrefix(File.OriginalFileName!, File.FileExtension!);
+                                        string ThumbFileName = File.ThumbnailFileName!;
+                                        File.SavedFileName = Prefix + FileName;
+                                        File.SavedThumbnailFile = ThumbFileName;
+
+                                        if (!Downloads.AllowFileNamesGreaterThan255) {
+                                            int FileNameLength = ThreadInfo.Data.DownloadPath.Length +
+                                                FileName.Length +
+                                                File.FileExtension!.Length +
+                                                Prefix.Length +
+                                                2; // ext period (1) and download path separator (1)
+
+                                            if (FileNameLength > 255) {
+                                                int TrimSize = FileNameLength - 255;
+                                                if (FileName.Length <= TrimSize) {
+                                                    HandleBadFileName(File);
+                                                    continue;
+                                                }
+                                                FileName = FileName[..^TrimSize];
+                                            }
+
+                                            if (Downloads.SaveThumbnails) {
+                                                int ThumbFileNameLength = ThreadInfo.Data.DownloadPath.Length +
+                                                    ThumbFileName.Length +
+                                                    File.ThumbnailFileExtension!.Length +
+                                                    8; // ext period (1), path separators (2), "thumb" (5)
+
+                                                if (ThumbFileNameLength > 255) {
+                                                    int TrimSize = ThumbFileNameLength - 255;
+                                                    if (ThumbFileName.Length <= TrimSize) {
+                                                        HandleBadThumbFileName(File);
+                                                        continue;
+                                                    }
+                                                    ThumbFileName = ThumbFileName[..^TrimSize];
+                                                }
+                                            }
+                                        }
+
+                                        File.SavedFile = Prefix + FileName + "." + File.FileExtension;
+                                        File.SavedThumbnailFile = Path.Combine("thumb", ThumbFileName + "." + File.ThumbnailFileExtension);
+
+                                        // add a new listviewitem to the listview for this image.
+                                        ListViewItem lvi = new();
+                                        lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                                        lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                                        lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                                        lvi.Name = File.FileId;
+                                        lvi.SubItems[0].Text = File.FileId;
+                                        lvi.SubItems[1].Text = File.FileExtension;
+                                        lvi.SubItems[2].Text = File.OriginalFileName + "." + File.FileExtension;
+                                        lvi.SubItems[3].Text = File.FileExtension;
+                                        lvi.ImageIndex = WaitingImage;
+                                        lvi.Tag = File;
+                                        File.ListViewItem = lvi;
+                                        this.Invoke(() => lvImages.Items.Add(lvi));
+
+                                        ThreadInfo.Data.ThreadImagesCount++;
+                                        ThreadInfo.Data.ThreadPostsCount++;
+                                    }
+                                }
+
+                                // add the new post to the data.
+                                ThreadInfo.ThreadHTML.Append(HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo));
+                                ThreadInfo.Data.ParsedPostIds.Add(PostID);
+                                ThreadInfo.Data.ThreadPosts.Add(CurrentPost);
+                                ThreadInfo.AddedNewPosts = ThreadInfo.ThreadModified = true;
+                            }
+
+                            CancellationToken.Token.ThrowIfCancellationRequested();
+                        }
+                    }
+
+                    // update the form totals and status.
+                    UpdateThreadCounts();
+
+                    // Download files.
+                    //await DownloadFilesAsync(CancellationToken.Token)
+                    //    .ConfigureAwait(false);
+                    var DownloadTask = DownloadFilesAsync(CancellationToken.Token);
+                    DownloadTask.Wait();
+                    CancellationToken.Token.ThrowIfCancellationRequested();
+
+                    if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
+                        break;
+                    }
+
+                    if (ThreadInfo.Data.ThreadArchived) {
+                        ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsArchived;
+                        break;
+                    }
+
+                    // Set the activity.
+                    ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
+
+                    // Invoke the post-download management.
+                    this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+
+                    // Synchronously wait, since this thread is separate.
+                    ResetThread.Reset();
+                    ResetThread.Wait();
+                    CancellationToken.Token.ThrowIfCancellationRequested();
+                } while (ThreadInfo.CurrentActivity is not (ThreadStatus.ThreadIs404 or ThreadStatus.ThreadIsAborted or ThreadStatus.ThreadIsArchived));
+            }
+            catch (ThreadAbortException) { }
+            catch (TaskCanceledException) { }
+            catch (OperationCanceledException) { }
+            this.Invoke(() => Log.Write("Exiting thread " + ThreadInfo.CurrentActivity));
+        }) {
+            Name = $"8kun thread {ThreadInfo.Data.Board}/{ThreadInfo.Data.Id}"
+        };
+    }
+    private void RegisterfchanThread() {
+        this.DownloadThread = new Thread(() => {
+            try {
+                // Check the thread board and id for null value
+                // Can't really parse the API without them.
+                if (string.IsNullOrWhiteSpace(ThreadInfo.Data.Board) || string.IsNullOrWhiteSpace(ThreadInfo.Data.Id)) {
+                    ThreadInfo.CurrentActivity = ThreadStatus.ThreadInfoNotSet;
+                    ManageThread(ThreadEvent.AfterDownload);
+                    return;
                 }
 
-                // Checks if the thread name has been retrieved, and retrieves it if not.
-                // It was supposed to be an option, but honestly, it's not a problematic inclusion.
-                if (!ThreadInfo.Data.RetrievedThreadName && !ThreadInfo.Data.SetCustomName) {
-                    // NewName is the name that will be used to ID the thread.
-                    // If the comment doesn't exist, it'll just use the ID & URL.
-                    // If the length is 0, override the set info with the ID & URL.
-                    string NewName = FileHandler.GetShortThreadName(
-                        Subtitle: ThreadData.posts[0].sub,
-                        Comment: ThreadData.posts[0].com,
-                        FallbackName: ThreadInfo.Data.Id);
-
-                    // Update the data with the new name.
-                    ThreadInfo.Data.ThreadName = NewName;
-                    ThreadInfo.Data.RetrievedThreadName = true;
-                    ThreadInfo.ThreadHTML = ThreadInfo.ThreadHTML.Replace("<title></title>",
-                        $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 8kun</title>");
-                    ThreadInfo.Data.HtmlThreadNameSet = true;
-
-                    // Update the name application wide.
-                    this.Invoke(() => UpdateThreadName(true));
+                // HTML
+                if (!ThreadInfo.ThreadReloaded) {
+                    ThreadInfo.ThreadHTML = new(HtmlControl.GetHTMLBase(ThreadInfo));
                 }
 
-                // check for archive flag in the post.
-                //ThreadInfo.Data.ThreadArchived = ThreadData.archived;
+                // Main loop
+                do {
+                    // Set the activity to scanning.
+                    ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
 
-                // Start counting through the posts.
-                if (ThreadData.posts?.Length > 0) {
-                    for (int PostIndex = 0; PostIndex < ThreadData.posts.Length; PostIndex++) {
+                    // Request that will be sent to the API.
+                    HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.Data.Url);
+                    // Should more headers be added?
+
+                    // Try to get the response.
+                    //using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token)
+                    //    .ConfigureAwait(false);
+                    var ResponseTask = TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
+                    ResponseTask.Wait();
+                    using var Response = ResponseTask.Result;
+
+                    // If the response is null, it's a bad result; break the thread.
+                    if (Response == null) {
+                        HandleStatusCode();
+                        if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
+                            ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
+                            this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+                            ResetThread.Reset();
+                            ResetThread.Wait();
+                            continue;
+                        }
+                        break;
+                    }
+
+                    // Get the json.
+                    //string CurrentJson = await GetStringAsync(Response, CancellationToken.Token)
+                    //    .ConfigureAwait(false);
+                    var JsonTask = GetStringAsync(Response, CancellationToken.Token);
+                    JsonTask.Wait();
+                    string CurrentJson = JsonTask.Result;
+                    CancellationToken.Token.ThrowIfCancellationRequested();
+
+                    // Serialize the json data into a class object.
+                    FChanPost[] ThreadData;
+                    try {
+                        ThreadData = FChan.Generate(CurrentJson);
+                    }
+                    catch (Exception ex) {
+                        Log.ReportException(ex);
+                        ThreadInfo.CurrentActivity = ThreadStatus.FailedToParseThreadHtml;
+                        this.Invoke(() => ManageThread(ThreadEvent.AfterDownload));
+                        break;
+                    }
+
+                    CancellationToken.Token.ThrowIfCancellationRequested();
+
+                    // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
+                    if (ThreadData is null || ThreadData.Length < 1) {
+                        ThreadInfo.CurrentActivity = ThreadStatus.NoThreadPosts;
+                        break;
+                    }
+
+                    // Checks if the thread name has been retrieved, and retrieves it if not.
+                    // It was supposed to be an option, but honestly, it's not a problematic inclusion.
+                    if (!ThreadInfo.Data.RetrievedThreadName && !ThreadInfo.Data.SetCustomName) {
+                        // NewName is the name that will be used to ID the thread.
+                        // If the comment doesn't exist, it'll just use the ID & URL.
+                        // If the length is 0, override the set info with the ID & URL.
+                        string NewName = FileHandler.GetShortThreadName(
+                            Subtitle: ThreadData[0].Subject,
+                            Comment: ThreadData[0].MessageBody,
+                            FallbackName: ThreadInfo.Data.Id);
+
+                        // Update the data with the new name.
+                        ThreadInfo.Data.ThreadName = NewName;
+                        ThreadInfo.Data.RetrievedThreadName = true;
+                        ThreadInfo.ThreadHTML = ThreadInfo.ThreadHTML.Replace("<title></title>",
+                            $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - fchan</title>");
+                        ThreadInfo.Data.HtmlThreadNameSet = true;
+
+                        // Update the name application wide.
+                        this.Invoke(() => UpdateThreadName(true));
+                    }
+
+                    // check for archive flag in the post.
+                    //ThreadInfo.Data.ThreadArchived = ThreadData[0].Archived;
+
+                    // Start counting through the posts.
+                    for (int PostIndex = 0; PostIndex < ThreadData.Length; PostIndex++) {
                         // Set the temporary post to the looped index post.
-                        EightKunPost Post = ThreadData.posts[PostIndex];
-                        string PostID = Post.no.ToString();
+                        FChanPost Post = ThreadData[PostIndex];
+                        string PostID = Post.PostId.ToString();
                         if (!ThreadInfo.Data.ParsedPostIds.Contains(PostID)) {
                             GenericPost CurrentPost = new(Post) {
-                                FirstPost = false,
+                                FirstPost = PostIndex == 0
                             };
 
                             if (CurrentPost.HasFiles) {
+                                // Ambiguous parsing multi-file posts
                                 for (int i = 0; i < CurrentPost.PostFiles.Count; i++) {
                                     var File = CurrentPost.PostFiles[i];
                                     string FileName = (Downloads.SaveOriginalFilenames ? File.OriginalFileName : File.FileId)!;
                                     string Prefix = GetFilePrefix(File.OriginalFileName!, File.FileExtension!);
                                     string ThumbFileName = File.ThumbnailFileName!;
+                                    File.SavedFileName = Prefix + FileName;
+                                    File.SavedThumbnailFile = ThumbFileName;
 
                                     if (!Downloads.AllowFileNamesGreaterThan255) {
                                         int FileNameLength = ThreadInfo.Data.DownloadPath.Length +
@@ -2229,13 +2554,14 @@ public partial class frmDownloader : Form {
                                     ListViewItem lvi = new();
                                     lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
                                     lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                                    //lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
                                     lvi.Name = File.FileId;
                                     lvi.SubItems[0].Text = File.FileId;
                                     lvi.SubItems[1].Text = File.FileExtension;
                                     lvi.SubItems[2].Text = File.OriginalFileName + "." + File.FileExtension;
-                                    lvi.SubItems[3].Text = File.FileExtension;
-                                    lvi.ImageIndex = 0;
+                                    //lvi.SubItems[3].Text = File.FileHash;
+                                    lvi.ImageIndex = WaitingImage;
+                                    lvi.Tag = File;
                                     File.ListViewItem = lvi;
                                     this.Invoke(() => lvImages.Items.Add(lvi));
 
@@ -2250,260 +2576,44 @@ public partial class frmDownloader : Form {
                             ThreadInfo.Data.ThreadPosts.Add(CurrentPost);
                             ThreadInfo.AddedNewPosts = ThreadInfo.ThreadModified = true;
                         }
+
+                        CancellationToken.Token.ThrowIfCancellationRequested();
                     }
-                }
 
-                // update the form totals and status.
-                this.Invoke(() => {
-                    lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount}";
-                    lbPostsParsed.Text = "posts parsed: " + ThreadInfo.Data.ParsedPostIds.Count.ToString();
-                    lbLastModified.Text = "last modified: " + ThreadInfo.Data.LastModified.ToString();
-                    lbScanTimer.Text = "Downloading files";
-                    MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadDownloading);
-                });
+                    // update the form totals and status.
+                    UpdateThreadCounts();
 
-                // Download files.
-                //await DownloadFilesAsync(CancellationToken.None)
-                //    .ConfigureAwait(false);
-                var DownloadTask = DownloadFilesAsync(default);
-                DownloadTask.Wait();
+                    // Download files.
+                    //await DownloadFilesAsync(CancellationToken.Token)
+                    //    .ConfigureAwait(false);
+                    var DownloadTask = DownloadFilesAsync(CancellationToken.Token);
+                    DownloadTask.Wait();
+                    CancellationToken.Token.ThrowIfCancellationRequested();
 
-                if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
-                    break;
-                }
-
-                if (ThreadInfo.Data.ThreadArchived) {
-                    ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsArchived;
-                    break;
-                }
-
-                // Set the activity.
-                ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
-
-                // Invoke the post-download management.
-                this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
-
-                // Synchronously wait, since this thread is separate.
-                ResetThread.Reset();
-                ResetThread.Wait();
-            }
-            while (ThreadInfo.CurrentActivity is not (ThreadStatus.ThreadIs404 or ThreadStatus.ThreadIsAborted or ThreadStatus.ThreadIsArchived));
-
-            this.Invoke(() => Log.Write("Exiting thread " + ThreadInfo.CurrentActivity));
-        }) {
-            Name = $"8kun thread {ThreadInfo.Data.Board}/{ThreadInfo.Data.Id}"
-        };
-    }
-    private void RegisterfchanThread() {
-        this.DownloadThread = new Thread(() => {
-            // Check the thread board and id for null value
-            // Can't really parse the API without them.
-            if (string.IsNullOrWhiteSpace(ThreadInfo.Data.Board) || string.IsNullOrWhiteSpace(ThreadInfo.Data.Id)) {
-                ThreadInfo.CurrentActivity = ThreadStatus.ThreadInfoNotSet;
-                ManageThread(ThreadEvent.AfterDownload);
-                return;
-            }
-
-            // HTML
-            if (!ThreadInfo.ThreadReloaded) {
-                ThreadInfo.ThreadHTML = new(HtmlControl.GetHTMLBase(ThreadInfo));
-            }
-
-            do {
-                // Set the activity to scanning.
-                ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
-
-                // Request that will be sent to the API.
-                HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.Data.Url);
-                // Should more headers be added?
-
-                // Try to get the response.
-                //using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.None)
-                //    .ConfigureAwait(false);
-                var ResponseTask = TryGetResponseIfModifiedAsync(Request, CancellationToken.None);
-                ResponseTask.Wait();
-                using var Response = ResponseTask.Result;
-
-                // If the response is null, it's a bad result; break the thread.
-                if (Response == null) {
-                    HandleStatusCode();
-                    if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
-                        ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
-                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
-                        ResetThread.Reset();
-                        ResetThread.Wait();
-                        continue;
+                    if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
+                        break;
                     }
-                    break;
-                }
 
-                // Get the json.
-                //string CurrentJson = await GetStringAsync(Response, CancellationToken.None)
-                //    .ConfigureAwait(false);
-                var JsonTask = GetStringAsync(Response, default);
-                JsonTask.Wait();
-                string CurrentJson = JsonTask.Result;
-
-                // Serialize the json data into a class object.
-                FChanPost[] ThreadData;
-                try {
-                    ThreadData = FChan.Generate(CurrentJson);
-                }
-                catch (Exception ex) {
-                    Log.ReportException(ex);
-                    ThreadInfo.CurrentActivity = ThreadStatus.FailedToParseThreadHtml;
-                    this.Invoke(() => ManageThread(ThreadEvent.AfterDownload));
-                    break;
-                }
-
-                // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
-                if (ThreadData is null || ThreadData.Length < 1) {
-                    ThreadInfo.CurrentActivity = ThreadStatus.NoThreadPosts;
-                    break;
-                }
-
-                // Checks if the thread name has been retrieved, and retrieves it if not.
-                // It was supposed to be an option, but honestly, it's not a problematic inclusion.
-                if (!ThreadInfo.Data.RetrievedThreadName && !ThreadInfo.Data.SetCustomName) {
-                    // NewName is the name that will be used to ID the thread.
-                    // If the comment doesn't exist, it'll just use the ID & URL.
-                    // If the length is 0, override the set info with the ID & URL.
-                    string NewName = FileHandler.GetShortThreadName(
-                        Subtitle: ThreadData[0].Subject,
-                        Comment: ThreadData[0].MessageBody,
-                        FallbackName: ThreadInfo.Data.Id);
-
-                    // Update the data with the new name.
-                    ThreadInfo.Data.ThreadName = NewName;
-                    ThreadInfo.Data.RetrievedThreadName = true;
-                    ThreadInfo.ThreadHTML = ThreadInfo.ThreadHTML.Replace("<title></title>",
-                        $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - fchan</title>");
-                    ThreadInfo.Data.HtmlThreadNameSet = true;
-
-                    // Update the name application wide.
-                    this.Invoke(() => UpdateThreadName(true));
-                }
-
-                // check for archive flag in the post.
-                //ThreadInfo.Data.ThreadArchived = ThreadData[0].Archived;
-
-                // Start counting through the posts.
-                for (int PostIndex = 0; PostIndex < ThreadData.Length; PostIndex++) {
-                    // Set the temporary post to the looped index post.
-                    FChanPost Post = ThreadData[PostIndex];
-                    string PostID = Post.PostId.ToString();
-                    if (!ThreadInfo.Data.ParsedPostIds.Contains(PostID)) {
-                        GenericPost CurrentPost = new(Post) {
-                            FirstPost = PostIndex == 0
-                        };
-
-                        if (CurrentPost.HasFiles) {
-                            // Ambiguous parsing multi-file posts
-                            for (int i = 0; i < CurrentPost.PostFiles.Count; i++) {
-                                var File = CurrentPost.PostFiles[i];
-                                string FileName = (Downloads.SaveOriginalFilenames ? File.OriginalFileName : File.FileId)!;
-                                string Prefix = GetFilePrefix(File.OriginalFileName!, File.FileExtension!);
-                                string ThumbFileName = File.ThumbnailFileName!;
-
-                                if (!Downloads.AllowFileNamesGreaterThan255) {
-                                    int FileNameLength = ThreadInfo.Data.DownloadPath.Length +
-                                        FileName.Length +
-                                        File.FileExtension!.Length +
-                                        Prefix.Length +
-                                        2; // ext period (1) and download path separator (1)
-
-                                    if (FileNameLength > 255) {
-                                        int TrimSize = FileNameLength - 255;
-                                        if (FileName.Length <= TrimSize) {
-                                            HandleBadFileName(File);
-                                            continue;
-                                        }
-                                        FileName = FileName[..^TrimSize];
-                                    }
-
-                                    if (Downloads.SaveThumbnails) {
-                                        int ThumbFileNameLength = ThreadInfo.Data.DownloadPath.Length +
-                                            ThumbFileName.Length +
-                                            File.ThumbnailFileExtension!.Length +
-                                            8; // ext period (1), path separators (2), "thumb" (5)
-
-                                        if (ThumbFileNameLength > 255) {
-                                            int TrimSize = ThumbFileNameLength - 255;
-                                            if (ThumbFileName.Length <= TrimSize) {
-                                                HandleBadThumbFileName(File);
-                                                continue;
-                                            }
-                                            ThumbFileName = ThumbFileName[..^TrimSize];
-                                        }
-                                    }
-                                }
-
-                                File.SavedFile = Prefix + FileName + "." + File.FileExtension;
-                                File.SavedThumbnailFile = Path.Combine("thumb", ThumbFileName + "." + File.ThumbnailFileExtension);
-
-                                // add a new listviewitem to the listview for this image.
-                                ListViewItem lvi = new();
-                                lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                                lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                                //lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                                lvi.Name = File.FileId;
-                                lvi.SubItems[0].Text = File.FileId;
-                                lvi.SubItems[1].Text = File.FileExtension;
-                                lvi.SubItems[2].Text = File.OriginalFileName + "." + File.FileExtension;
-                                //lvi.SubItems[3].Text = File.FileHash;
-                                lvi.ImageIndex = 0;
-                                File.ListViewItem = lvi;
-                                this.Invoke(() => lvImages.Items.Add(lvi));
-
-                                ThreadInfo.Data.ThreadImagesCount++;
-                                ThreadInfo.Data.ThreadPostsCount++;
-                            }
-                        }
-
-                        // add the new post to the data.
-                        ThreadInfo.ThreadHTML.Append(HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo));
-                        ThreadInfo.Data.ParsedPostIds.Add(PostID);
-                        ThreadInfo.Data.ThreadPosts.Add(CurrentPost);
-                        ThreadInfo.AddedNewPosts = ThreadInfo.ThreadModified = true;
+                    if (ThreadInfo.Data.ThreadArchived) {
+                        ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsArchived;
+                        break;
                     }
-                }
 
-                // update the form totals and status.
-                this.Invoke(() => {
-                    lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount}";
-                    lbPostsParsed.Text = "posts parsed: " + ThreadInfo.Data.ParsedPostIds.Count.ToString();
-                    lbLastModified.Text = "last modified: " + ThreadInfo.Data.LastModified.ToString();
-                    lbScanTimer.Text = "Downloading files";
-                    MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadDownloading);
-                });
+                    // Set the activity.
+                    ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
 
-                // Download files.
-                //await DownloadFilesAsync(CancellationToken.None)
-                //    .ConfigureAwait(false);
-                var DownloadTask = DownloadFilesAsync(default);
-                DownloadTask.Wait();
+                    // Invoke the post-download management.
+                    this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
 
-                if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
-                    break;
-                }
-
-                if (ThreadInfo.Data.ThreadArchived) {
-                    ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsArchived;
-                    break;
-                }
-
-                // Set the activity.
-                ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
-
-                // Invoke the post-download management.
-                this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
-
-                // Synchronously wait, since this thread is separate.
-                ResetThread.Reset();
-                ResetThread.Wait();
+                    // Synchronously wait, since this thread is separate.
+                    ResetThread.Reset();
+                    ResetThread.Wait();
+                    CancellationToken.Token.ThrowIfCancellationRequested();
+                } while (ThreadInfo.CurrentActivity is not (ThreadStatus.ThreadIs404 or ThreadStatus.ThreadIsAborted or ThreadStatus.ThreadIsArchived));
             }
-            while (ThreadInfo.CurrentActivity is not (ThreadStatus.ThreadIs404 or ThreadStatus.ThreadIsAborted or ThreadStatus.ThreadIsArchived));
-
+            catch (ThreadAbortException) { }
+            catch (TaskCanceledException) { }
+            catch (OperationCanceledException) { }
             this.Invoke(() => Log.Write("Exiting thread " + ThreadInfo.CurrentActivity));
         }) {
             Name = $"fchan thread {ThreadInfo.Data.Board}/{ThreadInfo.Data.Id}"
@@ -2511,214 +2621,221 @@ public partial class frmDownloader : Form {
     }
     private void RegisterU18chanThread() {
         this.DownloadThread = new Thread(() => {
-            // Check the thread board and id for null value
-            // Can't really parse the API without them.
-            if (string.IsNullOrWhiteSpace(ThreadInfo.Data.Board) || string.IsNullOrWhiteSpace(ThreadInfo.Data.Id)) {
-                ThreadInfo.CurrentActivity = ThreadStatus.ThreadInfoNotSet;
-                ManageThread(ThreadEvent.AfterDownload);
-                return;
-            }
+            try {
+                // Check the thread board and id for null value
+                // Can't really parse the API without them.
+                if (string.IsNullOrWhiteSpace(ThreadInfo.Data.Board) || string.IsNullOrWhiteSpace(ThreadInfo.Data.Id)) {
+                    ThreadInfo.CurrentActivity = ThreadStatus.ThreadInfoNotSet;
+                    ManageThread(ThreadEvent.AfterDownload);
+                    return;
+                }
 
-            // HTML
-            if (!ThreadInfo.ThreadReloaded) {
-                ThreadInfo.ThreadHTML = new(HtmlControl.GetHTMLBase(ThreadInfo));
-            }
+                // HTML
+                if (!ThreadInfo.ThreadReloaded) {
+                    ThreadInfo.ThreadHTML = new(HtmlControl.GetHTMLBase(ThreadInfo));
+                }
 
-            do {
-                // Set the activity to scanning.
-                ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
+                // Main loop
+                do {
+                    // Set the activity to scanning.
+                    ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
 
-                // Request that will be sent to the API.
-                HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.Data.Url);
-                // Should more headers be added?
+                    // Request that will be sent to the API.
+                    HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.Data.Url);
+                    // Should more headers be added?
 
-                // Try to get the response.
-                //using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.None)
-                //    .ConfigureAwait(false);
-                var ResponseTask = TryGetResponseIfModifiedAsync(Request, CancellationToken.None);
-                ResponseTask.Wait();
-                using var Response = ResponseTask.Result;
+                    // Try to get the response.
+                    //using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token)
+                    //    .ConfigureAwait(false);
+                    var ResponseTask = TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
+                    ResponseTask.Wait();
+                    using var Response = ResponseTask.Result;
+                    CancellationToken.Token.ThrowIfCancellationRequested();
 
-                // If the response is null, it's a bad result; break the thread.
-                if (Response == null) {
-                    HandleStatusCode();
-                    if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
-                        ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
-                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
-                        ResetThread.Reset();
-                        ResetThread.Wait();
-                        continue;
+                    // If the response is null, it's a bad result; break the thread.
+                    if (Response == null) {
+                        HandleStatusCode();
+                        if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
+                            ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
+                            this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+                            ResetThread.Reset();
+                            ResetThread.Wait();
+                            continue;
+                        }
+                        break;
                     }
-                    break;
-                }
 
-                // Get the json.
-                //string CurrentJson = await GetStringAsync(Response, CancellationToken.None)
-                //    .ConfigureAwait(false);
-                var JsonTask = GetStringAsync(Response, default);
-                JsonTask.Wait();
-                string CurrentJson = JsonTask.Result;
+                    // Get the json.
+                    //string CurrentJson = await GetStringAsync(Response, CancellationToken.Token)
+                    //    .ConfigureAwait(false);
+                    var JsonTask = GetStringAsync(Response, CancellationToken.Token);
+                    JsonTask.Wait();
+                    string CurrentJson = JsonTask.Result;
 
-                // Serialize the json data into a class object.
-                U18ChanPost[] ThreadData;
-                try {
-                    ThreadData = U18Chan.Generate(CurrentJson);
-                }
-                catch (Exception ex) {
-                    Log.ReportException(ex);
-                    ThreadInfo.CurrentActivity = ThreadStatus.FailedToParseThreadHtml;
-                    this.Invoke(() => ManageThread(ThreadEvent.AfterDownload));
-                    break;
-                }
+                    // Serialize the json data into a class object.
+                    U18ChanPost[] ThreadData;
+                    try {
+                        ThreadData = U18Chan.Generate(CurrentJson);
+                    }
+                    catch (Exception ex) {
+                        Log.ReportException(ex);
+                        ThreadInfo.CurrentActivity = ThreadStatus.FailedToParseThreadHtml;
+                        this.Invoke(() => ManageThread(ThreadEvent.AfterDownload));
+                        break;
+                    }
+                    CancellationToken.Token.ThrowIfCancellationRequested();
 
-                // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
-                if (ThreadData is null || ThreadData.Length < 1) {
-                    ThreadInfo.CurrentActivity = ThreadStatus.NoThreadPosts;
-                    break;
-                }
+                    // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
+                    if (ThreadData is null || ThreadData.Length < 1) {
+                        ThreadInfo.CurrentActivity = ThreadStatus.NoThreadPosts;
+                        break;
+                    }
 
-                // Checks if the thread name has been retrieved, and retrieves it if not.
-                // It was supposed to be an option, but honestly, it's not a problematic inclusion.
-                if (!ThreadInfo.Data.RetrievedThreadName && !ThreadInfo.Data.SetCustomName) {
-                    // NewName is the name that will be used to ID the thread.
-                    // If the comment doesn't exist, it'll just use the ID & URL.
-                    // If the length is 0, override the set info with the ID & URL.
-                    string NewName = FileHandler.GetShortThreadName(
-                        Subtitle: ThreadData[0].Subject,
-                        Comment: ThreadData[0].MessageBody,
-                        FallbackName: ThreadInfo.Data.Id);
+                    // Checks if the thread name has been retrieved, and retrieves it if not.
+                    // It was supposed to be an option, but honestly, it's not a problematic inclusion.
+                    if (!ThreadInfo.Data.RetrievedThreadName && !ThreadInfo.Data.SetCustomName) {
+                        // NewName is the name that will be used to ID the thread.
+                        // If the comment doesn't exist, it'll just use the ID & URL.
+                        // If the length is 0, override the set info with the ID & URL.
+                        string NewName = FileHandler.GetShortThreadName(
+                            Subtitle: ThreadData[0].Subject,
+                            Comment: ThreadData[0].MessageBody,
+                            FallbackName: ThreadInfo.Data.Id);
 
-                    // Update the data with the new name.
-                    ThreadInfo.Data.ThreadName = NewName;
-                    ThreadInfo.Data.RetrievedThreadName = true;
-                    ThreadInfo.ThreadHTML = ThreadInfo.ThreadHTML.Replace("<title></title>",
-                        $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - u18chan</title>");
-                    ThreadInfo.Data.HtmlThreadNameSet = true;
+                        // Update the data with the new name.
+                        ThreadInfo.Data.ThreadName = NewName;
+                        ThreadInfo.Data.RetrievedThreadName = true;
+                        ThreadInfo.ThreadHTML = ThreadInfo.ThreadHTML.Replace("<title></title>",
+                            $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - u18chan</title>");
+                        ThreadInfo.Data.HtmlThreadNameSet = true;
 
-                    // Update the name application wide.
-                    this.Invoke(() => UpdateThreadName(true));
-                }
+                        // Update the name application wide.
+                        this.Invoke(() => UpdateThreadName(true));
+                    }
 
-                // check for archive flag in the post.
-                //ThreadInfo.Data.ThreadArchived = ThreadData[0].Archived;
+                    // check for archive flag in the post.
+                    //ThreadInfo.Data.ThreadArchived = ThreadData[0].Archived;
 
-                // Start counting through the posts.
-                for (int PostIndex = 0; PostIndex < ThreadData.Length; PostIndex++) {
-                    // Set the temporary post to the looped index post.
-                    U18ChanPost Post = ThreadData[PostIndex];
-                    string PostID = Post.PostId.ToString();
-                    if (!ThreadInfo.Data.ParsedPostIds.Contains(PostID)) {
-                        GenericPost CurrentPost = new(Post) {
-                            FirstPost = PostIndex == 0
-                        };
+                    // Start counting through the posts.
+                    for (int PostIndex = 0; PostIndex < ThreadData.Length; PostIndex++) {
+                        // Set the temporary post to the looped index post.
+                        U18ChanPost Post = ThreadData[PostIndex];
+                        string PostID = Post.PostId.ToString();
+                        if (!ThreadInfo.Data.ParsedPostIds.Contains(PostID)) {
+                            GenericPost CurrentPost = new(Post) {
+                                FirstPost = PostIndex == 0
+                            };
 
-                        if (CurrentPost.HasFiles) {
-                            // Ambiguous parsing multi-file posts
-                            for (int i = 0; i < CurrentPost.PostFiles.Count; i++) {
-                                var File = CurrentPost.PostFiles[i];
-                                string FileName = (Downloads.SaveOriginalFilenames ? File.OriginalFileName : File.FileId)!;
-                                string Prefix = GetFilePrefix(File.OriginalFileName!, File.FileExtension!);
-                                string ThumbFileName = File.ThumbnailFileName!;
+                            if (CurrentPost.HasFiles) {
+                                // Ambiguous parsing multi-file posts
+                                for (int i = 0; i < CurrentPost.PostFiles.Count; i++) {
+                                    var File = CurrentPost.PostFiles[i];
+                                    string FileName = (Downloads.SaveOriginalFilenames ? File.OriginalFileName : File.FileId)!;
+                                    string Prefix = GetFilePrefix(File.OriginalFileName!, File.FileExtension!);
+                                    string ThumbFileName = File.ThumbnailFileName!;
+                                    File.SavedFileName = Prefix + FileName;
+                                    File.SavedThumbnailFile = ThumbFileName;
 
-                                if (!Downloads.AllowFileNamesGreaterThan255) {
-                                    int FileNameLength = ThreadInfo.Data.DownloadPath.Length +
-                                        FileName.Length +
-                                        File.FileExtension!.Length +
-                                        Prefix.Length +
-                                        2; // ext period (1) and download path separator (1)
+                                    if (!Downloads.AllowFileNamesGreaterThan255) {
+                                        int FileNameLength = ThreadInfo.Data.DownloadPath.Length +
+                                            FileName.Length +
+                                            File.FileExtension!.Length +
+                                            Prefix.Length +
+                                            2; // ext period (1) and download path separator (1)
 
-                                    if (FileNameLength > 255) {
-                                        int TrimSize = FileNameLength - 255;
-                                        if (FileName.Length <= TrimSize) {
-                                            HandleBadFileName(File);
-                                            continue;
-                                        }
-                                        FileName = FileName[..^TrimSize];
-                                    }
-
-                                    if (Downloads.SaveThumbnails) {
-                                        int ThumbFileNameLength = ThreadInfo.Data.DownloadPath.Length +
-                                            ThumbFileName.Length +
-                                            File.ThumbnailFileExtension!.Length +
-                                            8; // ext period (1), path separators (2), "thumb" (5)
-
-                                        if (ThumbFileNameLength > 255) {
-                                            int TrimSize = ThumbFileNameLength - 255;
-                                            if (ThumbFileName.Length <= TrimSize) {
-                                                HandleBadThumbFileName(File);
+                                        if (FileNameLength > 255) {
+                                            int TrimSize = FileNameLength - 255;
+                                            if (FileName.Length <= TrimSize) {
+                                                HandleBadFileName(File);
                                                 continue;
                                             }
-                                            ThumbFileName = ThumbFileName[..^TrimSize];
+                                            FileName = FileName[..^TrimSize];
+                                        }
+
+                                        if (Downloads.SaveThumbnails) {
+                                            int ThumbFileNameLength = ThreadInfo.Data.DownloadPath.Length +
+                                                ThumbFileName.Length +
+                                                File.ThumbnailFileExtension!.Length +
+                                                8; // ext period (1), path separators (2), "thumb" (5)
+
+                                            if (ThumbFileNameLength > 255) {
+                                                int TrimSize = ThumbFileNameLength - 255;
+                                                if (ThumbFileName.Length <= TrimSize) {
+                                                    HandleBadThumbFileName(File);
+                                                    continue;
+                                                }
+                                                ThumbFileName = ThumbFileName[..^TrimSize];
+                                            }
                                         }
                                     }
+
+                                    File.SavedFile = Prefix + FileName + "." + File.FileExtension;
+                                    File.SavedThumbnailFile = Path.Combine("thumb", ThumbFileName + "." + File.ThumbnailFileExtension);
+
+                                    // add a new listviewitem to the listview for this image.
+                                    ListViewItem lvi = new();
+                                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                                    //lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                                    lvi.Name = File.FileId;
+                                    lvi.SubItems[0].Text = File.FileId;
+                                    lvi.SubItems[1].Text = File.FileExtension;
+                                    lvi.SubItems[2].Text = File.OriginalFileName + "." + File.FileExtension;
+                                    //lvi.SubItems[3].Text = File.FileHash;
+                                    lvi.ImageIndex = WaitingImage;
+                                    lvi.Tag = File;
+                                    File.ListViewItem = lvi;
+                                    this.Invoke(() => lvImages.Items.Add(lvi));
+
+                                    ThreadInfo.Data.ThreadImagesCount++;
+                                    ThreadInfo.Data.ThreadPostsCount++;
                                 }
-
-                                File.SavedFile = Prefix + FileName + "." + File.FileExtension;
-                                File.SavedThumbnailFile = Path.Combine("thumb", ThumbFileName + "." + File.ThumbnailFileExtension);
-
-                                // add a new listviewitem to the listview for this image.
-                                ListViewItem lvi = new();
-                                lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                                lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                                //lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                                lvi.Name = File.FileId;
-                                lvi.SubItems[0].Text = File.FileId;
-                                lvi.SubItems[1].Text = File.FileExtension;
-                                lvi.SubItems[2].Text = File.OriginalFileName + "." + File.FileExtension;
-                                //lvi.SubItems[3].Text = File.FileHash;
-                                lvi.ImageIndex = 0;
-                                File.ListViewItem = lvi;
-                                this.Invoke(() => lvImages.Items.Add(lvi));
-
-                                ThreadInfo.Data.ThreadImagesCount++;
-                                ThreadInfo.Data.ThreadPostsCount++;
                             }
+
+                            // add the new post to the data.
+                            ThreadInfo.ThreadHTML.Append(HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo));
+                            ThreadInfo.Data.ParsedPostIds.Add(PostID);
+                            ThreadInfo.Data.ThreadPosts.Add(CurrentPost);
+                            ThreadInfo.AddedNewPosts = ThreadInfo.ThreadModified = true;
                         }
 
-                        // add the new post to the data.
-                        ThreadInfo.ThreadHTML.Append(HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo));
-                        ThreadInfo.Data.ParsedPostIds.Add(PostID);
-                        ThreadInfo.Data.ThreadPosts.Add(CurrentPost);
-                        ThreadInfo.AddedNewPosts = ThreadInfo.ThreadModified = true;
+                        CancellationToken.Token.ThrowIfCancellationRequested();
                     }
-                }
 
-                // update the form totals and status.
-                this.Invoke(() => {
-                    lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount}";
-                    lbPostsParsed.Text = "posts parsed: " + ThreadInfo.Data.ParsedPostIds.Count.ToString();
-                    lbLastModified.Text = "last modified: " + ThreadInfo.Data.LastModified.ToString();
-                    lbScanTimer.Text = "Downloading files";
-                    MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadDownloading);
-                });
+                    // update the form totals and status.
+                    UpdateThreadCounts();
 
-                // Download files.
-                //await DownloadFilesAsync(CancellationToken.None)
-                //    .ConfigureAwait(false);
-                var DownloadTask = DownloadFilesAsync(default);
-                DownloadTask.Wait();
+                    // Download files.
+                    //await DownloadFilesAsync(CancellationToken.Token)
+                    //    .ConfigureAwait(false);
+                    var DownloadTask = DownloadFilesAsync(CancellationToken.Token);
+                    DownloadTask.Wait();
+                    CancellationToken.Token.ThrowIfCancellationRequested();
 
-                if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
-                    break;
-                }
+                    if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
+                        break;
+                    }
 
-                if (ThreadInfo.Data.ThreadArchived) {
-                    ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsArchived;
-                    break;
-                }
+                    if (ThreadInfo.Data.ThreadArchived) {
+                        ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsArchived;
+                        break;
+                    }
 
-                // Set the activity.
-                ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
+                    // Set the activity.
+                    ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
 
-                // Invoke the post-download management.
-                this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+                    // Invoke the post-download management.
+                    this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
 
-                // Synchronously wait, since this thread is separate.
-                ResetThread.Reset();
-                ResetThread.Wait();
+                    // Synchronously wait, since this thread is separate.
+                    ResetThread.Reset();
+                    ResetThread.Wait();
+                    CancellationToken.Token.ThrowIfCancellationRequested();
+                } while (ThreadInfo.CurrentActivity is not (ThreadStatus.ThreadIs404 or ThreadStatus.ThreadIsAborted or ThreadStatus.ThreadIsArchived));
             }
-            while (ThreadInfo.CurrentActivity is not (ThreadStatus.ThreadIs404 or ThreadStatus.ThreadIsAborted or ThreadStatus.ThreadIsArchived));
-
+            catch (ThreadAbortException) { }
+            catch (TaskCanceledException) { }
+            catch (OperationCanceledException) { }
             this.Invoke(() => Log.Write("Exiting thread " + ThreadInfo.CurrentActivity));
         }) {
             Name = $"u18chan thread {ThreadInfo.Data.Board}/{ThreadInfo.Data.Id}"

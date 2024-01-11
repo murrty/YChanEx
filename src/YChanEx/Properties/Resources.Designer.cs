@@ -151,7 +151,7 @@ namespace YChanEx.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 2022-09-18.
+        ///   Looks up a localized string similar to 2023-08-04.
         /// </summary>
         internal static string BuildDate {
             get {
@@ -225,6 +225,16 @@ namespace YChanEx.Properties {
         internal static System.Drawing.Bitmap reloaded_missing {
             get {
                 object obj = ResourceManager.GetObject("reloaded_missing", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap removed_from_thread {
+            get {
+                object obj = ResourceManager.GetObject("removed_from_thread", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

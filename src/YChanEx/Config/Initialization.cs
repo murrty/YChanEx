@@ -78,7 +78,7 @@ internal static class Initialization {
         set {
             if (fProxy != value) {
                 fProxy = value;
-                IniProvider.Write(fProxy);
+                IniProvider.Write(Proxy);
             }
         }
     }
@@ -106,7 +106,7 @@ internal static class Initialization {
         set {
             if (fThrottleSize != value) {
                 fThrottleSize = value;
-                IniProvider.Write(fThrottleSize);
+                IniProvider.Write(ThrottleSize);
             }
         }
     }

@@ -269,6 +269,9 @@
     <None Include="Resources\Status\waiting.png" />
     <None Include="Resources\BuildDate.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Status\removed-from-thread.png" />
+  </ItemGroup>
   <Import Project="..\Controls\Controls.projitems" Label="Shared" />
   <Import Project="..\..\fw-runtimes\fw-runtimes.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

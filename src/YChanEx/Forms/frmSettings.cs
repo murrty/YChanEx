@@ -1,12 +1,6 @@
 ﻿namespace YChanEx;
 using System.Windows.Forms;
 public partial class frmSettings : Form {
-    #region Variables
-    private string fchanFiles = string.Empty;
-    private string fchanIDs = string.Empty;
-    private string u18chanPosts = string.Empty;
-    #endregion
-
     public frmSettings() {
         InitializeComponent();
         Program.SettingsOpen = true;
@@ -53,10 +47,13 @@ public partial class frmSettings : Form {
             btnProtocol.Visible = false;
             btnProtocol.Enabled = false;
         }
+
+        chkUseProxy.Checked = Initialization.UseProxy;
+        txtProxy.Text = Initialization.Proxy.GetReadableIp();
     }
 
     private void SaveSettings() {
-        if (!txtProxy.Text.IsNullEmptyWhitespace()) {
+        if (chkUseProxy.Checked && !txtProxy.Text.IsNullEmptyWhitespace()) {
             if (!ProxyData.TryParse(txtProxy.Text, out var Proxy)) {
                 MessageBox.Show("Cannot parse proxy. Enter a valid input string or an empty string to not use a proxy.");
                 return;
@@ -64,6 +61,10 @@ public partial class frmSettings : Form {
             Initialization.Proxy = Proxy;
             frmDownloader.RecreateDownloadClient();
         }
+        else {
+            chkUseProxy.Checked = false;
+        }
+        Initialization.UseProxy = chkUseProxy.Checked;
 
         Downloads.DownloadPath = txtSavePath.Text;
         Downloads.ScannerDelay = (int)numTimer.Value;
@@ -130,48 +131,6 @@ public partial class frmSettings : Form {
 
     private void btnOpenLocalFiles_Click(object sender, EventArgs e) {
         System.Diagnostics.Process.Start(Environment.CurrentDirectory);
-    }
-
-    private void lvRegex_SelectedIndexChanged(object sender, EventArgs e) {
-        if (lvRegex.SelectedItems.Count > 0) {
-            switch (lvRegex.SelectedItems[0].Index) {
-                case 0:
-                    lbRegexHint.Text = "This is a file pattern for fchan, it parses raw HTML for image links.";
-                    break;
-                case 1:
-                    lbRegexHint.Text = "This is a file name pattern for fchan, it parses raw HTML for post IDs.";
-                    break;
-                case 2:
-                    lbRegexHint.Text = "This is a post pattern for u18chanchan, it parses raw HTML for image links and post IDs.";
-                    break;
-                default:
-                    txtRegex.Text = "Unknown Regex Pattern";
-                    txtRegex.TextHint = "Unknown Regex Pattern";
-                    lbRegexHint.Text = "An error occured somewhere, and a pattern wasn't properly selected.";
-                    break;
-            }
-        }
-        else {
-            txtRegex.Text = "";
-            txtRegex.TextHint = "";
-            lbRegexHint.Text = "Select a pattern to the left if you want to change them.\nIf you are unsure what you're doing, don't do anything here.";
-        }
-    }
-
-    private void txtRegex_TextChanged(object sender, EventArgs e) {
-        if (lvRegex.SelectedItems.Count > 0) {
-            switch (lvRegex.SelectedItems[0].Index) {
-                case 0:
-                    fchanFiles = txtRegex.Text;
-                    break;
-                case 2:
-                    fchanIDs = txtRegex.Text;
-                    break;
-                case 3:
-                    u18chanPosts = txtRegex.Text;
-                    break;
-            }
-        }
     }
 
     private void chkEnableSettingsReset_CheckedChanged(object sender, EventArgs e) {

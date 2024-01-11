@@ -102,7 +102,7 @@ partial class frmAddCookie {
             // 
             // btnAdd
             // 
-            this.btnAdd.Location = new System.Drawing.Point(255, 250);
+            this.btnAdd.Location = new System.Drawing.Point(172, 250);
             this.btnAdd.Name = "btnAdd";
             this.btnAdd.Size = new System.Drawing.Size(75, 23);
             this.btnAdd.TabIndex = 9;
@@ -112,7 +112,7 @@ partial class frmAddCookie {
             // 
             // btnCancel
             // 
-            this.btnCancel.Location = new System.Drawing.Point(174, 250);
+            this.btnCancel.Location = new System.Drawing.Point(253, 250);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(75, 23);
             this.btnCancel.TabIndex = 10;
@@ -138,7 +138,7 @@ partial class frmAddCookie {
             this.Controls.Add(this.lbName);
             this.Controls.Add(this.lbHeader);
             this.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Icon = Properties.Resources.ProgramIcon;
+            this.Icon = global::YChanEx.Properties.Resources.ProgramIcon;
             this.MaximizeBox = false;
             this.MaximumSize = new System.Drawing.Size(360, 320);
             this.MinimumSize = new System.Drawing.Size(360, 320);

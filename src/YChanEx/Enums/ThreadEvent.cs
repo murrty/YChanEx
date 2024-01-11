@@ -15,6 +15,9 @@ public enum ThreadEvent : int {
     /// The thread should update itself and wait until next download
     /// </summary>
     AfterDownload = 2,
+    /// <summary>
+    /// Restarts the download from a set state, allowing the main parse and download loop to restart.
+    /// </summary>
     RestartDownload = 3,
     /// <summary>
     /// The thread should abort because the user requested it

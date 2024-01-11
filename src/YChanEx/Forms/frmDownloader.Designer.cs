@@ -129,7 +129,7 @@
             this.lbNotModified.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.lbNotModified.AutoSize = true;
             this.lbNotModified.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lbNotModified.Location = new System.Drawing.Point(201, 282);
+            this.lbNotModified.Location = new System.Drawing.Point(201, 283);
             this.lbNotModified.Name = "lbNotModified";
             this.lbNotModified.Size = new System.Drawing.Size(83, 17);
             this.lbNotModified.TabIndex = 7;
