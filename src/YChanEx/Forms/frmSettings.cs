@@ -56,6 +56,15 @@ public partial class frmSettings : Form {
     }
 
     private void SaveSettings() {
+        if (!txtProxy.Text.IsNullEmptyWhitespace()) {
+            if (!ProxyData.TryParse(txtProxy.Text, out var Proxy)) {
+                MessageBox.Show("Cannot parse proxy. Enter a valid input string or an empty string to not use a proxy.");
+                return;
+            }
+            Initialization.Proxy = Proxy;
+            frmDownloader.RecreateDownloadClient();
+        }
+
         Downloads.DownloadPath = txtSavePath.Text;
         Downloads.ScannerDelay = (int)numTimer.Value;
         Downloads.SaveOriginalFilenames = chkSaveOriginalFileNames.Checked;

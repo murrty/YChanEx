@@ -25,9 +25,9 @@
         private void InitializeComponent() {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmSettings));
-            System.Windows.Forms.ListViewItem listViewItem4 = new System.Windows.Forms.ListViewItem("fchan Files");
-            System.Windows.Forms.ListViewItem listViewItem5 = new System.Windows.Forms.ListViewItem("fchan IDs");
-            System.Windows.Forms.ListViewItem listViewItem6 = new System.Windows.Forms.ListViewItem("u18chan Posts");
+            System.Windows.Forms.ListViewItem listViewItem1 = new System.Windows.Forms.ListViewItem("fchan Files");
+            System.Windows.Forms.ListViewItem listViewItem2 = new System.Windows.Forms.ListViewItem("fchan IDs");
+            System.Windows.Forms.ListViewItem listViewItem3 = new System.Windows.Forms.ListViewItem("u18chan Posts");
             this.tcMain = new System.Windows.Forms.TabControl();
             this.tabDownloads = new System.Windows.Forms.TabPage();
             this.chkAutoRemoveDeadThreads = new System.Windows.Forms.CheckBox();
@@ -65,6 +65,10 @@
             this.btnRemoveCookie = new System.Windows.Forms.Button();
             this.btnAddCookie = new System.Windows.Forms.Button();
             this.lvCookies = new System.Windows.Forms.ListView();
+            this.chCookieName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.chCookieValue = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.chCookiePath = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.chCookieDomain = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.tabReset = new System.Windows.Forms.TabPage();
             this.chkEnableSettingsReset = new System.Windows.Forms.CheckBox();
             this.chkResetRegexSettings = new System.Windows.Forms.CheckBox();
@@ -77,10 +81,8 @@
             this.btnCancel = new System.Windows.Forms.Button();
             this.btnSave = new System.Windows.Forms.Button();
             this.ttSettings = new System.Windows.Forms.ToolTip(this.components);
-            this.chCookieName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.chCookieValue = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.chCookiePath = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.chCookieDomain = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.chkUseProxy = new System.Windows.Forms.CheckBox();
+            this.txtProxy = new murrty.controls.ExtendedTextBox();
             this.txtSavePath = new murrty.controls.ExtendedTextBox();
             this.txtUserAgent = new murrty.controls.ExtendedTextBox();
             this.txtRegex = new murrty.controls.ExtendedTextBox();
@@ -111,6 +113,8 @@
             // 
             // tabDownloads
             // 
+            this.tabDownloads.Controls.Add(this.chkUseProxy);
+            this.tabDownloads.Controls.Add(this.txtProxy);
             this.tabDownloads.Controls.Add(this.chkAutoRemoveDeadThreads);
             this.tabDownloads.Controls.Add(this.chkCleanThreadHTML);
             this.tabDownloads.Controls.Add(this.chkAllowFileNamesGreaterThan255);
@@ -489,9 +493,9 @@
             // 
             this.lvRegex.HideSelection = false;
             this.lvRegex.Items.AddRange(new System.Windows.Forms.ListViewItem[] {
-            listViewItem4,
-            listViewItem5,
-            listViewItem6});
+            listViewItem1,
+            listViewItem2,
+            listViewItem3});
             this.lvRegex.Location = new System.Drawing.Point(3, 40);
             this.lvRegex.MultiSelect = false;
             this.lvRegex.Name = "lvRegex";
@@ -561,6 +565,25 @@
             this.lvCookies.TabIndex = 0;
             this.lvCookies.UseCompatibleStateImageBehavior = false;
             this.lvCookies.View = System.Windows.Forms.View.Details;
+            // 
+            // chCookieName
+            // 
+            this.chCookieName.Text = "Name";
+            this.chCookieName.Width = 102;
+            // 
+            // chCookieValue
+            // 
+            this.chCookieValue.Text = "Value";
+            this.chCookieValue.Width = 108;
+            // 
+            // chCookiePath
+            // 
+            this.chCookiePath.Text = "Path";
+            // 
+            // chCookieDomain
+            // 
+            this.chCookieDomain.Text = "Domain";
+            this.chCookieDomain.Width = 99;
             // 
             // tabReset
             // 
@@ -702,24 +725,34 @@
             this.ttSettings.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Info;
             this.ttSettings.ToolTipTitle = "Information:";
             // 
-            // chCookieName
+            // chkUseProxy
             // 
-            this.chCookieName.Text = "Name";
-            this.chCookieName.Width = 102;
+            this.chkUseProxy.AutoSize = true;
+            this.chkUseProxy.Location = new System.Drawing.Point(178, 39);
+            this.chkUseProxy.Name = "chkUseProxy";
+            this.chkUseProxy.Size = new System.Drawing.Size(51, 17);
+            this.chkUseProxy.TabIndex = 38;
+            this.chkUseProxy.Text = "Proxy";
+            this.ttSettings.SetToolTip(this.chkUseProxy, "Whether the proxy provided will be used.\r\n\r\nDefault: Off");
+            this.chkUseProxy.UseVisualStyleBackColor = true;
             // 
-            // chCookieValue
+            // txtProxy
             // 
-            this.chCookieValue.Text = "Value";
-            this.chCookieValue.Width = 108;
-            // 
-            // chCookiePath
-            // 
-            this.chCookiePath.Text = "Path";
-            // 
-            // chCookieDomain
-            // 
-            this.chCookieDomain.Text = "Domain";
-            this.chCookieDomain.Width = 99;
+            this.txtProxy.ButtonAlignment = murrty.controls.ButtonAlignment.Left;
+            this.txtProxy.ButtonCursor = System.Windows.Forms.Cursors.Default;
+            this.txtProxy.ButtonFont = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtProxy.ButtonImageIndex = -1;
+            this.txtProxy.ButtonImageKey = "";
+            this.txtProxy.ButtonSize = new System.Drawing.Size(22, 19);
+            this.txtProxy.ButtonText = "";
+            this.txtProxy.ButtonTextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.txtProxy.Location = new System.Drawing.Point(231, 37);
+            this.txtProxy.Name = "txtProxy";
+            this.txtProxy.Size = new System.Drawing.Size(143, 20);
+            this.txtProxy.TabIndex = 37;
+            this.txtProxy.TextHint = "socks5://127.0.0.1:12345";
+            this.ttSettings.SetToolTip(this.txtProxy, "The proxy that will be used to connect.\r\n\r\nEnter a value such as \"socks5://127.0." +
+        "0.1:12345\"\r\nAn easier input setting will be added in the future");
             // 
             // txtSavePath
             // 
@@ -868,5 +901,7 @@
         private System.Windows.Forms.ColumnHeader chCookieValue;
         private System.Windows.Forms.ColumnHeader chCookiePath;
         private System.Windows.Forms.ColumnHeader chCookieDomain;
+        private murrty.controls.ExtendedTextBox txtProxy;
+        private System.Windows.Forms.CheckBox chkUseProxy;
     }
 }

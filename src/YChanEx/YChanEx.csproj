@@ -90,6 +90,7 @@
     <Compile Include="CopyData\CopyData.cs" />
     <Compile Include="Classes\Extensions.cs" />
     <Compile Include="Enums\FileDownloadStatus.cs" />
+    <Compile Include="Enums\ProxyType.cs" />
     <Compile Include="Forms\frmAddCookie.cs">
       <SubType>Form</SubType>
     </Compile>

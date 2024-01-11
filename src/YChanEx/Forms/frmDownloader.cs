@@ -3,6 +3,7 @@ namespace YChanEx;
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
 using System.Net;
@@ -34,8 +35,9 @@ public partial class frmDownloader : Form {
 
     // TODO: Hash matching (if supported), offer to retry downloading.
 
-    private static readonly HttpClient DownloadClient;
-    private static readonly HttpClientHandler DownloadClientHandler;
+    private static HttpClient DownloadClient;
+    private static HttpMessageHandler DownloadClientHandler;
+    private static CookieContainer CookieContainer;
     private static readonly DownloadStream StreamCallback;
     private static readonly bool Throttle = false;
     private static readonly int ThrottleSize = 0;
@@ -51,29 +53,35 @@ public partial class frmDownloader : Form {
         DownloadImages.Images.Add(Properties.Resources._404);               // 4
         DownloadImages.Images.Add(Properties.Resources.reloaded_downloaded);// 5
         DownloadImages.Images.Add(Properties.Resources.reloaded_missing);   // 6
-
-        DownloadClientHandler = new() {
-            AllowAutoRedirect = true,
-            UseCookies = true,
-        };
-
-        // Required cookies.
-        DownloadClientHandler.CookieContainer.Add(new Cookie("disclaimer", "seen", "/", "fchan.us"));
-        for (int i = 0; i < 20; i++) {
-            DownloadClientHandler.CookieContainer.Add(new Cookie("disclaimer" + i, "1", "/", "8chan.moe"));
-        }
-
-        if (Cookies.CookieList?.Count > 0) {
-            foreach (var Cookie in Cookies.CookieList) {
-                DownloadClientHandler.CookieContainer.Add(Cookie);
-            }
-        }
+        RecreateDownloadClient();
 
         Throttle = false;
         ThrottleSize = Initialization.ThrottleSize;
         ThrottleBufferSize = Math.Min(ThrottleSize, DefaultBuffer);
         StreamCallback = Throttle ? ThrottledWriteToStreamAsync : WriteToStreamAsync;
+    }
 
+    [MemberNotNull(nameof(DownloadClient), nameof(DownloadClientHandler), nameof(CookieContainer))]
+    public static void RecreateDownloadClient() {
+        //DownloadClientHandler = new() {
+        //    AllowAutoRedirect = true,
+        //    UseCookies = true,
+        //};
+        if (CookieContainer == null) {
+            CookieContainer = new CookieContainer();
+            // Required cookies.
+            CookieContainer.Add(new Cookie("disclaimer", "seen", "/", "fchan.us"));
+            for (int i = 0; i < 20; i++) {
+                CookieContainer.Add(new Cookie("disclaimer" + i, "1", "/", "8chan.moe"));
+            }
+
+            if (Cookies.CookieList?.Count > 0) {
+                foreach (var Cookie in Cookies.CookieList) {
+                    CookieContainer.Add(Cookie);
+                }
+            }
+        }
+        DownloadClientHandler = ProxyHandler.GetProxyHandler(Initialization.Proxy, 60_000, CookieContainer);
         DownloadClient = new(DownloadClientHandler);
         //DownloadClient.DefaultRequestHeaders.AcceptEncoding.Add(new("br"));
         DownloadClient.DefaultRequestHeaders.Accept.Add(new("*/*"));
