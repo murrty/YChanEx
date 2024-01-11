@@ -1,0 +1,284 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{74A112CE-F6CA-4384-B8A0-6D8337378897}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>YChanEx</RootNamespace>
+    <AssemblyName>YChanEx</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <LangVersion>12.0</LangVersion>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NETSTANDARD</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;NETSTANDARD</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Resources\ProgramIcon.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Arguments.cs" />
+    <Compile Include="Classes\Chan Parse\EightChan.cs" />
+    <Compile Include="Classes\Chan Parse\EightKun.cs" />
+    <Compile Include="Classes\Chan Parse\FChan.cs" />
+    <Compile Include="Classes\Chan Parse\FourChan.cs" />
+    <Compile Include="Classes\Chan Parse\SevenChan.cs" />
+    <Compile Include="Classes\Chan Parse\ParsersShared.cs" />
+    <Compile Include="Classes\Chan Parse\U18Chan.cs" />
+    <Compile Include="Classes\Chans.cs" />
+    <Compile Include="Classes\FileHandler.cs" />
+    <Compile Include="Classes\Post Objects\EightChanBoard.cs" />
+    <Compile Include="Classes\Post Objects\EightChanFile.cs" />
+    <Compile Include="Classes\Post Objects\EightChanPost.cs" />
+    <Compile Include="Classes\Post Objects\EightChanThread.cs" />
+    <Compile Include="Classes\Post Objects\EightKunBoard.cs" />
+    <Compile Include="Classes\Post Objects\EightKunFile.cs" />
+    <Compile Include="Classes\Post Objects\EightKunPost.cs" />
+    <Compile Include="Classes\Post Objects\EightKunThread.cs" />
+    <Compile Include="Classes\Post Objects\FChanFile.cs" />
+    <Compile Include="Classes\Post Objects\FChanPost.cs" />
+    <Compile Include="Classes\Post Objects\FourChanPost.cs" />
+    <Compile Include="Classes\Post Objects\FourChanThread.cs" />
+    <Compile Include="Classes\Post Objects\GenericFile.cs" />
+    <Compile Include="Classes\Post Objects\GenericPost.cs" />
+    <Compile Include="Classes\Post Objects\SevenChanFile.cs" />
+    <Compile Include="Classes\Post Objects\SevenChanPost.cs" />
+    <Compile Include="Classes\Post Objects\U18ChanFile.cs" />
+    <Compile Include="Classes\Post Objects\U18ChanPost.cs" />
+    <Compile Include="Classes\Post Objects\U18ChanTag.cs" />
+    <Compile Include="Classes\ProgramSettings.cs" />
+    <Compile Include="Classes\ProxyData.cs" />
+    <Compile Include="Classes\ThreadInfo.cs" />
+    <Compile Include="Config\Helpers\Cookies.cs" />
+    <Compile Include="Controls\ExtendedListView.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="CopyData\CopyDataStruct.cs" />
+    <Compile Include="CopyData\SentData.cs" />
+    <Compile Include="Enums\ChanType.cs" />
+    <Compile Include="CopyData\CopyData.cs" />
+    <Compile Include="Classes\Extensions.cs" />
+    <Compile Include="Enums\FileDownloadStatus.cs" />
+    <Compile Include="Forms\frmAddCookie.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmAddCookie.Designer.cs">
+      <DependentUpon>frmAddCookie.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Interfaces\IMainForm.cs" />
+    <Compile Include="Enums\ThreadEvent.cs" />
+    <Compile Include="Enums\ThreadStatus.cs" />
+    <Compile Include="Classes\Threads\FourTwentyChanThread.cs" />
+    <Compile Include="Classes\Serializer.cs" />
+    <Compile Include="Config\Advanced.cs" />
+    <Compile Include="Config\Downloads.cs" />
+    <Compile Include="Config\General.cs" />
+    <Compile Include="Config\Initialization.cs" />
+    <Compile Include="Config\Saved.cs" />
+    <Compile Include="Config\Helpers\DownloadHistory.cs" />
+    <Compile Include="Config\Helpers\IniProvider.cs" />
+    <Compile Include="Config\Helpers\SystemRegistry.cs" />
+    <Compile Include="Logging\DwmCompositionInfo.cs" />
+    <Compile Include="Logging\DwmCompositionTextInfo.cs" />
+    <Compile Include="Logging\ExceptionInfo.cs" />
+    <Compile Include="Logging\Forms\frmException.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Logging\Forms\frmException.Designer.cs">
+      <DependentUpon>frmException.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Logging\Forms\frmLog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Logging\Forms\frmLog.Designer.cs">
+      <DependentUpon>frmLog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Logging\Log.cs" />
+    <Compile Include="Logging\Natives\DwmComposition.cs" />
+    <Compile Include="Logging\Natives\DwmNatives.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Updater\API Data\GithubAsset.cs" />
+    <Compile Include="Updater\API Data\GithubData.cs" />
+    <Compile Include="Updater\Version.cs" />
+    <Compile Include="GlobalNamespaces.cs" />
+    <Compile Include="Classes\Networking.cs" />
+    <Compile Include="Classes\HtmlControl.cs" />
+    <Compile Include="Classes\NativeMethods.cs" />
+    <Compile Include="Updater\UpdateChecker.cs" />
+    <Compile Include="Config\Helpers\Config.cs" />
+    <Compile Include="Controls\ExtendedLinkLabel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\ExtendedTextBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\ExtendedWebClient.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\SplitButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Forms\frmNewName.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmNewName.Designer.cs">
+      <DependentUpon>frmNewName.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmAbout.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmAbout.designer.cs">
+      <DependentUpon>frmAbout.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmMain.Designer.cs">
+      <DependentUpon>frmMain.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmDownloader.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmDownloader.Designer.cs">
+      <DependentUpon>frmDownloader.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmSettings.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\frmSettings.Designer.cs">
+      <DependentUpon>frmSettings.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Updater\Form\frmUpdateAvailable.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Updater\Form\frmUpdateAvailable.Designer.cs">
+      <DependentUpon>frmUpdateAvailable.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Forms\frmAddCookie.resx">
+      <DependentUpon>frmAddCookie.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\frmNewName.resx">
+      <DependentUpon>frmNewName.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\frmAbout.resx">
+      <DependentUpon>frmAbout.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\frmMain.resx">
+      <DependentUpon>frmMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\frmDownloader.resx">
+      <DependentUpon>frmDownloader.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\frmSettings.resx">
+      <DependentUpon>frmSettings.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Updater\Form\frmUpdateAvailable.resx">
+      <DependentUpon>frmUpdateAvailable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Logging\Forms\frmException.resx">
+      <DependentUpon>frmException.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Logging\Forms\frmLog.resx">
+      <DependentUpon>frmLog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\AboutImage.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\ProgramIcon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\ProgramIcon_Dead.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\SiteIcons\u18chan.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\SiteIcons\4chan.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\SiteIcons\420chan.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\SiteIcons\7chan.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\SiteIcons\8chan.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\SiteIcons\8kun.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\SiteIcons\fchan.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Status\404.png" />
+    <None Include="Resources\Status\downloading.png" />
+    <None Include="Resources\Status\error.png" />
+    <None Include="Resources\Status\finished.png" />
+    <None Include="Resources\Status\reloaded-downloaded.png" />
+    <None Include="Resources\Status\reloaded-missing.png" />
+    <None Include="Resources\Status\waiting.png" />
+    <None Include="Resources\BuildDate.txt" />
+  </ItemGroup>
+  <Import Project="..\Controls\Controls.projitems" Label="Shared" />
+  <Import Project="..\..\fw-runtimes\fw-runtimes.projitems" Label="Shared" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>if $(ConfigurationName) == Release "BuildDateWriter.exe" "$(ProjectDir)\Resources\BuildDate.txt"</PreBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

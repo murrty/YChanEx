@@ -3,16 +3,18 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.31911.260
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YChanEx", "YChanEx\YChanEx.csproj", "{A6802677-F12F-41BA-A159-FF4827F2303E}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Resources", "Resources", "{0BFFBED3-4512-4194-AFE0-FF802756A43E}"
 	ProjectSection(SolutionItems) = preProject
 		Resources\YChanEx.user.js = Resources\YChanEx.user.js
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YChanExUpdater", "YChanExUpdater\YChanExUpdater.csproj", "{FEFB0BA1-3E4F-4DD9-B916-72826EA2E977}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YChanEx-Tests", "src\YChanEx-Tests\YChanEx-Tests.csproj", "{96B027A0-3FF7-41DB-A76B-614607C88690}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YChanEx-Tests", "YChanEx-Tests\YChanEx-Tests.csproj", "{96B027A0-3FF7-41DB-A76B-614607C88690}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YChanEx", "src\YChanEx\YChanEx.csproj", "{74A112CE-F6CA-4384-B8A0-6D8337378897}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Controls", "src\Controls\Controls.shproj", "{538127EF-8951-4448-BB23-51DCB7968424}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "fw-runtimes", "fw-runtimes\fw-runtimes.shproj", "{A0FC4ACA-80C0-4151-B41C-D538B779D1A6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,23 +22,25 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A6802677-F12F-41BA-A159-FF4827F2303E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A6802677-F12F-41BA-A159-FF4827F2303E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A6802677-F12F-41BA-A159-FF4827F2303E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A6802677-F12F-41BA-A159-FF4827F2303E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FEFB0BA1-3E4F-4DD9-B916-72826EA2E977}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FEFB0BA1-3E4F-4DD9-B916-72826EA2E977}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FEFB0BA1-3E4F-4DD9-B916-72826EA2E977}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FEFB0BA1-3E4F-4DD9-B916-72826EA2E977}.Release|Any CPU.Build.0 = Release|Any CPU
 		{96B027A0-3FF7-41DB-A76B-614607C88690}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{96B027A0-3FF7-41DB-A76B-614607C88690}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{96B027A0-3FF7-41DB-A76B-614607C88690}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{96B027A0-3FF7-41DB-A76B-614607C88690}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74A112CE-F6CA-4384-B8A0-6D8337378897}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74A112CE-F6CA-4384-B8A0-6D8337378897}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74A112CE-F6CA-4384-B8A0-6D8337378897}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74A112CE-F6CA-4384-B8A0-6D8337378897}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B8F15A3A-3396-49B5-887A-033090AB17C8}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		src\Controls\Controls.projitems*{538127ef-8951-4448-bb23-51dcb7968424}*SharedItemsImports = 13
+		fw-runtimes\fw-runtimes.projitems*{74a112ce-f6ca-4384-b8a0-6d8337378897}*SharedItemsImports = 4
+		src\Controls\Controls.projitems*{74a112ce-f6ca-4384-b8a0-6d8337378897}*SharedItemsImports = 4
+		fw-runtimes\fw-runtimes.projitems*{a0fc4aca-80c0-4151-b41c-d538b779d1a6}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal

@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>8bd6be67-ae28-4abd-a278-74c35673ad3e</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Controls</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)BetterFolderBrowser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DateTimeCounter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\AttributeSelector.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\AttributeSelectorMode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\CDataDefinition.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\DefaultSelectors.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\HtmlAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\HtmlAttributeCollection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\HtmlDocument.Async.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\HtmlDocument.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\HtmlDocument.Find.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\HtmlExtensionMethods.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\HtmlNode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\HtmlNode.Find.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\HtmlNodeCollection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\HtmlParseOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\HtmlParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\HtmlRules.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\Selector.Async.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\Selector.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\Selector.Find.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\SelectorCollection.Async.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\SelectorCollection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\SelectorCollection.Find.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\SelectorParsing.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\TagStack.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\TextParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)HttpException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RequestMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ThrottledStream.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WebDecompress.cs" />
+  </ItemGroup>
+</Project>

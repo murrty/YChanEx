@@ -1,0 +1,331 @@
+﻿#nullable enable
+namespace YChanEx.Posts;
+using System.Runtime.Serialization;
+using System.Windows.Forms;
+using YChanEx.Parsers;
+using static YChanEx.Parsers.Helpers.ParsersShared;
+[DataContract]
+public sealed class GenericPost {
+    [DataMember(Name = "post_id")]
+    public string? PostId { get; set; }
+
+    [DataMember(Name = "post_time")]
+    public DateTimeOffset PostDate { get; set; }
+
+    [DataMember(Name = "poster_name")]
+    public string? PosterName { get; set; }
+
+    [DataMember(Name = "poster_tripcode")]
+    public string? PosterTripcode { get; set; }
+
+    [DataMember(Name = "poster_capcode")]
+    public string? PosterCapcode { get; set; }
+
+    [DataMember(Name = "poster_id")]
+    public string? PosterId { get; set; }
+
+    [DataMember(Name = "post_subject")]
+    public string? PostSubject { get; set; }
+
+    [DataMember(Name = "post_message")]
+    public string? PostMessage { get; set; }
+
+    [DataMember(Name = "files")]
+    public List<GenericFile> PostFiles { get; set; } = [];
+
+    [DataMember(Name = "tags")]
+    public string[] Tags { get; set; } = [];
+
+    [DataMember(Name = "first")]
+    public bool FirstPost { get; set; }
+
+    [IgnoreDataMember]
+    public bool HasFiles => PostFiles.Count > 0;
+
+    [IgnoreDataMember]
+    public bool MultiFilePost => PostFiles.Count > 1;
+
+    private GenericPost() { }
+
+    internal GenericPost(FourChanPost Post, ThreadInfo Thread) {
+        this.PostId = Post.no.ToString();
+        this.PostDate = FourChan.GetPostTime(Post.time);
+        this.PosterName = Post.name;
+        this.PosterTripcode = Post.trip;
+        this.PosterCapcode = Post.capcode;
+        this.PosterId = Post.id;
+        this.PostSubject = Post.sub;
+        this.PostMessage = Post.com;
+
+        if (Post.HasFile) {
+            // query "?b=1" is a bypass.
+            // see https://github.com/4chan/4chan-API/issues/99
+            GenericFile NewFile = new(this) {
+                FileId = Post.tim.ToString(),
+                FileUrl = $"https://i.4cdn.org/{Thread.Data.Board}/{Post.tim}{Post.ext}?b=1",
+                GeneratedFileName = Post.tim.ToString(),
+                OriginalFileName = Post.filename,
+                FileExtension = Post.ext.Trim('.'),
+                FileHash = Post.md5,
+                FileDimensions = new(Post.w, Post.h),
+                FileSize = Post.fsize,
+                ThumbnailFileUrl = $"https://i.4cdn.org/{Thread.Data.Board}/{Post.tim}s{Post.ext}?b=1",
+                ThumbnailFileName = Post.tim.ToString() + "s",
+                ThumbnailFileExtension = "jpg",
+                ThumbnailFileDimensions = new(Post.tn_w, Post.tn_h),
+                ThumbnailFileSpoiled = Post.spoiler > 0,
+            };
+
+            PostFiles.Add(NewFile);
+        }
+    }
+
+    // TODO: Find 7chan spoiler?
+    internal GenericPost(SevenChanPost Post) {
+        this.PostId = Post.PostId.ToString();
+        this.PostDate = Post.PostTime;
+        this.PosterName = Post.PosterName;
+        this.PosterTripcode = Post.PosterTripcode;
+        this.PosterCapcode = Post.PosterCapcode;
+        this.PosterId = Post.PosterId;
+        this.PostSubject = Post.Subject;
+        this.PostMessage = Post.MessageBody;
+
+        if (Post.HasFiles) {
+            for (int i = 0; i < Post.Files.Length; i++) {
+                var File = Post.Files[i];
+
+                GenericFile NewFile = new(this) {
+                    FileId = File.FileId,
+                    FileUrl = File.Url,
+                    GeneratedFileName = File.FileId,
+                    OriginalFileName = File.FileName,
+                    FileExtension = File.Extension,
+                    FileHash = null,
+                    FileDimensions = new(File.Width, File.Height),
+                    FileSize = File.EstimatedSize,
+                    ThumbnailFileUrl = File.ThumbnailUrl,
+                    ThumbnailFileName = File.FileId + "s",
+                    ThumbnailFileExtension = "jpg",
+                    ThumbnailFileDimensions = new(File.ThumbnailWidth, File.ThumbnailHeight),
+                    ThumbnailFileSpoiled = false,
+                };
+
+                PostFiles.Add(NewFile);
+            }
+        }
+    }
+
+    // TODO: Find 8chan capcode (non signed role) & tripcode & spoiler?
+    internal GenericPost(EightChanThread Post, ThreadInfo Thread) {
+        this.PostId = Post.threadId.ToString();
+        this.PostDate = Post.CleanedDateTime;
+        this.PosterName = Post.name;
+        //this.PosterTripcode = Post.tripcode;
+        this.PosterCapcode = Post.signedRole;
+        this.PosterId = Post.id;
+        this.PostSubject = Post.subject;
+        this.PostMessage = Post.GetCleanMessage(Thread);
+
+        if (Post.HasFiles) {
+            for (int i = 0; i < Post.files.Length; i++) {
+                var File = Post.files[i];
+                string id = File.id!;
+
+                GenericFile NewFile = new(this) {
+                    FileId = id,
+                    FileUrl = $"https://8chan.moe{File.path}",
+                    GeneratedFileName = id,
+                    OriginalFileName = File.originalName![..File.originalName!.LastIndexOf('.')],
+                    FileExtension = File.mime!.Split('/')[1],
+                    FileHash = null,
+                    FileDimensions = new(File.width, File.height),
+                    FileSize = File.size,
+                    ThumbnailFileUrl = File.ProperThumbPath,
+                    ThumbnailFileName = "t_" + id,
+                    ThumbnailFileExtension = "png",
+                    ThumbnailFileDimensions = File.ThumbnailSize,
+                    ThumbnailFileSpoiled = false,
+                };
+
+                PostFiles.Add(NewFile);
+            }
+        }
+    }
+    internal GenericPost(EightChanPost Post, ThreadInfo Thread) {
+        this.PostId = Post.postId.ToString();
+        this.PostDate = Post.CleanedDateTime;
+        this.PosterName = Post.name;
+        //this.PosterTripcode = Post.tripcode;
+        this.PosterCapcode = Post.signedRole;
+        this.PosterId = Post.id;
+        this.PostSubject = Post.subject;
+        this.PostMessage = Post.GetCleanMessage(Thread);
+
+        if (Post.HasFiles) {
+            for (int i = 0; i < Post.files.Length; i++) {
+                var File = Post.files[i];
+                string id = File.id!;
+
+                GenericFile NewFile = new(this) {
+                    FileId = id,
+                    FileUrl = $"https://8chan.moe{File.path}",
+                    GeneratedFileName = id,
+                    OriginalFileName = File.originalName![..File.originalName!.LastIndexOf('.')],
+                    FileExtension = File.mime!.Split('/')[1],
+                    FileHash = null,
+                    FileDimensions = new(File.width, File.height),
+                    FileSize = File.size,
+                    ThumbnailFileUrl = File.ProperThumbPath,
+                    ThumbnailFileName = "t_" + id,
+                    ThumbnailFileExtension = "png",
+                    ThumbnailFileDimensions = File.ThumbnailSize,
+                    ThumbnailFileSpoiled = false,
+                };
+
+                PostFiles.Add(NewFile);
+            }
+        }
+    }
+
+    internal GenericPost(EightKunPost Post) {
+        this.PostId = Post.no.ToString();
+        this.PostDate = Post.CleanedDateTime;
+        this.PosterName = Post.name;
+        this.PosterTripcode = Post.trip;
+        this.PosterCapcode = Post.capcode;
+        this.PosterId = Post.id;
+        this.PostSubject = Post.sub;
+        this.PostMessage = Post.CleanedMessage;
+
+        if (Post.HasFiles) {
+            GenericFile NewFile = new(this) {
+                FileId = Post.tim,
+                FileUrl = $"https://media.128ducks.com/file_store/{Post.tim}{Post.ext}",
+                GeneratedFileName = Post.tim,
+                OriginalFileName = Post.filename,
+                FileExtension = Post.ext[..Post.ext.LastIndexOf('.')],
+                FileHash = Post.md5,
+                FileDimensions = new(Post.w, Post.h),
+                FileSize = Post.fsize,
+                ThumbnailFileUrl = $"https://media.128ducks.com/file_store/thumb/{Post.tim}.jpg",
+                ThumbnailFileName = Post.tim,
+                ThumbnailFileExtension = "json",
+                ThumbnailFileDimensions = new(Post.tn_w, Post.tn_h),
+                ThumbnailFileSpoiled = Post.spoiler > 0,
+            };
+
+            PostFiles.Add(NewFile);
+
+            if (!Post.MultiPost) {
+                return;
+            }
+
+            for (int i = 0; i < Post.extra_files.Length; i++) {
+                var File = Post.extra_files[i];
+
+                NewFile = new(this) {
+                    FileId = Post.tim,
+                    FileUrl = $"https://media.128ducks.com/file_store/{File.tim}{File.ext}",
+                    GeneratedFileName = File.tim,
+                    OriginalFileName = File.filename,
+                    FileExtension = File.ext![..File.ext!.LastIndexOf('.')],
+                    FileHash = File.md5,
+                    FileDimensions = new(File.w, File.h),
+                    FileSize = File.fsize,
+                    ThumbnailFileUrl = $"https://media.128ducks.com/file_store/thumb/{File.tim}.jpg",
+                    ThumbnailFileName = File.tim,
+                    ThumbnailFileExtension = "json",
+                    ThumbnailFileDimensions = new(File.tn_w, File.tn_h),
+                    ThumbnailFileSpoiled = File.spoiler > 0,
+                };
+
+                PostFiles.Add(NewFile);
+            }
+        }
+    }
+
+    // TODO: Find fchan capcode & poster id & spoiler?
+    internal GenericPost(FChanPost Post) {
+        this.PostId = Post.PostId.ToString();
+        this.PostDate = Post.PostTime;
+        this.PosterName = Post.PosterName;
+        this.PosterTripcode = Post.PosterTripcode;
+        //this.PosterCapcode = Post.PosterCapcode;
+        //this.PosterId = Post.PosterId;
+        this.PostSubject = Post.Subject;
+        this.PostMessage = Post.MessageBody;
+
+        if (Post.HasFile) {
+            var File = Post.File;
+            GenericFile Newfile = new(this) {
+                FileId = Post.PostId.ToString(),
+                FileUrl = File.Url,
+                GeneratedFileName = GetFileNameFromUrl(File.Url),
+                OriginalFileName = File.FileName,
+                FileExtension = File.Extension,
+                FileHash = null,
+                FileDimensions = new(File.Width, File.Height),
+                FileSize = File.EstimatedSize,
+                ThumbnailFileUrl = File.ThumbnailUrl,
+                ThumbnailFileName = GetFileNameFromUrl(File.ThumbnailUrl),
+                ThumbnailFileExtension = "jpg",
+                ThumbnailFileDimensions = new(File.ThumbnailWidth, File.ThumbnailHeight),
+                ThumbnailFileSpoiled = false,
+            };
+
+            PostFiles.Add(Newfile);
+        }
+    }
+
+    internal GenericPost(U18ChanPost Post) {
+        this.PostId = Post.PostId.ToString();
+        this.PostDate = Post.PostTime;
+        this.PosterName = Post.PosterName;
+        //this.PosterTripcode = Post.PosterTripcode;
+        this.PosterCapcode = Post.PosterCapcode;
+        //this.PosterId = Post.PosterId;
+        this.PostSubject = Post.Subject;
+        this.PostMessage = Post.MessageBody;
+
+        if (Post.HasFile) {
+            var File = Post.File;
+            GenericFile Newfile = new(this) {
+                FileId = Post.PostId.ToString(),
+                FileUrl = File.Url,
+                GeneratedFileName = GetFileNameFromUrl(File.Url),
+                OriginalFileName = File.FileName,
+                FileExtension = File.Extension,
+                FileHash = null,
+                FileDimensions = new(File.Width, File.Height),
+                FileSize = File.EstimatedSize,
+                ThumbnailFileUrl = File.ThumbnailUrl,
+                ThumbnailFileName = GetFileNameFromUrl(File.ThumbnailUrl),
+                ThumbnailFileExtension = "jpg",
+                ThumbnailFileDimensions = new(File.ThumbnailWidth, File.ThumbnailHeight),
+                ThumbnailFileSpoiled = Post.File.Spoiler,
+            };
+
+            PostFiles.Add(Newfile);
+        }
+
+        if (Post.HasTags) {
+            this.Tags = Post.Tags
+                .Select(x => x.Name)
+                .Where(x => !x.IsNullEmptyWhitespace())
+                .ToArray();
+        }
+    }
+
+    public override bool Equals(object obj) => obj is GenericPost other && this.PostId == other.PostId;
+    public override int GetHashCode() => this.PostId?.GetHashCode() ?? 0;
+
+    [OnDeserialized]
+    void Deserialized(StreamingContext ctx) {
+        if (this.HasFiles) {
+            for (int i = 0; i < this.PostFiles.Count; i++) {
+                this.PostFiles[i].Parent = this;
+            }
+        }
+    }
+}
