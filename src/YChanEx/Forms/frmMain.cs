@@ -386,37 +386,34 @@ public partial class frmMain : Form, IMainFom {
     /// <param name="Thread">The thread information that will be removed..</param>
     /// <returns>True if the thread was removed; otherwise, false.</returns>
     private bool RemoveThread(ThreadInfo Thread) {
-        try {
-            if (Thread.ThreadIndex > -1 && Thread.ThreadIndex < ThreadURLs.Count) {
-                Saved.DownloadFormSize = Threads[Thread.ThreadIndex].Size;
+        if (Thread.ThreadIndex > -1 && Thread.ThreadIndex < ThreadURLs.Count) {
+            Saved.DownloadFormSize = Threads[Thread.ThreadIndex].Size;
 
-                if (Threads[Thread.ThreadIndex].ThreadInfo.Data.ThreadStatus != ThreadStatus.ThreadIsAlive) {
-                    Threads[Thread.ThreadIndex].ManageThread(ThreadEvent.AbortDownload);
-                }
-
-                if (System.IO.File.Exists(Thread.SavedThreadJson)) {
-                    System.IO.File.Delete(Thread.SavedThreadJson);
-                }
-
-                Threads[Thread.ThreadIndex].Dispose();
-                Threads.RemoveAt(Thread.ThreadIndex);
-                ThreadURLs.RemoveAt(Thread.ThreadIndex);
-                lvThreads.Items.RemoveAt(Thread.ThreadIndex);
-
-                if (Threads.Count > 0) {
-                    for (int i = Thread.ThreadIndex; i < Threads.Count; i++) {
-                        Threads[i].ThreadInfo.ThreadIndex--;
-                        Threads[i].ThreadInfo.UpdateJsonPath();
-                    }
-                }
-
-                niTray.Text = "YChanEx - " + lvThreads.Items.Count + " threads";
-
-                return true;
+            if (Threads[Thread.ThreadIndex].ThreadInfo.Data.ThreadStatus != ThreadStatus.ThreadIsAlive) {
+                Threads[Thread.ThreadIndex].ManageThread(ThreadEvent.AbortDownload, true);
             }
-            return false;
+
+            if (System.IO.File.Exists(Thread.SavedThreadJson)) {
+                System.IO.File.Delete(Thread.SavedThreadJson);
+            }
+
+            //Threads[Thread.ThreadIndex].Dispose();
+            Threads.RemoveAt(Thread.ThreadIndex);
+            ThreadURLs.RemoveAt(Thread.ThreadIndex);
+            lvThreads.Items.RemoveAt(Thread.ThreadIndex);
+
+            if (Threads.Count > 0) {
+                for (int i = Thread.ThreadIndex; i < Threads.Count; i++) {
+                    Threads[i].ThreadInfo.ThreadIndex--;
+                    Threads[i].ThreadInfo.UpdateJsonPath();
+                }
+            }
+
+            niTray.Text = "YChanEx - " + lvThreads.Items.Count + " threads";
+
+            return true;
         }
-        catch { throw; }
+        return false;
     }
 
     /// <summary>

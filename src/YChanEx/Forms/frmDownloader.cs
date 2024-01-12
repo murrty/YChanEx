@@ -40,7 +40,6 @@ public partial class frmDownloader : Form {
     const int ReloadedMissingImage = 6;
     const int RemovedFromThreadImage = 7;
 
-    private const string DefaultEmptyFileName = "ychanex-emptyname";
     /// <summary>
     /// The IMainFormInterface to interface with the main form,
     /// used for updating the main form with this forms' threads' status, or name.
@@ -50,8 +49,7 @@ public partial class frmDownloader : Form {
     /// <summary>
     /// The ThreadInfo containing all information about this forms' thread.
     /// </summary>
-    public ThreadInfo ThreadInfo;
-    public ThreadStatus LastStatus;
+    public ThreadInfo ThreadInfo { get; init; }
 
     /// <summary>
     /// The thread for the thread parser/downloader
@@ -339,7 +337,7 @@ public partial class frmDownloader : Form {
             if (lvImages.Items[Post].Tag is not GenericFile PostFile) {
                 continue;
             }
-            ClipboardBuffer.AppendLine(PostFile.Parent.PostId);
+            ClipboardBuffer.AppendLine(PostFile.Parent.PostId.ToString());
         }
 
         if (ClipboardBuffer.Length == 0) {
@@ -453,7 +451,7 @@ public partial class frmDownloader : Form {
         }
     }
 
-    public void ManageThread(ThreadEvent Event) {
+    public void ManageThread(ThreadEvent Event, bool threadRemovedFromForm = false) {
         switch (Event) {
             case ThreadEvent.ParseForInfo: {
                 Debug.Print("ParseThreadForInfo called");
@@ -781,6 +779,12 @@ public partial class frmDownloader : Form {
                 //if (DownloadThread?.IsAlive == true) {
                 //    DownloadThread.Abort();
                 //}
+
+                if (threadRemovedFromForm) {
+                    this.Dispose();
+                    return;
+                }
+
                 this.Icon = Properties.Resources.ProgramIcon_Dead;
                 lbScanTimer.Text = "Aborted";
                 lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
@@ -1003,15 +1007,14 @@ public partial class frmDownloader : Form {
                 continue;
             }
 
-            ThreadInfo.Data.OriginalFileNames.Remove(PostFile.OriginalFileName);
-            int DupeIndex = ThreadInfo.Data.FileNamesDupes.IndexOf(PostFile.OriginalFileName);
-            if (DupeIndex > -1) {
-                if (ThreadInfo.Data.FileNamesDupesCount[DupeIndex] > 1) {
-                    ThreadInfo.Data.FileNamesDupesCount[DupeIndex]--;
+            string fileName = (PostFile.OriginalFileName + "." + PostFile.FileExtension).ToLowerInvariant();
+
+            if (ThreadInfo.Data.DuplicateNames.TryGetValue(fileName, out int count)) {
+                if (count > 1) {
+                    ThreadInfo.Data.DuplicateNames[fileName]--;
                 }
                 else {
-                    ThreadInfo.Data.FileNamesDupesCount.RemoveAt(DupeIndex);
-                    ThreadInfo.Data.FileNamesDupes.RemoveAt(DupeIndex);
+                    ThreadInfo.Data.DuplicateNames.Remove(fileName);
                 }
             }
 
@@ -1363,22 +1366,19 @@ public partial class frmDownloader : Form {
         // replace any invalid file name characters.
         // some linux nerds can have invalid windows file names as file names
         // so we gotta filter them.
-        OriginalName = FileHandler.ReplaceIllegalCharacters(!string.IsNullOrWhiteSpace(OriginalName) ? OriginalName : DefaultEmptyFileName);
-        string ExpectedFullFile = OriginalName + "." + Extension;
+        OriginalName = FileHandler.ReplaceIllegalCharacters(OriginalName ?? string.Empty);
+        string ExpectedFullFile = (OriginalName + "." + Extension).ToLowerInvariant();
 
         // check for duplicates, and set the prefix to "(1)" if there is duplicates
         // (the space is intentional)
         string FileNamePrefix = string.Empty;
-        if (Downloads.PreventDuplicates && ThreadInfo.Data.OriginalFileNames.Contains(ExpectedFullFile)) {
-            if (ThreadInfo.Data.FileNamesDupes.Contains(ExpectedFullFile)) {
-                int DupeNameIndex = ThreadInfo.Data.FileNamesDupes.LastIndexOf(ExpectedFullFile);
-                ThreadInfo.Data.FileNamesDupesCount[DupeNameIndex]++;
-                FileNamePrefix = $" (d{ThreadInfo.Data.FileNamesDupesCount[DupeNameIndex]})";
+
+        if (Downloads.PreventDuplicates) {
+            if (!ThreadInfo.Data.DuplicateNames.ContainsKey(ExpectedFullFile)) {
+                ThreadInfo.Data.DuplicateNames.Add(ExpectedFullFile, 1);
             }
             else {
-                ThreadInfo.Data.FileNamesDupes.Add(ExpectedFullFile);
-                ThreadInfo.Data.FileNamesDupesCount.Add(1);
-                FileNamePrefix = " (d1)";
+                FileNamePrefix = $" (d{ThreadInfo.Data.DuplicateNames[ExpectedFullFile]++})";
             }
         }
         return FileNamePrefix;
@@ -1510,8 +1510,7 @@ public partial class frmDownloader : Form {
                     for (int PostIndex = 0; PostIndex < ThreadData.posts.Length; PostIndex++) {
                         // Set the temporary post to the looped index post.
                         FourChanPost Post = ThreadData.posts[PostIndex];
-                        string PostID = Post.no.ToString();
-                        if (!ThreadInfo.Data.ParsedPostIds.Contains(PostID)) {
+                        if (!ThreadInfo.Data.ParsedPostIds.Contains(Post.no)) {
                             GenericPost CurrentPost = new(Post, ThreadInfo) {
                                 FirstPost = PostIndex == 0
                             };
@@ -1581,7 +1580,7 @@ public partial class frmDownloader : Form {
 
                             // add the new post to the data.
                             ThreadInfo.ThreadHTML.Append(HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo));
-                            ThreadInfo.Data.ParsedPostIds.Add(PostID);
+                            ThreadInfo.Data.ParsedPostIds.Add(Post.no);
                             ThreadInfo.Data.ThreadPosts.Add(CurrentPost);
                             ThreadInfo.AddedNewPosts = ThreadInfo.ThreadModified = true;
                         }
@@ -1730,8 +1729,7 @@ public partial class frmDownloader : Form {
                     for (int PostIndex = 0; PostIndex < ThreadData.Length; PostIndex++) {
                         // Set the temporary post to the looped index post.
                         SevenChanPost Post = ThreadData[PostIndex];
-                        string PostID = Post.PostId.ToString();
-                        if (!ThreadInfo.Data.ParsedPostIds.Contains(PostID)) {
+                        if (!ThreadInfo.Data.ParsedPostIds.Contains(Post.PostId)) {
                             GenericPost CurrentPost = new(Post) {
                                 FirstPost = PostIndex == 0
                             };
@@ -1804,7 +1802,7 @@ public partial class frmDownloader : Form {
 
                             // add the new post to the data.
                             ThreadInfo.ThreadHTML.Append(HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo));
-                            ThreadInfo.Data.ParsedPostIds.Add(PostID);
+                            ThreadInfo.Data.ParsedPostIds.Add(Post.PostId);
                             ThreadInfo.Data.ThreadPosts.Add(CurrentPost);
                             ThreadInfo.AddedNewPosts = ThreadInfo.ThreadModified = true;
                         }
@@ -1959,8 +1957,7 @@ public partial class frmDownloader : Form {
                     ThreadInfo.Data.ThreadArchived = ThreadData.archived;
 
                     // Parse the first post
-                    if (!ThreadInfo.Data.ParsedPostIds.Contains(ThreadData.threadId.ToString())) {
-                        string PostID = ThreadData.threadId.ToString();
+                    if (!ThreadInfo.Data.ParsedPostIds.Contains(ThreadData.threadId)) {
                         GenericPost CurrentPost = new(ThreadData, ThreadInfo) {
                             FirstPost = true,
                         };
@@ -2032,7 +2029,7 @@ public partial class frmDownloader : Form {
 
                         // add the new post to the data.
                         ThreadInfo.ThreadHTML.Append(HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo));
-                        ThreadInfo.Data.ParsedPostIds.Add(PostID);
+                        ThreadInfo.Data.ParsedPostIds.Add(ThreadData.threadId);
                         ThreadInfo.Data.ThreadPosts.Add(CurrentPost);
                         ThreadInfo.AddedNewPosts = ThreadInfo.ThreadModified = true;
                     }
@@ -2044,8 +2041,7 @@ public partial class frmDownloader : Form {
                         for (int PostIndex = 0; PostIndex < ThreadData.posts.Length; PostIndex++) {
                             // Set the temporary post to the looped index post.
                             EightChanPost Post = ThreadData.posts[PostIndex];
-                            string PostID = Post.postId.ToString();
-                            if (!ThreadInfo.Data.ParsedPostIds.Contains(PostID)) {
+                            if (!ThreadInfo.Data.ParsedPostIds.Contains(Post.postId)) {
                                 GenericPost CurrentPost = new(Post, ThreadInfo) {
                                     FirstPost = false,
                                 };
@@ -2117,7 +2113,7 @@ public partial class frmDownloader : Form {
 
                                 // add the new post to the data.
                                 ThreadInfo.ThreadHTML.Append(HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo));
-                                ThreadInfo.Data.ParsedPostIds.Add(PostID);
+                                ThreadInfo.Data.ParsedPostIds.Add(Post.postId);
                                 ThreadInfo.Data.ThreadPosts.Add(CurrentPost);
                                 ThreadInfo.AddedNewPosts = ThreadInfo.ThreadModified = true;
                             }
@@ -2275,8 +2271,7 @@ public partial class frmDownloader : Form {
                         for (int PostIndex = 0; PostIndex < ThreadData.posts.Length; PostIndex++) {
                             // Set the temporary post to the looped index post.
                             EightKunPost Post = ThreadData.posts[PostIndex];
-                            string PostID = Post.no.ToString();
-                            if (!ThreadInfo.Data.ParsedPostIds.Contains(PostID)) {
+                            if (!ThreadInfo.Data.ParsedPostIds.Contains(Post.no)) {
                                 GenericPost CurrentPost = new(Post) {
                                     FirstPost = false,
                                 };
@@ -2348,7 +2343,7 @@ public partial class frmDownloader : Form {
 
                                 // add the new post to the data.
                                 ThreadInfo.ThreadHTML.Append(HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo));
-                                ThreadInfo.Data.ParsedPostIds.Add(PostID);
+                                ThreadInfo.Data.ParsedPostIds.Add(Post.no);
                                 ThreadInfo.Data.ThreadPosts.Add(CurrentPost);
                                 ThreadInfo.AddedNewPosts = ThreadInfo.ThreadModified = true;
                             }
@@ -2498,8 +2493,7 @@ public partial class frmDownloader : Form {
                     for (int PostIndex = 0; PostIndex < ThreadData.Length; PostIndex++) {
                         // Set the temporary post to the looped index post.
                         FChanPost Post = ThreadData[PostIndex];
-                        string PostID = Post.PostId.ToString();
-                        if (!ThreadInfo.Data.ParsedPostIds.Contains(PostID)) {
+                        if (!ThreadInfo.Data.ParsedPostIds.Contains(Post.PostId)) {
                             GenericPost CurrentPost = new(Post) {
                                 FirstPost = PostIndex == 0
                             };
@@ -2572,7 +2566,7 @@ public partial class frmDownloader : Form {
 
                             // add the new post to the data.
                             ThreadInfo.ThreadHTML.Append(HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo));
-                            ThreadInfo.Data.ParsedPostIds.Add(PostID);
+                            ThreadInfo.Data.ParsedPostIds.Add(Post.PostId);
                             ThreadInfo.Data.ThreadPosts.Add(CurrentPost);
                             ThreadInfo.AddedNewPosts = ThreadInfo.ThreadModified = true;
                         }
@@ -2683,6 +2677,7 @@ public partial class frmDownloader : Form {
                         this.Invoke(() => ManageThread(ThreadEvent.AfterDownload));
                         break;
                     }
+
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
@@ -2720,8 +2715,7 @@ public partial class frmDownloader : Form {
                     for (int PostIndex = 0; PostIndex < ThreadData.Length; PostIndex++) {
                         // Set the temporary post to the looped index post.
                         U18ChanPost Post = ThreadData[PostIndex];
-                        string PostID = Post.PostId.ToString();
-                        if (!ThreadInfo.Data.ParsedPostIds.Contains(PostID)) {
+                        if (!ThreadInfo.Data.ParsedPostIds.Contains(Post.PostId)) {
                             GenericPost CurrentPost = new(Post) {
                                 FirstPost = PostIndex == 0
                             };
@@ -2794,7 +2788,7 @@ public partial class frmDownloader : Form {
 
                             // add the new post to the data.
                             ThreadInfo.ThreadHTML.Append(HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo));
-                            ThreadInfo.Data.ParsedPostIds.Add(PostID);
+                            ThreadInfo.Data.ParsedPostIds.Add(Post.PostId);
                             ThreadInfo.Data.ThreadPosts.Add(CurrentPost);
                             ThreadInfo.AddedNewPosts = ThreadInfo.ThreadModified = true;
                         }
