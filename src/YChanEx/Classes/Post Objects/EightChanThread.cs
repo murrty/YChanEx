@@ -22,7 +22,7 @@ internal sealed class EightChanThread {
     //public string? boardUri { get; set; }
 
     [DataMember(Name = "threadId")]
-    public int threadId { get; set; }
+    public ulong threadId { get; set; }
 
     [DataMember(Name = "subject")]
     public string? subject { get; set; }

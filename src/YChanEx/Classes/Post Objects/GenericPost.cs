@@ -7,7 +7,7 @@ using static YChanEx.Parsers.Helpers.ParsersShared;
 [DataContract]
 public sealed class GenericPost {
     [DataMember(Name = "post_id")]
-    public string? PostId { get; set; }
+    public ulong PostId { get; set; }
 
     [DataMember(Name = "post_time")]
     public DateTimeOffset PostDate { get; set; }
@@ -48,7 +48,7 @@ public sealed class GenericPost {
     private GenericPost() { }
 
     internal GenericPost(FourChanPost Post, ThreadInfo Thread) {
-        this.PostId = Post.no.ToString();
+        this.PostId = Post.no;
         this.PostDate = FourChan.GetPostTime(Post.time);
         this.PosterName = Post.name;
         this.PosterTripcode = Post.trip;
@@ -82,7 +82,7 @@ public sealed class GenericPost {
 
     // TODO: Find 7chan spoiler?
     internal GenericPost(SevenChanPost Post) {
-        this.PostId = Post.PostId.ToString();
+        this.PostId = Post.PostId;
         this.PostDate = Post.PostTime;
         this.PosterName = Post.PosterName;
         this.PosterTripcode = Post.PosterTripcode;
@@ -118,7 +118,7 @@ public sealed class GenericPost {
 
     // TODO: Find 8chan capcode (non signed role) & tripcode & spoiler?
     internal GenericPost(EightChanThread Post, ThreadInfo Thread) {
-        this.PostId = Post.threadId.ToString();
+        this.PostId = Post.threadId;
         this.PostDate = Post.CleanedDateTime;
         this.PosterName = Post.name;
         //this.PosterTripcode = Post.tripcode;
@@ -153,7 +153,7 @@ public sealed class GenericPost {
         }
     }
     internal GenericPost(EightChanPost Post, ThreadInfo Thread) {
-        this.PostId = Post.postId.ToString();
+        this.PostId = Post.postId;
         this.PostDate = Post.CleanedDateTime;
         this.PosterName = Post.name;
         //this.PosterTripcode = Post.tripcode;
@@ -189,7 +189,7 @@ public sealed class GenericPost {
     }
 
     internal GenericPost(EightKunPost Post) {
-        this.PostId = Post.no.ToString();
+        this.PostId = Post.no;
         this.PostDate = Post.CleanedDateTime;
         this.PosterName = Post.name;
         this.PosterTripcode = Post.trip;
@@ -247,7 +247,7 @@ public sealed class GenericPost {
 
     // TODO: Find fchan capcode & poster id & spoiler?
     internal GenericPost(FChanPost Post) {
-        this.PostId = Post.PostId.ToString();
+        this.PostId = Post.PostId;
         this.PostDate = Post.PostTime;
         this.PosterName = Post.PosterName;
         this.PosterTripcode = Post.PosterTripcode;
@@ -279,7 +279,7 @@ public sealed class GenericPost {
     }
 
     internal GenericPost(U18ChanPost Post) {
-        this.PostId = Post.PostId.ToString();
+        this.PostId = Post.PostId;
         this.PostDate = Post.PostTime;
         this.PosterName = Post.PosterName;
         //this.PosterTripcode = Post.PosterTripcode;
@@ -318,7 +318,7 @@ public sealed class GenericPost {
     }
 
     public override bool Equals(object obj) => obj is GenericPost other && this.PostId == other.PostId;
-    public override int GetHashCode() => this.PostId?.GetHashCode() ?? 0;
+    public override int GetHashCode() => this.PostId.GetHashCode();
 
     [OnDeserialized]
     void Deserialized(StreamingContext ctx) {

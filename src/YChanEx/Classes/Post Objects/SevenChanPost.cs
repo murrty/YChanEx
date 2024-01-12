@@ -3,7 +3,6 @@ namespace YChanEx.Posts;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
-using System.Text.RegularExpressions;
 using SoftCircuits.HtmlMonkey;
 using static YChanEx.Parsers.SevenChan;
 [DataContract]
@@ -21,8 +20,6 @@ internal sealed class SevenChanPost : IEquatable<SevenChanPost> {
     // Multi-file
     private static readonly Selector MultiFileSelector = Selector.ParseSelector("div > span[class:=\"multithumb(first)?\"]");
     private static readonly Selector MessageBodySelector = Selector.ParseSelector("p[class=message]");
-    // Regex
-    private static readonly Regex RepliesRegex = new("href=\"#p\\d+\"", RegexOptions.IgnoreCase);
 
     [DataMember(Name = "post_id")]
     public ulong PostId { get; set; }
@@ -69,15 +66,16 @@ internal sealed class SevenChanPost : IEquatable<SevenChanPost> {
                 return null;
             }
 
-            var Matches = RepliesRegex.Matches(MessageBody);
+            var Matches = Parsers.Helpers.ParsersShared.RepliesRegex.Matches(MessageBody);
             if (Matches.Count < 1) {
                 return null;
             }
 
             return Matches
-                .Cast<Match>()
+                .Cast<System.Text.RegularExpressions.Match>()
                 .Select(x => x.Value[8..^1])
                 .Select(ulong.Parse)
+                .Distinct()
                 .ToArray();
         }
     }

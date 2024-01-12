@@ -3,15 +3,11 @@ namespace YChanEx.Posts;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
-using System.Text.RegularExpressions;
 using SoftCircuits.HtmlMonkey;
 using static YChanEx.Parsers.FChan;
 [DataContract]
 [DebuggerDisplay("{PostId} @ {PostTime} | File = {HasFile}, Message = {MessageBody != null}")]
 internal sealed class FChanPost {
-    // Regex
-    private static readonly Regex RepliesRegex = new("href=\"/[a-zA-Z0-9]+/res/\\d+\\.html#\\d+\"", RegexOptions.IgnoreCase);
-
     // Continue researching FCHAN.
     private static readonly Selector SubjectSelector = Selector.ParseSelector("span[class=filetitle]");
     private static readonly Selector ThreadSelector = Selector.ParseSelector("> div[id:=\"thread\\d+\"]");
@@ -60,15 +56,16 @@ internal sealed class FChanPost {
                 return null;
             }
 
-            var Matches = RepliesRegex.Matches(MessageBody);
+            var Matches = Parsers.Helpers.ParsersShared.RepliesRegex.Matches(MessageBody);
             if (Matches.Count < 1) {
                 return null;
             }
 
             return Matches
-                .Cast<Match>()
+                .Cast<System.Text.RegularExpressions.Match>()
                 .Select(x => x.Value[(x.Value.LastIndexOf('#') + 1)..^1])
                 .Select(ulong.Parse)
+                .Distinct()
                 .ToArray();
         }
     }

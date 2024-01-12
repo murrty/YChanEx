@@ -2,13 +2,9 @@
 namespace YChanEx.Posts;
 using System.Diagnostics;
 using System.Runtime.Serialization;
-using System.Text.RegularExpressions;
 [DataContract]
 [DebuggerDisplay("{no} | HasFile = {HasFile}")]
 internal sealed class FourChanPost {
-    // Regex
-    private static readonly Regex RepliesRegex = new("href=\"#p\\d+\"", RegexOptions.IgnoreCase);
-
     [DataMember(Name = "no")]
     public ulong no { get; set; }
 
@@ -117,15 +113,16 @@ internal sealed class FourChanPost {
                 return null;
             }
 
-            var Matches = RepliesRegex.Matches(com);
+            var Matches = Parsers.Helpers.ParsersShared.RepliesRegex.Matches(com);
             if (Matches.Count < 1) {
                 return null;
             }
 
             return Matches
-                .Cast<Match>()
+                .Cast<System.Text.RegularExpressions.Match>()
                 .Select(x => x.Value[8..^1])
                 .Select(ulong.Parse)
+                .Distinct()
                 .ToArray();
         }
     }

@@ -2,13 +2,9 @@
 namespace YChanEx.Posts;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
-using System.Text.RegularExpressions;
 using static YChanEx.Parsers.EightKun;
 [DataContract]
 internal sealed class EightKunPost {
-    // Regex
-    private static readonly Regex RepliesRegex = new("href=\"/[a-zA-Z0-9_]+/res/\\d+\\.html#\\d+\"", RegexOptions.IgnoreCase);
-
     [DataMember(Name = "no")]
     public ulong no { get; set; }
 
@@ -124,15 +120,16 @@ internal sealed class EightKunPost {
                 return null;
             }
 
-            var Matches = RepliesRegex.Matches(com);
+            var Matches = Parsers.Helpers.ParsersShared.RepliesHtmlRegex.Matches(com);
             if (Matches.Count < 1) {
                 return null;
             }
 
             return Matches
-                .Cast<Match>()
+                .Cast<System.Text.RegularExpressions.Match>()
                 .Select(x => x.Value[(x.Value.LastIndexOf('#') + 1)..^1])
                 .Select(ulong.Parse)
+                .Distinct()
                 .ToArray();
         }
     }
