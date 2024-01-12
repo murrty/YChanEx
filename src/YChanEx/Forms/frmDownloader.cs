@@ -77,10 +77,6 @@ public partial class frmDownloader : Form {
 
     [MemberNotNull(nameof(DownloadClient), nameof(DownloadClientHandler), nameof(CookieContainer))]
     public static void RecreateDownloadClient() {
-        //DownloadClientHandler = new() {
-        //    AllowAutoRedirect = true,
-        //    UseCookies = true,
-        //};
         if (CookieContainer == null) {
             CookieContainer = new CookieContainer();
             // Required cookies.
@@ -95,10 +91,46 @@ public partial class frmDownloader : Form {
                 }
             }
         }
+
+        // 100 limit
+        ServicePointManager.DefaultConnectionLimit = 100;
+
+        // Try to load TLS 1.3 (Win 11+)
+        // It will use 1.2 if 1.3 is not available, regardless of if the first try works.
+        //Tls12OrHigher = true;
+        try {
+#if NETCOREAPP
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls13
+#else
+            ServicePointManager.SecurityProtocol = (SecurityProtocolType)12288
+#endif
+                                                 | SecurityProtocolType.Tls12 // 3072
+                                                 | SecurityProtocolType.Tls11 // 768
+                                                 | SecurityProtocolType.Tls; // 192
+        }
+        catch (NotSupportedException) {
+            try {
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 // 3072
+                                                     | SecurityProtocolType.Tls11 // 768
+                                                     | SecurityProtocolType.Tls; // 192
+            }
+            catch (NotSupportedException) {
+                //Tls12OrHigher = false;
+                try {
+                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 // 768
+                                                         | SecurityProtocolType.Tls; // 192
+                }
+                catch (NotSupportedException) {
+                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls; // 192
+                }
+            }
+        }
+
         DownloadClientHandler = ProxyHandler.GetProxyHandler(Initialization.Proxy, 60_000, CookieContainer);
         DownloadClient = new(DownloadClientHandler);
-        //DownloadClient.DefaultRequestHeaders.AcceptEncoding.Add(new("br"));
+
         DownloadClient.DefaultRequestHeaders.Accept.Add(new("*/*"));
+        //DownloadClient.DefaultRequestHeaders.AcceptEncoding.Add(new("br"));
         DownloadClient.DefaultRequestHeaders.AcceptEncoding.Add(new("gzip"));
         DownloadClient.DefaultRequestHeaders.AcceptEncoding.Add(new("deflate"));
         DownloadClient.DefaultRequestHeaders.AcceptLanguage.Add(new("*"));
@@ -704,9 +736,6 @@ public partial class frmDownloader : Form {
                 ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsAborted;
                 CancellationToken.Cancel();
                 ResetThread.Set();
-                //if (DownloadThread?.IsAlive == true) {
-                //    DownloadThread.Abort();
-                //}
 
                 if (threadRemovedFromForm) {
                     this.Dispose();
@@ -1514,6 +1543,7 @@ public partial class frmDownloader : Form {
                             ResetThread.Wait();
                             continue;
                         }
+                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                         break;
                     }
 
@@ -1558,9 +1588,6 @@ public partial class frmDownloader : Form {
                         this.Invoke(() => UpdateThreadName(true));
                     }
 
-                    // check for archive flag in the post.
-                    ThreadInfo.Data.ThreadArchived = ThreadData.posts[0].archived;
-
                     // Start counting through the posts.
                     for (int PostIndex = 0; PostIndex < ThreadData.posts.Length; PostIndex++) {
                         // Set the temporary post to the looped index post.
@@ -1586,12 +1613,16 @@ public partial class frmDownloader : Form {
                     DownloadTask.Wait();
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
+                    // If the thread is aborted, just break the loop -- its already managed.
                     if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
                         break;
                     }
 
-                    if (ThreadInfo.Data.ThreadArchived) {
+                    // check for archive flag in the post.
+                    if (ThreadData.posts[0].archived) {
+                        ThreadInfo.Data.ThreadArchived = true;
                         ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsArchived;
+                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                         break;
                     }
 
@@ -1663,6 +1694,7 @@ public partial class frmDownloader : Form {
                             ResetThread.Wait();
                             continue;
                         }
+                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                         break;
                     }
 
@@ -1682,7 +1714,7 @@ public partial class frmDownloader : Form {
                     catch (Exception ex) {
                         Log.ReportException(ex);
                         ThreadInfo.CurrentActivity = ThreadStatus.FailedToParseThreadHtml;
-                        this.Invoke(() => ManageThread(ThreadEvent.AfterDownload));
+                        this.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                         break;
                     }
 
@@ -1691,6 +1723,7 @@ public partial class frmDownloader : Form {
                     // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
                     if (ThreadData is null || ThreadData.Length < 1) {
                         ThreadInfo.CurrentActivity = ThreadStatus.NoThreadPosts;
+                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                         break;
                     }
 
@@ -1744,14 +1777,18 @@ public partial class frmDownloader : Form {
                     DownloadTask.Wait();
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
+                    // If the thread is aborted, just break the loop -- its already managed.
                     if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
                         break;
                     }
 
-                    if (ThreadInfo.Data.ThreadArchived) {
-                        ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsArchived;
-                        break;
-                    }
+                    //// check for archive flag in the post.
+                    //if (ThreadData.posts[0].archived) {
+                    //    ThreadInfo.Data.ThreadArchived = true;
+                    //    ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsArchived;
+                    //    this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+                    //    break;
+                    //}
 
                     // Set the activity.
                     ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
@@ -1838,6 +1875,7 @@ public partial class frmDownloader : Form {
                             ResetThread.Wait();
                             continue;
                         }
+                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                         break;
                     }
 
@@ -1883,9 +1921,6 @@ public partial class frmDownloader : Form {
                         this.Invoke(() => UpdateThreadName(true));
                     }
 
-                    // check for archive flag in the post.
-                    ThreadInfo.Data.ThreadArchived = ThreadData.archived;
-
                     // Parse the first post
                     if (!ThreadInfo.Data.ParsedPostIds.Contains(ThreadData.threadId)) {
                         GenericPost CurrentPost = new(ThreadData, ThreadInfo) {
@@ -1924,12 +1959,16 @@ public partial class frmDownloader : Form {
                     DownloadTask.Wait();
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
+                    // If the thread is aborted, just break the loop -- its already managed.
                     if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
                         break;
                     }
 
-                    if (ThreadInfo.Data.ThreadArchived) {
+                    // check for archive flag in the post.
+                    if (ThreadData.archived) {
+                        ThreadInfo.Data.ThreadArchived = true;
                         ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsArchived;
+                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                         break;
                     }
 
@@ -2016,6 +2055,7 @@ public partial class frmDownloader : Form {
                             ResetThread.Wait();
                             continue;
                         }
+                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                         break;
                     }
 
@@ -2061,9 +2101,6 @@ public partial class frmDownloader : Form {
                         this.Invoke(() => UpdateThreadName(true));
                     }
 
-                    // check for archive flag in the post.
-                    //ThreadInfo.Data.ThreadArchived = ThreadData.archived;
-
                     // Start counting through the posts.
                     if (ThreadData.posts?.Length > 0) {
                         for (int PostIndex = 0; PostIndex < ThreadData.posts.Length; PostIndex++) {
@@ -2091,14 +2128,18 @@ public partial class frmDownloader : Form {
                     DownloadTask.Wait();
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
+                    // If the thread is aborted, just break the loop -- its already managed.
                     if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
                         break;
                     }
 
-                    if (ThreadInfo.Data.ThreadArchived) {
-                        ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsArchived;
-                        break;
-                    }
+                    //// check for archive flag in the post.
+                    //if (ThreadData.archived) {
+                    //    ThreadInfo.Data.ThreadArchived = true;
+                    //    ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsArchived;
+                    //    this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+                    //    break;
+                    //}
 
                     // Set the activity.
                     ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
@@ -2167,6 +2208,7 @@ public partial class frmDownloader : Form {
                             ResetThread.Wait();
                             continue;
                         }
+                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                         break;
                     }
 
@@ -2221,9 +2263,6 @@ public partial class frmDownloader : Form {
                         this.Invoke(() => UpdateThreadName(true));
                     }
 
-                    // check for archive flag in the post.
-                    //ThreadInfo.Data.ThreadArchived = ThreadData[0].Archived;
-
                     // Start counting through the posts.
                     for (int PostIndex = 0; PostIndex < ThreadData.Length; PostIndex++) {
                         // Set the temporary post to the looped index post.
@@ -2249,14 +2288,18 @@ public partial class frmDownloader : Form {
                     DownloadTask.Wait();
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
+                    // If the thread is aborted, just break the loop -- its already managed.
                     if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
                         break;
                     }
 
-                    if (ThreadInfo.Data.ThreadArchived) {
-                        ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsArchived;
-                        break;
-                    }
+                    //// check for archive flag in the post.
+                    //if (ThreadData.archived) {
+                    //    ThreadInfo.Data.ThreadArchived = true;
+                    //    ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsArchived;
+                    //    this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+                    //    break;
+                    //}
 
                     // Set the activity.
                     ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
@@ -2326,6 +2369,7 @@ public partial class frmDownloader : Form {
                             ResetThread.Wait();
                             continue;
                         }
+                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                         break;
                     }
 
@@ -2379,9 +2423,6 @@ public partial class frmDownloader : Form {
                         this.Invoke(() => UpdateThreadName(true));
                     }
 
-                    // check for archive flag in the post.
-                    //ThreadInfo.Data.ThreadArchived = ThreadData[0].Archived;
-
                     // Start counting through the posts.
                     for (int PostIndex = 0; PostIndex < ThreadData.Length; PostIndex++) {
                         // Set the temporary post to the looped index post.
@@ -2407,14 +2448,18 @@ public partial class frmDownloader : Form {
                     DownloadTask.Wait();
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
+                    // If the thread is aborted, just break the loop -- its already managed.
                     if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
                         break;
                     }
 
-                    if (ThreadInfo.Data.ThreadArchived) {
-                        ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsArchived;
-                        break;
-                    }
+                    //// check for archive flag in the post.
+                    //if (ThreadData.archived) {
+                    //    ThreadInfo.Data.ThreadArchived = true;
+                    //    ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsArchived;
+                    //    this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+                    //    break;
+                    //}
 
                     // Set the activity.
                     ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
