@@ -17,6 +17,11 @@ static class Program {
     public static Version CurrentVersion { get; } = new(3, 0, 0, 1);
 
     /// <summary>
+    /// Whether to load saved threads while debugging.
+    /// </summary>
+    public static readonly bool LoadThreadsInDebug = true;
+
+    /// <summary>
     /// The absolute name of the application, with extension.
     /// </summary>
     internal static string ApplicationName { get; }
@@ -64,11 +69,10 @@ static class Program {
     /// </summary>
     private static Guid ProgramGUID { get; }
 
-    internal static string SavedThreadsPath { get; set; }
     /// <summary>
-    /// Whether to load saved threads while debugging.
+    /// The saved threads path.
     /// </summary>
-    public static bool LoadThreadsInDebug = true;
+    internal static string SavedThreadsPath { get; set; }
 
     /// <summary>
     /// If the settings form is currently open. Used to pause scanning.
@@ -128,23 +132,24 @@ static class Program {
         }
 #endif
 
-        SavedThreadsPath = $"{Environment.CurrentDirectory}{Path.DirectorySeparatorChar}SavedThreads";
+        // Set the saved threads path.
+        SavedThreadsPath = Path.Combine(Environment.CurrentDirectory, "SavedThreads");
     }
 
     [STAThread]
     static int Main(string[] argv) {
         Console.WriteLine("Welcome to the amazing world of: Loading application.");
-        if (!DebugMode && !(Instance = new(true, ProgramGUID.ToString())).WaitOne(TimeSpan.Zero, true)) {
+        if (!(Instance = new(true, ProgramGUID.ToString())).WaitOne(TimeSpan.Zero, true)) {
             ExitCode = 1152; // Cannot start more than one instance of the specified program.
 
-            if (Arguments.SetProtocol) {
-                SystemRegistry.SetProtocolKey();
-                return ExitCode;
-            }
+            //if (Arguments.SetProtocol) {
+            //    SystemRegistry.SetProtocolKey();
+            //    return ExitCode;
+            //}
 
             nint hWnd = CopyData.FindWindow(null, "YChanEx");
             if (hWnd != 0) {
-                if (Arguments.URLs.Count > 0) {
+                if (argv.Length > 0) {
                     CopyData.SendArray(hWnd, 0, CopyData.ID_ARGS, argv);
                 }
                 else {
@@ -165,6 +170,7 @@ static class Program {
             Log.Write($"Environment.CurrentDirectory is set to '{Environment.CurrentDirectory}', when it should be '{ApplicationDirectory}'.");
             Environment.CurrentDirectory = ApplicationDirectory;
             Log.Write("Set the Environment.CurrentDirectory to the correct one.");
+            SavedThreadsPath = Path.Combine(Environment.CurrentDirectory, "SavedThreads");
         }
 
         Arguments.ParseArguments(argv);
