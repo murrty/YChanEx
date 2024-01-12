@@ -36,7 +36,7 @@ public partial class frmSettings : Form {
         chkDisableScannerWhenOpeningSettings.Checked = Advanced.DisableScanWhenOpeningSettings;
         chkSilenceErrors.Checked = Advanced.SilenceErrors;
 
-        if (!SystemRegistry.ProtocolExists) {
+        if (!SystemRegistry.CheckProtocolKey()) {
             if (!Program.IsAdmin) {
                 btnProtocol.Text = " " + btnProtocol.Text;
                 NativeMethods.SendMessage(btnProtocol.Handle, NativeMethods.BCM_SETSHIELD, IntPtr.Zero, (IntPtr)2);

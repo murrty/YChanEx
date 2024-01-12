@@ -463,28 +463,16 @@ public partial class frmMain : Form, IMainFom {
     [System.Diagnostics.DebuggerStepThrough]
     protected override void WndProc(ref Message m) {
         switch (m.Msg) {
-            case CopyData.WM_COPYDATA: {
-                try {
-                    try {
-                        var Data = CopyData.GetParam<SentData>(m.LParam);
-                        string[] ReceivedArguments = Data.Argument.Split('|');
-                        for (int i = 0; i < ReceivedArguments.Length; i++) {
-                            AddNewThread(ReceivedArguments[i], true);
-                        }
-                        m.Result = IntPtr.Zero;
-                    }
-                    catch {
-                        m.Result = (IntPtr)1;
-                    }
-                }
-                catch (Exception ex) {
-                    MessageBox.Show(ex.ToString());
+            case CopyData.WM_COPYDATA when CopyData.TryGetArray(m.LParam, CopyData.ID_ARGS, out var argv): {
+                for (int i = 0; i < argv.Length; i++) {
+                    AddNewThread(argv[i], true);
                 }
             } break;
 
-            case CopyData.WM_SHOWFORM: {
-                if (this.WindowState != FormWindowState.Normal)
+            case CopyData.WM_SHOWMAINFORM: {
+                if (this.WindowState != FormWindowState.Normal) {
                     this.WindowState = FormWindowState.Normal;
+                }
                 this.Show();
                 this.Activate();
                 niTray.Visible = General.ShowTrayIcon;

@@ -48,7 +48,38 @@ internal static class Extensions {
         return input;
     }
 
+    public static string RemoveWhitespace(this string str) {
+        return ReplaceWhitespace(str, string.Empty);
+    }
     public static string ReplaceWhitespace(this string str, string replacement = " ") {
         return System.Text.RegularExpressions.Regex.Replace(str, @"\s+", replacement, System.Text.RegularExpressions.RegexOptions.Compiled);
+    }
+
+    public static string UnlessNull([MaybeNull] this string? value, string other) {
+        return value ?? other;
+    }
+    public static string UnlessNullEmpty([MaybeNull] this string? value, string other) {
+        if (value is null || value.Length < 1) {
+            return other;
+        }
+        return value;
+    }
+    public static string UnlessNullEmptyWhiteSpace([MaybeNull] this string? value, string other) {
+        if (value.IsNullEmptyWhitespace()) {
+            return other;
+        }
+        return value;
+    }
+    public static string FirstNonNullEmptyWhiteSpace(this string?[] values, bool ReturnNullOnNone = false) {
+        for (int i = 0; i < values.Length; i++) {
+            string? v = values[i];
+            if (!v.IsNullEmptyWhitespace()) {
+                return v;
+            }
+        }
+        if (!ReturnNullOnNone) {
+            throw new NullReferenceException("No non-null, empty, or whitespace values found.");
+        }
+        return null!;
     }
 }

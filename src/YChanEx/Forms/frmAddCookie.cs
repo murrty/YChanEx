@@ -1,10 +1,10 @@
-﻿namespace YChanEx;
-
+﻿#nullable enable
+namespace YChanEx;
 using System.Net;
 using System.Windows.Forms;
-
 public partial class frmAddCookie : Form {
-    public Cookie Cookie { get; set; }
+    public Cookie? Cookie { get; set; }
+
     public frmAddCookie() {
         InitializeComponent();
     }
@@ -12,7 +12,6 @@ public partial class frmAddCookie : Form {
     private void btnCancel_Click(object sender, EventArgs e) {
         this.DialogResult = DialogResult.Cancel;
     }
-
     private void btnAdd_Click(object sender, EventArgs e) {
         if (string.IsNullOrWhiteSpace(txtName.Text)) {
             txtName.Focus();
@@ -29,7 +28,7 @@ public partial class frmAddCookie : Form {
             System.Media.SystemSounds.Asterisk.Play();
             return;
         }
-        Cookie = new(txtName.Text, txtValue.Text, txtPath.Text, txtDomain.Text);
+        Cookie = new(txtName.Text, txtValue.Text, txtPath.Text.IsNullEmptyWhitespace() ? "/" : txtPath.Text, txtDomain.Text);
         this.DialogResult = DialogResult.OK;
     }
 }

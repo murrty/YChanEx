@@ -1,5 +1,8 @@
 ﻿#nullable enable
 namespace YChanEx;
+
+using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
@@ -8,15 +11,29 @@ using System.Threading;
 using System.Windows.Forms;
 using murrty.classes;
 static class Program {
-    #region Version Information
-    public static readonly Version CurrentVersion = new(3, 0, 0, 1);
+    /// <summary>
+    /// The current version of the software.
+    /// </summary>
+    public static Version CurrentVersion { get; } = new(3, 0, 0, 1);
+
+    /// <summary>
+    /// The absolute name of the application, with extension.
+    /// </summary>
+    internal static string ApplicationName { get; }
+    /// <summary>
+    /// The absolute path of the application.
+    /// </summary>
+    internal static string FullApplicationPath { get; }
+    /// <summary>
+    /// The path of the application.
+    /// </summary>
+    internal static string ApplicationDirectory { get; }
+
     /// <summary>
     /// The string to the Github page.
     /// </summary>
     public const string GithubPage = "https://github.com/murrty/YChanEx";
-    #endregion
 
-    #region Runtime Fields
     /// <summary>
     /// Gets whether the program is running in debug mode.
     /// </summary>
@@ -25,7 +42,12 @@ static class Program {
     /// <summary>
     /// Gets whether the program is running as an Administrator.
     /// </summary>
-    public static bool IsAdmin { get; private set; }
+    public static bool IsAdmin { get; }
+
+    /// <summary>
+    /// Gets a string-representation of the current common language runtime version.
+    /// </summary>
+    public static string CLR { get; }
 
     /// <summary>
     /// Gets or sets the exit code of the application.
@@ -36,25 +58,17 @@ static class Program {
     /// The mutex of the program instance.
     /// </summary>
     private static Mutex? Instance;
+
     /// <summary>
     /// The GUID of the program.
     /// </summary>
-    private static readonly string ProgramGUID =
-        ((GuidAttribute)Assembly.GetExecutingAssembly().GetCustomAttributes(typeof(GuidAttribute), true)[0]).Value;
-    #endregion
+    private static Guid ProgramGUID { get; }
 
     internal static string SavedThreadsPath { get; set; }
     /// <summary>
     /// Whether to load saved threads while debugging.
     /// </summary>
     public static bool LoadThreadsInDebug = true;
-    /// <summary>
-    /// The full path of the application.
-    /// </summary>
-    public static readonly string FullApplicationPath =
-        System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
-    public static readonly string ApplicationDirectory =
-        System.IO.Path.GetDirectoryName(FullApplicationPath);
 
     /// <summary>
     /// If the settings form is currently open. Used to pause scanning.
@@ -62,51 +76,79 @@ static class Program {
     public static bool SettingsOpen { get; set; }
 
     static Program() {
-        if (Environment.CurrentDirectory != ApplicationDirectory) {
-            Environment.CurrentDirectory = ApplicationDirectory;
-        }
+        // An array of possible application paths.
+        string?[] Paths = [
+            // The executing assembly location, most likely to work on all CLR versions.
+            Assembly.GetExecutingAssembly().Location,
 
+            // Uses the App-Domain values for cross-platform support, if it becomes possible.
+            AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                + Path.DirectorySeparatorChar
+                + AppDomain.CurrentDomain.FriendlyName,
+
+            // Gets the main file name from the executing process.
+            Process.GetCurrentProcess().MainModule?.FileName,
+
+            // null value, it will prevent the application from launching since the value has to be known.
+            null];
+
+        // Get the correct path. It may be null, but it's okay since it won't launch in that case.
+        // The reason its non-nullable is because the application should KNOW it's not null to run.
+        FullApplicationPath = Paths.FirstNonNullEmptyWhiteSpace(true);
+        ApplicationDirectory = (File.Exists(FullApplicationPath) ? Path.GetDirectoryName(FullApplicationPath) : null)!;
+
+        // Set the set application name, which can be different based on users preference.
+        ApplicationName = AppDomain.CurrentDomain.FriendlyName;
+
+        // Try to get the GUID, if it exists.
+        // The default GUID should keep it running, but it may be problematic.
+        // Maybe work on handling it in a more elegant way?
+        string? GuidString = Assembly.GetExecutingAssembly().GetCustomAttribute<GuidAttribute>()?.Value;
+        ProgramGUID = GuidString.IsNullEmptyWhitespace() ? default : Guid.Parse(GuidString);
+
+        // Set the common language runtime string
+        CLR = RuntimeInformation.FrameworkDescription.UnlessNullEmptyWhiteSpace("unknown framework")
+#if NET7_0_OR_GREATER
+                + "-" + RuntimeInformation.RuntimeIdentifier.UnlessNullEmptyWhiteSpace("unknown runtime")
+#endif
+                + (Environment.Is64BitProcess ? " (64-bit)" : " (32-bit)");
+
+        // Check admin.
+        IsAdmin = new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
+
+        // Debug stuff.
 #if DEBUG
         DebugMode = true;
+        if (SystemRegistry.TryGetKey("DebugDir", out string? NewDir)) {
+            if (!Directory.Exists(NewDir)) {
+                Directory.CreateDirectory(NewDir);
+            }
+            ApplicationDirectory = NewDir;
+            Environment.CurrentDirectory = NewDir;
+        }
 #endif
 
-        SavedThreadsPath = $"{Environment.CurrentDirectory}{System.IO.Path.DirectorySeparatorChar}SavedThreads";
+        SavedThreadsPath = $"{Environment.CurrentDirectory}{Path.DirectorySeparatorChar}SavedThreads";
     }
 
     [STAThread]
-    static int Main(string[] args) {
+    static int Main(string[] argv) {
         Console.WriteLine("Welcome to the amazing world of: Loading application.");
-        IsAdmin = new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
-        if (!DebugMode && !(Instance = new(true, ProgramGUID)).WaitOne(TimeSpan.Zero, true)) {
+        if (!DebugMode && !(Instance = new(true, ProgramGUID.ToString())).WaitOne(TimeSpan.Zero, true)) {
             ExitCode = 1152; // Cannot start more than one instance of the specified program.
 
             if (Arguments.SetProtocol) {
-                SystemRegistry.CreateProtocol();
+                SystemRegistry.SetProtocolKey();
                 return ExitCode;
             }
 
-            IntPtr hwnd = CopyData.FindWindow(null, "YChanEx");
-            if (hwnd != IntPtr.Zero) {
+            nint hWnd = CopyData.FindWindow(null, "YChanEx");
+            if (hWnd != 0) {
                 if (Arguments.URLs.Count > 0) {
-                    SentData Data = new() { Argument = string.Join("|", Arguments.URLs) };
-                    CopyDataStruct DataStruct = new();
-                    IntPtr CopyDataBuffer = IntPtr.Zero;
-                    IntPtr DataBuffer = IntPtr.Zero;
-                    try {
-                        DataBuffer = CopyData.NintAlloc(Data);
-                        DataStruct.cbData = Marshal.SizeOf(Data);
-                        DataStruct.dwData = new(1);
-                        DataStruct.lpData = DataBuffer;
-                        CopyDataBuffer = CopyData.NintAlloc(DataStruct);
-                        CopyData.SendMessage(hwnd, CopyData.WM_COPYDATA, IntPtr.Zero, CopyDataBuffer);
-                    }
-                    finally {
-                        CopyData.NintFree(ref CopyDataBuffer);
-                        CopyData.NintFree(ref DataBuffer);
-                    }
+                    CopyData.SendArray(hWnd, 0, CopyData.ID_ARGS, argv);
                 }
                 else {
-                    CopyData.SendMessage(hwnd, CopyData.WM_SHOWFORM, IntPtr.Zero, IntPtr.Zero);
+                    CopyData.SendMessage(hWnd, CopyData.WM_SHOWMAINFORM, 0, 0);
                 }
             }
 
@@ -119,19 +161,26 @@ static class Program {
         Application.SetCompatibleTextRenderingDefault(false);
         Log.InitializeLogging();
 
-        Arguments.ParseArguments(args);
+        if (!string.Equals(Environment.CurrentDirectory, ApplicationDirectory, StringComparison.InvariantCultureIgnoreCase)) {
+            Log.Write($"Environment.CurrentDirectory is set to '{Environment.CurrentDirectory}', when it should be '{ApplicationDirectory}'.");
+            Environment.CurrentDirectory = ApplicationDirectory;
+            Log.Write("Set the Environment.CurrentDirectory to the correct one.");
+        }
+
+        Arguments.ParseArguments(argv);
 
         // Check the protocol, if it's active.
-        SystemRegistry.CheckProtocol();
+        SystemRegistry.CheckProtocolKey();
 
         // Set this current process to BelowNormal
-        System.Diagnostics.Process.GetCurrentProcess().PriorityClass = System.Diagnostics.ProcessPriorityClass.BelowNormal;
+        Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
 
         // Load the settings.
         DownloadHistory.Load();
 
-        if (Arguments.SetProtocol)
-            SystemRegistry.CreateProtocol();
+        if (Arguments.SetProtocol) {
+            SystemRegistry.SetProtocolKey();
+        }
 
         // Check for "FirstTime" flag in the default settings of the application
         if (Initialization.FirstTime) {

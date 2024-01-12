@@ -20,7 +20,7 @@ namespace YChanEx {
         public static extern int WritePrivateProfileString(string lpAppName, string lpKeyName, string lpDefault, string lpFileName);
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
-        public static extern uint GetPrivateProfileString(string lpAppName, string lpKeyName, string lpDefault, StringBuilder lpReturnedString, uint nSize, string lpFileName);
+        public static extern int GetPrivateProfileString(string lpAppName, string lpKeyName, string lpDefault, char[] lpReturnedString, int nSize, string lpFileName);
     }
 }
 

@@ -143,6 +143,7 @@ partial class frmAddCookie {
             this.MaximumSize = new System.Drawing.Size(360, 320);
             this.MinimumSize = new System.Drawing.Size(360, 320);
             this.Name = "frmAddCookie";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Add cookie...";
             this.ResumeLayout(false);
             this.PerformLayout();

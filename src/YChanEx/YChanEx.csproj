@@ -84,10 +84,8 @@
     <Compile Include="Controls\ExtendedListView.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="CopyData\CopyDataStruct.cs" />
-    <Compile Include="CopyData\SentData.cs" />
     <Compile Include="Enums\ChanType.cs" />
-    <Compile Include="CopyData\CopyData.cs" />
+    <Compile Include="CopyData.cs" />
     <Compile Include="Classes\Extensions.cs" />
     <Compile Include="Enums\FileDownloadStatus.cs" />
     <Compile Include="Enums\ProxyType.cs" />
