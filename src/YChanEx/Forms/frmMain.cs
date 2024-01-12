@@ -154,11 +154,9 @@ public partial class frmMain : Form, IMainFom {
                         }
                     }
 
-                    if (Arguments.URLs.Count > 0) {
-                        for (int i = 0; i < Arguments.URLs.Count; i++) {
-                            if (Arguments.URLs[i].StartsWith("ychanex:", StringComparison.InvariantCultureIgnoreCase)) {
-                                this.Invoke(() => AddNewThread(Arguments.URLs[i], true));
-                            }
+                    if (Arguments.Argv.Length > 0) {
+                        for (int i = 0; i < Arguments.Argv.Length; i++) {
+                            this.Invoke(() => AddNewThread(Arguments.Argv[i], true));
                         }
                     }
                 }
@@ -608,8 +606,12 @@ public partial class frmMain : Form, IMainFom {
     }
     private void lvThreads_MouseDoubleClick(object sender, MouseEventArgs e) {
         if (lvThreads.SelectedItems.Count > 0) {
-            Threads[lvThreads.SelectedIndices[0]].Show();
-            Threads[lvThreads.SelectedIndices[0]].Activate();
+            frmDownloader DownloadForm = Threads[lvThreads.SelectedIndices[0]];
+            DownloadForm.Show();
+            if (DownloadForm.WindowState == FormWindowState.Minimized) {
+                DownloadForm.WindowState = FormWindowState.Normal;
+            }
+            DownloadForm.Activate();
         }
     }
     private void cmThreads_Popup(object sender, EventArgs e) {

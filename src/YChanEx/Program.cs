@@ -142,10 +142,10 @@ static class Program {
         if (!(Instance = new(true, ProgramGUID.ToString())).WaitOne(TimeSpan.Zero, true)) {
             ExitCode = 1152; // Cannot start more than one instance of the specified program.
 
-            //if (Arguments.SetProtocol) {
-            //    SystemRegistry.SetProtocolKey();
-            //    return ExitCode;
-            //}
+            if (Arguments.SetProtocol(argv)) {
+                SystemRegistry.SetProtocolKey();
+                return ExitCode;
+            }
 
             nint hWnd = CopyData.FindWindow(null, "YChanEx");
             if (hWnd != 0) {
@@ -173,7 +173,7 @@ static class Program {
             SavedThreadsPath = Path.Combine(Environment.CurrentDirectory, "SavedThreads");
         }
 
-        Arguments.ParseArguments(argv);
+        Arguments.Argv = argv;
 
         // Check the protocol, if it's active.
         SystemRegistry.CheckProtocolKey();
@@ -183,10 +183,6 @@ static class Program {
 
         // Load the settings.
         DownloadHistory.Load();
-
-        if (Arguments.SetProtocol) {
-            SystemRegistry.SetProtocolKey();
-        }
 
         // Check for "FirstTime" flag in the default settings of the application
         if (Initialization.FirstTime) {

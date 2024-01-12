@@ -56,12 +56,12 @@
             this.mTrayExit = new System.Windows.Forms.MenuItem();
             this.ilIcons = new System.Windows.Forms.ImageList(this.components);
             this.chkCreateThreadInTheBackground = new System.Windows.Forms.CheckBox();
+            this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.tpCurrentQueue = new System.Windows.Forms.TabPage();
             this.lvThreads = new murrty.controls.ExtendedListView();
             this.clStatus = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clThread = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.tabControl1 = new System.Windows.Forms.TabControl();
-            this.tpCurrentQueue = new System.Windows.Forms.TabPage();
             this.tpHistory = new System.Windows.Forms.TabPage();
             this.tvHistory = new System.Windows.Forms.TreeView();
             this.btnHistoryClear = new System.Windows.Forms.Button();
@@ -248,6 +248,29 @@
             this.chkCreateThreadInTheBackground.Text = "Create thread in the background";
             this.chkCreateThreadInTheBackground.UseVisualStyleBackColor = true;
             // 
+            // tabControl1
+            // 
+            this.tabControl1.Controls.Add(this.tpCurrentQueue);
+            this.tabControl1.Controls.Add(this.tpHistory);
+            this.tabControl1.Controls.Add(this.tpDebug);
+            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabControl1.Location = new System.Drawing.Point(0, 33);
+            this.tabControl1.Name = "tabControl1";
+            this.tabControl1.SelectedIndex = 0;
+            this.tabControl1.Size = new System.Drawing.Size(454, 188);
+            this.tabControl1.TabIndex = 4;
+            // 
+            // tpCurrentQueue
+            // 
+            this.tpCurrentQueue.Controls.Add(this.lvThreads);
+            this.tpCurrentQueue.Location = new System.Drawing.Point(4, 22);
+            this.tpCurrentQueue.Name = "tpCurrentQueue";
+            this.tpCurrentQueue.Padding = new System.Windows.Forms.Padding(3);
+            this.tpCurrentQueue.Size = new System.Drawing.Size(446, 162);
+            this.tpCurrentQueue.TabIndex = 0;
+            this.tpCurrentQueue.Text = "Queue";
+            this.tpCurrentQueue.UseVisualStyleBackColor = true;
+            // 
             // lvThreads
             // 
             this.lvThreads.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -262,7 +285,7 @@
             this.lvThreads.HideSelection = false;
             this.lvThreads.Location = new System.Drawing.Point(6, 6);
             this.lvThreads.Name = "lvThreads";
-            this.lvThreads.Size = new System.Drawing.Size(434, 213);
+            this.lvThreads.Size = new System.Drawing.Size(434, 150);
             this.lvThreads.SmallImageList = this.ilIcons;
             this.lvThreads.TabIndex = 3;
             this.lvThreads.UseCompatibleStateImageBehavior = false;
@@ -284,29 +307,6 @@
             this.clName.Text = "Name";
             this.clName.Width = 204;
             // 
-            // tabControl1
-            // 
-            this.tabControl1.Controls.Add(this.tpCurrentQueue);
-            this.tabControl1.Controls.Add(this.tpHistory);
-            this.tabControl1.Controls.Add(this.tpDebug);
-            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabControl1.Location = new System.Drawing.Point(0, 33);
-            this.tabControl1.Name = "tabControl1";
-            this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(454, 251);
-            this.tabControl1.TabIndex = 4;
-            // 
-            // tpCurrentQueue
-            // 
-            this.tpCurrentQueue.Controls.Add(this.lvThreads);
-            this.tpCurrentQueue.Location = new System.Drawing.Point(4, 22);
-            this.tpCurrentQueue.Name = "tpCurrentQueue";
-            this.tpCurrentQueue.Padding = new System.Windows.Forms.Padding(3);
-            this.tpCurrentQueue.Size = new System.Drawing.Size(446, 225);
-            this.tpCurrentQueue.TabIndex = 0;
-            this.tpCurrentQueue.Text = "Queue";
-            this.tpCurrentQueue.UseVisualStyleBackColor = true;
-            // 
             // tpHistory
             // 
             this.tpHistory.Controls.Add(this.tvHistory);
@@ -317,7 +317,7 @@
             this.tpHistory.Location = new System.Drawing.Point(4, 22);
             this.tpHistory.Name = "tpHistory";
             this.tpHistory.Padding = new System.Windows.Forms.Padding(3);
-            this.tpHistory.Size = new System.Drawing.Size(446, 225);
+            this.tpHistory.Size = new System.Drawing.Size(446, 162);
             this.tpHistory.TabIndex = 1;
             this.tpHistory.Text = "Thread history";
             this.tpHistory.UseVisualStyleBackColor = true;
@@ -402,7 +402,7 @@
             this.tpDebug.Location = new System.Drawing.Point(4, 22);
             this.tpDebug.Name = "tpDebug";
             this.tpDebug.Padding = new System.Windows.Forms.Padding(3);
-            this.tpDebug.Size = new System.Drawing.Size(446, 225);
+            this.tpDebug.Size = new System.Drawing.Size(446, 162);
             this.tpDebug.TabIndex = 2;
             this.tpDebug.Text = "Debug";
             this.tpDebug.UseVisualStyleBackColor = true;
@@ -421,7 +421,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(454, 284);
+            this.ClientSize = new System.Drawing.Size(454, 221);
             this.Controls.Add(this.chkCreateThreadInTheBackground);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.pnUpper);
