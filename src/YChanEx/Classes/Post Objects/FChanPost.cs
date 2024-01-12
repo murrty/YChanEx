@@ -63,7 +63,7 @@ internal sealed class FChanPost {
 
             return Matches
                 .Cast<System.Text.RegularExpressions.Match>()
-                .Select(x => x.Value[(x.Value.LastIndexOf('#') + 1)..^1])
+                .Select(x => x.Value[8..^1])
                 .Select(ulong.Parse)
                 .Distinct()
                 .ToArray();
