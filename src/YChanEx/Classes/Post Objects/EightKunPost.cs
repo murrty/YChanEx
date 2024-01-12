@@ -1,14 +1,16 @@
 ﻿#nullable enable
 namespace YChanEx.Posts;
-
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
-using static SoftCircuits.HtmlMonkey.DefaultSelectors;
+using System.Text.RegularExpressions;
 using static YChanEx.Parsers.EightKun;
 [DataContract]
 internal sealed class EightKunPost {
+    // Regex
+    private static readonly Regex RepliesRegex = new("href=\"/[a-zA-Z0-9_]+/res/\\d+\\.html#\\d+\"", RegexOptions.IgnoreCase);
+
     [DataMember(Name = "no")]
-    public int no { get; set; }
+    public ulong no { get; set; }
 
     [DataMember(Name = "sub")]
     public string? sub { get; set; }
@@ -28,11 +30,11 @@ internal sealed class EightKunPost {
     [DataMember(Name = "time")]
     public long time { get; set; } // unix timestamp
 
-    //[DataMember(Name = "omitted_posts")]
-    //public int omitted_posts { get; set; }
+    [DataMember(Name = "omitted_posts")]
+    public int omitted_posts { get; set; }
 
-    //[DataMember(Name = "omitted_images")]
-    //public int omitted_images { get; set; }
+    [DataMember(Name = "omitted_images")]
+    public int omitted_images { get; set; }
 
     [DataMember(Name = "sticky")]
     public int sticky { get; set; }
@@ -40,8 +42,8 @@ internal sealed class EightKunPost {
     [DataMember(Name = "locked")]
     public int locked { get; set; }
 
-    //[DataMember(Name = "cyclical")]
-    //public int cyclical { get; set; }
+    [DataMember(Name = "cyclical")]
+    public int cyclical { get; set; }
 
     [DataMember(Name = "bumplocked")]
     public int bumplocked { get; set; }
@@ -52,8 +54,8 @@ internal sealed class EightKunPost {
     [DataMember(Name = "id")]
     public string? id { get; set; }
 
-    //[DataMember(Name = "tx_link")]
-    //public bool tx_link { get; set; }
+    [DataMember(Name = "tx_link")]
+    public bool tx_link { get; set; }
 
     [DataMember(Name = "tn_h")]
     public int tn_h { get; set; }
@@ -88,8 +90,8 @@ internal sealed class EightKunPost {
     [DataMember(Name = "md5")]
     public string? md5 { get; set; }
 
-    //[DataMember(Name = "resto")]
-    //public int resto { get; set; }
+    [DataMember(Name = "resto")]
+    public int resto { get; set; }
 
     [DataMember(Name = "extra_files")]
     public EightKunFile[]? extra_files { get; set; }
@@ -114,6 +116,26 @@ internal sealed class EightKunPost {
 
     [IgnoreDataMember]
     public string CleanedMessage => CleanMessage(com);
+
+    [IgnoreDataMember]
+    public ulong[]? RespondsTo {
+        get {
+            if (com.IsNullEmptyWhitespace()) {
+                return null;
+            }
+
+            var Matches = RepliesRegex.Matches(com);
+            if (Matches.Count < 1) {
+                return null;
+            }
+
+            return Matches
+                .Cast<Match>()
+                .Select(x => x.Value[(x.Value.LastIndexOf('#') + 1)..^1])
+                .Select(ulong.Parse)
+                .ToArray();
+        }
+    }
 
     [OnDeserialized]
     void Deserialized(StreamingContext ctx) {
