@@ -54,6 +54,27 @@ internal sealed class U18ChanPost : IEquatable<U18ChanPost> {
     [MemberNotNullWhen(true, nameof(Tags))]
     public bool HasTags => Tags?.Length > 0;
 
+    [IgnoreDataMember]
+    public ulong[]? RespondsTo {
+        get {
+            if (MessageBody.IsNullEmptyWhitespace()) {
+                return null;
+            }
+
+            var Matches = Parsers.Helpers.ParsersShared.RepliesRegex.Matches(MessageBody);
+            if (Matches.Count < 1) {
+                return null;
+            }
+
+            return Matches
+                .Cast<System.Text.RegularExpressions.Match>()
+                .Select(x => x.Value[8..^1])
+                .Select(ulong.Parse)
+                .Distinct()
+                .ToArray();
+        }
+    }
+
     public U18ChanPost(HtmlElementNode node, bool firstPost) {
         // First post node
         if (firstPost) {
