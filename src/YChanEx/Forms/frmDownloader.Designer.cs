@@ -81,9 +81,9 @@
             this.lbNumberOfFiles.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lbNumberOfFiles.Location = new System.Drawing.Point(12, 248);
             this.lbNumberOfFiles.Name = "lbNumberOfFiles";
-            this.lbNumberOfFiles.Size = new System.Drawing.Size(134, 17);
+            this.lbNumberOfFiles.Size = new System.Drawing.Size(173, 17);
             this.lbNumberOfFiles.TabIndex = 1;
-            this.lbNumberOfFiles.Text = "number of files:  0 / 0";
+            this.lbNumberOfFiles.Text = "number of files:  0 / 0 (~0 B)";
             this.ttDownloader.SetToolTip(this.lbNumberOfFiles, "The total number of files in the thread (scanned) and estimated total size");
             // 
             // lbTimeToRescan

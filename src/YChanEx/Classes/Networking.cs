@@ -48,7 +48,7 @@ internal static class Networking {
     }
 
     public static async Task<HttpResponseMessage> GetResponseAsync(HttpRequestMessage request, HttpClient downloadClient, CancellationToken token) {
-        HttpResponseMessage Response;
+        HttpResponseMessage? Response = null;
         int Retries = 0;
 
         while (true) {
@@ -69,13 +69,17 @@ internal static class Networking {
 #endif // Auto-redirect, for 308+ on framework.
 
                     if ((int)Response.StatusCode > 499 && (++Retries) < 5) {
+                        RequestMessage.ResetRequest(request);
+                        Response.Dispose();
                         continue;
                     }
 
+                    Response.Dispose();
                     return null;
                 }
             }
             catch {
+                Response?.Dispose();
                 return null;
             }
 

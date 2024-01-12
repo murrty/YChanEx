@@ -675,8 +675,10 @@ public partial class frmDownloader : Form {
                     case ThreadStatus.ThreadNotModified: {
                         lbNotModified.Visible = ThreadInfo.CurrentActivity == ThreadStatus.ThreadNotModified;
                         MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadInfo.CurrentActivity);
-                        //ThreadInfo.CountdownToNextScan = 10;
                         ThreadInfo.CountdownToNextScan = (ThreadInfo.Chan == ChanType.u18chan ? (60 * 5) : Downloads.ScannerDelay) - 1;
+                        if (Program.DebugMode) {
+                            ThreadInfo.CountdownToNextScan = 10;
+                        }
                         lbScanTimer.Text = "soon (tm)";
                         ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
                         tmrScan.Start();
@@ -686,6 +688,9 @@ public partial class frmDownloader : Form {
                         lbScanTimer.Text = "Bad download";
                         MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadInfo.CurrentActivity);
                         ThreadInfo.CountdownToNextScan = Downloads.ScannerDelay - 1;
+                        if (Program.DebugMode) {
+                            ThreadInfo.CountdownToNextScan = 10;
+                        }
                         ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
                         tmrScan.Start();
                     } break;
@@ -994,7 +999,7 @@ public partial class frmDownloader : Form {
         return Response;
     }
     private async Task<HttpResponseMessage?> TryGetResponseAsync(HttpRequestMessage request, CancellationToken token) {
-        HttpResponseMessage Response;
+        HttpResponseMessage? Response = null;
         int Retries = 0;
         while (true) {
             try {
@@ -1015,14 +1020,17 @@ public partial class frmDownloader : Form {
 
                     if ((int)Response.StatusCode > 499 && (++Retries) < 5) {
                         RequestMessage.ResetRequest(request);
+                        Response.Dispose();
                         continue;
                     }
 
                     ThreadInfo.StatusCode = Response.StatusCode;
+                    Response.Dispose();
                     return null;
                 }
             }
             catch {
+                Response?.Dispose();
                 return null;
             }
 
@@ -1495,7 +1503,7 @@ public partial class frmDownloader : Form {
     }
 
     private void Register4chanThread() {
-        this.DownloadThread = new Thread(() => {
+        this.DownloadThread = new Thread(async () => {
             try {
                 // Check the thread board and id for null value
                 // Can't really parse the API without them.
@@ -1526,11 +1534,11 @@ public partial class frmDownloader : Form {
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    //using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token)
-                    //    .ConfigureAwait(false);
-                    var ResponseTask = TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
-                    ResponseTask.Wait();
-                    using var Response = ResponseTask.Result;
+                    using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token)
+                        .ConfigureAwait(false);
+                    //var ResponseTask = TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
+                    //ResponseTask.Wait();
+                    //using var Response = ResponseTask.Result;
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the response is null, it's a bad result; break the thread.
@@ -1548,11 +1556,11 @@ public partial class frmDownloader : Form {
                     }
 
                     // Get the json.
-                    //string CurrentJson = await GetStringAsync(Response, CancellationToken.Token)
-                    //    .ConfigureAwait(false);
-                    var JsonTask = GetStringAsync(Response, CancellationToken.Token);
-                    JsonTask.Wait();
-                    string CurrentJson = JsonTask.Result;
+                    string CurrentJson = await GetStringAsync(Response, CancellationToken.Token)
+                        .ConfigureAwait(false);
+                    //var JsonTask = GetStringAsync(Response, CancellationToken.Token);
+                    //JsonTask.Wait();
+                    //string CurrentJson = JsonTask.Result;
 
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
@@ -1607,11 +1615,11 @@ public partial class frmDownloader : Form {
                     PrepareDownload();
 
                     // Download files.
-                    //await DownloadFilesAsync(CancellationToken.Token)
-                    //    .ConfigureAwait(false);
-                    var DownloadTask = DownloadFilesAsync(CancellationToken.Token);
-                    DownloadTask.Wait();
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    await DownloadFilesAsync(CancellationToken.Token)
+                        .ConfigureAwait(false);
+                    //var DownloadTask = DownloadFilesAsync(CancellationToken.Token);
+                    //DownloadTask.Wait();
+                    //CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the thread is aborted, just break the loop -- its already managed.
                     if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
@@ -1641,7 +1649,7 @@ public partial class frmDownloader : Form {
             catch (ThreadAbortException) { }
             catch (TaskCanceledException) { }
             catch (OperationCanceledException) { }
-            this.Invoke(() => Log.Write("Exiting thread " + ThreadInfo.CurrentActivity));
+            Log.Write("Exiting thread " + ThreadInfo.CurrentActivity);
         }) {
             Name = $"4chan thread {ThreadInfo.Data.Board}/{ThreadInfo.Data.Id}"
         };
@@ -1805,7 +1813,7 @@ public partial class frmDownloader : Form {
             catch (ThreadAbortException) { }
             catch (TaskCanceledException) { }
             catch (OperationCanceledException) { }
-            this.Invoke(() => Log.Write("Exiting thread " + ThreadInfo.CurrentActivity));
+            Log.Write("Exiting thread " + ThreadInfo.CurrentActivity);
         }) {
             Name = $"7chan thread {ThreadInfo.Data.Board}/{ThreadInfo.Data.Id}"
         };
@@ -1987,7 +1995,7 @@ public partial class frmDownloader : Form {
             catch (ThreadAbortException) { }
             catch (TaskCanceledException) { }
             catch (OperationCanceledException) { }
-            this.Invoke(() => Log.Write("Exiting thread " + ThreadInfo.CurrentActivity));
+            Log.Write("Exiting thread " + ThreadInfo.CurrentActivity);
         }) {
             Name = $"8chan thread {ThreadInfo.Data.Board}/{ThreadInfo.Data.Id}"
         };
@@ -2156,7 +2164,7 @@ public partial class frmDownloader : Form {
             catch (ThreadAbortException) { }
             catch (TaskCanceledException) { }
             catch (OperationCanceledException) { }
-            this.Invoke(() => Log.Write("Exiting thread " + ThreadInfo.CurrentActivity));
+            Log.Write("Exiting thread " + ThreadInfo.CurrentActivity);
         }) {
             Name = $"8kun thread {ThreadInfo.Data.Board}/{ThreadInfo.Data.Id}"
         };
@@ -2316,7 +2324,7 @@ public partial class frmDownloader : Form {
             catch (ThreadAbortException) { }
             catch (TaskCanceledException) { }
             catch (OperationCanceledException) { }
-            this.Invoke(() => Log.Write("Exiting thread " + ThreadInfo.CurrentActivity));
+            Log.Write("Exiting thread " + ThreadInfo.CurrentActivity);
         }) {
             Name = $"fchan thread {ThreadInfo.Data.Board}/{ThreadInfo.Data.Id}"
         };
@@ -2476,7 +2484,7 @@ public partial class frmDownloader : Form {
             catch (ThreadAbortException) { }
             catch (TaskCanceledException) { }
             catch (OperationCanceledException) { }
-            this.Invoke(() => Log.Write("Exiting thread " + ThreadInfo.CurrentActivity));
+            Log.Write("Exiting thread " + ThreadInfo.CurrentActivity);
         }) {
             Name = $"u18chan thread {ThreadInfo.Data.Board}/{ThreadInfo.Data.Id}"
         };
