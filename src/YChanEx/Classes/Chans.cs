@@ -291,27 +291,27 @@ internal static class Chans {
                     return Thread.Data.Board.ToLower() switch {
                         #region 7chan & Related services
                         "7ch" => "Site Discussion",
-                        "ch7" => "Channel7 & Radio 7",
+                        "ch7" => "Channel7 & Radio7",
                         "irc" => "Internet Relay Circlejerk",
                         #endregion
 
                         #region VIP
-                        "777" => "gardening",
                         "VIP" => "Very Important Posters",
                         "civ" => "Civics",
-                        "vip6" => "IPv6 for VIP",
+                        //"vip6" => "IPv6 for VIP",
                         #endregion
 
                         #region Premium Content
+                        "777" => "weed",
                         "b" => "Random",
                         "banner" => "Banners",
                         "f" => "Flash",
-                        "gfc" => "Grahpics Manipulation",
+                        "gfx" => "Grahpics Manipulation",
                         "fail" => "Failure",
                         #endregion
 
                         #region SFW
-                        "class" => "The Finer Things",
+                        //"class" => "The Finer Things",
                         "co" => "Comics and Cartoons",
                         "eh" => "Particularly uninteresting conversation",
                         "fit" => "Fitness & Health",
@@ -329,6 +329,7 @@ internal static class Chans {
 
                         #region General
                         "a" => "Anime & Manga",
+                        "ai" => "AI-Generated Artwork & Text",
                         "grim" => "Cold, Grim & Miserable",
                         "hi" => "History and Culture",
                         "me" => "Film, Music & Television",
@@ -354,7 +355,7 @@ internal static class Chans {
                         "sm" => "Shotacon",
                         "ss" => "Straight Shotacon",
                         "unf" => "Uniforms",
-                        "v" => "The Vineyard",
+                        //"v" => "The Vineyard",
                         #endregion
 
                         _ => $"{Thread.Data.Board} (Unknown board)"
