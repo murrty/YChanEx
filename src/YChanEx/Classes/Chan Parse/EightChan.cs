@@ -9,7 +9,8 @@ internal static class EightChan {
     public static Dictionary<string, EightChanBoard> BoardSubtitles = [];
 
     public static async Task<EightChanBoard?> GetBoardAsync(string boardId, HttpClient DownloadClient, CancellationToken token) {
-        string CacheFile = Path.Combine(Downloads.DownloadPath, "8chan", "boardcache.json");
+        string CacheDir = Path.Combine(Downloads.DownloadPath, "8chan");
+        string CacheFile = Path.Combine(CacheDir, "boardcache.json");
         if (BoardSubtitles.Count < 1) {
             if (File.Exists(CacheFile)) {
                 try {
@@ -46,9 +47,10 @@ internal static class EightChan {
             return null;
         }
 
+        Directory.CreateDirectory(CacheDir);
+        File.WriteAllText(CacheFile, BoardSubtitles.JsonSerialize());
         Board.BoardId = boardId;
         BoardSubtitles[boardId] = Board;
-        File.WriteAllText(CacheFile, BoardSubtitles.JsonSerialize());
         return Board;
     }
 

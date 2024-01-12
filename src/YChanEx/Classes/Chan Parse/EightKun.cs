@@ -45,7 +45,8 @@ internal static class EightKun {
     }
 
     public static async Task<EightKunBoard?> GetBoardAsync(ThreadInfo Thread, HttpClient DownloadClient, CancellationToken token) {
-        string CacheFile = Path.Combine(Downloads.DownloadPath, "8kun", "boardcache.json");
+        string CacheDir = Path.Combine(Downloads.DownloadPath, "8kun");
+        string CacheFile = Path.Combine(CacheDir, "boardcache.json");
         if (File.Exists(CacheFile)) {
             try {
                 var Deserialized = File.ReadAllText(CacheFile).JsonDeserialize<EightKunBoard[]?>()!;
@@ -79,6 +80,7 @@ internal static class EightKun {
         }
 
         NewBoards = FilterBoards(NewBoards);
+        Directory.CreateDirectory(CacheDir);
         File.WriteAllText(CacheFile, NewBoards.JsonSerialize());
         Boards = NewBoards;
         return GetBoard(Thread);
