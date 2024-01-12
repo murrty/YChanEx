@@ -137,18 +137,8 @@ internal static class U18Chan {
                 node.Children.RemoveAt(node.Children.Count - 1);
             }
             for (int i = 0; i < node.Children.Count; i++) {
-                if (node.Children[i] is HtmlElementNode enode) {
-                    if (enode.TagName.Equals("a", StringComparison.OrdinalIgnoreCase)) {
-                        enode.Attributes.Remove("onclick");
-                        enode.Attributes.Remove("onmouseover");
-                        enode.Attributes.Remove("onmouseout");
-                        enode.Attributes.Remove("class");
-                        var newHref = enode.Attributes["href"]?.Value;
-                        if (newHref != null) {
-                            enode.Attributes["href"]!.Value = "#p" + newHref[(newHref.LastIndexOf('#') + 1)..];
-                            enode.Attributes.Add(new HtmlAttribute("class", "quotelink"));
-                        }
-                    }
+                if (node.Children[i] is HtmlElementNode element) {
+                    CleanMessageNode(element);
                 }
             }
             if (!node.InnerHtml.IsNullEmptyWhitespace()) {
@@ -156,5 +146,26 @@ internal static class U18Chan {
             }
         }
         return null;
+    }
+    private static void CleanMessageNode(HtmlElementNode node) {
+        if (node.TagName.Equals("a", StringComparison.OrdinalIgnoreCase)) {
+            node.Attributes.Remove("onclick");
+            node.Attributes.Remove("onmouseover");
+            node.Attributes.Remove("onmouseout");
+            node.Attributes.Remove("class");
+            var newHref = node.Attributes["href"]?.Value;
+            if (newHref != null) {
+                node.Attributes["href"]!.Value = "#p" + newHref[(newHref.LastIndexOf('#') + 1)..];
+                node.Attributes.Add(new HtmlAttribute("class", "quotelink"));
+            }
+        }
+
+        if (node.Children.Count > 0) {
+            for (int i = 0; i < node.Children.Count; i++) {
+                if (node.Children[i] is HtmlElementNode element) {
+                    CleanMessageNode(element);
+                }
+            }
+        }
     }
 }

@@ -98,16 +98,8 @@ internal static class FChan {
     internal static string? GetMessage(HtmlElementNode? node) {
         if (node?.Children.Count > 0) {
             for (int i = 0; i < node.Children.Count; i++) {
-                if (node.Children[i] is HtmlElementNode enode) {
-                    if (enode.TagName.Equals("a", StringComparison.OrdinalIgnoreCase)) {
-                        enode.Attributes.Remove("class");
-                        enode.Attributes.Remove("onclick");
-                        var newHref = enode.Attributes["href"]?.Value;
-                        if (newHref != null) {
-                            enode.Attributes["href"]!.Value = "#p" + newHref[(newHref.LastIndexOf('#') + 1)..];
-                            enode.Attributes.Add(new HtmlAttribute("class", "quotelink"));
-                        }
-                    }
+                if (node.Children[i] is HtmlElementNode element) {
+                    CleanMessageNode(element);
                 }
             }
             if (!node.InnerHtml.IsNullEmptyWhitespace()) {
@@ -115,5 +107,24 @@ internal static class FChan {
             }
         }
         return null;
+    }
+    private static void CleanMessageNode(HtmlElementNode node) {
+        if (node.TagName.Equals("a", StringComparison.OrdinalIgnoreCase)) {
+            node.Attributes.Remove("class");
+            node.Attributes.Remove("onclick");
+            var newHref = node.Attributes["href"]?.Value;
+            if (newHref != null) {
+                node.Attributes["href"]!.Value = "#p" + newHref[(newHref.LastIndexOf('#') + 1)..];
+                node.Attributes.Add(new HtmlAttribute("class", "quotelink"));
+            }
+        }
+
+        if (node.Children.Count > 0) {
+            for (int i = 0; i < node.Children.Count; i++) {
+                if (node.Children[i] is HtmlElementNode element) {
+                    CleanMessageNode(element);
+                }
+            }
+        }
     }
 }
