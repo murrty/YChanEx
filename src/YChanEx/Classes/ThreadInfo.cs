@@ -152,29 +152,17 @@ public sealed class ThreadData {
     /// The list of post IDs that have been parsed.
     /// </summary>
     [DataMember]
-    public List<string> ParsedPostIds { get; set; } = [];
+    public List<ulong> ParsedPostIds { get; set; } = [];
     /// <summary>
     /// The posts in the thread.
     /// </summary>
     [DataMember]
     public List<GenericPost> ThreadPosts { get; set; } = [];
     /// <summary>
-    /// The list of original file names in a thread.
+    /// Dictionary of duplicate names.
     /// </summary>
     [DataMember]
-    public List<string> OriginalFileNames { get; set; } = [];
-    /// <summary>
-    /// The list of files that are duplicated in a thread.
-    /// <para>If a file exists with the name, it'll be added here.</para>
-    /// </summary>
-    [DataMember]
-    public List<string> FileNamesDupes { get; set; } = [];
-    /// <summary>
-    /// The list of the count of duped files.
-    /// <para>If a file exists with the name, the amount that appears will be added here.</para>
-    /// </summary>
-    [DataMember]
-    public List<int> FileNamesDupesCount { get; set; } = [];
+    public Dictionary<string, int> DuplicateNames { get; set; } = [];
 
     /// <summary>
     /// Counts the images in the thread when they were added.
