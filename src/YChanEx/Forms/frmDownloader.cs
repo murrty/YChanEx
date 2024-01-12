@@ -259,7 +259,6 @@ public partial class frmDownloader : Form {
     private void btnClose_Click(object sender, EventArgs e) {
         this.Hide();
     }
-
     private void mOpenThreadDownloadFolder_Click(object sender, EventArgs e) {
         if (Directory.Exists(ThreadInfo.Data.DownloadPath)) {
             Process.Start(ThreadInfo.Data.DownloadPath);
@@ -298,7 +297,6 @@ public partial class frmDownloader : Form {
             }
         }
     }
-
     private void mOpenImages_Click(object sender, EventArgs e) {
         for (int Post = 0; Post < lvImages.SelectedIndices.Count; Post++) {
             if (lvImages.Items[Post].Tag is not GenericFile PostFile) {
@@ -330,7 +328,6 @@ public partial class frmDownloader : Form {
             RemoveFileFromThread();
         }
     }
-
     private void mCopyPostIDs_Click(object sender, EventArgs e) {
         StringBuilder ClipboardBuffer = new();
         for (int Post = 0; Post < lvImages.SelectedIndices.Count; Post++) {
@@ -401,7 +398,6 @@ public partial class frmDownloader : Form {
         }
         Clipboard.SetText(ClipboardBuffer.ToString());
     }
-
     private void mShowInExplorer_Click(object sender, EventArgs e) {
         for (int Post = 0; Post < lvImages.SelectedIndices.Count; Post++) {
             if (lvImages.Items[Post].Tag is not GenericFile PostFile) {
@@ -410,7 +406,6 @@ public partial class frmDownloader : Form {
             Process.Start("explorer.exe", "/select, \"" + ThreadInfo.Data.DownloadPath + "\\" + PostFile.SavedFile + "\"");
         }
     }
-
     private void cmPosts_Popup(object sender, EventArgs e) {
         if (lvImages.SelectedIndices.Count > 0) {
             mOpenImages.Enabled = true;
@@ -439,7 +434,6 @@ public partial class frmDownloader : Form {
             mShowInExplorer.Enabled = false;
         }
     }
-
     private void btnPauseTimer_Click(object sender, EventArgs e) {
         if (tmrScan.Enabled) {
             tmrScan.Stop();

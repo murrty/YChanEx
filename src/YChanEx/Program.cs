@@ -1,15 +1,15 @@
-﻿namespace YChanEx;
-
+﻿#nullable enable
+namespace YChanEx;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Security.Principal;
 using System.Threading;
 using System.Windows.Forms;
 using murrty.classes;
-
 static class Program {
     #region Version Information
-    public static readonly Version CurrentVersion = new(3, 0, 0);
+    public static readonly Version CurrentVersion = new(3, 0, 0, 1);
     /// <summary>
     /// The string to the Github page.
     /// </summary>
@@ -20,22 +20,22 @@ static class Program {
     /// <summary>
     /// Gets whether the program is running in debug mode.
     /// </summary>
-    public static bool DebugMode { get; private set; } = false;
+    public static bool DebugMode { get; }
 
     /// <summary>
     /// Gets whether the program is running as an Administrator.
     /// </summary>
-    public static bool IsAdmin { get; private set; } = false;
+    public static bool IsAdmin { get; private set; }
 
     /// <summary>
     /// Gets or sets the exit code of the application.
     /// </summary>
-    public static int ExitCode { get; set; } = 0;
+    public static int ExitCode { get; set; }
 
     /// <summary>
     /// The mutex of the program instance.
     /// </summary>
-    private static Mutex Instance;
+    private static Mutex? Instance;
     /// <summary>
     /// The GUID of the program.
     /// </summary>
@@ -61,14 +61,22 @@ static class Program {
     /// </summary>
     public static bool SettingsOpen { get; set; }
 
-    [STAThread]
-    static int Main(string[] args) {
-        Console.WriteLine("Welcome to the amazing world of: Loading application.");
-        IsAdmin = new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
+    static Program() {
+        if (Environment.CurrentDirectory != ApplicationDirectory) {
+            Environment.CurrentDirectory = ApplicationDirectory;
+        }
 
 #if DEBUG
         DebugMode = true;
 #endif
+
+        SavedThreadsPath = $"{Environment.CurrentDirectory}{System.IO.Path.DirectorySeparatorChar}SavedThreads";
+    }
+
+    [STAThread]
+    static int Main(string[] args) {
+        Console.WriteLine("Welcome to the amazing world of: Loading application.");
+        IsAdmin = new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
         if (!DebugMode && !(Instance = new(true, ProgramGUID)).WaitOne(TimeSpan.Zero, true)) {
             ExitCode = 1152; // Cannot start more than one instance of the specified program.
 
@@ -101,6 +109,7 @@ static class Program {
                     CopyData.SendMessage(hwnd, CopyData.WM_SHOWFORM, IntPtr.Zero, IntPtr.Zero);
                 }
             }
+
             return ExitCode;
         }
 
@@ -109,11 +118,6 @@ static class Program {
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
         Log.InitializeLogging();
-
-        if (Environment.CurrentDirectory != ApplicationDirectory) {
-            Environment.CurrentDirectory = ApplicationDirectory;
-        }
-        SavedThreadsPath = $"{Environment.CurrentDirectory}{System.IO.Path.DirectorySeparatorChar}SavedThreads";
 
         Arguments.ParseArguments(args);
 
@@ -160,9 +164,7 @@ static class Program {
         DownloadHistory.Save();
 
         // Release mutex after the form closes.
-        if (!DebugMode) {
-            Instance.ReleaseMutex();
-        }
+        Instance?.ReleaseMutex();
         Console.WriteLine("It is now safe to turn off your application.");
         return ExitCode;
     }

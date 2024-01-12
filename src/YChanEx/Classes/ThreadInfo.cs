@@ -1,10 +1,8 @@
 ﻿namespace YChanEx;
-
 using System.Net;
 using System.Runtime.Serialization;
 using System.Text;
 using YChanEx.Posts;
-
 /// <summary>
 /// Skeleton of thread downloads, used as a maintainer of thread information such as thread URL, ID, board, status.
 /// <para>This contains all private information of the thread to reduce clutter on the main class.</para>

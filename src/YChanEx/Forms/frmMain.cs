@@ -1,4 +1,5 @@
-﻿namespace YChanEx;
+﻿#nullable enable
+namespace YChanEx;
 using System.Threading;
 using System.Windows.Forms;
 public partial class frmMain : Form, IMainFom {
@@ -6,8 +7,8 @@ public partial class frmMain : Form, IMainFom {
     private readonly List<frmDownloader> Threads = [];  // The list of Thread download forms
     private readonly List<string> ThreadURLs = [];      // The list of Thread URLs
 
-    private Thread UpdateCheck;
-    private Thread ThreadLoader;    // The Thread for reloading saved threads
+    private Thread? UpdateCheck;
+    private Thread? ThreadLoader;   // The Thread for reloading saved threads
 
     private bool Icon404WasShown;   // Determines if the 404 icon has been shown on the tray.
     private bool TrayExit;          // Whether the tray option to exit was used.
@@ -512,32 +513,43 @@ public partial class frmMain : Form, IMainFom {
 #endif
     }
     private void frmMain_Load(object sender, EventArgs e) {
-        if (General.ShowTrayIcon)
+        if (General.ShowTrayIcon) {
             niTray.Visible = true;
+        }
         niTray.ContextMenu = cmTray;
 
-        if (Config.ValidSize(Saved.MainFormSize))
+        if (Config.ValidSize(Saved.MainFormSize)) {
             this.Size = Saved.MainFormSize;
-        if (Config.ValidPoint(Saved.MainFormLocation))
+        }
+        if (Config.ValidPoint(Saved.MainFormLocation)) {
             this.Location = Saved.MainFormLocation;
-        if (!string.IsNullOrEmpty(Saved.MainFormColumnSizes))
+        }
+        if (!string.IsNullOrEmpty(Saved.MainFormColumnSizes)) {
             lvThreads.SetColumnWidths(Saved.MainFormColumnSizes);
+        }
 
         if (DownloadHistory.Count > 0) {
-            for (int i = 0; i < DownloadHistory.Data.FourChanHistory.Count; i++)
+            for (int i = 0; i < DownloadHistory.Data.FourChanHistory.Count; i++) {
                 tvHistory.Nodes[0].Nodes.Add(DownloadHistory.Data.FourChanHistory[i], DownloadHistory.Data.FourChanHistory[i]);
-            for (int i = 0; i < DownloadHistory.Data.FourTwentyChanHistory.Count; i++)
+            }
+            for (int i = 0; i < DownloadHistory.Data.FourTwentyChanHistory.Count; i++) {
                 tvHistory.Nodes[1].Nodes.Add(DownloadHistory.Data.FourTwentyChanHistory[i], DownloadHistory.Data.FourTwentyChanHistory[i]);
-            for (int i = 0; i < DownloadHistory.Data.SevenChanHistory.Count; i++)
+            }
+            for (int i = 0; i < DownloadHistory.Data.SevenChanHistory.Count; i++) {
                 tvHistory.Nodes[2].Nodes.Add(DownloadHistory.Data.SevenChanHistory[i], DownloadHistory.Data.SevenChanHistory[i]);
-            for (int i = 0; i < DownloadHistory.Data.EightChanHistory.Count; i++)
+            }
+            for (int i = 0; i < DownloadHistory.Data.EightChanHistory.Count; i++) {
                 tvHistory.Nodes[3].Nodes.Add(DownloadHistory.Data.EightChanHistory[i], DownloadHistory.Data.EightChanHistory[i]);
-            for (int i = 0; i < DownloadHistory.Data.EightKunHistory.Count; i++)
+            }
+            for (int i = 0; i < DownloadHistory.Data.EightKunHistory.Count; i++) {
                 tvHistory.Nodes[4].Nodes.Add(DownloadHistory.Data.EightKunHistory[i], DownloadHistory.Data.EightKunHistory[i]);
-            for (int i = 0; i < DownloadHistory.Data.FchanHistory.Count; i++)
+            }
+            for (int i = 0; i < DownloadHistory.Data.FchanHistory.Count; i++) {
                 tvHistory.Nodes[5].Nodes.Add(DownloadHistory.Data.FchanHistory[i], DownloadHistory.Data.FchanHistory[i]);
-            for (int i = 0; i < DownloadHistory.Data.u18chanHistory.Count; i++)
+            }
+            for (int i = 0; i < DownloadHistory.Data.u18chanHistory.Count; i++) {
                 tvHistory.Nodes[6].Nodes.Add(DownloadHistory.Data.u18chanHistory[i], DownloadHistory.Data.u18chanHistory[i]);
+            }
         }
 
         chkCreateThreadInTheBackground.Checked = Saved.CreateThreadInTheBackground;
