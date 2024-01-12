@@ -92,7 +92,7 @@ public partial class frmDownloader : Form {
             }
         }
 
-        // 100 limit
+        // 100 connection limit
         ServicePointManager.DefaultConnectionLimit = 100;
 
         // Try to load TLS 1.3 (Win 11+)
@@ -1131,8 +1131,7 @@ public partial class frmDownloader : Form {
                         if (ThreadInfo.Chan == ChanType.EightChan) {
                             FileRequest.Headers.Add("Referer", ThreadInfo.Data.Url);
                         }
-                        using var Response = await TryGetResponseAsync(FileRequest, token)
-                            .ConfigureAwait(false);
+                        using var Response = await TryGetResponseAsync(FileRequest, token);
 
                         if (Response == null) {
                             if (ThreadInfo.StatusCode == HttpStatusCode.NotFound) {
@@ -1145,8 +1144,7 @@ public partial class frmDownloader : Form {
                             }
                         }
                         else {
-                            await GetFile(Response, FileDownloadPath, token)
-                                .ConfigureAwait(false);
+                            await GetFile(Response, FileDownloadPath, token);
 
                             ThreadInfo.Data.DownloadedImagesCount++;
                             PostFile.Status = FileDownloadStatus.Downloaded;
@@ -1173,11 +1171,9 @@ public partial class frmDownloader : Form {
                         if (ThreadInfo.Chan == ChanType.EightChan) {
                             FileRequest.Headers.Add("Referer", ThreadInfo.Data.Url);
                         }
-                        using var Response = await TryGetResponseAsync(FileRequest, token)
-                            .ConfigureAwait(false);
+                        using var Response = await TryGetResponseAsync(FileRequest, token);
                         if (Response != null) {
-                            await GetFile(Response, ThumbFileDownloadPath, token)
-                                .ConfigureAwait(false);
+                            await GetFile(Response, ThumbFileDownloadPath, token);
                         }
                     }
 
@@ -1534,11 +1530,7 @@ public partial class frmDownloader : Form {
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token)
-                        .ConfigureAwait(false);
-                    //var ResponseTask = TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
-                    //ResponseTask.Wait();
-                    //using var Response = ResponseTask.Result;
+                    using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the response is null, it's a bad result; break the thread.
@@ -1556,11 +1548,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Get the json.
-                    string CurrentJson = await GetStringAsync(Response, CancellationToken.Token)
-                        .ConfigureAwait(false);
-                    //var JsonTask = GetStringAsync(Response, CancellationToken.Token);
-                    //JsonTask.Wait();
-                    //string CurrentJson = JsonTask.Result;
+                    string CurrentJson = await GetStringAsync(Response, CancellationToken.Token);
 
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
@@ -1615,11 +1603,8 @@ public partial class frmDownloader : Form {
                     PrepareDownload();
 
                     // Download files.
-                    await DownloadFilesAsync(CancellationToken.Token)
-                        .ConfigureAwait(false);
-                    //var DownloadTask = DownloadFilesAsync(CancellationToken.Token);
-                    //DownloadTask.Wait();
-                    //CancellationToken.Token.ThrowIfCancellationRequested();
+                    await DownloadFilesAsync(CancellationToken.Token);
+                    CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the thread is aborted, just break the loop -- its already managed.
                     if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
@@ -1655,7 +1640,7 @@ public partial class frmDownloader : Form {
         };
     }
     private void Register7chanThread() {
-        this.DownloadThread = new Thread(() => {
+        this.DownloadThread = new Thread(async () => {
             try {
                 // Check the thread board and id for null value
                 // Can't really parse the API without them.
@@ -1685,11 +1670,7 @@ public partial class frmDownloader : Form {
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    //using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token)
-                    //    .ConfigureAwait(false);
-                    var ResponseTask = TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
-                    ResponseTask.Wait();
-                    using var Response = ResponseTask.Result;
+                    using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the response is null, it's a bad result; break the thread.
@@ -1707,11 +1688,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Get the json.
-                    //string CurrentJson = await GetStringAsync(Response, CancellationToken.Token)
-                    //    .ConfigureAwait(false);
-                    var JsonTask = GetStringAsync(Response, CancellationToken.Token);
-                    JsonTask.Wait();
-                    string CurrentJson = JsonTask.Result;
+                    string CurrentJson = await GetStringAsync(Response, CancellationToken.Token);
 
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
@@ -1779,10 +1756,7 @@ public partial class frmDownloader : Form {
                     PrepareDownload();
 
                     // Download files.
-                    //await DownloadFilesAsync(CancellationToken.Token)
-                    //    .ConfigureAwait(false);
-                    var DownloadTask = DownloadFilesAsync(CancellationToken.Token);
-                    DownloadTask.Wait();
+                    await DownloadFilesAsync(CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the thread is aborted, just break the loop -- its already managed.
@@ -1819,7 +1793,7 @@ public partial class frmDownloader : Form {
         };
     }
     private void Register8chanThread() {
-        this.DownloadThread = new Thread(() => {
+        this.DownloadThread = new Thread(async () => {
             try {
                 // Check the thread board and id for null value
                 // Can't really parse the API without them.
@@ -1834,9 +1808,7 @@ public partial class frmDownloader : Form {
 
                 // Retrieve the board data before the loop.
                 if (!ThreadInfo.ThreadReloaded) {
-                    var BoardTask = EightChan.GetBoardAsync(ThreadInfo.Data.Board, DownloadClient, CancellationToken.Token);
-                    BoardTask.Wait();
-                    var Board = BoardTask.Result;
+                    var Board = await EightChan.GetBoardAsync(ThreadInfo.Data.Board, DownloadClient, CancellationToken.Token);
                     if (Board != null) {
                         ThreadInfo.Data.BoardName = Board.BoardName;
                         ThreadInfo.Data.BoardSubtitle = Board.BoardDescription;
@@ -1866,11 +1838,7 @@ public partial class frmDownloader : Form {
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    //using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token)
-                    //    .ConfigureAwait(false);
-                    var ResponseTask = TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
-                    ResponseTask.Wait();
-                    using var Response = ResponseTask.Result;
+                    using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the response is null, it's a bad result; break the thread.
@@ -1888,11 +1856,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Get the json.
-                    //string CurrentJson = await GetStringAsync(Response, CancellationToken.Token)
-                    //    .ConfigureAwait(false);
-                    var JsonTask = GetStringAsync(Response, CancellationToken.Token);
-                    JsonTask.Wait();
-                    string CurrentJson = JsonTask.Result;
+                    string CurrentJson = await GetStringAsync(Response, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // Serialize the json data into a class object.
@@ -1961,10 +1925,7 @@ public partial class frmDownloader : Form {
                     PrepareDownload();
 
                     // Download files.
-                    //await DownloadFilesAsync(CancellationToken.Token)
-                    //    .ConfigureAwait(false);
-                    var DownloadTask = DownloadFilesAsync(CancellationToken.Token);
-                    DownloadTask.Wait();
+                    await DownloadFilesAsync(CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the thread is aborted, just break the loop -- its already managed.
@@ -2002,7 +1963,7 @@ public partial class frmDownloader : Form {
     }
     // Needs: Help. Like psychological help. Unused currently, 8kun dead.
     private void Register8kunThread() {
-        this.DownloadThread = new Thread(() => {
+        this.DownloadThread = new Thread(async () => {
             try {
                 // Check the thread board and id for null value
                 // Can't really parse the API without them.
@@ -2014,9 +1975,7 @@ public partial class frmDownloader : Form {
 
                 // Retrieve the board data before the loop.
                 if (!ThreadInfo.ThreadReloaded) {
-                    var BoardTask = EightKun.GetBoardAsync(ThreadInfo, DownloadClient, CancellationToken.Token);
-                    BoardTask.Wait();
-                    var Board = BoardTask.Result;
+                    var Board = await EightKun.GetBoardAsync(ThreadInfo, DownloadClient, CancellationToken.Token);
                     if (Board != null) {
                         ThreadInfo.Data.BoardName = Board.title;
                         ThreadInfo.Data.BoardSubtitle = Board.subtitle;
@@ -2046,11 +2005,7 @@ public partial class frmDownloader : Form {
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    //using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token)
-                    //    .ConfigureAwait(false);
-                    var ResponseTask = TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
-                    ResponseTask.Wait();
-                    using var Response = ResponseTask.Result;
+                    using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the response is null, it's a bad result; break the thread.
@@ -2068,11 +2023,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Get the json.
-                    //string CurrentJson = await GetStringAsync(Response, CancellationToken.Token)
-                    //    .ConfigureAwait(false);
-                    var JsonTask = GetStringAsync(Response, CancellationToken.Token);
-                    JsonTask.Wait();
-                    string CurrentJson = JsonTask.Result;
+                    string CurrentJson = await GetStringAsync(Response, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // Serialize the json data into a class object.
@@ -2130,10 +2081,7 @@ public partial class frmDownloader : Form {
                     PrepareDownload();
 
                     // Download files.
-                    //await DownloadFilesAsync(CancellationToken.Token)
-                    //    .ConfigureAwait(false);
-                    var DownloadTask = DownloadFilesAsync(CancellationToken.Token);
-                    DownloadTask.Wait();
+                    await DownloadFilesAsync(CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the thread is aborted, just break the loop -- its already managed.
@@ -2170,7 +2118,7 @@ public partial class frmDownloader : Form {
         };
     }
     private void RegisterfchanThread() {
-        this.DownloadThread = new Thread(() => {
+        this.DownloadThread = new Thread(async () => {
             try {
                 // Check the thread board and id for null value
                 // Can't really parse the API without them.
@@ -2200,11 +2148,7 @@ public partial class frmDownloader : Form {
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    //using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token)
-                    //    .ConfigureAwait(false);
-                    var ResponseTask = TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
-                    ResponseTask.Wait();
-                    using var Response = ResponseTask.Result;
+                    using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
 
                     // If the response is null, it's a bad result; break the thread.
                     if (Response == null) {
@@ -2221,11 +2165,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Get the json.
-                    //string CurrentJson = await GetStringAsync(Response, CancellationToken.Token)
-                    //    .ConfigureAwait(false);
-                    var JsonTask = GetStringAsync(Response, CancellationToken.Token);
-                    JsonTask.Wait();
-                    string CurrentJson = JsonTask.Result;
+                    string CurrentJson = await GetStringAsync(Response, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // Serialize the json data into a class object.
@@ -2290,10 +2230,7 @@ public partial class frmDownloader : Form {
                     PrepareDownload();
 
                     // Download files.
-                    //await DownloadFilesAsync(CancellationToken.Token)
-                    //    .ConfigureAwait(false);
-                    var DownloadTask = DownloadFilesAsync(CancellationToken.Token);
-                    DownloadTask.Wait();
+                    await DownloadFilesAsync(CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the thread is aborted, just break the loop -- its already managed.
@@ -2330,7 +2267,7 @@ public partial class frmDownloader : Form {
         };
     }
     private void RegisterU18chanThread() {
-        this.DownloadThread = new Thread(() => {
+        this.DownloadThread = new Thread(async () => {
             try {
                 // Check the thread board and id for null value
                 // Can't really parse the API without them.
@@ -2360,11 +2297,7 @@ public partial class frmDownloader : Form {
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    //using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token)
-                    //    .ConfigureAwait(false);
-                    var ResponseTask = TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
-                    ResponseTask.Wait();
-                    using var Response = ResponseTask.Result;
+                    using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the response is null, it's a bad result; break the thread.
@@ -2382,11 +2315,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Get the json.
-                    //string CurrentJson = await GetStringAsync(Response, CancellationToken.Token)
-                    //    .ConfigureAwait(false);
-                    var JsonTask = GetStringAsync(Response, CancellationToken.Token);
-                    JsonTask.Wait();
-                    string CurrentJson = JsonTask.Result;
+                    string CurrentJson = await GetStringAsync(Response, CancellationToken.Token);
 
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
@@ -2450,10 +2379,7 @@ public partial class frmDownloader : Form {
                     PrepareDownload();
 
                     // Download files.
-                    //await DownloadFilesAsync(CancellationToken.Token)
-                    //    .ConfigureAwait(false);
-                    var DownloadTask = DownloadFilesAsync(CancellationToken.Token);
-                    DownloadTask.Wait();
+                    await DownloadFilesAsync(CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the thread is aborted, just break the loop -- its already managed.
