@@ -46,7 +46,7 @@ internal sealed class SevenChanPost : IEquatable<SevenChanPost> {
     public string? MessageBody { get; set; }
 
     // Can only contain 4 files in total
-    [DataMember(Name = "files")]
+    [DataMember(Name = "files")] // Can only contain 4 files in total
     public SevenChanFile[]? Files { get; set; }
 
     [DataMember(Name = "post_time")]
@@ -103,7 +103,7 @@ internal sealed class SevenChanPost : IEquatable<SevenChanPost> {
         var RefLinkNode = HeaderNode.Children.FirstOrDefault(RefLinkSelector) ??
             throw new ArgumentNullException("Could not find reflink.");
         this.PostTime = ConvertTimestampToDateTime(RefLinkNode.PrevNode!.Text);
-        this.PosterId = RefLinkNode.NextNode!.Text[4..];
+        this.PosterId = RefLinkNode.Text.StartsWith("no.", StringComparison.OrdinalIgnoreCase) ? RefLinkNode.Text[4..] : RefLinkNode.NextNode!.Text[4..];
 
         // Find the thumbnail(s)
         var ThumbnailNode = node.Children.FirstOrDefault(ThumbnailSelector);
