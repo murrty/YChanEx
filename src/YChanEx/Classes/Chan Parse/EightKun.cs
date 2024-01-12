@@ -80,9 +80,9 @@ internal static class EightKun {
         }
 
         NewBoards = FilterBoards(NewBoards);
+        Boards = NewBoards;
         Directory.CreateDirectory(CacheDir);
         File.WriteAllText(CacheFile, NewBoards.JsonSerialize());
-        Boards = NewBoards;
         return GetBoard(Thread);
     }
     private static EightKunBoard? GetBoard(ThreadInfo Thread) {

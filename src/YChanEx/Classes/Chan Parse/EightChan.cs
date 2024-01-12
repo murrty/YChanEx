@@ -47,10 +47,10 @@ internal static class EightChan {
             return null;
         }
 
-        Directory.CreateDirectory(CacheDir);
-        File.WriteAllText(CacheFile, BoardSubtitles.JsonSerialize());
         Board.BoardId = boardId;
         BoardSubtitles[boardId] = Board;
+        Directory.CreateDirectory(CacheDir);
+        File.WriteAllText(CacheFile, BoardSubtitles.JsonSerialize());
         return Board;
     }
 
