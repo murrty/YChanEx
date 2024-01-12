@@ -45,6 +45,21 @@ public sealed class GenericPost {
     [IgnoreDataMember]
     public bool MultiFilePost => PostFiles.Count > 1;
 
+    [IgnoreDataMember]
+    public long GetTotalSize {
+        get {
+            if (MultiFilePost) {
+                return PostFiles
+                    .Select(x => x.FileSize)
+                    .Sum();
+            }
+            else if (HasFiles) {
+                return PostFiles[0].FileSize;
+            }
+            return 0;
+        }
+    }
+
     private GenericPost() { }
 
     internal GenericPost(FourChanPost Post, ThreadInfo Thread) {

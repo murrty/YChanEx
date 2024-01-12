@@ -161,6 +161,11 @@ public sealed class ThreadData {
     /// </summary>
     [DataMember]
     public Dictionary<string, int> DuplicateNames { get; set; } = [];
+    /// <summary>
+    /// The estimated total size of the thread.
+    /// </summary>
+    [DataMember]
+    public long EstimatedSize { get; set; }
 
     /// <summary>
     /// Counts the images in the thread when they were added.
