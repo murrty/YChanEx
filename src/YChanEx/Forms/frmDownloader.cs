@@ -760,90 +760,32 @@ public partial class frmDownloader : Form {
                     return;
                 }
 
-                string ThreadName = "Unparsed";
-
                 switch (ThreadInfo.Chan) {
                     case ChanType.FourChan: {
-                        if (ThreadInfo.Data.SetCustomName) {
-                            ThreadName = $"4chan thread - {ThreadInfo.Data.BoardName} - {ThreadInfo.Data.CustomThreadName}";
-                        }
-                        else if (ThreadInfo.Data.RetrievedThreadName) {
-                            ThreadName = $"4chan thread - {ThreadInfo.Data.BoardName} - {ThreadInfo.Data.ThreadName}";
-                        }
-                        else {
-                            ThreadName = $"4chan thread - {ThreadInfo.Data.BoardName} - {ThreadInfo.Data.Id}";
-                        }
+                        this.Text = $"4chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                     } break;
                     case ChanType.FourTwentyChan: {
-                        if (ThreadInfo.Data.SetCustomName) {
-                            ThreadName = $"420chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.CustomThreadName}";
-                        }
-                        else if (ThreadInfo.Data.RetrievedThreadName) {
-                            ThreadName = $"420chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.ThreadName}";
-                        }
-                        else {
-                            ThreadName = $"420chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.Id}";
-                        }
+                        this.Text = $"420chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                     } break;
                     case ChanType.SevenChan: {
                         lvImages.Columns.RemoveAt(3);
-                        if (ThreadInfo.Data.SetCustomName) {
-                            ThreadName = $"7chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.CustomThreadName}";
-                        }
-                        else if (ThreadInfo.Data.RetrievedThreadName) {
-                            ThreadName = $"7chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.ThreadName}";
-                        }
-                        else {
-                            ThreadName = $"7chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.Id}";
-                        }
+                        this.Text = $"7chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                     } break;
                     case ChanType.EightChan: {
                         lvImages.Columns.RemoveAt(3);
-                        if (ThreadInfo.Data.SetCustomName) {
-                            ThreadName = $"8chan thread - {ThreadInfo.Data.Board} - {ThreadInfo.Data.CustomThreadName}";
-                        }
-                        else if (ThreadInfo.Data.RetrievedThreadName) {
-                            ThreadName = $"8chan thread - {ThreadInfo.Data.Board} - {ThreadInfo.Data.ThreadName}";
-                        }
-                        else {
-                            ThreadName = $"8chan thread - {ThreadInfo.Data.Board} - {ThreadInfo.Data.Id}";
-                        }
+                        this.Text = $"8chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                         ThreadInfo.ThreadUri = new(ThreadInfo.Data.Url);
                     } break;
                     case ChanType.EightKun: {
-                        if (ThreadInfo.Data.SetCustomName) {
-                            ThreadName = $"8kun thread - {ThreadInfo.Data.Board} - {ThreadInfo.Data.CustomThreadName}";
-                        }
-                        else if (ThreadInfo.Data.RetrievedThreadName) {
-                            ThreadName = $"8kun thread - {ThreadInfo.Data.Board} - {ThreadInfo.Data.ThreadName}";
-                        }
-                        else {
-                            ThreadName = $"8kun thread - {ThreadInfo.Data.Board} - {ThreadInfo.Data.Id}";
-                        }
+                        this.Text = $"8kun thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                     } break;
                     case ChanType.fchan: {
                         lvImages.Columns.RemoveAt(3);
-                        if (ThreadInfo.Data.SetCustomName) {
-                            ThreadName = $"fchan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.CustomThreadName}";
-                        }
-                        else if (ThreadInfo.Data.RetrievedThreadName) {
-                            ThreadName = $"fchan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.ThreadName}";
-                        }
-                        else {
-                            ThreadName = $"fchan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.Id}";
-                        }
+                        this.Text = $"fchan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                     } break;
                     case ChanType.u18chan: {
                         lvImages.Columns.RemoveAt(3);
-                        if (ThreadInfo.Data.SetCustomName) {
-                            ThreadName = $"u18chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.CustomThreadName}";
-                        }
-                        else if (ThreadInfo.Data.RetrievedThreadName) {
-                            ThreadName = $"u18chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.ThreadName}";
-                        }
-                        else {
-                            ThreadName = $"u18chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.Id}";
-                        }
+                        this.Text = $"u18chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                     } break;
 
                     default: {
@@ -851,53 +793,10 @@ public partial class frmDownloader : Form {
                     } break;
                 }
 
-                this.Text = ThreadName;
                 ThreadInfo.UpdateJsonPath();
 
                 if (ThreadInfo.Data.DownloadPath != null) {
                     btnOpenFolder.Enabled = true;
-                }
-
-                if (ThreadInfo.Data.ThreadPosts.Count > 0) {
-                    for (int i = 0; i < ThreadInfo.Data.ThreadPosts.Count; i++) {
-                        GenericPost Post = ThreadInfo.Data.ThreadPosts[i];
-                        if (!Post.HasFiles) {
-                            continue;
-                        }
-
-                        for (int x = 0; x < Post.PostFiles.Count; x++) {
-                            GenericFile File = Post.PostFiles[x];
-                            ListViewItem lvi = new();
-                            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                            lvi.Name = File.FileId;
-                            lvi.SubItems[0].Text = File.FileId;
-                            lvi.SubItems[1].Text = File.FileExtension;
-                            lvi.SubItems[2].Text = File.OriginalFileName;
-                            switch (ThreadInfo.Chan) {
-                                case ChanType.FourChan:
-                                case ChanType.EightKun: {
-                                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                                    lvi.SubItems[3].Text = File.FileHash;
-                                } break;
-                            }
-                            lvi.ImageIndex = File.Status switch {
-                                FileDownloadStatus.Downloaded  =>
-                                    System.IO.File.Exists(Path.Combine(ThreadInfo.Data.DownloadPath, File.SavedFile)) ?
-                                        ReloadedDownloadedImage : ReloadedMissingImage,
-                                FileDownloadStatus.Error => ErrorImage,
-                                FileDownloadStatus.FileNotFound => _404Image,
-                                _ => WaitingImage
-                            };
-                            lvi.Tag = File;
-                            File.ListViewItem = lvi;
-                            this.Invoke(() => lvImages.Items.Add(lvi));
-                        }
-                    }
-                    ThreadInfo.ThreadHTML = new(HtmlControl.RebuildHTML(ThreadInfo));
-                    lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount} (~{HtmlControl.GetSize(ThreadInfo.Data.EstimatedSize)})";
-                    lbPostsParsed.Text = $"posts parsed: {ThreadInfo.Data.ParsedPostIds.Count}";
-                    lbLastModified.Text = "last modified: " + GetLastModifiedTime();
                 }
             } break;
         }
@@ -923,7 +822,7 @@ public partial class frmDownloader : Form {
                 File.Delete(ThumbnailPath);
             }
             ThreadInfo.Data.DownloadedImagesCount--;
-            lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount} (~{HtmlControl.GetSize(ThreadInfo.Data.EstimatedSize)})";
+            UpdateCounts();
             Item.ImageIndex = WaitingImage;
             PostFile.Status = FileDownloadStatus.Undownloaded;
         }
@@ -960,8 +859,7 @@ public partial class frmDownloader : Form {
             lvImages.Items.Remove(Item);
         }
 
-        lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount} (~{HtmlControl.GetSize(ThreadInfo.Data.EstimatedSize)})";
-        lbPostsParsed.Text = "posts parsed: " + ThreadInfo.Data.ParsedPostIds.Count.ToString();
+        UpdateCounts();
     }
     public void UpdateThreadName(bool ApplyToMainForm = false) {
         string ThreadNameBuffer = "unknown thread - {0} - {1}";
@@ -1340,11 +1238,14 @@ public partial class frmDownloader : Form {
             _ => ThreadStatus.ThreadImproperlyDownloaded,
         };
     }
-    private void UpdateThreadCounts() {
+    private void UpdateCounts() {
+        lbPostsParsed.Text = "posts parsed: " + ThreadInfo.Data.ParsedPostIds.Count.ToString();
+        lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount} (~{HtmlControl.GetSize(ThreadInfo.Data.EstimatedSize)})";
+        lbLastModified.Text = "last modified: " + GetLastModifiedTime();
+    }
+    private void PrepareDownload() {
         this.Invoke(() => {
-            lbPostsParsed.Text = "posts parsed: " + ThreadInfo.Data.ParsedPostIds.Count.ToString();
-            lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount} (~{HtmlControl.GetSize(ThreadInfo.Data.EstimatedSize)})";
-            lbLastModified.Text = "last modified: " + GetLastModifiedTime();
+            UpdateCounts();
             lbScanTimer.Text = "Downloading files";
             MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadDownloading);
         });
@@ -1493,6 +1394,76 @@ public partial class frmDownloader : Form {
         ThreadInfo.Data.ThreadPosts.Add(CurrentPost);
         ThreadInfo.AddedNewPosts = ThreadInfo.ThreadModified = true;
     }
+    private void LoadExistingPosts() {
+        if (ThreadInfo.Data.ThreadPosts.Count > 0) {
+            for (int i = 0; i < ThreadInfo.Data.ThreadPosts.Count; i++) {
+                GenericPost Post = ThreadInfo.Data.ThreadPosts[i];
+                if (!Post.HasFiles) {
+                    continue;
+                }
+
+                for (int x = 0; x < Post.PostFiles.Count; x++) {
+                    GenericFile File = Post.PostFiles[x];
+                    ListViewItem lvi = new();
+                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                    lvi.Name = File.FileId;
+                    lvi.SubItems[0].Text = File.FileId;
+                    lvi.SubItems[1].Text = File.FileExtension;
+                    lvi.SubItems[2].Text = File.OriginalFileName;
+                    lvi.SubItems[3].Text = File.FileHash;
+                    lvi.ImageIndex = File.Status switch {
+                        FileDownloadStatus.Downloaded =>
+                            System.IO.File.Exists(Path.Combine(ThreadInfo.Data.DownloadPath, File.SavedFile)) ?
+                                ReloadedDownloadedImage : ReloadedMissingImage,
+                        FileDownloadStatus.Error => ErrorImage,
+                        FileDownloadStatus.FileNotFound => _404Image,
+                        _ => WaitingImage
+                    };
+                    lvi.Tag = File;
+                    File.ListViewItem = lvi;
+                    this.Invoke(() => lvImages.Items.Add(lvi));
+                }
+            }
+
+            this.Invoke(() => UpdateCounts());
+        }
+    }
+    private void LoadExistingPostsNoHash() {
+        if (ThreadInfo.Data.ThreadPosts.Count > 0) {
+            for (int i = 0; i < ThreadInfo.Data.ThreadPosts.Count; i++) {
+                GenericPost Post = ThreadInfo.Data.ThreadPosts[i];
+                if (!Post.HasFiles) {
+                    continue;
+                }
+
+                for (int x = 0; x < Post.PostFiles.Count; x++) {
+                    GenericFile File = Post.PostFiles[x];
+                    ListViewItem lvi = new();
+                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                    lvi.Name = File.FileId;
+                    lvi.SubItems[0].Text = File.FileId;
+                    lvi.SubItems[1].Text = File.FileExtension;
+                    lvi.SubItems[2].Text = File.OriginalFileName;
+                    lvi.ImageIndex = File.Status switch {
+                        FileDownloadStatus.Downloaded =>
+                            System.IO.File.Exists(Path.Combine(ThreadInfo.Data.DownloadPath, File.SavedFile)) ?
+                                ReloadedDownloadedImage : ReloadedMissingImage,
+                        FileDownloadStatus.Error => ErrorImage,
+                        FileDownloadStatus.FileNotFound => _404Image,
+                        _ => WaitingImage
+                    };
+                    lvi.Tag = File;
+                    File.ListViewItem = lvi;
+                    this.Invoke(() => lvImages.Items.Add(lvi));
+                }
+            }
+
+            this.Invoke(() => UpdateCounts());
+        }
+    }
 
     private void Register4chanThread() {
         this.DownloadThread = new Thread(() => {
@@ -1508,6 +1479,10 @@ public partial class frmDownloader : Form {
                 // HTML
                 if (!ThreadInfo.ThreadReloaded) {
                     ThreadInfo.ThreadHTML = new(HtmlControl.GetHTMLBase(ThreadInfo));
+                }
+                else {
+                    ThreadInfo.ThreadHTML = new(HtmlControl.RebuildHTML(ThreadInfo));
+                    LoadExistingPosts();
                 }
 
                 // Main loop
@@ -1602,7 +1577,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // update the form totals and status.
-                    UpdateThreadCounts();
+                    PrepareDownload();
 
                     // Download files.
                     //await DownloadFilesAsync(CancellationToken.Token)
@@ -1654,6 +1629,10 @@ public partial class frmDownloader : Form {
                 // HTML
                 if (!ThreadInfo.ThreadReloaded) {
                     ThreadInfo.ThreadHTML = new(HtmlControl.GetHTMLBase(ThreadInfo));
+                }
+                else {
+                    ThreadInfo.ThreadHTML = new(HtmlControl.RebuildHTML(ThreadInfo));
+                    LoadExistingPostsNoHash();
                 }
 
                 // Main loop
@@ -1756,7 +1735,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // update the form totals and status.
-                    UpdateThreadCounts();
+                    PrepareDownload();
 
                     // Download files.
                     //await DownloadFilesAsync(CancellationToken.Token)
@@ -1824,6 +1803,10 @@ public partial class frmDownloader : Form {
                     ThreadInfo.ThreadModified = true;
                     ThreadInfo.ThreadHTML = new(HtmlControl.GetHTMLBase(ThreadInfo));
                     CancellationToken.Token.ThrowIfCancellationRequested();
+                }
+                else {
+                    ThreadInfo.ThreadHTML = new(HtmlControl.RebuildHTML(ThreadInfo));
+                    LoadExistingPostsNoHash();
                 }
 
                 // Main loop
@@ -1932,7 +1915,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // update the form totals and status.
-                    UpdateThreadCounts();
+                    PrepareDownload();
 
                     // Download files.
                     //await DownloadFilesAsync(CancellationToken.Token)
@@ -1998,6 +1981,10 @@ public partial class frmDownloader : Form {
                     ThreadInfo.ThreadModified = true;
                     ThreadInfo.ThreadHTML = new(HtmlControl.GetHTMLBase(ThreadInfo));
                     CancellationToken.Token.ThrowIfCancellationRequested();
+                }
+                else {
+                    ThreadInfo.ThreadHTML = new(HtmlControl.RebuildHTML(ThreadInfo));
+                    LoadExistingPosts();
                 }
 
                 // Main loop
@@ -2095,7 +2082,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // update the form totals and status.
-                    UpdateThreadCounts();
+                    PrepareDownload();
 
                     // Download files.
                     //await DownloadFilesAsync(CancellationToken.Token)
@@ -2147,6 +2134,10 @@ public partial class frmDownloader : Form {
                 // HTML
                 if (!ThreadInfo.ThreadReloaded) {
                     ThreadInfo.ThreadHTML = new(HtmlControl.GetHTMLBase(ThreadInfo));
+                }
+                else {
+                    ThreadInfo.ThreadHTML = new(HtmlControl.RebuildHTML(ThreadInfo));
+                    LoadExistingPostsNoHash();
                 }
 
                 // Main loop
@@ -2249,7 +2240,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // update the form totals and status.
-                    UpdateThreadCounts();
+                    PrepareDownload();
 
                     // Download files.
                     //await DownloadFilesAsync(CancellationToken.Token)
@@ -2301,6 +2292,10 @@ public partial class frmDownloader : Form {
                 // HTML
                 if (!ThreadInfo.ThreadReloaded) {
                     ThreadInfo.ThreadHTML = new(HtmlControl.GetHTMLBase(ThreadInfo));
+                }
+                else {
+                    ThreadInfo.ThreadHTML = new(HtmlControl.RebuildHTML(ThreadInfo));
+                    LoadExistingPostsNoHash();
                 }
 
                 // Main loop
@@ -2403,7 +2398,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // update the form totals and status.
-                    UpdateThreadCounts();
+                    PrepareDownload();
 
                     // Download files.
                     //await DownloadFilesAsync(CancellationToken.Token)
