@@ -84,7 +84,7 @@
             this.lbNumberOfFiles.Size = new System.Drawing.Size(134, 17);
             this.lbNumberOfFiles.TabIndex = 1;
             this.lbNumberOfFiles.Text = "number of files:  0 / 0";
-            this.ttDownloader.SetToolTip(this.lbNumberOfFiles, "The total number of files in the thread (scanned)");
+            this.ttDownloader.SetToolTip(this.lbNumberOfFiles, "The total number of files in the thread (scanned) and estimated total size");
             // 
             // lbTimeToRescan
             // 

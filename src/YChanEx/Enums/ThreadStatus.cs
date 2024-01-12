@@ -38,29 +38,25 @@ public enum ThreadStatus : ushort {
     ThreadReloaded = 7,
 
     /// <summary>
-    /// The thread was alive when it was saved.
-    /// </summary>
-    ThreadIsAlive = 100,
-    /// <summary>
     /// The thread 404'd
     /// </summary>
-    ThreadIs404 = 101,
+    ThreadIs404 = 100,
     /// <summary>
     /// The thread was aborted.
     /// </summary>
-    ThreadIsAborted = 102,
+    ThreadIsAborted = 101,
     /// <summary>
     /// The thread was archived.
     /// </summary>
-    ThreadIsArchived = 103,
+    ThreadIsArchived = 102,
     /// <summary>
     /// The thread is going to scan soon.
     /// </summary>
-    ThreadScanningSoon = 104,
+    ThreadScanningSoon = 103,
     /// <summary>
     /// Thread is requesting to update the name
     /// </summary>
-    ThreadUpdateName = 105,
+    ThreadUpdateName = 104,
 
     /// <summary>
     /// The thread information wasn't given when the thread download started.

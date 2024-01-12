@@ -442,7 +442,6 @@ public partial class frmDownloader : Form {
             case ThreadEvent.ParseForInfo: {
                 Debug.Print("ParseThreadForInfo called");
                 string[] URLSplit = ThreadInfo.Data.Url.Split('/');
-                string ThreadName = "Unparsed";
 
                 switch (ThreadInfo.Chan) {
                     #region 4chan
@@ -450,18 +449,8 @@ public partial class frmDownloader : Form {
                         ThreadInfo.Data.BoardName = ThreadInfo.Data.Board = URLSplit[^3];
                         ThreadInfo.Data.Id = URLSplit[^1].Split('#')[0];
                         ThreadInfo.Data.BoardName = Chans.GetFullBoardName(ThreadInfo);
-
-                        if (ThreadInfo.Data.SetCustomName) {
-                            ThreadName = $"4chan thread - {ThreadInfo.Data.BoardName} - {ThreadInfo.Data.CustomThreadName}";
-                        }
-                        else if (ThreadInfo.Data.RetrievedThreadName) {
-                            ThreadName = $"4chan thread - {ThreadInfo.Data.BoardName} - {ThreadInfo.Data.ThreadName}";
-                        }
-                        else {
-                            ThreadName = $"4chan thread - {ThreadInfo.Data.BoardName} - {ThreadInfo.Data.Id}";
-                        }
-
-                        ThreadInfo.Data.DownloadPath = $"{Downloads.DownloadPath}\\4chan\\{ThreadInfo.Data.Board}\\{ThreadInfo.Data.Id}";
+                        ThreadInfo.Data.DownloadPath = Path.Combine(Downloads.DownloadPath, "4chan", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
+                        this.Text = $"4chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                     } break;
                     #endregion
 
@@ -470,18 +459,8 @@ public partial class frmDownloader : Form {
                         lvImages.Columns.RemoveAt(3);
                         ThreadInfo.Data.BoardName = ThreadInfo.Data.Board = URLSplit[^3];
                         ThreadInfo.Data.Id = URLSplit[^1].Split('#')[0].Replace(".html", "");
-
-                        if (ThreadInfo.Data.SetCustomName) {
-                            ThreadName = $"7chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.CustomThreadName}";
-                        }
-                        else if (ThreadInfo.Data.RetrievedThreadName) {
-                            ThreadName = $"7chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.ThreadName}";
-                        }
-                        else {
-                            ThreadName = $"7chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.Id}";
-                        }
-
-                        ThreadInfo.Data.DownloadPath = $"{Downloads.DownloadPath}\\7chan\\{ThreadInfo.Data.Board}\\{ThreadInfo.Data.Id}";
+                        ThreadInfo.Data.DownloadPath = Path.Combine(Downloads.DownloadPath, "7chan", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
+                        this.Text = $"7chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                     } break;
                     #endregion
 
@@ -490,18 +469,8 @@ public partial class frmDownloader : Form {
                         lvImages.Columns.RemoveAt(3);
                         ThreadInfo.Data.BoardName = ThreadInfo.Data.Board = URLSplit[^3];
                         ThreadInfo.Data.Id = URLSplit[^1].Split('#')[0].Replace(".html", "").Replace(".json", "");
-
-                        if (ThreadInfo.Data.SetCustomName) {
-                            ThreadName = $"8chan thread - {ThreadInfo.Data.Board} - {ThreadInfo.Data.CustomThreadName}";
-                        }
-                        else if (ThreadInfo.Data.RetrievedThreadName) {
-                            ThreadName = $"8chan thread - {ThreadInfo.Data.Board} - {ThreadInfo.Data.ThreadName}";
-                        }
-                        else {
-                            ThreadName = $"8chan thread - {ThreadInfo.Data.Board} - {ThreadInfo.Data.Id}";
-                        }
-
-                        ThreadInfo.Data.DownloadPath = $"{Downloads.DownloadPath}\\8chan\\{ThreadInfo.Data.Board}\\{ThreadInfo.Data.Id}";
+                        ThreadInfo.Data.DownloadPath = Path.Combine(Downloads.DownloadPath, "8chan", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
+                        this.Text = $"8chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                     } break;
                     #endregion
 
@@ -514,18 +483,8 @@ public partial class frmDownloader : Form {
                         }
                         ThreadInfo.Data.BoardName = ThreadInfo.Data.Board = URLSplit[^3];
                         ThreadInfo.Data.Id = URLSplit[^1].Split('#')[0].Replace(".html", "").Replace(".json", "");
-
-                        if (ThreadInfo.Data.SetCustomName) {
-                            ThreadName = $"8kun thread - {ThreadInfo.Data.Board} - {ThreadInfo.Data.CustomThreadName}";
-                        }
-                        else if (ThreadInfo.Data.RetrievedThreadName) {
-                            ThreadName = $"8kun thread - {ThreadInfo.Data.Board} - {ThreadInfo.Data.ThreadName}";
-                        }
-                        else {
-                            ThreadName = $"8kun thread - {ThreadInfo.Data.Board} - {ThreadInfo.Data.Id}";
-                        }
-
-                        ThreadInfo.Data.DownloadPath = $"{Downloads.DownloadPath}\\8kun\\{ThreadInfo.Data.Board}\\{ThreadInfo.Data.Id}";
+                        ThreadInfo.Data.DownloadPath = Path.Combine(Downloads.DownloadPath, "8kun", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
+                        this.Text = $"8kun thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                     } break;
                     #endregion
 
@@ -534,18 +493,8 @@ public partial class frmDownloader : Form {
                         lvImages.Columns.RemoveAt(3);
                         ThreadInfo.Data.BoardName = ThreadInfo.Data.Board = URLSplit[^3];
                         ThreadInfo.Data.Id = URLSplit[^1].Split('#')[0].Replace(".html", "");
-
-                        if (ThreadInfo.Data.SetCustomName) {
-                            ThreadName = string.Format("fchan thread - {0} - {1}", Chans.GetFullBoardName(ThreadInfo), ThreadInfo.Data.CustomThreadName);
-                        }
-                        else if (ThreadInfo.Data.RetrievedThreadName) {
-                            ThreadName = string.Format("fchan thread - {0} - {1}", Chans.GetFullBoardName(ThreadInfo), ThreadInfo.Data.ThreadName);
-                        }
-                        else {
-                            ThreadName = string.Format("fchan thread - {0} - {1}", Chans.GetFullBoardName(ThreadInfo), ThreadInfo.Data.Id);
-                        }
-
-                        ThreadInfo.Data.DownloadPath = $"{Downloads.DownloadPath}\\fchan\\{ThreadInfo.Data.Board}\\{ThreadInfo.Data.Id}";
+                        ThreadInfo.Data.DownloadPath = Path.Combine(Downloads.DownloadPath, "fchan", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
+                        this.Text = $"fchan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                     } break;
                     #endregion
 
@@ -554,25 +503,18 @@ public partial class frmDownloader : Form {
                         lvImages.Columns.RemoveAt(3);
                         ThreadInfo.Data.BoardName = ThreadInfo.Data.Board = URLSplit[^3];
                         ThreadInfo.Data.Id = URLSplit[^1].Split('#')[0];
-
-                        if (ThreadInfo.Data.SetCustomName) {
-                            ThreadName = $"u18chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.CustomThreadName}";
-                        }
-                        else if (ThreadInfo.Data.RetrievedThreadName) {
-                            ThreadName = $"u18chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.ThreadName}";
-                        }
-                        else {
-                            ThreadName = $"u18chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.Id}";
-                        }
-
-                        ThreadInfo.Data.DownloadPath = $"{Downloads.DownloadPath}\\u18chan\\{ThreadInfo.Data.Board}\\{ThreadInfo.Data.Id}";
+                        ThreadInfo.Data.DownloadPath = Path.Combine(Downloads.DownloadPath, "u18chan", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
+                        this.Text = $"u18chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                     } break;
                     #endregion
+
+                    default: {
+                        this.Text = "Invalid chan";
+                        MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadIs404);
+                    } return;
                 }
 
-                this.Text = ThreadName;
                 ThreadInfo.UpdateJsonPath();
-
                 if (ThreadInfo.Data.DownloadPath != null) {
                     btnOpenFolder.Enabled = true;
                 }
@@ -844,6 +786,7 @@ public partial class frmDownloader : Form {
                         }
                     } break;
                     case ChanType.SevenChan: {
+                        lvImages.Columns.RemoveAt(3);
                         if (ThreadInfo.Data.SetCustomName) {
                             ThreadName = $"7chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.CustomThreadName}";
                         }
@@ -855,6 +798,7 @@ public partial class frmDownloader : Form {
                         }
                     } break;
                     case ChanType.EightChan: {
+                        lvImages.Columns.RemoveAt(3);
                         if (ThreadInfo.Data.SetCustomName) {
                             ThreadName = $"8chan thread - {ThreadInfo.Data.Board} - {ThreadInfo.Data.CustomThreadName}";
                         }
@@ -878,17 +822,19 @@ public partial class frmDownloader : Form {
                         }
                     } break;
                     case ChanType.fchan: {
+                        lvImages.Columns.RemoveAt(3);
                         if (ThreadInfo.Data.SetCustomName) {
-                            ThreadName = string.Format("fchan thread - {0} - {1}", Chans.GetFullBoardName(ThreadInfo), ThreadInfo.Data.CustomThreadName);
+                            ThreadName = $"fchan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.CustomThreadName}";
                         }
                         else if (ThreadInfo.Data.RetrievedThreadName) {
-                            ThreadName = string.Format("fchan thread - {0} - {1}", Chans.GetFullBoardName(ThreadInfo), ThreadInfo.Data.ThreadName);
+                            ThreadName = $"fchan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.ThreadName}";
                         }
                         else {
-                            ThreadName = string.Format("fchan thread - {0} - {1}", Chans.GetFullBoardName(ThreadInfo), ThreadInfo.Data.Id);
+                            ThreadName = $"fchan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.Id}";
                         }
                     } break;
                     case ChanType.u18chan: {
+                        lvImages.Columns.RemoveAt(3);
                         if (ThreadInfo.Data.SetCustomName) {
                             ThreadName = $"u18chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.CustomThreadName}";
                         }
@@ -949,7 +895,7 @@ public partial class frmDownloader : Form {
                         }
                     }
                     ThreadInfo.ThreadHTML = new(HtmlControl.RebuildHTML(ThreadInfo));
-                    lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount} (~ {HtmlControl.GetSize(ThreadInfo.Data.EstimatedSize)})";
+                    lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount} (~{HtmlControl.GetSize(ThreadInfo.Data.EstimatedSize)})";
                     lbPostsParsed.Text = $"posts parsed: {ThreadInfo.Data.ParsedPostIds.Count}";
                     lbLastModified.Text = "last modified: " + GetLastModifiedTime();
                 }
@@ -977,7 +923,7 @@ public partial class frmDownloader : Form {
                 File.Delete(ThumbnailPath);
             }
             ThreadInfo.Data.DownloadedImagesCount--;
-            lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount} (~ {HtmlControl.GetSize(ThreadInfo.Data.EstimatedSize)})";
+            lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount} (~{HtmlControl.GetSize(ThreadInfo.Data.EstimatedSize)})";
             Item.ImageIndex = WaitingImage;
             PostFile.Status = FileDownloadStatus.Undownloaded;
         }
@@ -1014,7 +960,7 @@ public partial class frmDownloader : Form {
             lvImages.Items.Remove(Item);
         }
 
-        lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount} (~ {HtmlControl.GetSize(ThreadInfo.Data.EstimatedSize)})";
+        lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount} (~{HtmlControl.GetSize(ThreadInfo.Data.EstimatedSize)})";
         lbPostsParsed.Text = "posts parsed: " + ThreadInfo.Data.ParsedPostIds.Count.ToString();
     }
     public void UpdateThreadName(bool ApplyToMainForm = false) {
@@ -1271,7 +1217,7 @@ public partial class frmDownloader : Form {
                             PostFile.Status = FileDownloadStatus.Downloaded;
                             ThreadInfo.ThreadModified = true;
                             this.Invoke(() => {
-                                lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount} (~ {HtmlControl.GetSize(ThreadInfo.Data.EstimatedSize)})";
+                                lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount} (~{HtmlControl.GetSize(ThreadInfo.Data.EstimatedSize)})";
                                 PostFile.ListViewItem.ImageIndex = FinishedImage;
                             });
                         }
@@ -1281,7 +1227,7 @@ public partial class frmDownloader : Form {
                         PostFile.Status = FileDownloadStatus.Downloaded;
                         ThreadInfo.ThreadModified = true;
                         this.Invoke(() => {
-                            lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount} (~ {HtmlControl.GetSize(ThreadInfo.Data.EstimatedSize)})";
+                            lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount} (~{HtmlControl.GetSize(ThreadInfo.Data.EstimatedSize)})";
                             PostFile.ListViewItem.ImageIndex = ReloadedDownloadedImage;
                         });
                     }
@@ -1396,8 +1342,8 @@ public partial class frmDownloader : Form {
     }
     private void UpdateThreadCounts() {
         this.Invoke(() => {
-            lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount} (~ {HtmlControl.GetSize(ThreadInfo.Data.EstimatedSize)})";
             lbPostsParsed.Text = "posts parsed: " + ThreadInfo.Data.ParsedPostIds.Count.ToString();
+            lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount} (~{HtmlControl.GetSize(ThreadInfo.Data.EstimatedSize)})";
             lbLastModified.Text = "last modified: " + GetLastModifiedTime();
             lbScanTimer.Text = "Downloading files";
             MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadDownloading);

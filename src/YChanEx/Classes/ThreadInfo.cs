@@ -123,7 +123,7 @@ public sealed class ThreadData {
     /// <seealso cref="YChanEx.ThreadStatus"/>
     /// </summary>
     [DataMember]
-    public ThreadStatus ThreadStatus = ThreadStatus.NoStatusSet;
+    public ThreadState ThreadState { get; set; }
 
     /// <summary>
     /// The ID of the thread being downloaded.
@@ -242,4 +242,20 @@ public sealed class ThreadData {
     /// </summary>
     [DataMember]
     public string BoardSubtitle { get; set; }
+
+    /// <summary>
+    /// The thread name that is displayed on the download form.
+    /// </summary>
+    [IgnoreDataMember]
+    public string DownloadFormThreadNameDisplay {
+        get {
+            if (SetCustomName) {
+                return CustomThreadName;
+            }
+            if (RetrievedThreadName) {
+                return ThreadName;
+            }
+            return Id;
+        }
+    }
 }

@@ -7,50 +7,46 @@ using System.IO;
 /// </summary>
 internal static class ProgramSettings {
     public static bool SaveThreads(this List<ThreadInfo> Data){
-        try {
-            List<string> Files = [];
-            if (Directory.Exists($"{Program.SavedThreadsPath}")) {
-                DirectoryInfo ExistingFiles = new(Program.SavedThreadsPath);
-                Files = ExistingFiles.GetFiles("*.thread.json", SearchOption.TopDirectoryOnly)
-                    .Select(x => x.FullName)
-                    .ToList();
-            }
-
-            if (Data.Count > 0) {
-                if (!Directory.Exists(Program.SavedThreadsPath)) {
-                    Directory.CreateDirectory(Program.SavedThreadsPath);
-                }
-                for (int i = 0; i < Data.Count; i++) {
-                    Files.Remove(Data[i].SavedThreadJson);
-                    if (Data[i].ThreadModified) {
-                        File.WriteAllText($"{Data[i].SavedThreadJson}", Data[i].Data.JsonSerialize());
-                    }
-                }
-
-                if (Files.Count > 0) {
-                    for (int i = 0; i < Files.Count; i++) {
-                        if (File.Exists(Files[i])) {
-                            File.Delete(Files[i]);
-                        }
-                    }
-                }
-            }
-            return true;
+        List<string> Files = [];
+        if (Directory.Exists($"{Program.SavedThreadsPath}")) {
+            DirectoryInfo ExistingFiles = new(Program.SavedThreadsPath);
+            Files = ExistingFiles.GetFiles("*.thread.json", SearchOption.TopDirectoryOnly)
+                .Select(x => x.FullName)
+                .ToList();
         }
-        catch { throw; }
-    }
-    public static bool SaveThread(this ThreadInfo Thread) {
-        try {
+
+        if (Data.Count > 0) {
             if (!Directory.Exists(Program.SavedThreadsPath)) {
                 Directory.CreateDirectory(Program.SavedThreadsPath);
             }
-            if (Thread.ThreadModified) {
-                File.WriteAllText($"{Thread.SavedThreadJson}", Thread.Data.JsonSerialize());
-                Thread.ThreadModified = false;
+            for (int i = 0; i < Data.Count; i++) {
+                Files.Remove(Data[i].SavedThreadJson);
+                if (Data[i].ThreadModified) {
+                    File.WriteAllText($"{Data[i].SavedThreadJson}", Data[i].Data.JsonSerialize());
+                }
             }
-            return true;
+
+            if (Files.Count > 0) {
+                for (int i = 0; i < Files.Count; i++) {
+                    if (File.Exists(Files[i])) {
+                        File.Delete(Files[i]);
+                    }
+                }
+            }
         }
-        catch { throw; }
+        return true;
+    }
+    public static void SaveThread(this ThreadInfo Thread) {
+        if (Thread.ThreadModified) {
+            ForceSaveThread(Thread);
+        }
+    }
+    public static void ForceSaveThread(this ThreadInfo Thread) {
+        if (!Directory.Exists(Program.SavedThreadsPath)) {
+            Directory.CreateDirectory(Program.SavedThreadsPath);
+        }
+        File.WriteAllText($"{Thread.SavedThreadJson}", Thread.Data.JsonSerialize());
+        Thread.ThreadModified = false;
     }
 
     public static List<ThreadData> LoadThreads(this List<ThreadData> list, out List<string> FilePaths) {

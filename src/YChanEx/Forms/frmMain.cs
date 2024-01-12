@@ -42,7 +42,8 @@ public partial class frmMain : Form, IMainFom {
             } break;
 
             case ThreadStatus.ThreadIs404: {
-                Threads[ThreadIndex].ThreadInfo.Data.ThreadStatus = Status;
+                Threads[ThreadIndex].ThreadInfo.Data.ThreadState = ThreadState.ThreadIs404;
+                Threads[ThreadIndex].ThreadInfo.ForceSaveThread();
                 niTray.BalloonTipText = $"{Threads[ThreadIndex].ThreadInfo.Data.Id} on /{Threads[ThreadIndex].ThreadInfo.Data.Board}/ has 404'd";
                 niTray.BalloonTipTitle = Threads[ThreadIndex].ThreadInfo.Chan switch {
                     ChanType.FourChan => "4chan",
@@ -64,11 +65,13 @@ public partial class frmMain : Form, IMainFom {
                 lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = "404'd";
             } break;
             case ThreadStatus.ThreadIsAborted: {
-                Threads[ThreadIndex].ThreadInfo.Data.ThreadStatus = Status;
+                Threads[ThreadIndex].ThreadInfo.Data.ThreadState = ThreadState.ThreadIsAborted;
+                Threads[ThreadIndex].ThreadInfo.ForceSaveThread();
                 lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = "Aborted";
             } break;
             case ThreadStatus.ThreadIsArchived: {
-                Threads[ThreadIndex].ThreadInfo.Data.ThreadStatus = Status;
+                Threads[ThreadIndex].ThreadInfo.Data.ThreadState = ThreadState.ThreadIsArchived;
+                Threads[ThreadIndex].ThreadInfo.ForceSaveThread();
                 niTray.BalloonTipText = $"{Threads[ThreadIndex].ThreadInfo.Data.Id} on /{Threads[ThreadIndex].ThreadInfo.Data.Board}/ has been archived.";
                 niTray.BalloonTipTitle = Threads[ThreadIndex].ThreadInfo.Chan switch {
                     ChanType.FourChan => "4chan",
@@ -100,7 +103,8 @@ public partial class frmMain : Form, IMainFom {
                 lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = " Info not set";
             } break;
             case ThreadStatus.ThreadRetrying: {
-                Threads[ThreadIndex].ThreadInfo.Data.ThreadStatus = ThreadStatus.ThreadIsAlive;
+                Threads[ThreadIndex].ThreadInfo.Data.ThreadState = ThreadState.ThreadIsAlive;
+                Threads[ThreadIndex].ThreadInfo.ForceSaveThread();
                 lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = " Retrying";
             } break;
             case ThreadStatus.ThreadImproperlyDownloaded: {
@@ -208,7 +212,7 @@ public partial class frmMain : Form, IMainFom {
 
         if (ThreadURLs.Contains(ThreadURL)) {
             int ThreadURLIndex = ThreadURLs.IndexOf(ThreadURL);
-            if (Threads[ThreadURLIndex].ThreadInfo.Data.ThreadStatus != ThreadStatus.ThreadIsAlive) {
+            if (Threads[ThreadURLIndex].ThreadInfo.Data.ThreadState != ThreadState.ThreadIsAlive) {
                 Threads[ThreadURLIndex].ManageThread(ThreadEvent.RetryDownload);
                 niTray.BalloonTipTitle = "Already in queue";
                 niTray.BalloonTipText = $"Restarting {ThreadURL}";
@@ -240,7 +244,6 @@ public partial class frmMain : Form, IMainFom {
             ThreadURLs.Add(ThreadURL);
             ThreadInfo NewInfo = new(ReceivedType);
             NewInfo.Data.Url = ThreadURL;
-            NewInfo.Data.ThreadStatus = ThreadStatus.ThreadIsAlive;
             NewInfo.ThreadIndex = ThreadURLs.Count - 1;
 
             frmDownloader newThread = new(this, NewInfo) {
@@ -390,7 +393,7 @@ public partial class frmMain : Form, IMainFom {
         if (Thread.ThreadIndex > -1 && Thread.ThreadIndex < ThreadURLs.Count) {
             Saved.DownloadFormSize = Threads[Thread.ThreadIndex].Size;
 
-            if (Threads[Thread.ThreadIndex].ThreadInfo.Data.ThreadStatus != ThreadStatus.ThreadIsAlive) {
+            if (Threads[Thread.ThreadIndex].ThreadInfo.Data.ThreadState == ThreadState.ThreadIsAlive) {
                 Threads[Thread.ThreadIndex].ManageThread(ThreadEvent.AbortDownload, true);
             }
 
@@ -615,7 +618,7 @@ public partial class frmMain : Form, IMainFom {
 
             if (lvThreads.SelectedIndices.Count == 1) {
                 mSetCustomName.Enabled = true;
-                mRetryDownload.Enabled = Threads[lvThreads.SelectedIndices[0]].ThreadInfo.Data.ThreadStatus != ThreadStatus.ThreadIsAlive;
+                mRetryDownload.Enabled = Threads[lvThreads.SelectedIndices[0]].ThreadInfo.Data.ThreadState != ThreadState.ThreadIsAlive;
             }
             else {
                 mRetryDownload.Enabled = false;
@@ -673,7 +676,7 @@ public partial class frmMain : Form, IMainFom {
     }
     private void mRetryDownload_Click(object sender, EventArgs e) {
         if (lvThreads.SelectedItems.Count == 1) {
-            if (Threads[lvThreads.SelectedIndices[0]].ThreadInfo.Data.ThreadStatus != ThreadStatus.ThreadIsAlive) {
+            if (Threads[lvThreads.SelectedIndices[0]].ThreadInfo.Data.ThreadState != ThreadState.ThreadIsAlive) {
                 Threads[lvThreads.SelectedIndices[0]].ManageThread(ThreadEvent.RetryDownload);
                 mRetryDownload.Enabled = false;
             }

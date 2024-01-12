@@ -87,6 +87,7 @@
     <Compile Include="Enums\ChanType.cs" />
     <Compile Include="CopyData.cs" />
     <Compile Include="Classes\Extensions.cs" />
+    <Compile Include="Enums\ThreadState.cs" />
     <Compile Include="Enums\FileDownloadStatus.cs" />
     <Compile Include="Enums\ProxyType.cs" />
     <Compile Include="Forms\frmAddCookie.cs">
