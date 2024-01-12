@@ -8,8 +8,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Resources", "Resources", "{
 		Resources\YChanEx.user.js = Resources\YChanEx.user.js
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YChanEx-Tests", "src\YChanEx-Tests\YChanEx-Tests.csproj", "{96B027A0-3FF7-41DB-A76B-614607C88690}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YChanEx", "src\YChanEx\YChanEx.csproj", "{74A112CE-F6CA-4384-B8A0-6D8337378897}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Controls", "src\Controls\Controls.shproj", "{538127EF-8951-4448-BB23-51DCB7968424}"
