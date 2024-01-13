@@ -1,6 +1,7 @@
 ﻿#nullable enable
 namespace SoftCircuits.HtmlMonkey;
 using System;
+using System.Collections.Generic;
 public partial class HtmlDocument {
     #region Find
     /// <summary>

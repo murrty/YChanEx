@@ -49,6 +49,41 @@ public class HtmlAttribute {
     }
 
     /// <summary>
+    /// Whether this attribute contains a value.
+    /// </summary>
+    /// <param name="value">The value to check within the attribute values.</param>
+    /// <returns><see langword="true"/> if the attribute contains a value; otherwise, <see langword="false"/>.</returns>
+    public bool ContainsValue(string value) {
+        if (value?.Length > 0) {
+            string[] values = value.Split(' ');
+            for (int i = 0; i < values.Length; i++) {
+                if (values[i].Equals(value)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Whether this attribute contains a value.
+    /// </summary>
+    /// <param name="value">The value to check within the attribute values.</param>
+    /// <param name="comparison">How the strings will be compared.</param>
+    /// <returns><see langword="true"/> if the attribute contains a value; otherwise, <see langword="false"/>.</returns>
+    public bool ContainsValue(string value, StringComparison comparison) {
+        if (value?.Length > 0) {
+            string[] values = value.Split(' ');
+            for (int i = 0; i < values.Length; i++) {
+                if (values[i].Equals(value, comparison)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
     /// Converts this <see cref="HtmlAttribute"></see> to a string.
     /// </summary>
     public override string ToString() {

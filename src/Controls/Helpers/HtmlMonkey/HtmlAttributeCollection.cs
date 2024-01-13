@@ -218,6 +218,32 @@ public class HtmlAttributeCollection : IEnumerable<HtmlAttribute> {
     }
 
     /// <summary>
+    /// Whether the attribute contains the value.
+    /// </summary>
+    /// <param name="name">The name of the attribute to compare.</param>
+    public bool ContainsWithValue(string name, string value) {
+        for (int i = 0; i < Attributes.Count; i++) {
+            if (Attributes[i].Name.Equals(name) && Attributes[i].ContainsValue(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Whether the attribute contains the value.
+    /// </summary>
+    /// <param name="name">The name of the attribute to compare.</param>
+    public bool ContainsWithValue(string name, string value, StringComparison comparison) {
+        for (int i = 0; i < Attributes.Count; i++) {
+            if (Attributes[i].Name.Equals(name, comparison) && Attributes[i].ContainsValue(value, comparison)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
     /// Returns true if this collection contains an attribute with the given name and contains a non null, empty, or whitespace string.
     /// </summary>
     /// <param name="name">The name of the attribute to compare.</param>
@@ -255,6 +281,14 @@ public class HtmlAttributeCollection : IEnumerable<HtmlAttribute> {
     /// <param name="name">The name of the attribute to compare.</param>
     public bool ContainsStartsWith(string name, string value, StringComparison comparison) {
         return IndexLookup.TryGetValue(name, out int index) && Attributes[index].Value?.StartsWith(value, comparison) == true;
+    }
+
+    /// <summary>
+    /// Clears all nodes within the attribute collection.
+    /// </summary>
+    public void Clear() {
+        Attributes.Clear();
+        IndexLookup.Clear();
     }
 
     /// <summary>
