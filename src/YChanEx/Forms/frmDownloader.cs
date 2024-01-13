@@ -1358,8 +1358,6 @@ public partial class frmDownloader : Form {
         }
 
         // add the new post to the data.
-        CurrentPost.PostHtml = HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo);
-        //ThreadInfo.ThreadHTML.Append(HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo));
         ThreadInfo.Data.ParsedPostIds.Add(CurrentPost.PostId);
         ThreadInfo.Data.ThreadPosts.Add(CurrentPost);
         ThreadInfo.AddedNewPosts = ThreadInfo.ThreadModified = true;
@@ -1430,8 +1428,6 @@ public partial class frmDownloader : Form {
         }
 
         // add the new post to the data.
-        CurrentPost.PostHtml = HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo);
-        //ThreadInfo.ThreadHTML.Append(HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo));
         ThreadInfo.Data.ParsedPostIds.Add(CurrentPost.PostId);
         ThreadInfo.Data.ThreadPosts.Add(CurrentPost);
         ThreadInfo.AddedNewPosts = ThreadInfo.ThreadModified = true;
@@ -1465,8 +1461,6 @@ public partial class frmDownloader : Form {
                         this.Invoke(() => lvImages.Items.Add(lvi));
                     }
                 }
-
-                CurrentPost.PostHtml = HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo);
             }
 
             this.Invoke(() => UpdateCounts());
@@ -1499,8 +1493,6 @@ public partial class frmDownloader : Form {
                         this.Invoke(() => lvImages.Items.Add(lvi));
                     }
                 }
-
-                CurrentPost.PostHtml = HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo);
             }
 
             this.Invoke(() => UpdateCounts());
