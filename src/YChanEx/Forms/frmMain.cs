@@ -494,6 +494,11 @@ public partial class frmMain : Form, IMainFom {
                 m.Result = IntPtr.Zero;
             } break;
 
+            case 0x0010: { // WM_CLOSE
+                niTray.Visible = false;
+                base.WndProc(ref m);
+            } break;
+
             default: {
                 base.WndProc(ref m);
             } break;
