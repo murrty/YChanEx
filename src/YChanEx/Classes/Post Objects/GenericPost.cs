@@ -13,7 +13,7 @@ public sealed class GenericPost {
     public DateTimeOffset PostDate { get; set; }
 
     [DataMember(Name = "poster_name")]
-    public string? PosterName { get; set; }
+    public string PosterName { get; set; }
 
     [DataMember(Name = "poster_tripcode")]
     public string? PosterTripcode { get; set; }
@@ -31,10 +31,10 @@ public sealed class GenericPost {
     public string? PostMessage { get; set; }
 
     [DataMember(Name = "files")]
-    public List<GenericFile> PostFiles { get; set; } = [];
+    public List<GenericFile> PostFiles { get; set; }
 
     [DataMember(Name = "tags")]
-    public string[] Tags { get; set; } = [];
+    public string[] Tags { get; set; }
 
     [DataMember(Name = "first")]
     public bool FirstPost { get; set; }
@@ -60,12 +60,19 @@ public sealed class GenericPost {
         }
     }
 
-    private GenericPost() { }
+    public string PostHtml { get; set; }
 
-    internal GenericPost(FourChanPost Post, ThreadInfo Thread) {
+    private GenericPost() {
+        this.PosterName = "Anonymous";
+        this.PostFiles = [];
+        this.Tags = [];
+        this.PostHtml = string.Empty;
+    }
+
+    internal GenericPost(FourChanPost Post, ThreadInfo Thread) : this() {
         this.PostId = Post.no;
         this.PostDate = FourChan.GetPostTime(Post.time);
-        this.PosterName = Post.name;
+        if (Post.name != null) this.PosterName = Post.name;
         this.PosterTripcode = Post.trip;
         this.PosterCapcode = Post.capcode;
         this.PosterId = Post.id;
@@ -96,10 +103,10 @@ public sealed class GenericPost {
     }
 
     // TODO: Find 7chan spoiler?
-    internal GenericPost(SevenChanPost Post) {
+    internal GenericPost(SevenChanPost Post) : this() {
         this.PostId = Post.PostId;
         this.PostDate = Post.PostTime;
-        this.PosterName = Post.PosterName;
+        if (Post.PosterName != null) this.PosterName = Post.PosterName;
         this.PosterTripcode = Post.PosterTripcode;
         this.PosterCapcode = Post.PosterCapcode;
         this.PosterId = Post.PosterId;
@@ -132,10 +139,10 @@ public sealed class GenericPost {
     }
 
     // TODO: Find 8chan capcode (non signed role) & tripcode & spoiler?
-    internal GenericPost(EightChanThread Post, ThreadInfo Thread) {
+    internal GenericPost(EightChanThread Post, ThreadInfo Thread) : this() {
         this.PostId = Post.threadId;
         this.PostDate = Post.CleanedDateTime;
-        this.PosterName = Post.name;
+        if (Post.name != null) this.PosterName = Post.name;
         //this.PosterTripcode = Post.tripcode;
         this.PosterCapcode = Post.signedRole;
         this.PosterId = Post.id;
@@ -167,10 +174,10 @@ public sealed class GenericPost {
             }
         }
     }
-    internal GenericPost(EightChanPost Post, ThreadInfo Thread) {
+    internal GenericPost(EightChanPost Post, ThreadInfo Thread) : this() {
         this.PostId = Post.postId;
         this.PostDate = Post.CleanedDateTime;
-        this.PosterName = Post.name;
+        if (Post.name != null) this.PosterName = Post.name;
         //this.PosterTripcode = Post.tripcode;
         this.PosterCapcode = Post.signedRole;
         this.PosterId = Post.id;
@@ -203,10 +210,10 @@ public sealed class GenericPost {
         }
     }
 
-    internal GenericPost(EightKunPost Post) {
+    internal GenericPost(EightKunPost Post) : this() {
         this.PostId = Post.no;
         this.PostDate = Post.CleanedDateTime;
-        this.PosterName = Post.name;
+        if (Post.name != null) this.PosterName = Post.name;
         this.PosterTripcode = Post.trip;
         this.PosterCapcode = Post.capcode;
         this.PosterId = Post.id;
@@ -261,10 +268,10 @@ public sealed class GenericPost {
     }
 
     // TODO: Find fchan capcode & poster id & spoiler?
-    internal GenericPost(FChanPost Post) {
+    internal GenericPost(FChanPost Post) : this() {
         this.PostId = Post.PostId;
         this.PostDate = Post.PostTime;
-        this.PosterName = Post.PosterName;
+        if (Post.PosterName != null) this.PosterName = Post.PosterName;
         this.PosterTripcode = Post.PosterTripcode;
         //this.PosterCapcode = Post.PosterCapcode;
         //this.PosterId = Post.PosterId;
@@ -293,10 +300,10 @@ public sealed class GenericPost {
         }
     }
 
-    internal GenericPost(U18ChanPost Post) {
+    internal GenericPost(U18ChanPost Post) : this() {
         this.PostId = Post.PostId;
         this.PostDate = Post.PostTime;
-        this.PosterName = Post.PosterName;
+        if (Post.PosterName != null) this.PosterName = Post.PosterName;
         //this.PosterTripcode = Post.PosterTripcode;
         this.PosterCapcode = Post.PosterCapcode;
         //this.PosterId = Post.PosterId;

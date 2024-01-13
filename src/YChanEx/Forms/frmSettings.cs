@@ -1,4 +1,5 @@
 ﻿namespace YChanEx;
+using System;
 using System.Windows.Forms;
 public partial class frmSettings : Form {
     public frmSettings() {

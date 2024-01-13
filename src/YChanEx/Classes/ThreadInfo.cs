@@ -1,7 +1,10 @@
 ﻿namespace YChanEx;
+
+using System.IO;
 using System.Net;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Threading;
 using YChanEx.Posts;
 /// <summary>
 /// Skeleton of thread downloads, used as a maintainer of thread information such as thread URL, ID, board, status.
@@ -76,24 +79,49 @@ public sealed class ThreadInfo {
     public HttpStatusCode StatusCode { get; set; }
 
     /// <summary>
-    /// The HTML of the thread, custom built for YOUR CONVENIENCE.
+    /// The upper portion of the thread HTML, above the posts, custom built for YOUR CONVENIENCE.
     /// </summary>
-    public StringBuilder ThreadHTML { get; set; }
+    public string ThreadTopHtml { get; set; }
+    /// <summary>
+    /// The lower portion of the thread HTML, below the posts, custom built for YOUR CONVENIENCE.
+    /// </summary>
+    public string ThreadBottomHtml { get; set; }
     /// <summary>
     /// The URI of the ThreadUrl.
     /// </summary>
     public Uri ThreadUri { get; set; }
+    /// <summary>
+    /// The API link for the current thread, if it has an API link.
+    /// </summary>
+    public string ApiLink {
+        get {
+            return Chan switch {
+                ChanType.FourChan => $"https://a.4cdn.org/{Data.Board}/thread/{Data.Id}.json",
+                ChanType.FourTwentyChan => $"https://api.420chan.org/{Data.Board}/res/{Data.Id}.json",
+                ChanType.EightChan => $"https://8chan.moe/{Data.Board}/res/{Data.Id}.json",
+                ChanType.EightKun => $"https://8kun.top/{Data.Board}/res/{Data.Id}.json",
+                _ => null
+            };
+        }
+    }
+    /// <summary>
+    /// Whether the HTML file exists.
+    /// </summary>
+    public bool HtmlExists {
+        get {
+            string HtmlFile = Path.Combine(Data.DownloadPath, "Thread.html");
+            return File.Exists(HtmlFile);
+        }
+    }
 
     public ThreadInfo(ThreadData Data, ChanType Chan) {
         this.Chan = Chan;
         this.Data = Data;
-        this.ThreadHTML = new();
     }
 
     public ThreadInfo(ChanType Chan) {
         this.Chan = Chan;
         this.Data = new();
-        this.ThreadHTML = new();
     }
 
     public void UpdateJsonPath() {
@@ -114,6 +142,17 @@ public sealed class ThreadInfo {
 
             SavedThreadJson = NewFile;
         }
+    }
+    public void SaveHtml() {
+        string HtmlFile = Path.Combine(Data.DownloadPath, "Thread.html");
+        using FileStream fs = new(HtmlFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
+        using StreamWriter Writer = new(fs, Encoding.UTF8);
+        Writer.Write(ThreadTopHtml);
+        for (int i = 0; i < Data.ThreadPosts.Count; i++) {
+            Writer.Write(Data.ThreadPosts[i].PostHtml);
+        }
+        Writer.Write(ThreadBottomHtml);
+        Writer.Flush();
     }
 }
 

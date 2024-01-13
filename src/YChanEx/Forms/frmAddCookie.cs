@@ -1,5 +1,6 @@
 ﻿#nullable enable
 namespace YChanEx;
+using System;
 using System.Net;
 using System.Windows.Forms;
 public partial class frmAddCookie : Form {

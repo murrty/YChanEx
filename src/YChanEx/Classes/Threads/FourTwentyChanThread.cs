@@ -1,4 +1,3 @@
-﻿namespace YChanEx {
-    public class FourTwentyChanThread {
-    }
+﻿namespace YChanEx;
+public class FourTwentyChanThread {
 }

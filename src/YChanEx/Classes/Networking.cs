@@ -1,4 +1,5 @@
-﻿namespace YChanEx;
+﻿#nullable enable
+namespace YChanEx;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -6,7 +7,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using murrty.controls;
-
 internal static class Networking {
     public static string DownloadString(string InputURL, DateTime ModifiedSince = default) {
         try {
@@ -25,15 +25,6 @@ internal static class Networking {
             throw;
         }
     }
-    public static string GetAPILink(ThreadInfo Thread) {
-        return Thread.Chan switch {
-            ChanType.FourChan => $"https://a.4cdn.org/{Thread.Data.Board}/thread/{Thread.Data.Id}.json",
-            ChanType.FourTwentyChan => $"https://api.420chan.org/{Thread.Data.Board}/res/{Thread.Data.Id}.json",
-            ChanType.EightChan => $"https://8chan.moe/{Thread.Data.Board}/res/{Thread.Data.Id}.json",
-            ChanType.EightKun => $"https://8kun.top/{Thread.Data.Board}/res/{Thread.Data.Id}.json",
-            _ => null
-        };
-    }
     public static string CleanURL(string URL) {
         if (URL.StartsWith("http://")) {
             URL = URL[7..];
@@ -47,7 +38,7 @@ internal static class Networking {
         return URL.Split('#')[0];
     }
 
-    public static async Task<HttpResponseMessage> GetResponseAsync(HttpRequestMessage request, HttpClient downloadClient, CancellationToken token) {
+    public static async Task<HttpResponseMessage?> GetResponseAsync(HttpRequestMessage request, HttpClient downloadClient, CancellationToken token) {
         HttpResponseMessage? Response = null;
         int Retries = 0;
 

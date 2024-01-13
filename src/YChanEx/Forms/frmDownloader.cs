@@ -1,15 +1,21 @@
 ﻿#nullable enable
 namespace YChanEx;
 
+// TODO: Set HTML into the post objects, instead of the HTML string builder.
+// This is so posts can be updated when needed, and not re-build the entire HTML stringbuilder for a single thread.
+// Additionally, this should make the post that gets removed from the thread non-accessible in the HTML.
+
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using murrty.classes;
 using murrty.controls;
@@ -318,7 +324,7 @@ public partial class frmDownloader : Form {
                 case ChanType.FourTwentyChan:
                 case ChanType.EightChan:
                 case ChanType.EightKun:
-                    Clipboard.SetText(Networking.GetAPILink(ThreadInfo));
+                    Clipboard.SetText(ThreadInfo.ApiLink);
                     break;
 
                 case ChanType.SevenChan:
@@ -1009,7 +1015,7 @@ public partial class frmDownloader : Form {
 
                 if (!Response.IsSuccessStatusCode) {
     #if !NET6_0_OR_GREATER // Auto-redirect, for 308+ on framework.
-                    if (((int)Response.StatusCode is > 304 and < 400) && Response.Headers.Location is not null) {
+                    if (((int)Response.StatusCode is > 305 and < 400) && Response.Headers.Location is not null) {
                         request.RequestUri = Response.Headers.Location;
                         RequestMessage.ResetRequest(request);
                         Response.Dispose();
@@ -1104,7 +1110,7 @@ public partial class frmDownloader : Form {
         }
 
         if (Downloads.SaveHTML) {
-            File.WriteAllText(ThreadInfo.Data.DownloadPath + "\\Thread.html", ThreadInfo.ThreadHTML + HtmlControl.GetHTMLFooter(ThreadInfo));
+            ThreadInfo.SaveHtml();
         }
 
         for (int PostIndex = 0; PostIndex < ThreadInfo.Data.ThreadPosts.Count; PostIndex++) {
@@ -1285,25 +1291,25 @@ public partial class frmDownloader : Form {
     }
     private void AddNewPost(GenericPost CurrentPost) {
         if (CurrentPost.HasFiles) {
-            for (int PostIndex = 0; PostIndex < CurrentPost.PostFiles.Count; PostIndex++) {
-                var File = CurrentPost.PostFiles[PostIndex];
-                string FileName = (Downloads.SaveOriginalFilenames ? File.OriginalFileName : File.FileId)!;
-                string Suffix = GetFileSuffix(File.OriginalFileName!, File.FileExtension!);
-                string ThumbFileName = File.ThumbnailFileName!;
-                File.SavedFileName = FileName + Suffix;
-                File.SavedThumbnailFile = ThumbFileName;
+            for (int FileIndex = 0; FileIndex < CurrentPost.PostFiles.Count; FileIndex++) {
+                var CurrentFile = CurrentPost.PostFiles[FileIndex];
+                string FileName = (Downloads.SaveOriginalFilenames ? CurrentFile.OriginalFileName : CurrentFile.FileId)!;
+                string Suffix = GetFileSuffix(CurrentFile.OriginalFileName!, CurrentFile.FileExtension!);
+                string ThumbFileName = CurrentFile.ThumbnailFileName!;
+                CurrentFile.SavedFileName = FileName + Suffix;
+                CurrentFile.SavedThumbnailFile = ThumbFileName;
 
                 if (!Downloads.AllowFileNamesGreaterThan255) {
                     int FileNameLength = ThreadInfo.Data.DownloadPath.Length +
                         FileName.Length +
-                        File.FileExtension!.Length +
+                        CurrentFile.FileExtension!.Length +
                         Suffix.Length +
                         2; // ext period (1) and download path separator (1)
 
                     if (FileNameLength > 255) {
                         int TrimSize = FileNameLength - 255;
                         if (FileName.Length <= TrimSize) {
-                            HandleBadFileName(File);
+                            HandleBadFileName(CurrentFile);
                             return;
                         }
                         FileName = FileName[..^TrimSize];
@@ -1312,13 +1318,13 @@ public partial class frmDownloader : Form {
                     if (Downloads.SaveThumbnails) {
                         int ThumbFileNameLength = ThreadInfo.Data.DownloadPath.Length +
                             ThumbFileName.Length +
-                            File.ThumbnailFileExtension!.Length +
+                            CurrentFile.ThumbnailFileExtension!.Length +
                             8; // ext period (1), path separators (2), "thumb" (5)
 
                         if (ThumbFileNameLength > 255) {
                             int TrimSize = ThumbFileNameLength - 255;
                             if (ThumbFileName.Length <= TrimSize) {
-                                HandleBadThumbFileName(File);
+                                HandleBadThumbFileName(CurrentFile);
                                 return;
                             }
                             ThumbFileName = ThumbFileName[..^TrimSize];
@@ -1326,57 +1332,58 @@ public partial class frmDownloader : Form {
                     }
                 }
 
-                File.SavedFile = FileName + Suffix + "." + File.FileExtension;
-                File.SavedThumbnailFile = Path.Combine("thumb", ThumbFileName + "." + File.ThumbnailFileExtension);
+                CurrentFile.SavedFile = FileName + Suffix + "." + CurrentFile.FileExtension;
+                CurrentFile.SavedThumbnailFile = Path.Combine("thumb", ThumbFileName + "." + CurrentFile.ThumbnailFileExtension);
 
                 // add a new listviewitem to the listview for this image.
                 ListViewItem lvi = new();
                 lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
                 lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
                 lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                lvi.Name = File.FileId;
-                lvi.SubItems[0].Text = File.FileId;
-                lvi.SubItems[1].Text = File.FileExtension;
-                lvi.SubItems[2].Text = File.OriginalFileName + "." + File.FileExtension;
-                lvi.SubItems[3].Text = File.FileHash;
+                lvi.Name = CurrentFile.FileId;
+                lvi.SubItems[0].Text = CurrentFile.FileId;
+                lvi.SubItems[1].Text = CurrentFile.FileExtension;
+                lvi.SubItems[2].Text = CurrentFile.OriginalFileName + "." + CurrentFile.FileExtension;
+                lvi.SubItems[3].Text = CurrentFile.FileHash;
                 lvi.ImageIndex = WaitingImage;
-                lvi.Tag = File;
-                File.ListViewItem = lvi;
+                lvi.Tag = CurrentFile;
+                CurrentFile.ListViewItem = lvi;
                 this.Invoke(() => lvImages.Items.Add(lvi));
 
                 ThreadInfo.Data.ThreadImagesCount++;
                 ThreadInfo.Data.ThreadPostsCount++;
-                ThreadInfo.Data.EstimatedSize += File.FileSize;
+                ThreadInfo.Data.EstimatedSize += CurrentFile.FileSize;
             }
         }
 
         // add the new post to the data.
-        ThreadInfo.ThreadHTML.Append(HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo));
+        CurrentPost.PostHtml = HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo);
+        //ThreadInfo.ThreadHTML.Append(HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo));
         ThreadInfo.Data.ParsedPostIds.Add(CurrentPost.PostId);
         ThreadInfo.Data.ThreadPosts.Add(CurrentPost);
         ThreadInfo.AddedNewPosts = ThreadInfo.ThreadModified = true;
     }
     private void AddNewPostNoHash(GenericPost CurrentPost) {
         if (CurrentPost.HasFiles) {
-            for (int PostIndex = 0; PostIndex < CurrentPost.PostFiles.Count;  PostIndex++) {
-                var File = CurrentPost.PostFiles[PostIndex];
-                string FileName = (Downloads.SaveOriginalFilenames ? File.OriginalFileName : File.FileId)!;
-                string Suffix = GetFileSuffix(File.OriginalFileName!, File.FileExtension!);
-                string ThumbFileName = File.ThumbnailFileName!;
-                File.SavedFileName = FileName + Suffix;
-                File.SavedThumbnailFile = ThumbFileName;
+            for (int FileIndex = 0; FileIndex < CurrentPost.PostFiles.Count;  FileIndex++) {
+                var CurrentFile = CurrentPost.PostFiles[FileIndex];
+                string FileName = (Downloads.SaveOriginalFilenames ? CurrentFile.OriginalFileName : CurrentFile.FileId)!;
+                string Suffix = GetFileSuffix(CurrentFile.OriginalFileName!, CurrentFile.FileExtension!);
+                string ThumbFileName = CurrentFile.ThumbnailFileName!;
+                CurrentFile.SavedFileName = FileName + Suffix;
+                CurrentFile.SavedThumbnailFile = ThumbFileName;
 
                 if (!Downloads.AllowFileNamesGreaterThan255) {
                     int FileNameLength = ThreadInfo.Data.DownloadPath.Length +
                         FileName.Length +
-                        File.FileExtension!.Length +
+                        CurrentFile.FileExtension!.Length +
                         Suffix.Length +
                         2; // ext period (1) and download path separator (1)
 
                     if (FileNameLength > 255) {
                         int TrimSize = FileNameLength - 255;
                         if (FileName.Length <= TrimSize) {
-                            HandleBadFileName(File);
+                            HandleBadFileName(CurrentFile);
                             return;
                         }
                         FileName = FileName[..^TrimSize];
@@ -1385,13 +1392,13 @@ public partial class frmDownloader : Form {
                     if (Downloads.SaveThumbnails) {
                         int ThumbFileNameLength = ThreadInfo.Data.DownloadPath.Length +
                             ThumbFileName.Length +
-                            File.ThumbnailFileExtension!.Length +
+                            CurrentFile.ThumbnailFileExtension!.Length +
                             8; // ext period (1), path separators (2), "thumb" (5)
 
                         if (ThumbFileNameLength > 255) {
                             int TrimSize = ThumbFileNameLength - 255;
                             if (ThumbFileName.Length <= TrimSize) {
-                                HandleBadThumbFileName(File);
+                                HandleBadThumbFileName(CurrentFile);
                                 return;
                             }
                             ThumbFileName = ThumbFileName[..^TrimSize];
@@ -1399,30 +1406,31 @@ public partial class frmDownloader : Form {
                     }
                 }
 
-                File.SavedFile = FileName + Suffix + "." + File.FileExtension;
-                File.SavedThumbnailFile = Path.Combine("thumb", ThumbFileName + "." + File.ThumbnailFileExtension);
+                CurrentFile.SavedFile = FileName + Suffix + "." + CurrentFile.FileExtension;
+                CurrentFile.SavedThumbnailFile = Path.Combine("thumb", ThumbFileName + "." + CurrentFile.ThumbnailFileExtension);
 
                 // add a new listviewitem to the listview for this image.
                 ListViewItem lvi = new();
                 lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
                 lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                lvi.Name = File.FileId;
-                lvi.SubItems[0].Text = File.FileId;
-                lvi.SubItems[1].Text = File.FileExtension;
-                lvi.SubItems[2].Text = File.OriginalFileName + "." + File.FileExtension;
+                lvi.Name = CurrentFile.FileId;
+                lvi.SubItems[0].Text = CurrentFile.FileId;
+                lvi.SubItems[1].Text = CurrentFile.FileExtension;
+                lvi.SubItems[2].Text = CurrentFile.OriginalFileName + "." + CurrentFile.FileExtension;
                 lvi.ImageIndex = WaitingImage;
-                lvi.Tag = File;
-                File.ListViewItem = lvi;
+                lvi.Tag = CurrentFile;
+                CurrentFile.ListViewItem = lvi;
                 this.Invoke(() => lvImages.Items.Add(lvi));
 
                 ThreadInfo.Data.ThreadImagesCount++;
                 ThreadInfo.Data.ThreadPostsCount++;
-                ThreadInfo.Data.EstimatedSize += File.FileSize;
+                ThreadInfo.Data.EstimatedSize += CurrentFile.FileSize;
             }
         }
 
         // add the new post to the data.
-        ThreadInfo.ThreadHTML.Append(HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo));
+        CurrentPost.PostHtml = HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo);
+        //ThreadInfo.ThreadHTML.Append(HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo));
         ThreadInfo.Data.ParsedPostIds.Add(CurrentPost.PostId);
         ThreadInfo.Data.ThreadPosts.Add(CurrentPost);
         ThreadInfo.AddedNewPosts = ThreadInfo.ThreadModified = true;
@@ -1430,34 +1438,34 @@ public partial class frmDownloader : Form {
     private void LoadExistingPosts() {
         if (ThreadInfo.Data.ThreadPosts.Count > 0) {
             for (int i = 0; i < ThreadInfo.Data.ThreadPosts.Count; i++) {
-                GenericPost Post = ThreadInfo.Data.ThreadPosts[i];
-                if (!Post.HasFiles) {
-                    continue;
+                GenericPost CurrentPost = ThreadInfo.Data.ThreadPosts[i];
+                if (CurrentPost.HasFiles) {
+                    for (int x = 0; x < CurrentPost.PostFiles.Count; x++) {
+                        GenericFile CurrentFile = CurrentPost.PostFiles[x];
+                        ListViewItem lvi = new();
+                        lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                        lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                        lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                        lvi.Name = CurrentFile.FileId;
+                        lvi.SubItems[0].Text = CurrentFile.FileId;
+                        lvi.SubItems[1].Text = CurrentFile.FileExtension;
+                        lvi.SubItems[2].Text = CurrentFile.OriginalFileName;
+                        lvi.SubItems[3].Text = CurrentFile.FileHash;
+                        lvi.ImageIndex = CurrentFile.Status switch {
+                            FileDownloadStatus.Downloaded =>
+                                File.Exists(Path.Combine(ThreadInfo.Data.DownloadPath, CurrentFile.SavedFile)) ?
+                                    ReloadedDownloadedImage : ReloadedMissingImage,
+                            FileDownloadStatus.Error => ErrorImage,
+                            FileDownloadStatus.FileNotFound => _404Image,
+                            _ => WaitingImage
+                        };
+                        lvi.Tag = CurrentFile;
+                        CurrentFile.ListViewItem = lvi;
+                        this.Invoke(() => lvImages.Items.Add(lvi));
+                    }
                 }
 
-                for (int x = 0; x < Post.PostFiles.Count; x++) {
-                    GenericFile File = Post.PostFiles[x];
-                    ListViewItem lvi = new();
-                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                    lvi.Name = File.FileId;
-                    lvi.SubItems[0].Text = File.FileId;
-                    lvi.SubItems[1].Text = File.FileExtension;
-                    lvi.SubItems[2].Text = File.OriginalFileName;
-                    lvi.SubItems[3].Text = File.FileHash;
-                    lvi.ImageIndex = File.Status switch {
-                        FileDownloadStatus.Downloaded =>
-                            System.IO.File.Exists(Path.Combine(ThreadInfo.Data.DownloadPath, File.SavedFile)) ?
-                                ReloadedDownloadedImage : ReloadedMissingImage,
-                        FileDownloadStatus.Error => ErrorImage,
-                        FileDownloadStatus.FileNotFound => _404Image,
-                        _ => WaitingImage
-                    };
-                    lvi.Tag = File;
-                    File.ListViewItem = lvi;
-                    this.Invoke(() => lvImages.Items.Add(lvi));
-                }
+                CurrentPost.PostHtml = HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo);
             }
 
             this.Invoke(() => UpdateCounts());
@@ -1466,35 +1474,40 @@ public partial class frmDownloader : Form {
     private void LoadExistingPostsNoHash() {
         if (ThreadInfo.Data.ThreadPosts.Count > 0) {
             for (int i = 0; i < ThreadInfo.Data.ThreadPosts.Count; i++) {
-                GenericPost Post = ThreadInfo.Data.ThreadPosts[i];
-                if (!Post.HasFiles) {
-                    continue;
+                GenericPost CurrentPost = ThreadInfo.Data.ThreadPosts[i];
+                if (CurrentPost.HasFiles) {
+                    for (int x = 0; x < CurrentPost.PostFiles.Count; x++) {
+                        GenericFile CurrentFile = CurrentPost.PostFiles[x];
+                        ListViewItem lvi = new();
+                        lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                        lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+                        lvi.Name = CurrentFile.FileId;
+                        lvi.SubItems[0].Text = CurrentFile.FileId;
+                        lvi.SubItems[1].Text = CurrentFile.FileExtension;
+                        lvi.SubItems[2].Text = CurrentFile.OriginalFileName;
+                        lvi.ImageIndex = CurrentFile.Status switch {
+                            FileDownloadStatus.Downloaded =>
+                                File.Exists(Path.Combine(ThreadInfo.Data.DownloadPath, CurrentFile.SavedFile)) ?
+                                    ReloadedDownloadedImage : ReloadedMissingImage,
+                            FileDownloadStatus.Error => ErrorImage,
+                            FileDownloadStatus.FileNotFound => _404Image,
+                            _ => WaitingImage
+                        };
+                        lvi.Tag = CurrentFile;
+                        CurrentFile.ListViewItem = lvi;
+                        this.Invoke(() => lvImages.Items.Add(lvi));
+                    }
                 }
 
-                for (int x = 0; x < Post.PostFiles.Count; x++) {
-                    GenericFile File = Post.PostFiles[x];
-                    ListViewItem lvi = new();
-                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                    lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-                    lvi.Name = File.FileId;
-                    lvi.SubItems[0].Text = File.FileId;
-                    lvi.SubItems[1].Text = File.FileExtension;
-                    lvi.SubItems[2].Text = File.OriginalFileName;
-                    lvi.ImageIndex = File.Status switch {
-                        FileDownloadStatus.Downloaded =>
-                            System.IO.File.Exists(Path.Combine(ThreadInfo.Data.DownloadPath, File.SavedFile)) ?
-                                ReloadedDownloadedImage : ReloadedMissingImage,
-                        FileDownloadStatus.Error => ErrorImage,
-                        FileDownloadStatus.FileNotFound => _404Image,
-                        _ => WaitingImage
-                    };
-                    lvi.Tag = File;
-                    File.ListViewItem = lvi;
-                    this.Invoke(() => lvImages.Items.Add(lvi));
-                }
+                CurrentPost.PostHtml = HtmlControl.GetPostHtmlData(CurrentPost, ThreadInfo);
             }
 
             this.Invoke(() => UpdateCounts());
+        }
+    }
+    private void ThreadReloaded() {
+        if (Downloads.SaveHTML && !ThreadInfo.HtmlExists) {
+            ThreadInfo.SaveHtml();
         }
     }
 
@@ -1510,13 +1523,13 @@ public partial class frmDownloader : Form {
                 }
 
                 // HTML
-                if (!ThreadInfo.ThreadReloaded) {
-                    ThreadInfo.ThreadHTML = new(HtmlControl.GetHTMLBase(ThreadInfo));
-                }
-                else {
-                    ThreadInfo.ThreadHTML = new(HtmlControl.RebuildHTML(ThreadInfo));
+                ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo);
+                ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
+                if (ThreadInfo.ThreadReloaded) {
                     LoadExistingPosts();
+                    ThreadReloaded();
                 }
+                CancellationToken.Token.ThrowIfCancellationRequested();
 
                 // Main loop
                 do {
@@ -1576,7 +1589,7 @@ public partial class frmDownloader : Form {
                         // Update the data with the new name.
                         ThreadInfo.Data.ThreadName = NewName;
                         ThreadInfo.Data.RetrievedThreadName = true;
-                        ThreadInfo.ThreadHTML = ThreadInfo.ThreadHTML.Replace("<title></title>",
+                        ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.Replace("<title></title>",
                             $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 4chan</title>");
                         ThreadInfo.Data.HtmlThreadNameSet = true;
 
@@ -1651,13 +1664,13 @@ public partial class frmDownloader : Form {
                 }
 
                 // HTML
-                if (!ThreadInfo.ThreadReloaded) {
-                    ThreadInfo.ThreadHTML = new(HtmlControl.GetHTMLBase(ThreadInfo));
-                }
-                else {
-                    ThreadInfo.ThreadHTML = new(HtmlControl.RebuildHTML(ThreadInfo));
+                ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo);
+                ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
+                if (ThreadInfo.ThreadReloaded) {
                     LoadExistingPostsNoHash();
+                    ThreadReloaded();
                 }
+                CancellationToken.Token.ThrowIfCancellationRequested();
 
                 // Main loop
                 do {
@@ -1726,7 +1739,7 @@ public partial class frmDownloader : Form {
                         // Update the data with the new name.
                         ThreadInfo.Data.ThreadName = NewName;
                         ThreadInfo.Data.RetrievedThreadName = true;
-                        ThreadInfo.ThreadHTML = ThreadInfo.ThreadHTML.Replace("<title></title>",
+                        ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.Replace("<title></title>",
                             $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 7chan</title>");
                         ThreadInfo.Data.HtmlThreadNameSet = true;
 
@@ -1818,13 +1831,16 @@ public partial class frmDownloader : Form {
                     }
                     ThreadInfo.Data.RetrievedBoardName = true;
                     ThreadInfo.ThreadModified = true;
-                    ThreadInfo.ThreadHTML = new(HtmlControl.GetHTMLBase(ThreadInfo));
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo);
+                    ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
                 }
                 else {
-                    ThreadInfo.ThreadHTML = new(HtmlControl.RebuildHTML(ThreadInfo));
+                    ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo);
+                    ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
                     LoadExistingPostsNoHash();
+                    ThreadReloaded();
                 }
+                CancellationToken.Token.ThrowIfCancellationRequested();
 
                 // Main loop
                 do {
@@ -1885,7 +1901,7 @@ public partial class frmDownloader : Form {
                         // Update the data with the new name.
                         ThreadInfo.Data.ThreadName = NewName;
                         ThreadInfo.Data.RetrievedThreadName = true;
-                        ThreadInfo.ThreadHTML = ThreadInfo.ThreadHTML.Replace("<title></title>",
+                        ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.Replace("<title></title>",
                             $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 8chan</title>");
                         ThreadInfo.Data.HtmlThreadNameSet = true;
 
@@ -1985,13 +2001,16 @@ public partial class frmDownloader : Form {
                     }
                     ThreadInfo.Data.RetrievedBoardName = true;
                     ThreadInfo.ThreadModified = true;
-                    ThreadInfo.ThreadHTML = new(HtmlControl.GetHTMLBase(ThreadInfo));
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo);
+                    ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
                 }
                 else {
-                    ThreadInfo.ThreadHTML = new(HtmlControl.RebuildHTML(ThreadInfo));
+                    ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo);
+                    ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
                     LoadExistingPosts();
+                    ThreadReloaded();
                 }
+                CancellationToken.Token.ThrowIfCancellationRequested();
 
                 // Main loop
                 do {
@@ -2052,7 +2071,7 @@ public partial class frmDownloader : Form {
                         // Update the data with the new name.
                         ThreadInfo.Data.ThreadName = NewName;
                         ThreadInfo.Data.RetrievedThreadName = true;
-                        ThreadInfo.ThreadHTML = ThreadInfo.ThreadHTML.Replace("<title></title>",
+                        ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.Replace("<title></title>",
                             $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 8kun</title>");
                         ThreadInfo.Data.HtmlThreadNameSet = true;
 
@@ -2129,13 +2148,13 @@ public partial class frmDownloader : Form {
                 }
 
                 // HTML
-                if (!ThreadInfo.ThreadReloaded) {
-                    ThreadInfo.ThreadHTML = new(HtmlControl.GetHTMLBase(ThreadInfo));
-                }
-                else {
-                    ThreadInfo.ThreadHTML = new(HtmlControl.RebuildHTML(ThreadInfo));
+                ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo);
+                ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
+                if (ThreadInfo.ThreadReloaded) {
                     LoadExistingPostsNoHash();
+                    ThreadReloaded();
                 }
+                CancellationToken.Token.ThrowIfCancellationRequested();
 
                 // Main loop
                 do {
@@ -2203,7 +2222,7 @@ public partial class frmDownloader : Form {
                         // Update the data with the new name.
                         ThreadInfo.Data.ThreadName = NewName;
                         ThreadInfo.Data.RetrievedThreadName = true;
-                        ThreadInfo.ThreadHTML = ThreadInfo.ThreadHTML.Replace("<title></title>",
+                        ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.Replace("<title></title>",
                             $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - fchan</title>");
                         ThreadInfo.Data.HtmlThreadNameSet = true;
 
@@ -2278,13 +2297,13 @@ public partial class frmDownloader : Form {
                 }
 
                 // HTML
-                if (!ThreadInfo.ThreadReloaded) {
-                    ThreadInfo.ThreadHTML = new(HtmlControl.GetHTMLBase(ThreadInfo));
-                }
-                else {
-                    ThreadInfo.ThreadHTML = new(HtmlControl.RebuildHTML(ThreadInfo));
+                ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo);
+                ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
+                if (ThreadInfo.ThreadReloaded) {
                     LoadExistingPostsNoHash();
+                    ThreadReloaded();
                 }
+                CancellationToken.Token.ThrowIfCancellationRequested();
 
                 // Main loop
                 do {
@@ -2352,7 +2371,7 @@ public partial class frmDownloader : Form {
                         // Update the data with the new name.
                         ThreadInfo.Data.ThreadName = NewName;
                         ThreadInfo.Data.RetrievedThreadName = true;
-                        ThreadInfo.ThreadHTML = ThreadInfo.ThreadHTML.Replace("<title></title>",
+                        ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.Replace("<title></title>",
                             $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - u18chan</title>");
                         ThreadInfo.Data.HtmlThreadNameSet = true;
 

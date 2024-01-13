@@ -1,5 +1,7 @@
 ﻿#nullable enable
 namespace YChanEx;
+using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Windows.Forms;
 public partial class frmMain : Form, IMainFom {

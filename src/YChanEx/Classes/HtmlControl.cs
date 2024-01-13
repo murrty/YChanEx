@@ -6,11 +6,29 @@ using YChanEx.Posts;
 // TODO: Handle HTML that filters out messages in posts, non-image posts, or both
 
 internal static class HtmlControl {
-    private const string Disclaimer = "The content archived here was not previously reviewed by YChanEx (developer or contributors), and is not endorsed by nor reflect the views of YChanEx (developer or contributors).";
-    private const string pDisclaimer = "The content archived from this board is actually braindead. YChanEx, developer, and contributors, reject the content archived here.";
-    //private const string ekDisclaimer = "The content archived from this site is highly fucking stupid and is not reviewed by, endorsed by, or reflect the views of YChanEx, the developer, nor contributors.";
+    private static readonly string[] SizeSuffix =
+        [ "B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB" ];
 
-    private const string CSS = """
+    private static string Condense(string HTML) {
+        if (!Downloads.CleanThreadHTML) {
+            return HTML.Replace("\r\n", "\n").Replace("\n", "");
+            //string[] Base = HTML.Replace("\r\n", "\n").Split('\n');
+            //string buffer = string.Empty;
+            //for (int i = 0; i < Base.Length; i++) {
+            //    buffer += Base[i].Trim();
+            //}
+            //return buffer;
+        }
+        return HTML;
+    }
+
+    public static string GetHTMLBase(ThreadInfo Thread) {
+        return $$"""
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <style>
             html {
                 -moz-text-size-adjust: 100%;
                 -webkit-text-size-adjust: 100%;
@@ -253,29 +271,21 @@ internal static class HtmlControl {
                 border: 1px solid #191919;
                 border-radius: 4px;
             }
-""";
-    private const string HtmlBase = """
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8">
-        <style>
-{0}
         </style>
         <title></title>
     </head>
 
     <body>
         <div class="threadBanner">
-            <div class="boardTitle">/{1}/ - {2}</div>
-            <div class="boardSubtitle">{3}</div>
-            <div class="archiveDisclaimer">{4}</div>
+            <div class="boardTitle">/{{Thread.Data.Board}}/ - {{Chans.GetFullBoardName(Thread, true)}}</div>
+            <div class="boardSubtitle">{{Thread.Data.BoardSubtitle}}</div>
+            <div class="archiveDisclaimer">{{GetDisclaimer(Thread)}}</div>
         </div>
 
         <div class="contentControls">
             <div class="upperControls">
                 [<a href="#bottom">Bottom</a>]
-                [<a href="{5}">Original thread</a>]
+                [<a href="{{Thread.Data.Url}}">Original thread</a>]
             </div>
             <div class="contentSeparator">
                 <hr class="contentSeparator" />
@@ -283,78 +293,7 @@ internal static class HtmlControl {
         </div>
 
 """;
-
-    private static string Condense(string HTML) {
-        if (!Downloads.CleanThreadHTML) {
-            string[] Base = HTML.Replace("\r\n", "\n").Split('\n');
-            string buffer = string.Empty;
-            for (int i = 0; i < Base.Length; i++) {
-                buffer += Base[i].Trim();
-            }
-            return buffer;
-        }
-        return HTML;
     }
-
-    public static string RebuildHTML(ThreadInfo Thread) {
-        string HTML = GetHTMLBase(Thread);
-        if (Thread.Data.ThreadPosts.Count > 0) {
-            for (int i = 0; i < Thread.Data.ThreadPosts.Count; i++) {
-                HTML += GetPostHtmlData(Thread.Data.ThreadPosts[i], Thread);
-            }
-        }
-        return HTML;
-    }
-
-    public static string GetHTMLBase(ThreadInfo Thread) {
-        return string.Format(
-            HtmlBase,
-            CSS,
-            Thread.Data.Board,
-            Chans.GetFullBoardName(Thread, true),
-            Thread.Data.BoardSubtitle,
-            Thread.Chan switch {
-                //ChanType.EightChan or
-                //ChanType.EightKun => ekDisclaimer,
-                ChanType.FourChan when Thread.Data.Board.Equals("pol", StringComparison.OrdinalIgnoreCase) => pDisclaimer,
-                _ => Disclaimer
-            },
-            Thread.Data.Url);
-        /*
-        return Thread.Chan switch {
-            ChanType.FourChan or
-            ChanType.FourTwentyChan or
-            ChanType.SevenChan or
-            ChanType.EightChan or
-            ChanType.EightKun =>
-                Condense(string.Format(
-                    HtmlBase,
-                    CSS,
-                    Thread.Data.Board,
-                    Chans.GetFullBoardName(Thread, true),
-                    Thread.Data.BoardSubtitle,
-                    Thread.Chan switch {
-                        ChanType.EightChan or
-                        ChanType.EightKun => ekDisclaimer,
-                        ChanType.FourChan when Thread.Data.Board.Equals("pol", StringComparison.OrdinalIgnoreCase) => pDisclaimer,
-                        _ => Disclaimer
-                    },
-                    Thread.Data.Url)),
-
-            _ => Condense(
-$$"""
-{{Condense(HtmlBase)}}{{Thread.Data.Board}}</div>
-            <div class=\"boardSubtitle\">{{Thread.Data.BoardSubtitle ?? Thread.Data.Board}}</div>
-        </div>
-
-        <hr class=\"CenteredSmall\" />
-
-        <br/><center>This *chan isn't supported by the updated HTML archiver. This may be a program-sided issue.</center><br/>
-""")
-        };
-        */
-    }
-
     public static string GetPostHtmlData(GenericPost Post, ThreadInfo Thread) {
         string HTML = string.Empty;
 
@@ -437,7 +376,6 @@ $$"""
 
         return Downloads.CleanThreadHTML ? HTML : Condense(HTML);
     }
-
     public static string GetHTMLFooter(ThreadInfo Thread) {
 string HTML = $$"""
 
@@ -453,11 +391,7 @@ string HTML = $$"""
         </div>
         
         <div class="threadBanner" id="bottom">
-            <div class="archiveDisclaimer">{{Thread.Chan switch {
-                                                //ChanType.EightChan or
-                                                //ChanType.EightKun => ekDisclaimer,
-                                                _ => Disclaimer
-                                            }}}</div>
+            <div class="archiveDisclaimer">{{GetDisclaimer(Thread)}}</div>
         </div>
     </body>
 </html>
@@ -466,7 +400,7 @@ string HTML = $$"""
         return Downloads.CleanThreadHTML ? HTML : Condense(HTML);
     }
 
-    public static string GetTags(string[] tags) {
+    private static string GetTags(string[] tags) {
         if (tags == null || tags.Length < 1) {
             return string.Empty;
         }
@@ -494,8 +428,7 @@ string HTML = $$"""
 
         return sb.ToString();
     }
-
-    public static string GetFile(GenericFile File) {
+    private static string GetFile(GenericFile File) {
         return File.FileExtension switch {
             ".webm" or "webm" =>
 $"""
@@ -513,9 +446,26 @@ $"""
 """,
         };
     }
-
-    private static readonly string[] SizeSuffix =
-        [ "B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB" ];
+    private static string GetImageThumbnailDimension(GenericFile File) {
+        if (File.ThumbnailFileDimensions.Width == 0 || File.ThumbnailFileDimensions.Height == 0) {
+            return string.Empty;
+        }
+        return $"style=\"width: {File.ThumbnailFileDimensions.Width}px; height: {File.ThumbnailFileDimensions.Height}px;\" ";
+    }
+    private static string GetVideoThumbnailDimensions(GenericFile File) {
+        if (File.ThumbnailFileDimensions.Width == 0 || File.ThumbnailFileDimensions.Height == 0) {
+            return string.Empty;
+        }
+        return $"width=\"{File.ThumbnailFileDimensions.Width}\" height=\"{File.ThumbnailFileDimensions.Height}\" ";
+    }
+    private static string GetDisclaimer(ThreadInfo Thread) {
+        return Thread.Chan switch {
+            //ChanType.EightChan or
+            //ChanType.EightKun => "The content archived from this site is highly fucking stupid and is not reviewed by, endorsed by, or reflect the views of YChanEx, the developer, nor contributors.",
+            ChanType.FourChan when Thread.Data.Board.Equals("pol", StringComparison.OrdinalIgnoreCase) => "The content archived from this board is actually braindead. YChanEx, developer, and contributors, reject the content archived here.",
+            _ => "The content archived here was not previously reviewed by YChanEx (developer or contributors), and is not endorsed by nor reflect the views of YChanEx (developer or contributors)."
+        };
+    }
 
     public static string GetSize(long Size, int DecimalPlaces = 2) {
         int DivisionCount = 0;
@@ -526,20 +476,6 @@ $"""
         }
         return $"{decimal.Round(Division, DecimalPlaces)} {SizeSuffix[DivisionCount]}";
     }
-
-    public static string GetImageThumbnailDimension(GenericFile File) {
-        if (File.ThumbnailFileDimensions.Width == 0 || File.ThumbnailFileDimensions.Height == 0) {
-            return string.Empty;
-        }
-        return $"style=\"width: {File.ThumbnailFileDimensions.Width}px; height: {File.ThumbnailFileDimensions.Height}px;\" ";
-    }
-    public static string GetVideoThumbnailDimensions(GenericFile File) {
-        if (File.ThumbnailFileDimensions.Width == 0 || File.ThumbnailFileDimensions.Height == 0) {
-            return string.Empty;
-        }
-        return $"width=\"{File.ThumbnailFileDimensions.Width}\" height=\"{File.ThumbnailFileDimensions.Height}\" ";
-    }
-
     public static string GetReadableTime(DateTimeOffset Time) {
         Time = Time.ToUniversalTime();
         return $"{Time.Year:D4}/{Time.Month:D2}/{Time.Day:D2} ({Time.DayOfWeek.ToString()[..3]}) {Time.Hour:D2}:{Time.Minute:D2}:{Time.Second:D2} (UTC)";

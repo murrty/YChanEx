@@ -1,7 +1,5 @@
 ﻿namespace YChanEx;
 
-using murrty.classes;
-
 /// <summary>
 /// This class contains methods for translating and managing chan threads.
 /// Most backend is here, except for individual chan apis and parsing.
