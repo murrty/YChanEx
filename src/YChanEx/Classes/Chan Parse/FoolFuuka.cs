@@ -4,63 +4,26 @@ using System.Drawing;
 using SoftCircuits.HtmlMonkey;
 using YChanEx.Posts;
 internal static class FoolFuuka {
-    private static readonly Selector FirstPostSelector = Selector.ParseSelector("article[id:=\"\\d+\"][data-board=]");
-    private static readonly Selector RepliesSelector = Selector.ParseSelector("aside[class=posts] > article > div[class=\"post_wrapper\"]");
+    public static FoolFuukaPost[]? Deserialize(string json) {
+        var Deserialize = json.JsonDeserialize<Dictionary<ulong, FoolFuukaThread>>()
+            .FirstOrDefault().Value;
 
-    // Tested: 2.2.0: b4k, desuarchive, archived (to an extent)
-
-    public static FoolFuukaPost[] Generate(string html) {
-        HtmlDocument htDoc = HtmlDocument.FromHtml(html, HtmlParseOptions.RemoveEmptyTextNodes | HtmlParseOptions.TrimTextNodes);
-        var FirstPostNode = htDoc.Find(FirstPostSelector)
-            .FirstOrDefault();
-
-        if (FirstPostNode == null) {
-            throw new NullReferenceException($"Could not find '{nameof(FirstPostNode)}'.");
+        if (Deserialize?.op == null) {
+            return null;
         }
 
-        FoolFuukaPost FirstPost = new(FirstPostNode);
-
-        var ReplyNodes = htDoc.Find(RepliesSelector)
-            .ToArray();
-
-        if (ReplyNodes.Length == 0) {
-            return [FirstPost];
-        }
-
-        var array = new FoolFuukaPost[ReplyNodes.Length + 1];
-        array[0] = FirstPost;
-        for (int i = 0; i < ReplyNodes.Length; i++) {
-            array[i + 1] = new(ReplyNodes[i]);
-        }
-
-        return array;
+        return [Deserialize.op, .. Deserialize.posts?.Select(x => x.Value)];
     }
-    public static async Task<FoolFuukaPost[]> GenerateAsync(string html) {
-        HtmlDocument htDoc = await HtmlDocument.FromHtmlAsync(html, HtmlParseOptions.RemoveEmptyTextNodes | HtmlParseOptions.TrimTextNodes);
+    public static async Task<FoolFuukaPost[]?> DeserializeAsync(string json) {
+        return await Task.Run<FoolFuukaPost[]?>(() => {
+            var Deserialize = json.JsonDeserialize<Dictionary<ulong, FoolFuukaThread>>()
+                .FirstOrDefault().Value;
 
-        return await Task.Run(() => {
-            var FirstPostNode = htDoc.Find(FirstPostSelector)
-                .FirstOrDefault();
-
-            if (FirstPostNode == null) {
-                throw new NullReferenceException($"Could not find '{nameof(FirstPostNode)}'.");
+            if (Deserialize?.op == null) {
+                return null;
             }
 
-            FoolFuukaPost FirstPost = new(FirstPostNode);
-            var ReplyNodes = htDoc.Find(RepliesSelector)
-                .ToArray();
-
-            if (ReplyNodes.Length == 0) {
-                return [ FirstPost ];
-            }
-
-            var array = new FoolFuukaPost[ReplyNodes.Length + 1];
-            array[0] = FirstPost;
-            for (int i = 0; i < ReplyNodes.Length; i++) {
-                array[i + 1] = new(ReplyNodes[i]);
-            }
-
-            return array;
+            return [ Deserialize.op, .. Deserialize.posts?.Select(x => x.Value) ];
         });
     }
 
