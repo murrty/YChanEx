@@ -120,32 +120,26 @@ internal static class FoolFuuka {
         return null;
     }
     private static void CleanMessageNode(HtmlElementNode node) {
-        //if (node.TagName.Equals("a", StringComparison.OrdinalIgnoreCase)) {
-        //    node.Attributes.Remove("onclick");
-        //    node.Attributes.Remove("onmouseover");
-        //    node.Attributes.Remove("onmouseout");
-        //    node.Attributes.Remove("class");
-        //    var newHref = node.Attributes["href"]?.Value;
-        //    if (newHref != null) {
-        //        node.Attributes["href"]!.Value = "#p" + newHref[(newHref.LastIndexOf('#') + 1)..];
-        //        node.Attributes.Add(new HtmlAttribute("class", "quotelink"));
-        //    }
-        //}
-
-        if (node.TagName.Equals("span", StringComparison.OrdinalIgnoreCase)
-        && node.Attributes.Contains("class", "greentext", StringComparison.InvariantCultureIgnoreCase)
-        && node.Children.Count > 0) {
-            if (node.Children[0] is HtmlElementNode c) {
-                node = c;
-                if (node.Attributes.TryGetValue("data-post", out var postId)) {
-                    node.Attributes.Clear();
-                    node.Attributes.Add("class", "quotelink");
-                    node.Attributes.Add("href", "#p" + postId.Value);
+        if (node.TagName.Equals("span", StringComparison.OrdinalIgnoreCase)) {
+            if (node.Attributes.Contains("class", "greentext", StringComparison.InvariantCultureIgnoreCase)) {
+                if (node.Children.Count > 0) {
+                    if (node.Children[0] is HtmlElementNode c) {
+                        node = c;
+                        if (node.Attributes.TryGetValue("data-post", out var postId)) {
+                            node.Attributes.Clear();
+                            node.Attributes.Add("class", "quotelink");
+                            node.Attributes.Add("href", "#p" + postId.Value);
+                        }
+                    }
+                    else {
+                        node.Attributes.Remove("class");
+                        node.Attributes.Add("class", "quote");
+                    }
                 }
             }
-            else {
-                node.Attributes.Remove("class");
-                node.Attributes.Add("class", "quote");
+            else if (node.Attributes.ContainsWithValue("class", "spoiler", StringComparison.InvariantCultureIgnoreCase)) {
+                node.TagName = "s";
+                node.Attributes.Clear();
             }
         }
 
