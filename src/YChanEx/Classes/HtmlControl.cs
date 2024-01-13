@@ -1,5 +1,6 @@
 ﻿namespace YChanEx;
 
+using System.IO;
 using System.Text;
 using YChanEx.Posts;
 
@@ -97,7 +98,7 @@ internal static class HtmlControl {
             }
 
             div.post {
-                margin: 4px 0;
+                margin: 2px 0;
             }
 
             div.reply {
@@ -168,6 +169,14 @@ internal static class HtmlControl {
                 padding-left: 5px;
             }
 
+            div.reply span.name {
+                margin-left: 4px;
+            }
+
+            span.postNum > a {
+                margin-left: 4px;
+            }
+
             span.quote {
                 color: #69a669;
             }
@@ -194,13 +203,9 @@ internal static class HtmlControl {
                 margin-left: 6px;
             }
 
-            div.reply span.quotedBy > a {
-                margin-left: 0%;
-                display: inline-block;
-            }
-
             span.quotedBy > a {
-                margin-left: 6px;
+                margin-left: 4px;
+                white-space: nowrap;
                 display: inline-block;
             }
 
@@ -232,6 +237,7 @@ internal static class HtmlControl {
 
             div.multiFile {
                 display: inline-block;
+                margin-right: 12px;
             }
 
             div.multiFile .fileThumb img {
@@ -264,6 +270,10 @@ internal static class HtmlControl {
                 margin-left: -2px;
             }
 
+            div.reply div.postInfo {
+                margin-right: 4px;
+            }
+
             div.op div.postInfo, div.op div.fileText {
                 margin-left: -7px;
             }
@@ -279,7 +289,8 @@ internal static class HtmlControl {
             }
 
             div.tag {
-                display: flex;
+                white-space: nowrap;
+                display: inline-block;
                 margin-left: 4px;
                 padding: 2px 8px 2px 8px;
                 background-color: #353535;
@@ -309,90 +320,75 @@ internal static class HtmlControl {
 
 """;
     }
-    public static string GetPostHtmlData(GenericPost Post, ThreadInfo Thread) {
-        string HTML = string.Empty;
-
-        //if (Post.PostThumbnailHeight > MaximumThumbnailSize) {
-        //    decimal rnd = (Post.FirstPost ? MaximumOpThumbnailSize : MaximumThumbnailSize) / (decimal)Post.PostThumbnailHeight;
-        //    Post.PostThumbnailWidth = (int)Math.Round(Post.PostThumbnailWidth * rnd);
-        //    Post.PostThumbnailHeight = (int)Math.Round(Post.PostThumbnailHeight * rnd);
-        //}
-        //else if (Post.PostThumbnailWidth > MaximumThumbnailSize) {
-        //    decimal rnd = (Post.FirstPost ? MaximumOpThumbnailSize : MaximumThumbnailSize) / (decimal)Post.PostThumbnailWidth;
-        //    Post.PostThumbnailWidth = (int)Math.Round(Post.PostThumbnailWidth * rnd);
-        //    Post.PostThumbnailHeight = (int)Math.Round(Post.PostThumbnailHeight * rnd);
-        //}
-
+    public static void WritePostHtmlData(GenericPost Post, ThreadInfo Thread, StreamWriter Writer) {
         if (Post.FirstPost) {
-            HTML += $$"""
+            Writer.Write($$"""
 
         <div class="postContainer">
-            <div id="p{{Post.PostId}}" class="post op">
-""";
+            <div id="p{{Post.PostId}}" class="post op{{(Post.MultiFilePost ? " op-multipost" : string.Empty)}}">
+""");
 
             if (Post.PostFiles.Count > 0) {
                 for (int i = 0; i < Post.PostFiles.Count; i++) {
                     var File = Post.PostFiles[i];
 
-                    HTML += $$"""
+                    Writer.Write($$"""
 
                 <div class="{{(Post.MultiFilePost ? "multiFile" : "file")}}">
-                    <div class="fileText">&nbsp; 
+                    <div class="fileText">
                         <a href="{{File.SavedFile}}" target="_blank">{{File.OriginalFileName}}.{{File.FileExtension}}</a><span class="info"> ({{GetSize(File.FileSize)}}, {{File.FileDimensions.Width}}x{{File.FileDimensions.Height}})</span>
                     </div>
                     <a class="fileThumb{{(File.ThumbnailFileSpoiled ? " fileSpoiler" : "")}}" href="{{File.SavedFile}}" target="_blank">{{GetFile(File)}}</a>
                 </div>
 
-""";
+""");
                 }
             }
 
-            HTML += $$"""
-            <div class="postInfo desktop">&nbsp; <span class="subject">{{Post.PostSubject}}</span><span class="nameBlock"><span class="name">{{Post.PosterName}}</span>{{(Post.PosterCapcode is not null ? $"<span class=\"specialname\">##{Post.PosterCapcode}</span>" : "")}}{{(Post.PosterTripcode is not null ? $"<span class=\"tripcode\">{Post.PosterTripcode}</span>" : "")}}{{(Post.PosterId is not null ? $"<span class=\"posterid\">{Post.PosterId}</span>" : "")}}</span><span class="dateTime" title="Unix timestamp: {{Post.PostDate.ToUnixTimeSeconds()}}">{{GetReadableTime(Post.PostDate)}}</span> <span class="postNum desktop"><a href="#p{{Post.PostId}}">No.</a>{{Post.PostId}} <a href="{{Thread.Data.Url}}#p{{Post.PostId}}">[OP]</a>{{GetQuotes(Post)}}</span></div>
+            Writer.Write($$"""
+            <div class="postInfo desktop"><span class="subject">{{Post.PostSubject}}</span><span class="nameBlock"><span class="name">{{Post.PosterName}}</span>{{(Post.PosterCapcode is not null ? $"<span class=\"specialname\">##{Post.PosterCapcode}</span>" : "")}}{{(Post.PosterTripcode is not null ? $"<span class=\"tripcode\">{Post.PosterTripcode}</span>" : "")}}{{(Post.PosterId is not null ? $"<span class=\"posterid\">{Post.PosterId}</span>" : "")}}</span><span class="dateTime" title="Unix timestamp: {{Post.PostDate.ToUnixTimeSeconds()}}">{{GetReadableTime(Post.PostDate)}}</span><span class="postNum desktop"><a href="#p{{Post.PostId}}">No.</a>{{Post.PostId}}<a href="{{Thread.Data.Url}}#p{{Post.PostId}}">[OP]</a>{{GetQuotes(Post)}}</span></div>
                 <blockquote class="postMessage">{{Post.PostMessage}}</blockquote>{{GetTags(Post.Tags)}}
             </div>
         </div>
 
-""";
+""");
         }
         else {
-            HTML += $$"""
+            Writer.Write($$"""
 
         <div class="postContainer">
             <div id="p{{Post.PostId}}" class="post reply">
                 <div class="postInfo desktop">
-                    <span class="nameBlock"><span class="name">&nbsp;{{(!string.IsNullOrWhiteSpace(Post.PostSubject) ? $"<span class=\"subject\">{Post.PostSubject} </span>" : "")}}{{Post.PosterName}}</span>{{(Post.PosterCapcode is not null ? $"<span class=\"specialname\">##{Post.PosterCapcode}</span>" : "")}}{{(Post.PosterTripcode is not null ? $"<span class=\"tripcode\">{Post.PosterTripcode}</span>" : "")}}{{(Post.PosterId is not null ? $"<span class=\"posterid\">{Post.PosterId}</span>" : "")}}</span><span class="dateTime" title="Unix timestamp: {{Post.PostDate.ToUnixTimeSeconds()}}">{{GetReadableTime(Post.PostDate)}}</span> <span class="postNum desktop"><a href="#p{{Post.PostId}}">No.</a>{{Post.PostId}} <a href="{{Thread.Data.Url}}#p{{Post.PostId}}">[OP]</a>&nbsp;{{GetQuotes(Post)}}</span>
+                    <span class="nameBlock"><span class="name">{{(!string.IsNullOrWhiteSpace(Post.PostSubject) ? $"<span class=\"subject\">{Post.PostSubject} </span>" : "")}}{{Post.PosterName}}</span>{{(Post.PosterCapcode is not null ? $"<span class=\"specialname\">##{Post.PosterCapcode}</span>" : "")}}{{(Post.PosterTripcode is not null ? $"<span class=\"tripcode\">{Post.PosterTripcode}</span>" : "")}}{{(Post.PosterId is not null ? $"<span class=\"posterid\">{Post.PosterId}</span>" : "")}}</span><span class="dateTime" title="Unix timestamp: {{Post.PostDate.ToUnixTimeSeconds()}}">{{GetReadableTime(Post.PostDate)}}</span><span class="postNum desktop"><a href="#p{{Post.PostId}}">No.</a>{{Post.PostId}}<a href="{{Thread.Data.Url}}#p{{Post.PostId}}">[OP]</a>{{GetQuotes(Post)}}</span>
                 </div>
 
-""";
+""");
 
             if (Post.PostFiles.Count > 0) {
                 for (int i = 0; i < Post.PostFiles.Count; i++) {
                     var File = Post.PostFiles[i];
 
-                    HTML += $$"""
+                    Writer.Write($$"""
             <div class="{{(Post.MultiFilePost ? "multiFile" : "file")}}">
-                    <div class="fileText">&nbsp; <a href="{{File.SavedFile}}" target="_blank">{{File.OriginalFileName}}.{{File.FileExtension}}</a><span class="info"> ({{GetSize(File.FileSize)}}, {{File.FileDimensions.Width}}x{{File.FileDimensions.Height}})</span></div>
+                    <div class="fileText"><a href="{{File.SavedFile}}" target="_blank">{{File.OriginalFileName}}.{{File.FileExtension}}</a><span class="info"> ({{GetSize(File.FileSize)}}, {{File.FileDimensions.Width}}x{{File.FileDimensions.Height}})</span></div>
                     <a class="fileThumb{{(File.ThumbnailFileSpoiled ? " fileSpoiler" : "")}}" href="{{File.SavedFile}}" target="_blank">{{GetFile(File)}}</a>
                 </div>
 
-""";
+""");
                 }
             }
 
-            HTML += $$"""
+            Writer.Write($$"""
             <blockquote class="postMessage">{{Post.PostMessage}}</blockquote>
 {{(Post.MultiFilePost ? "                <blockquote class=\"postMessage\"><span class=\"ychanexNotice\">This is a multi-file post</span></blockquote>" : "")}}{{GetTags(Post.Tags)}}
             </div>
         </div>
 
-""";
+""");
         }
-
-        return Downloads.CleanThreadHTML ? HTML : Condense(HTML);
     }
     public static string GetHTMLFooter(ThreadInfo Thread) {
-string HTML = $$"""
+        string HTML = $$"""
 
         <div class="contentControls">
             <div class="upperControls">
