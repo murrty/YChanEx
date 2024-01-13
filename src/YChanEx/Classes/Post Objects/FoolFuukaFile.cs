@@ -6,7 +6,7 @@ using static YChanEx.Parsers.FoolFuuka;
 using static YChanEx.Parsers.Helpers.ParsersShared;
 [DataContract]
 internal sealed class FoolFuukaFile {
-    private static readonly Selector ThumbnailSelector = Selector.ParseSelector("a[class=\"thread_image_link\"] > img[data-src=]");
+    private static readonly Selector ThumbnailSelector = Selector.ParseSelector("a[class=\"thread_image_link\"] img[src=]");
     private static readonly Selector FileInfoSelector = Selector.ParseSelector("> div[class=\"post_file\"]");
     private static readonly Selector FileUrlSelector = Selector.ParseSelector("a[class=\"post_file_filename\"]");
     private static readonly Selector FileMetadataSelector = Selector.ParseSelector("span[class=\"post_file_metadata\"]");
@@ -57,7 +57,7 @@ internal sealed class FoolFuukaFile {
             throw new ArgumentNullException("Could not find thumbnail node");
 
         // Thumbnail, hash, & spoiled
-        this.ThumbnailUrl = ThumbnailNode.Attributes["data-src"]!.Value!;
+        this.ThumbnailUrl = ThumbnailNode.Attributes["src"]!.Value!;
         this.ThumbnailWidth = int.Parse(ThumbnailNode.Attributes["width"]!.Value!);
         this.ThumbnailHeight = int.Parse(ThumbnailNode.Attributes["height"]!.Value!);
         this.FileHash = ThumbnailNode.Attributes["data-md5"]!.Value;

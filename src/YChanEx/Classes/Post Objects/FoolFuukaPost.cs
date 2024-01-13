@@ -9,7 +9,7 @@ using static YChanEx.Parsers.FoolFuuka;
 [DebuggerDisplay("{PostId} | HasFile = {HasFile}")]
 internal sealed class FoolFuukaPost {
     private static readonly Selector HeaderSelector = Selector.ParseSelector("header > div[class=\"post_data\"]");
-    private static readonly Selector PostIdSelector = Selector.ParseSelector("a[data-post:=\"\\d+\"]");
+    private static readonly Selector PostIdSelector = Selector.ParseSelector("a[data-post:=\"\\d+\"][data-function=\"quote\"]");
     private static readonly Selector PosterDataSelector = Selector.ParseSelector("span[class=\"post_poster_data\"]");
     private static readonly Selector SubjectSelector = Selector.ParseSelector("h2[class=\"post_title\"]");
     private static readonly Selector PosterNameSelector = Selector.ParseSelector("> span[class=\"post_author\"]");
