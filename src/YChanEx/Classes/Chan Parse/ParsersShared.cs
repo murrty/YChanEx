@@ -72,6 +72,15 @@ internal static class ParsersShared {
     }
 
     /// <summary>
+    /// Calculates an MD5 hash from a byte array.
+    /// </summary>
+    public static string CalculateMd5(byte[] bytes) {
+        using var md5 = System.Security.Cryptography.MD5.Create();
+        var calculated = md5.ComputeHash(bytes);
+        return BitConverter.ToString(calculated).Replace("-", string.Empty).ToLowerInvariant();
+    }
+
+    /// <summary>
     /// Gets the thumbnail size, biased to height limited to 250 pixels.
     /// </summary>
     /// <param name="Width">The width of the file.</param>
