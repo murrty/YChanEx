@@ -142,4 +142,17 @@ internal sealed class EightKunPost {
             }
         }
     }
+
+    public override bool Equals(object? obj) => obj is EightKunPost other && this.Equals(other);
+    public bool Equals(EightKunPost? other) {
+        if (other is null) {
+            return this is null;
+        }
+        if (this is null) {
+            return false;
+        }
+        return this.no == other.no;
+    }
+
+    public override int GetHashCode() => unchecked((int)(this.no & 0x7FFFFFFF)); // Negative-bit ignored.
 }

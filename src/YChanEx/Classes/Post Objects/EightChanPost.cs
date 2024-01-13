@@ -80,4 +80,17 @@ internal sealed class EightChanPost {
             }
         }
     }
+
+    public override bool Equals(object? obj) => obj is EightChanPost other && this.Equals(other);
+    public bool Equals(EightChanPost? other) {
+        if (other is null) {
+            return this is null;
+        }
+        if (this is null) {
+            return false;
+        }
+        return this.postId == other.postId;
+    }
+
+    public override int GetHashCode() => unchecked((int)(this.postId & 0x7FFFFFFF)); // Negative-bit ignored.
 }

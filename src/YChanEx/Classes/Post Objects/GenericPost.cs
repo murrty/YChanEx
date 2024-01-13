@@ -339,9 +339,6 @@ public sealed class GenericPost {
         }
     }
 
-    public override bool Equals(object obj) => obj is GenericPost other && this.PostId == other.PostId;
-    public override int GetHashCode() => this.PostId.GetHashCode();
-
     [OnDeserialized]
     void Deserialized(StreamingContext ctx) {
         if (this.HasFiles) {
@@ -350,4 +347,17 @@ public sealed class GenericPost {
             }
         }
     }
+
+    public override bool Equals(object? obj) => obj is GenericPost other && this.Equals(other);
+    public bool Equals(GenericPost? other) {
+        if (other is null) {
+            return this is null;
+        }
+        if (this is null) {
+            return false;
+        }
+        return this.PostId == other.PostId;
+    }
+
+    public override int GetHashCode() => unchecked((int)(this.PostId & 0x7FFFFFFF)); // Negative-bit ignored.
 }

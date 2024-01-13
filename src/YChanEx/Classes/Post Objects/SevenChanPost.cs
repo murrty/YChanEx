@@ -100,7 +100,7 @@ internal sealed class SevenChanPost : IEquatable<SevenChanPost> {
             throw new ArgumentNullException("Could not find poster name.");
         var PosterEmailNode = PosterNameNode.Children.FirstOrDefault(DefaultSelectors.A.Href);
         if (PosterEmailNode != null) {
-            this.PosterEmail = PosterEmailNode.Attributes["href"]!.Value.RemoveFromStart("mailto:");
+            this.PosterEmail = PosterEmailNode.Attributes["href"]!.Value.RemoveFromStart("mailto:", StringComparison.InvariantCultureIgnoreCase);
             this.PosterName = PosterEmailNode.Text;
         }
         else {
@@ -147,7 +147,7 @@ internal sealed class SevenChanPost : IEquatable<SevenChanPost> {
         this.MessageBody = GetMessage(MessageNode);
     }
 
-    public override bool Equals(object obj) => obj is SevenChanPost other && this.Equals(other);
+    public override bool Equals(object? obj) => obj is SevenChanPost other && this.Equals(other);
     public bool Equals(SevenChanPost other) {
         if (other is null) {
             return this is null;
@@ -158,5 +158,5 @@ internal sealed class SevenChanPost : IEquatable<SevenChanPost> {
         return this.PostId == other.PostId;
     }
 
-    public override int GetHashCode() => unchecked((int)(ulong.MaxValue & 0x7FFFFFFF)); // Negative-bit ignored.
+    public override int GetHashCode() => unchecked((int)(this.PostId & 0x7FFFFFFF)); // Negative-bit ignored.
 }

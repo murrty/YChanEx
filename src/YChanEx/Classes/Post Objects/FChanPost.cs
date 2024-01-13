@@ -156,4 +156,17 @@ internal sealed class FChanPost {
             this.MessageBody = GetMessage(MessageNode);
         }
     }
+
+    public override bool Equals(object? obj) => obj is FChanPost other && this.Equals(other);
+    public bool Equals(FChanPost? other) {
+        if (other is null) {
+            return this is null;
+        }
+        if (this is null) {
+            return false;
+        }
+        return this.PostId == other.PostId;
+    }
+
+    public override int GetHashCode() => unchecked((int)(this.PostId & 0x7FFFFFFF)); // Negative-bit ignored.
 }

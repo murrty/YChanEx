@@ -307,8 +307,8 @@ internal sealed class U18ChanPost : IEquatable<U18ChanPost> {
         //}
     }
 
-    public override bool Equals(object obj) => obj is U18ChanPost other && this.Equals(other);
-    public bool Equals(U18ChanPost other) {
+    public override bool Equals(object? obj) => obj is U18ChanPost other && this.Equals(other);
+    public bool Equals(U18ChanPost? other) {
         if (other is null) {
             return this is null;
         }
@@ -318,5 +318,5 @@ internal sealed class U18ChanPost : IEquatable<U18ChanPost> {
         return this.PostId == other.PostId;
     }
 
-    public override int GetHashCode() => unchecked((int)(ulong.MaxValue & 0x7FFFFFFF)); // Negative-bit ignored.
+    public override int GetHashCode() => unchecked((int)(this.PostId & 0x7FFFFFFF)); // Negative-bit ignored.
 }

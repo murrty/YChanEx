@@ -116,4 +116,17 @@ internal sealed class EightChanThread {
             }
         }
     }
+
+    public override bool Equals(object? obj) => obj is EightChanThread other && this.Equals(other);
+    public bool Equals(EightChanThread? other) {
+        if (other is null) {
+            return this is null;
+        }
+        if (this is null) {
+            return false;
+        }
+        return this.threadId == other.threadId;
+    }
+
+    public override int GetHashCode() => unchecked((int)(this.threadId & 0x7FFFFFFF)); // Negative-bit ignored.
 }

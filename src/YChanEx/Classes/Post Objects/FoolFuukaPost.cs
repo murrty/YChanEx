@@ -152,5 +152,5 @@ internal sealed class FoolFuukaPost {
         return this.PostId == other.PostId;
     }
 
-    public override int GetHashCode() => unchecked((int)(ulong.MaxValue & 0x7FFFFFFF)); // Negative-bit ignored.
+    public override int GetHashCode() => unchecked((int)(this.PostId & 0x7FFFFFFF)); // Negative-bit ignored.
 }

@@ -1,6 +1,7 @@
 ﻿#nullable enable
 namespace YChanEx.Posts;
 using System.Runtime.Serialization;
+using SoftCircuits.HtmlMonkey;
 [DataContract]
 internal sealed class U18ChanTag {
     [IgnoreDataMember]
@@ -12,7 +13,7 @@ internal sealed class U18ChanTag {
     [DataMember(Name = "count")]
     public int Count { get; set; }
 
-    public U18ChanTag(SoftCircuits.HtmlMonkey.HtmlElementNode Node, U18ChanPost Parent) {
+    public U18ChanTag(HtmlElementNode Node, U18ChanPost Parent) {
         this.Parent = Parent;
         this.Name = Node.Children[0].Text;
         if (Node.Children.Count > 1) {
