@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using System.Text;
 namespace YChanEx.Parsers;
 using SoftCircuits.HtmlMonkey;
 using YChanEx.Posts;
@@ -34,7 +35,8 @@ internal static class FoolFuuka {
             return null;
         }
         // TODO: translate message html
-        return message;
+        var htDoc = HtmlDocument.FromHtml("<body>" + message + "</body>", HtmlParseOptions.RemoveEmptyTextNodes | HtmlParseOptions.TrimTextNodes);
+        return GetMessage((HtmlElementNode)htDoc.RootNodes[0]);
     }
     internal static string? GetMessage(HtmlElementNode? node) {
         if (node?.Children.Count > 0) {
@@ -44,6 +46,9 @@ internal static class FoolFuuka {
             for (int i = 0; i < node.Children.Count; i++) {
                 if (node.Children[i] is HtmlElementNode element) {
                     CleanMessageNode(element);
+                    if (element.TagName == "linkbad") {
+                        node.Children[i] = new HtmlTextNode(element.Text);
+                    }
                 }
             }
             if (!node.InnerHtml.IsNullEmptyWhitespace()) {
@@ -83,9 +88,10 @@ internal static class FoolFuuka {
 
         // Remove links (safety)
         else if (node.TagName.Equals("a", StringComparison.OrdinalIgnoreCase)
-        && node.Attributes.ContainsWithAnyValue("value", StringComparison.InvariantCultureIgnoreCase)
+        && node.Attributes.ContainsWithAnyValue("href", StringComparison.InvariantCultureIgnoreCase)
         && node.Attributes.ContainsWithValue("rel", "nofollow", StringComparison.InvariantCultureIgnoreCase)) {
-
+            node.Attributes.Clear();
+            node.TagName = "linkbad";
         }
 
         if (node.Children.Count > 0) {
