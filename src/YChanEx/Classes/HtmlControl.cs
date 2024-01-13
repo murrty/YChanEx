@@ -3,8 +3,6 @@
 using System.Text;
 using YChanEx.Posts;
 
-// TODO: Handle HTML that filters out messages in posts, non-image posts, or both
-
 internal static class HtmlControl {
     private static readonly string[] SizeSuffix =
         [ "B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB" ];
@@ -34,7 +32,7 @@ internal static class HtmlControl {
                 -webkit-text-size-adjust: 100%;
                 -ms-text-size-adjust: 100%;
             }
-            
+
             body {
                 background: #202020 none;
                 color: #c5c8c6;
@@ -46,7 +44,7 @@ internal static class HtmlControl {
                 padding-left: 5px;
                 padding-right: 5px;
             }
-            
+
             a {
                 color: #5f89ac;
                 text-decoration: none;
@@ -55,7 +53,7 @@ internal static class HtmlControl {
             s > a {
                 color: #000;
             }
-            
+
             a:hover {
                 color: #82a3bf;
             }
@@ -69,39 +67,39 @@ internal static class HtmlControl {
             s:hover {
                 color: #fff;
             }
-            
+
             img {
                 border: none;
             }
-            
+
             div.threadBanner {
                 text-align: center;
             }
-            
-            div.threadBanner>div.boardTitle {
+
+            div.threadBanner > div.boardTitle {
                 font-family: Tahoma, sans-serif;
                 font-size: 28px;
                 font-weight: 700;
                 letter-spacing: -2px;
                 margin-top: -4px;
             }
-            
-            div.threadBanner>div.boardSubtitle {
+
+            div.threadBanner > div.boardSubtitle {
                 font-family: Tahoma, sans-serif;
                 font-size: 14px;
                 font-weight: 700;
                 margin-top: 0;
             }
-            
-            div.threadBanner>div.archiveDisclaimer {
+
+            div.threadBanner > div.archiveDisclaimer {
                 margin-top: 4px;
                 font-size: x-small;
             }
-            
+
             div.post {
                 margin: 4px 0;
             }
-            
+
             div.reply {
                 background-color: #252525;
                 border: 1px solid #191919;
@@ -109,7 +107,7 @@ internal static class HtmlControl {
                 padding: 2px;
                 padding-top: 5px;
             }
-            
+
             div.post div.file .fileThumb {
                 float: left;
                 margin-left: 6px;
@@ -117,31 +115,25 @@ internal static class HtmlControl {
                 margin-top: 3px;
                 margin-bottom: 6px;
             }
-            
+
             div.post div.file .fileThumb img {
                 border: none;
                 float: left;
             }
-            
+
             .reply:target {
-                background: #1d1d1d!important;
-                border: 1px solid #111!important;
+                background: #1d1d1d !important;
+                border: 1px solid #111 !important;
                 padding: 2px;
             }
 
             .fileText a {
                 display: inline-block;
-                text-decoration: none;
+                text-decoration: underline;
                 max-width: 160px;
                 white-space:nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
-                border-bottom: 1px solid;
-            }
-
-            .fileText a:hover {
-                text-overflow:unset;
-                max-width: 100%;
             }
 
             div.reply .fileText a {
@@ -150,6 +142,11 @@ internal static class HtmlControl {
 
             div.op .fileText a {
                 margin-bottom: -1px;
+            }
+
+            .fileText a:hover {
+                text-overflow:unset;
+                max-width: 100%;
             }
 
             span.info {
@@ -161,11 +158,11 @@ internal static class HtmlControl {
                 padding-right: 6px;
             }
 
-            span.subject{
-                color:#ba89c9;
-                font-weight:700;
+            span.subject {
+                color: #ba89c9;
+                font-weight: 700;
             }
-            
+
             span.name {
                 font-weight: bold;
                 padding-left: 5px;
@@ -177,6 +174,8 @@ internal static class HtmlControl {
 
             span.tripcode {
                 font-size: 11px;
+                font-style: italic;
+                padding-left: 5px;
             }
 
             span.posterid {
@@ -187,40 +186,52 @@ internal static class HtmlControl {
                 padding-right: 2px;
             }
 
+            span.specialname {
+                font-weight: bold;
+            }
+
             span.dateTime {
                 margin-left: 6px;
+            }
+
+            div.reply span.quotedBy > a {
+                margin-left: 0%;
+                display: inline-block;
+            }
+
+            span.quotedBy > a {
+                margin-left: 6px;
+                display: inline-block;
             }
 
             span.ychanexNotice {
                 color: #5b5b5b;
                 font-style: italic;
-                font-size: 12px;
+                font-size: 16px;
             }
 
             div.post div.file .fileSpoiler img,
             div.post div.multiFile .fileSpoiler img {
-                filter: blur(6px);
-                -webkit-filter: blur(6px);
-                -moz-filter: blur(6px);
-                -o-filter: blur(6px);
-                -ms-filter: blur(6px);
-                /*transition: filter 0.15s;*/
+                filter: blur(6px) grayscale(100%);
+                -webkit-filter: blur(6px) grayscale(100%);
+                -moz-filter: blur(6px) grayscale(100%);
+                -o-filter: blur(6px) grayscale(100%);
+                -ms-filter: blur(6px) grayscale(100%);
+                transition: filter 0.15s
             }
 
             div.post div.file .fileSpoiler img:hover,
-            div.post div.multiFile .fileSpoiler img:hover {
-                filter: blur(0px);
-                -webkit-filter: blur(0px);
-                -moz-filter: blur(0px);
-                -o-filter: blur(0px);
-                -ms-filter: blur(0px);
-                /*transition: filter 0.15s;*/
+             div.post div.multiFile .fileSpoiler img:hover {
+                filter: blur(0px) grayscale(0%);
+                -webkit-filter: blur(0px) grayscale(0%);
+                -moz-filter: blur(0px) grayscale(0%);
+                -o-filter: blur(0px) grayscale(0%);
+                -ms-filter: blur(0px) grayscale(0%);
+                transition: filter 0.15s
             }
 
             div.multiFile {
                 display: inline-block;
-                vertical-align: top;
-                padding-right: 7px;
             }
 
             div.multiFile .fileThumb img {
@@ -258,8 +269,12 @@ internal static class HtmlControl {
             }
 
             div.tags {
-                display: inline-flex;
                 margin-left: 12px;
+                width: fit-content;
+                display: flex;
+            }
+
+            div.reply div.tags {
                 margin-bottom: 12px;
             }
 
@@ -333,7 +348,7 @@ internal static class HtmlControl {
             }
 
             HTML += $$"""
-            <div class="postInfo desktop">&nbsp; <span class="subject">{{Post.PostSubject}}</span><span class="nameBlock"><span class="name">{{Post.PosterName}}</span>{{(Post.PosterCapcode is not null ? $"<span class=\"specialname\">##{Post.PosterCapcode}</span>" : "")}}{{(Post.PosterTripcode is not null ? $"<span class=\"tripcode\">{Post.PosterTripcode}</span>" : "")}}{{(Post.PosterId is not null ? $"<span class=\"posterid\">{Post.PosterId}</span>" : "")}}</span><span class="dateTime" title="Unix timestamp: {{Post.PostDate.ToUnixTimeSeconds()}}">{{GetReadableTime(Post.PostDate)}}</span> <span class="postNum desktop"><a href="#p{{Post.PostId}}">No.</a>{{Post.PostId}} <a href="{{Thread.Data.Url}}#p{{Post.PostId}}">Original post</a></span></div>
+            <div class="postInfo desktop">&nbsp; <span class="subject">{{Post.PostSubject}}</span><span class="nameBlock"><span class="name">{{Post.PosterName}}</span>{{(Post.PosterCapcode is not null ? $"<span class=\"specialname\">##{Post.PosterCapcode}</span>" : "")}}{{(Post.PosterTripcode is not null ? $"<span class=\"tripcode\">{Post.PosterTripcode}</span>" : "")}}{{(Post.PosterId is not null ? $"<span class=\"posterid\">{Post.PosterId}</span>" : "")}}</span><span class="dateTime" title="Unix timestamp: {{Post.PostDate.ToUnixTimeSeconds()}}">{{GetReadableTime(Post.PostDate)}}</span> <span class="postNum desktop"><a href="#p{{Post.PostId}}">No.</a>{{Post.PostId}} <a href="{{Thread.Data.Url}}#p{{Post.PostId}}">[OP]</a>{{GetQuotes(Post)}}</span></div>
                 <blockquote class="postMessage">{{Post.PostMessage}}</blockquote>{{GetTags(Post.Tags)}}
             </div>
         </div>
@@ -346,7 +361,7 @@ internal static class HtmlControl {
         <div class="postContainer">
             <div id="p{{Post.PostId}}" class="post reply">
                 <div class="postInfo desktop">
-                    <span class="nameBlock"><span class="name">&nbsp;{{(!string.IsNullOrWhiteSpace(Post.PostSubject) ? $"<span class=\"subject\">{Post.PostSubject} </span>" : "")}}{{Post.PosterName}}</span>{{(Post.PosterCapcode is not null ? $"<span class=\"specialname\">##{Post.PosterCapcode}</span>" : "")}}{{(Post.PosterTripcode is not null ? $"<span class=\"tripcode\">{Post.PosterTripcode}</span>" : "")}}{{(Post.PosterId is not null ? $"<span class=\"posterid\">{Post.PosterId}</span>" : "")}}</span><span class="dateTime" title="Unix timestamp: {{Post.PostDate.ToUnixTimeSeconds()}}">{{GetReadableTime(Post.PostDate)}}</span> <span class="postNum desktop"><a href="#p{{Post.PostId}}">No.</a>{{Post.PostId}} <a href="{{Thread.Data.Url}}#p{{Post.PostId}}">Original post</a>&nbsp;</span>
+                    <span class="nameBlock"><span class="name">&nbsp;{{(!string.IsNullOrWhiteSpace(Post.PostSubject) ? $"<span class=\"subject\">{Post.PostSubject} </span>" : "")}}{{Post.PosterName}}</span>{{(Post.PosterCapcode is not null ? $"<span class=\"specialname\">##{Post.PosterCapcode}</span>" : "")}}{{(Post.PosterTripcode is not null ? $"<span class=\"tripcode\">{Post.PosterTripcode}</span>" : "")}}{{(Post.PosterId is not null ? $"<span class=\"posterid\">{Post.PosterId}</span>" : "")}}</span><span class="dateTime" title="Unix timestamp: {{Post.PostDate.ToUnixTimeSeconds()}}">{{GetReadableTime(Post.PostDate)}}</span> <span class="postNum desktop"><a href="#p{{Post.PostId}}">No.</a>{{Post.PostId}} <a href="{{Thread.Data.Url}}#p{{Post.PostId}}">[OP]</a>&nbsp;{{GetQuotes(Post)}}</span>
                 </div>
 
 """;
@@ -406,25 +421,14 @@ string HTML = $$"""
         }
 
         StringBuilder sb = new("\n");
-        sb.Append("""
-                <div class="tags">
-""");
+        sb.AppendLine("                <div class=\"tags\">");
         for (int i = 0; i < tags.Length; i++) {
             if (tags[i].IsNullEmptyWhitespace()) {
                 continue;
             }
-            sb.Append("""
-
-                    <div class="tag">
-                        
-""").Append(tags[i]).Append("""
-
-                    </div>
-""");
+            sb.AppendLine("                    <div class=\"tag\">").Append(tags[i]).Append("</div>");
         }
-        sb.Append("""
-                </div>
-""");
+        sb.Append("                </div>");
 
         return sb.ToString();
     }
@@ -445,6 +449,18 @@ $"""
 <img src="{(Downloads.SaveThumbnails ? "thumb/" + File.SavedThumbnailFile : File.SavedFile)}" {GetImageThumbnailDimension(File)}/>
 """,
         };
+    }
+    private static string GetQuotes(GenericPost Post) {
+        if (Post.QuotedBy is null || Post.QuotedBy.Length < 1) {
+            return string.Empty;
+        }
+
+        StringBuilder sb = new("<span class=\"quotedBy\">");
+        for (int i = 0; i < Post.QuotedBy.Length; i++) {
+            sb.Append("<a href=\"#p").Append(Post.QuotedBy[i]).Append("\">&gt;&gt;").Append(Post.QuotedBy[i]).Append("</a>");
+        }
+        sb.Append("</span>");
+        return sb.ToString();
     }
     private static string GetImageThumbnailDimension(GenericFile File) {
         if (File.ThumbnailFileDimensions.Width == 0 || File.ThumbnailFileDimensions.Height == 0) {
