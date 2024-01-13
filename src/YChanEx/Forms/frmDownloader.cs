@@ -1234,12 +1234,12 @@ public partial class frmDownloader : Form {
         }
     }
 
-    private string GetFileSuffix(string OriginalName, string Extension) {
+    private string GetFileSuffix(GenericFile CurrentFile) {
         // replace any invalid file name characters.
         // some linux nerds can have invalid windows file names as file names
         // so we gotta filter them.
-        OriginalName = FileHandler.ReplaceIllegalCharacters(OriginalName ?? string.Empty);
-        string ExpectedFullFile = (OriginalName + "." + Extension).ToLowerInvariant();
+        string ExpectedFullFile = FileHandler.ReplaceIllegalCharacters(CurrentFile.OriginalFileName ?? string.Empty +
+            "." + CurrentFile.FileExtension).ToLowerInvariant();
 
         // check for duplicates, and set the suffix to "(d1)" if there is duplicates
         // (the space is intentional)
@@ -1295,7 +1295,7 @@ public partial class frmDownloader : Form {
             for (int FileIndex = 0; FileIndex < CurrentPost.PostFiles.Count; FileIndex++) {
                 var CurrentFile = CurrentPost.PostFiles[FileIndex];
                 string FileName = (Downloads.SaveOriginalFilenames ? CurrentFile.OriginalFileName : CurrentFile.FileId)!;
-                string Suffix = GetFileSuffix(CurrentFile.OriginalFileName!, CurrentFile.FileExtension!);
+                string Suffix = GetFileSuffix(CurrentFile);
                 string ThumbFileName = CurrentFile.ThumbnailFileName!;
                 CurrentFile.SavedFileName = FileName + Suffix;
                 CurrentFile.SavedThumbnailFile = ThumbFileName;
@@ -1367,7 +1367,7 @@ public partial class frmDownloader : Form {
             for (int FileIndex = 0; FileIndex < CurrentPost.PostFiles.Count;  FileIndex++) {
                 var CurrentFile = CurrentPost.PostFiles[FileIndex];
                 string FileName = (Downloads.SaveOriginalFilenames ? CurrentFile.OriginalFileName : CurrentFile.FileId)!;
-                string Suffix = GetFileSuffix(CurrentFile.OriginalFileName!, CurrentFile.FileExtension!);
+                string Suffix = GetFileSuffix(CurrentFile);
                 string ThumbFileName = CurrentFile.ThumbnailFileName!;
                 CurrentFile.SavedFileName = FileName + Suffix;
                 CurrentFile.SavedThumbnailFile = ThumbFileName;
