@@ -37,31 +37,31 @@ internal static class FoolFuuka {
     }
     public static async Task<FoolFuukaPost[]> GenerateAsync(string html) {
         HtmlDocument htDoc = await HtmlDocument.FromHtmlAsync(html, HtmlParseOptions.RemoveEmptyTextNodes | HtmlParseOptions.TrimTextNodes);
-        var FirstPostNode = htDoc.Find(FirstPostSelector)
-            .FirstOrDefault();
 
-        if (FirstPostNode == null) {
-            throw new NullReferenceException($"Could not find '{nameof(FirstPostNode)}'.");
-        }
+        return await Task.Run(() => {
+            var FirstPostNode = htDoc.Find(FirstPostSelector)
+                .FirstOrDefault();
 
-        var FirstPost = await Task.Run(() => new FoolFuukaPost(FirstPostNode));
+            if (FirstPostNode == null) {
+                throw new NullReferenceException($"Could not find '{nameof(FirstPostNode)}'.");
+            }
 
-        var ReplyNodes = await Task.Run(() => htDoc.Find(RepliesSelector)
-            .ToArray());
+            FoolFuukaPost FirstPost = new(FirstPostNode);
+            var ReplyNodes = htDoc.Find(RepliesSelector)
+                .ToArray();
 
-        if (ReplyNodes.Length == 0) {
-            return [ FirstPost ];
-        }
+            if (ReplyNodes.Length == 0) {
+                return [ FirstPost ];
+            }
 
-        var array = new FoolFuukaPost[ReplyNodes.Length + 1];
-        array[0] = FirstPost;
-        await Task.Run(() => {
+            var array = new FoolFuukaPost[ReplyNodes.Length + 1];
+            array[0] = FirstPost;
             for (int i = 0; i < ReplyNodes.Length; i++) {
                 array[i + 1] = new(ReplyNodes[i]);
             }
-        });
 
-        return array;
+            return array;
+        });
     }
 
     internal static long ConvertSizeToBytes(string size) {

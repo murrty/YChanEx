@@ -31,10 +31,6 @@ internal static class SevenChan {
 
         var array = new SevenChanPost[PostNodes.Length];
         for (int i = 0; i < PostNodes.Length; i++) {
-            //if (i == 14) {
-            //    Console.WriteLine();
-            //}
-            //Console.WriteLine(i);
             array[i] = new(PostNodes[i]);
         }
 
@@ -42,29 +38,26 @@ internal static class SevenChan {
     }
     public static async Task<SevenChanPost[]> GenerateAsync(string html) {
         HtmlDocument htDoc = await HtmlDocument.FromHtmlAsync(html, HtmlParseOptions.RemoveEmptyTextNodes | HtmlParseOptions.TrimTextNodes);
-        var PostNodes = htDoc.Find(PostSelector)
-            .ToArray();
 
-        if (PostNodes == null) {
-            throw new NullReferenceException($"Could not find '{nameof(PostNodes)}'.");
-        }
+        return await Task.Run(() => {
+            var PostNodes = htDoc.Find(PostSelector)
+                .ToArray();
 
-        if (PostNodes.Length == 0) {
-            return [];
-        }
+            if (PostNodes == null) {
+                throw new NullReferenceException($"Could not find '{nameof(PostNodes)}'.");
+            }
 
-        var array = new SevenChanPost[PostNodes.Length];
-        await Task.Run(() => {
+            if (PostNodes.Length == 0) {
+                return [];
+            }
+
+            var array = new SevenChanPost[PostNodes.Length];
             for (int i = 0; i < PostNodes.Length; i++) {
-                //if (i == 14) {
-                //    Console.WriteLine();
-                //}
-                //Console.WriteLine(i);
                 array[i] = new(PostNodes[i]);
             }
-        });
 
-        return array;
+            return array;
+        });
     }
 
     internal static long ConvertSizeToBytes(string size) {

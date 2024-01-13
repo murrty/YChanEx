@@ -32,10 +32,6 @@ internal static class U18Chan {
         var array = new U18ChanPost[ReplyNodes.Length + 1];
         array[0] = FirstPost;
         for (int i = 0; i < ReplyNodes.Length; i++) {
-            //if (i == 14) {
-            //    Console.WriteLine();
-            //}
-            //Console.WriteLine(i);
             array[i + 1] = new(ReplyNodes[i], false);
         }
 
@@ -43,35 +39,32 @@ internal static class U18Chan {
     }
     public static async Task<U18ChanPost[]?> GenerateAsync(string html) {
         HtmlDocument htDoc = await HtmlDocument.FromHtmlAsync(html, HtmlParseOptions.RemoveEmptyTextNodes | HtmlParseOptions.TrimTextNodes);
-        var FirstPostNode = htDoc.Find(FirstPostSelector)
-            .FirstOrDefault();
 
-        if (FirstPostNode == null) {
-            throw new NullReferenceException($"Could not find '{nameof(FirstPostNode)}'.");
-        }
+        return await Task.Run(() => {
+            var FirstPostNode = htDoc.Find(FirstPostSelector)
+                .FirstOrDefault();
 
-        U18ChanPost FirstPost = new(FirstPostNode, true);
+            if (FirstPostNode == null) {
+                throw new NullReferenceException($"Could not find '{nameof(FirstPostNode)}'.");
+            }
 
-        var ReplyNodes = await Task.Run(() => htDoc.Find(RepliesSelector)
-            .ToArray());
+            var FirstPost = new U18ChanPost(FirstPostNode, true);
 
-        if (ReplyNodes.Length == 0) {
-            return [ FirstPost ];
-        }
+            var ReplyNodes = htDoc.Find(RepliesSelector)
+                .ToArray();
 
-        var array = new U18ChanPost[ReplyNodes.Length + 1];
-        array[0] = FirstPost;
-        await Task.Run(() => {
+            if (ReplyNodes.Length == 0) {
+                return [ FirstPost ];
+            }
+
+            var array = new U18ChanPost[ReplyNodes.Length + 1];
+            array[0] = FirstPost;
             for (int i = 0; i < ReplyNodes.Length; i++) {
-                //if (i == 14) {
-                //    Console.WriteLine();
-                //}
-                //Console.WriteLine(i);
                 array[i + 1] = new(ReplyNodes[i], false);
             }
-        });
 
-        return array;
+            return array;
+        });
     }
 
     internal static long ConvertSizeToBytes(string size) {

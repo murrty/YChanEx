@@ -38,32 +38,33 @@ internal static class FChan {
     }
     public static async Task<FChanPost[]> GenerateAsync(string html) {
         HtmlDocument htDoc = await HtmlDocument.FromHtmlAsync(html, HtmlParseOptions.RemoveEmptyTextNodes | HtmlParseOptions.TrimTextNodes);
-        var ThreadNode = htDoc.FirstOrDefault(ThreadSelector) ??
-            throw new ArgumentNullException("Could not find thread node.");
 
-        var PostNodes = ThreadNode.Children.Find(PostsSelector)
-            .ToArray();
+        return await Task.Run(() => {
+            var ThreadNode = htDoc.FirstOrDefault(ThreadSelector) ??
+                throw new ArgumentNullException("Could not find thread node.");
 
-        if (PostNodes == null) {
-            throw new NullReferenceException($"Could not find '{nameof(PostNodes)}'.");
-        }
+            var PostNodes = ThreadNode.Children.Find(PostsSelector)
+                .ToArray();
 
-        if (PostNodes.Length == 0) {
-            return [];
-        }
+            if (PostNodes == null) {
+                throw new NullReferenceException($"Could not find '{nameof(PostNodes)}'.");
+            }
 
-        // If the children replies are nested, it's an older thread that hasn't been updated.
-        bool ChildrenNested = await Task.Run(() => PostNodes[0].Children.FirstOrDefault(FChanPost.ReplyPostSelector)) != null;
+            if (PostNodes.Length == 0) {
+                return [];
+            }
 
-        var array = new FChanPost[PostNodes.Length];
-        array[0] = new(PostNodes[0], ThreadNode, ChildrenNested, true);
-        await Task.Run(() => {
+            // If the children replies are nested, it's an older thread that hasn't been updated.
+            bool ChildrenNested = PostNodes[0].Children.FirstOrDefault(FChanPost.ReplyPostSelector) != null;
+
+            var array = new FChanPost[PostNodes.Length];
+            array[0] = new(PostNodes[0], ThreadNode, ChildrenNested, true);
             for (int i = 1; i < PostNodes.Length; i++) {
                 array[i] = new(PostNodes[i], ThreadNode, ChildrenNested, false);
             }
-        });
 
-        return array;
+            return array;
+        });
     }
 
     internal static long ConvertSizeToBytes(string size) {
