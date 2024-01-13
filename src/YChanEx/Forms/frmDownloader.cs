@@ -681,7 +681,7 @@ public partial class frmDownloader : Form {
                     case ThreadStatus.ThreadNotModified: {
                         lbNotModified.Visible = ThreadInfo.CurrentActivity == ThreadStatus.ThreadNotModified;
                         MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadInfo.CurrentActivity);
-                        ThreadInfo.CountdownToNextScan = (ThreadInfo.Chan == ChanType.u18chan ? (60 * 5) : Downloads.ScannerDelay) - 1;
+                        ThreadInfo.CountdownToNextScan = (ThreadInfo.Chan == ChanType.u18chan ? (60 * 30) : Downloads.ScannerDelay) - 1;
                         if (Program.DebugMode) {
                             ThreadInfo.CountdownToNextScan = 10;
                         }
