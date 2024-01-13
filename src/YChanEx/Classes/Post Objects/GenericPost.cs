@@ -106,7 +106,7 @@ public sealed class GenericPost {
                 ThumbnailFileSpoiled = Post.spoiler > 0,
             };
 
-            PostFiles.Add(NewFile);
+            this.PostFiles.Add(NewFile);
         }
     }
 
@@ -142,7 +142,7 @@ public sealed class GenericPost {
                     ThumbnailFileSpoiled = false,
                 };
 
-                PostFiles.Add(NewFile);
+                this.PostFiles.Add(NewFile);
             }
         }
     }
@@ -180,7 +180,7 @@ public sealed class GenericPost {
                     ThumbnailFileSpoiled = false,
                 };
 
-                PostFiles.Add(NewFile);
+                this.PostFiles.Add(NewFile);
             }
         }
     }
@@ -216,7 +216,7 @@ public sealed class GenericPost {
                     ThumbnailFileSpoiled = false,
                 };
 
-                PostFiles.Add(NewFile);
+                this.PostFiles.Add(NewFile);
             }
         }
     }
@@ -249,7 +249,7 @@ public sealed class GenericPost {
                 ThumbnailFileSpoiled = Post.spoiler > 0,
             };
 
-            PostFiles.Add(NewFile);
+            this.PostFiles.Add(NewFile);
 
             if (!Post.MultiPost) {
                 return;
@@ -274,7 +274,7 @@ public sealed class GenericPost {
                     ThumbnailFileSpoiled = File.spoiler > 0,
                 };
 
-                PostFiles.Add(NewFile);
+                this.PostFiles.Add(NewFile);
             }
         }
     }
@@ -309,7 +309,7 @@ public sealed class GenericPost {
                 ThumbnailFileSpoiled = false,
             };
 
-            PostFiles.Add(Newfile);
+            this.PostFiles.Add(Newfile);
         }
     }
 
@@ -342,7 +342,7 @@ public sealed class GenericPost {
                 ThumbnailFileSpoiled = Post.File.Spoiler,
             };
 
-            PostFiles.Add(Newfile);
+            this.PostFiles.Add(Newfile);
         }
 
         if (Post.HasTags) {
@@ -350,6 +350,37 @@ public sealed class GenericPost {
                 .Select(x => x.Name)
                 .Where(x => !x.IsNullEmptyWhitespace())
                 .ToArray();
+        }
+    }
+
+    internal GenericPost(FoolFuukaPost Post) : this() {
+        this.PostId = Post.num;
+        this.PostDate = FoolFuuka.GetPostTime(Post.timestamp);
+        if (Post.name != null) this.PosterName = Post.name;
+        this.PosterTripcode = Post.trip;
+        this.PosterId = Post.poster_hash_processed;
+        this.PostMessage = FoolFuuka.GetMessage(Post.comment_processed);
+        this.Quotes = Post.Quotes;
+
+        if (Post.HasFile) {
+            var File = Post.media;
+            GenericFile NewFile = new(this) {
+                FileId = GetExtension(File!.media),
+                FileUrl = File.media_link,
+                GeneratedFileName = GetFileNameFromUrl(File.media),
+                OriginalFileName = GetFileNameFromUrl(File.media_filename),
+                FileExtension = GetExtension(File.media),
+                FileHash = File.media_hash,
+                FileDimensions = new(File.media_w, File.media_h),
+                FileSize = File.media_size,
+                ThumbnailFileUrl = File.thumb_link,
+                ThumbnailFileName = GetFileNameFromUrl(File.thumb_link),
+                ThumbnailFileExtension = GetExtension(File.thumb_link),
+                ThumbnailFileDimensions = new(File.preview_w, File.preview_h),
+                ThumbnailFileSpoiled = File.spoiler == 1,
+            };
+
+            this.PostFiles.Add(NewFile);
         }
     }
 

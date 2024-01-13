@@ -1,6 +1,5 @@
 ﻿#nullable enable
 namespace YChanEx.Parsers;
-using System.Drawing;
 using SoftCircuits.HtmlMonkey;
 using YChanEx.Posts;
 internal static class FoolFuuka {
@@ -27,44 +26,15 @@ internal static class FoolFuuka {
         });
     }
 
-    internal static long ConvertSizeToBytes(string size) {
-        if (size.EndsWith("kib", StringComparison.OrdinalIgnoreCase)) {
-            double.TryParse(size[..^3], out var dbl);
-            return (long)Math.Round(dbl * 1024, MidpointRounding.ToEven);
-        }
-
-        if (size.EndsWith("mib", StringComparison.OrdinalIgnoreCase)) {
-            double.TryParse(size[..^3], out var dbl);
-            return (long)Math.Round(dbl * 1024 * 1024, MidpointRounding.ToEven);
-        }
-
-        if (size.EndsWith("gib", StringComparison.OrdinalIgnoreCase)) {
-            double.TryParse(size[..^3], out var dbl);
-            return (long)Math.Round(dbl * 1024 * 1024 * 1024, MidpointRounding.ToEven);
-        }
-
-        if (size.EndsWith("b", StringComparison.OrdinalIgnoreCase)) {
-            double.TryParse(size[..^1], out var dbl);
-            return (long)Math.Round(dbl, MidpointRounding.ToEven);
-        }
-
-        throw new ArgumentException("Invalid size format");
+    public static DateTimeOffset GetPostTime(long timestamp) {
+        return DateTimeOffset.FromUnixTimeSeconds(timestamp);
     }
-    internal static DateTimeOffset ConvertTimestampToDateTime(string timestamp) {
-        return DateTimeOffset.Parse(timestamp);
-    }
-    internal static Size ConvertDimensionsToSize(string size) {
-        string[] Dimensions = size.Split('x', 'X');
-        return new Size(int.Parse(Dimensions[0]),
-            int.Parse(Dimensions[1]));
-    }
-    internal static Size ConvertThumbnailAttributesToSize(HtmlAttribute Attribute) {
-        static string GetSize(string d) {
-            return d[(d.IndexOf(':') + 2)..^2];
+    internal static string? GetMessage(string? message) {
+        if (message.IsNullEmptyWhitespace()) {
+            return null;
         }
-        string[] Style = Attribute.Value!.Split([';'], StringSplitOptions.RemoveEmptyEntries);
-        return new Size(int.Parse(GetSize(Style[0])),
-            int.Parse(GetSize(Style[1])));
+        // TODO: translate message html
+        return message;
     }
     internal static string? GetMessage(HtmlElementNode? node) {
         if (node?.Children.Count > 0) {
@@ -83,7 +53,10 @@ internal static class FoolFuuka {
         return null;
     }
     private static void CleanMessageNode(HtmlElementNode node) {
+        // Clean quotes, replies, and spoilers
         if (node.TagName.Equals("span", StringComparison.OrdinalIgnoreCase)) {
+            // Replies and quotes are both in the same greentext span.
+            // This needs to be fixed.
             if (node.Attributes.Contains("class", "greentext", StringComparison.InvariantCultureIgnoreCase)) {
                 if (node.Children.Count > 0) {
                     if (node.Children[0] is HtmlElementNode c) {
@@ -100,10 +73,19 @@ internal static class FoolFuuka {
                     }
                 }
             }
+
+            // Clean spoilers
             else if (node.Attributes.ContainsWithValue("class", "spoiler", StringComparison.InvariantCultureIgnoreCase)) {
                 node.TagName = "s";
                 node.Attributes.Clear();
             }
+        }
+
+        // Remove links (safety)
+        else if (node.TagName.Equals("a", StringComparison.OrdinalIgnoreCase)
+        && node.Attributes.ContainsWithAnyValue("value", StringComparison.InvariantCultureIgnoreCase)
+        && node.Attributes.ContainsWithValue("rel", "nofollow", StringComparison.InvariantCultureIgnoreCase)) {
+
         }
 
         if (node.Children.Count > 0) {
