@@ -10,6 +10,7 @@ using System.Security.Principal;
 using System.Threading;
 using System.Windows.Forms;
 using murrty.classes;
+
 static class Program {
     /// <summary>
     /// The current version of the software.

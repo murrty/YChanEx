@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Arguments.cs" />
+    <Compile Include="Classes\Chan Parse\FoolFuuka.cs" />
     <Compile Include="Classes\Chan Parse\EightChan.cs" />
     <Compile Include="Classes\Chan Parse\EightKun.cs" />
     <Compile Include="Classes\Chan Parse\FChan.cs" />
@@ -58,6 +59,8 @@
     <Compile Include="Classes\Chan Parse\U18Chan.cs" />
     <Compile Include="Classes\Chans.cs" />
     <Compile Include="Classes\FileHandler.cs" />
+    <Compile Include="Classes\Post Objects\FoolFuukaFile.cs" />
+    <Compile Include="Classes\Post Objects\FoolFuukaPost.cs" />
     <Compile Include="Classes\Post Objects\EightChanBoard.cs" />
     <Compile Include="Classes\Post Objects\EightChanFile.cs" />
     <Compile Include="Classes\Post Objects\EightChanPost.cs" />
