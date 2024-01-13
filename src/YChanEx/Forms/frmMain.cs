@@ -146,6 +146,13 @@ public partial class frmMain : Form, IMainFom {
                         var SavedThreads = ProgramSettings.LoadThreads();
                         if (SavedThreads.Count > 0) {
                             for (int i = 0; i < SavedThreads.Count; i++) {
+                                ListViewItem lvi = new() {
+                                    Name = SavedThreads[i].Url,
+                                    Text = "waiting for load..."
+                                };
+                                this.Invoke(() => lvThreads.Items.Add(lvi));
+                            }
+                            for (int i = 0; i < SavedThreads.Count; i++) {
                                 try {
                                     var Thread = SavedThreads[i];
                                     this.Invoke(() => LoadSavedThread(Thread, Thread.FilePath));
@@ -153,6 +160,7 @@ public partial class frmMain : Form, IMainFom {
                                 catch (Exception ex) {
                                     murrty.classes.Log.ReportException(ex);
                                 }
+                                Thread.Sleep(500);
                             }
                         }
                     }
@@ -354,9 +362,12 @@ public partial class frmMain : Form, IMainFom {
         newThread.Hide();
         newThread.ManageThread(ThreadEvent.ReloadThread);
 
-        ListViewItem lvi = new() {
-            Name = Info.Url
-        };
+        //ListViewItem lvi = new() {
+        //    Name = Info.Url
+        //};
+
+        ListViewItem lvi = lvThreads.Items[Threads.Count];
+
         lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
         lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
         lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
@@ -364,7 +375,7 @@ public partial class frmMain : Form, IMainFom {
         lvi.ImageIndex = (int)NewInfo.Chan;
         lvi.SubItems[clStatus.Index].Text = " Creating";
         lvi.SubItems[clThread.Index].Text = $"/{NewInfo.Data.Board}/ - {NewInfo.Data.Id}";
-        lvThreads.Items.Add(lvi);
+        //lvThreads.Items.Add(lvi);
 
         newThread.Opacity = 100;
         newThread.ShowInTaskbar = true;
