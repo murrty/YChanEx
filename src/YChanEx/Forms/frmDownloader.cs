@@ -1110,6 +1110,7 @@ public partial class frmDownloader : Form {
         }
 
         if (Downloads.SaveHTML) {
+            ThreadInfo.CheckQuotes();
             ThreadInfo.SaveHtml();
         }
 
