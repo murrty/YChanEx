@@ -50,25 +50,7 @@ internal sealed class EightChanPost {
     public bool MultiFilePost => HasFiles && files.Length > 1;
 
     [IgnoreDataMember]
-    public ulong[]? RespondsTo {
-        get {
-            if (markdown.IsNullEmptyWhitespace()) {
-                return null;
-            }
-
-            var Matches = Parsers.Helpers.ParsersShared.RepliesHtmlRegex.Matches(markdown);
-            if (Matches.Count < 1) {
-                return null;
-            }
-
-            return Matches
-                .Cast<System.Text.RegularExpressions.Match>()
-                .Select(x => x.Value[(x.Value.LastIndexOf('#') + 1)..^1])
-                .Select(ulong.Parse)
-                .Distinct()
-                .ToArray();
-        }
-    }
+    public ulong[]? Quotes => GetQuotedPosts(this);
 
     public string GetCleanMessage(ThreadInfo Thread) => CleanMessage(this, Thread);
 

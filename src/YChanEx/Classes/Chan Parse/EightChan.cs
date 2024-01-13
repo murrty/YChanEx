@@ -85,4 +85,28 @@ internal static class EightChan {
             .Replace($"<a class=\"quoteLink\" href=\"/{Thread.Data.Board}/res/{Thread.Data.Id}.html#",
                 "<a class=\"quoteLink\" href=\"#p");
     }
+
+    public static ulong[]? GetQuotedPosts(EightChanThread Thread) {
+        return GetQuotedPosts(Thread.markdown);
+    }
+    public static ulong[]? GetQuotedPosts(EightChanPost Post) {
+        return GetQuotedPosts(Post.markdown);
+    }
+    private static ulong[]? GetQuotedPosts(string? markdown) {
+        if (markdown.IsNullEmptyWhitespace()) {
+            return null;
+        }
+
+        var Matches = Parsers.Helpers.ParsersShared.RepliesHtmlRegex.Matches(markdown);
+        if (Matches.Count < 1) {
+            return null;
+        }
+
+        return Matches
+            .Cast<System.Text.RegularExpressions.Match>()
+            .Select(x => x.Value[(x.Value.LastIndexOf('#') + 1)..^1])
+            .Select(ulong.Parse)
+            .Distinct()
+            .ToArray();
+    }
 }

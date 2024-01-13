@@ -101,6 +101,9 @@ internal sealed class EightChanThread {
     [MemberNotNullWhen(true, nameof(files))]
     public bool MultiFilePost => HasFiles && files.Length > 1;
 
+    [IgnoreDataMember]
+    public ulong[]? Quotes => GetQuotedPosts(this);
+
     public string GetCleanMessage(ThreadInfo Thread) => CleanMessage(this, Thread);
 
     [OnDeserialized]
