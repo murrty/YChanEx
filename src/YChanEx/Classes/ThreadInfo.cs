@@ -149,7 +149,7 @@ public sealed class ThreadInfo {
         using StreamWriter Writer = new(fs, Encoding.UTF8);
         Writer.Write(ThreadTopHtml);
         for (int i = 0; i < Data.ThreadPosts.Count; i++) {
-            Writer.Write(Data.ThreadPosts[i].PostHtml);
+            HtmlControl.WritePostHtmlData(Data.ThreadPosts[i], this, Writer);
         }
         Writer.Write(ThreadBottomHtml);
         Writer.Flush();
@@ -306,4 +306,9 @@ public sealed class ThreadData {
             return Id;
         }
     }
+    /// <summary>
+    /// Json file path, for reloading the thread.
+    /// </summary>
+    [IgnoreDataMember]
+    public string FilePath { get; set; }
 }

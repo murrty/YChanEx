@@ -49,9 +49,8 @@ internal static class ProgramSettings {
         Thread.ThreadModified = false;
     }
 
-    public static List<ThreadData> LoadThreads(this List<ThreadData> list, out List<string> FilePaths) {
-        list = [];
-        FilePaths = [];
+    public static List<ThreadData> LoadThreads() {
+        List<ThreadData> list = [];
 
         List<FileInfo> SavedFiles = [];
         DirectoryInfo ScanningDirectory;
@@ -64,9 +63,14 @@ internal static class ProgramSettings {
 
         if (SavedFiles.Count > 0) {
             for (int i = 0; i < SavedFiles.Count; i++) {
-                list.Add(File.ReadAllText(SavedFiles[i].FullName).JsonDeserialize<ThreadData>());
-                FilePaths.Add(SavedFiles[i].FullName);
+                ThreadData Thread = File.ReadAllText(SavedFiles[i].FullName).JsonDeserialize<ThreadData>();
+                if (Thread == null) {
+                    continue;
+                }
+                Thread.FilePath = SavedFiles[i].FullName;
+                list.Add(Thread);
             }
+            //list.Sort((x, y) => x.QueueIndex.CompareTo(y.QueueIndex));
         }
 
         return list;

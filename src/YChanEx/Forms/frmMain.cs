@@ -143,11 +143,12 @@ public partial class frmMain : Form, IMainFom {
             ThreadLoader = new Thread(() => {
                 try {
                     if (General.SaveQueueOnExit) {
-                        var SavedThreads = new List<ThreadData>().LoadThreads(out List<string> FilePaths);
+                        var SavedThreads = ProgramSettings.LoadThreads();
                         if (SavedThreads.Count > 0) {
                             for (int i = 0; i < SavedThreads.Count; i++) {
                                 try {
-                                    this.Invoke(() => LoadSavedThread(SavedThreads[i], FilePaths[i]));
+                                    var Thread = SavedThreads[i];
+                                    this.Invoke(() => LoadSavedThread(Thread, Thread.FilePath));
                                 }
                                 catch (Exception ex) {
                                     murrty.classes.Log.ReportException(ex);
@@ -610,9 +611,7 @@ public partial class frmMain : Form, IMainFom {
         if (lvThreads.SelectedItems.Count > 0) {
             frmDownloader DownloadForm = Threads[lvThreads.SelectedIndices[0]];
             DownloadForm.Show();
-            if (DownloadForm.WindowState == FormWindowState.Minimized) {
-                DownloadForm.WindowState = FormWindowState.Normal;
-            }
+            DownloadForm.WindowState = FormWindowState.Normal;
             DownloadForm.Activate();
         }
     }
@@ -674,7 +673,10 @@ public partial class frmMain : Form, IMainFom {
     private void mStatus_Click(object sender, EventArgs e) {
         if (lvThreads.SelectedIndices.Count > 0) {
             for (int CurrentThread = lvThreads.SelectedIndices.Count - 1; CurrentThread >= 0; CurrentThread--) {
-                Threads[lvThreads.SelectedIndices[CurrentThread]].Show();
+                frmDownloader DownloadForm = Threads[lvThreads.SelectedIndices[CurrentThread]];
+                DownloadForm.Show();
+                DownloadForm.WindowState = FormWindowState.Normal;
+                DownloadForm.Activate();
             }
         }
     }
