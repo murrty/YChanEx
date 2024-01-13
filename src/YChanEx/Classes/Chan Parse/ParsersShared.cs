@@ -7,6 +7,7 @@ internal static class ParsersShared {
     // Regex
     internal static readonly Regex RepliesRegex = new("href=\"#p\\d+\"", RegexOptions.IgnoreCase);
     internal static readonly Regex RepliesHtmlRegex = new("href=\"/[a-zA-Z0-9_]+/res/\\d+\\.html#\\d+\"", RegexOptions.IgnoreCase);
+    internal static readonly Regex RepliesSimpleRegex = new(@">>\d+", RegexOptions.IgnoreCase);
 
     /// <summary>
     /// Gets the extension of a file.

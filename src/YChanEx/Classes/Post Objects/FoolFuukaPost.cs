@@ -113,6 +113,31 @@ public sealed class FoolFuukaPost {
     [IgnoreDataMember]
     public bool HasFile => media != null;
 
+    [IgnoreDataMember]
+    public ulong[]? Quotes {
+        get {
+            if (comment_sanitized.IsNullEmptyWhitespace()) {
+                return null;
+            }
+
+            var Matches = Parsers.Helpers.ParsersShared.RepliesSimpleRegex.Matches(comment_sanitized);
+            if (Matches.Count < 1) {
+                return null;
+            }
+
+            return Matches
+                .Cast<System.Text.RegularExpressions.Match>()
+                .Select(x => {
+                    bool success = ulong.TryParse(x.Value[2..], out ulong value);
+                    return new { value, success };
+                })
+                .Where(x => x.success)
+                .Select(x => x.value)
+                .Distinct()
+                .ToArray();
+        }
+    }
+
     public override bool Equals(object? obj) => obj is FoolFuukaPost other && this.Equals(other);
     public bool Equals(FoolFuukaPost other) {
         if (other is null) {
