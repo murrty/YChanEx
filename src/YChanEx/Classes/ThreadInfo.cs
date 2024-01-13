@@ -154,6 +154,15 @@ public sealed class ThreadInfo {
         Writer.Write(ThreadBottomHtml);
         Writer.Flush();
     }
+    public void CheckQuotes() {
+        for (int i = 0; i < Data.ThreadPosts.Count; i++) {
+            var CurrentPost = Data.ThreadPosts[i];
+            CurrentPost.QuotedBy = Data.ThreadPosts
+                .Where(x => x.Quotes?.Contains(CurrentPost.PostId) == true)
+                .Select(x => x.PostId)
+                .ToArray();
+        }
+    }
 }
 
 public sealed class ThreadData {

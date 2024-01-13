@@ -55,7 +55,7 @@ internal sealed class U18ChanPost : IEquatable<U18ChanPost> {
     public bool HasTags => Tags?.Length > 0;
 
     [IgnoreDataMember]
-    public ulong[]? RespondsTo {
+    public ulong[]? Quotes {
         get {
             if (MessageBody.IsNullEmptyWhitespace()) {
                 return null;

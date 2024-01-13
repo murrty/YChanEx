@@ -60,7 +60,7 @@ internal sealed class SevenChanPost : IEquatable<SevenChanPost> {
     public bool MultiFilePost => HasFiles && Files.Length > 1;
 
     [IgnoreDataMember]
-    public ulong[]? RespondsTo {
+    public ulong[]? Quotes {
         get {
             if (MessageBody.IsNullEmptyWhitespace()) {
                 return null;

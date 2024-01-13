@@ -39,6 +39,12 @@ public sealed class GenericPost {
     [DataMember(Name = "first")]
     public bool FirstPost { get; set; }
 
+    [DataMember(Name = "quotes")]
+    public ulong[]? Quotes { get; set; }
+
+    [DataMember(Name = "quoted_by")]
+    public ulong[]? QuotedBy { get; set; }
+
     [IgnoreDataMember]
     public bool HasFiles => PostFiles.Count > 0;
 
@@ -60,6 +66,7 @@ public sealed class GenericPost {
         }
     }
 
+    [IgnoreDataMember]
     public string PostHtml { get; set; }
 
     private GenericPost() {
@@ -78,6 +85,7 @@ public sealed class GenericPost {
         this.PosterId = Post.id;
         this.PostSubject = Post.sub;
         this.PostMessage = Post.com;
+        this.Quotes = Post.Quotes;
 
         if (Post.HasFile) {
             // query "?b=1" is a bypass.
@@ -112,6 +120,7 @@ public sealed class GenericPost {
         this.PosterId = Post.PosterId;
         this.PostSubject = Post.Subject;
         this.PostMessage = Post.MessageBody;
+        this.Quotes = Post.Quotes;
 
         if (Post.HasFiles) {
             for (int i = 0; i < Post.Files.Length; i++) {
@@ -148,6 +157,7 @@ public sealed class GenericPost {
         this.PosterId = Post.id;
         this.PostSubject = Post.subject;
         this.PostMessage = Post.GetCleanMessage(Thread);
+        this.Quotes = Post.Quotes;
 
         if (Post.HasFiles) {
             for (int i = 0; i < Post.files.Length; i++) {
@@ -183,6 +193,7 @@ public sealed class GenericPost {
         this.PosterId = Post.id;
         this.PostSubject = Post.subject;
         this.PostMessage = Post.GetCleanMessage(Thread);
+        this.Quotes = Post.Quotes;
 
         if (Post.HasFiles) {
             for (int i = 0; i < Post.files.Length; i++) {
@@ -219,6 +230,7 @@ public sealed class GenericPost {
         this.PosterId = Post.id;
         this.PostSubject = Post.sub;
         this.PostMessage = Post.CleanedMessage;
+        this.Quotes = Post.Quotes;
 
         if (Post.HasFiles) {
             GenericFile NewFile = new(this) {
@@ -277,6 +289,7 @@ public sealed class GenericPost {
         //this.PosterId = Post.PosterId;
         this.PostSubject = Post.Subject;
         this.PostMessage = Post.MessageBody;
+        this.Quotes = Post.Quotes;
 
         if (Post.HasFile) {
             var File = Post.File;
@@ -309,6 +322,7 @@ public sealed class GenericPost {
         //this.PosterId = Post.PosterId;
         this.PostSubject = Post.Subject;
         this.PostMessage = Post.MessageBody;
+        this.Quotes = Post.Quotes;
 
         if (Post.HasFile) {
             var File = Post.File;

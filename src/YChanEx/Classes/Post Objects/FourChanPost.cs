@@ -107,7 +107,7 @@ internal sealed class FourChanPost {
     }
 
     [IgnoreDataMember]
-    public ulong[]? RespondsTo {
+    public ulong[]? Quotes {
         get {
             if (com.IsNullEmptyWhitespace()) {
                 return null;

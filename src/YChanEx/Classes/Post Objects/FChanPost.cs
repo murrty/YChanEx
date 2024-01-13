@@ -50,7 +50,7 @@ internal sealed class FChanPost {
     public bool HasFile => File != null;
 
     [IgnoreDataMember]
-    public ulong[]? RespondsTo {
+    public ulong[]? Quotes {
         get {
             if (MessageBody.IsNullEmptyWhitespace()) {
                 return null;
