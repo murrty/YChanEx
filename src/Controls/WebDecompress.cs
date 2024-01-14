@@ -1,8 +1,7 @@
 ﻿namespace murrty.controls;
-
 using System.IO.Compression;
 using System.IO;
-
+using System.Threading.Tasks;
 internal static class WebDecompress {
     public static async Task<byte[]> Brotli(Stream inputStream) {
         inputStream.Position = 0;

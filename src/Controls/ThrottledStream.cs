@@ -1,8 +1,7 @@
 ﻿namespace murrty.controls;
-
+using System;
 using System.IO;
 using System.Threading;
-
 public class ThrottledStream : Stream {
     public long MaxBytesPerSecond {
         get => maxBytes;

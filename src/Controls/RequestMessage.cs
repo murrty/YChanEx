@@ -1,7 +1,7 @@
 ﻿namespace YChanEx;
+using System;
 using System.Net.Http;
 using System.Reflection;
-
 internal sealed class RequestMessage : HttpRequestMessage {
     private const string StatusFieldName = // C# 6+ requires the field name to be "_sendStatus" instead.
 #if NETCOREAPP
