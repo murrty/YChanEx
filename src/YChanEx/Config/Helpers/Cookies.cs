@@ -1,4 +1,5 @@
-﻿namespace YChanEx;
+﻿#nullable enable
+namespace YChanEx;
 using System.IO;
 using System.Net;
 internal static class Cookies {
@@ -7,7 +8,7 @@ internal static class Cookies {
     static Cookies() {
         CookiesPath = Environment.CurrentDirectory + Path.DirectorySeparatorChar + "cookies.json";
         if (File.Exists(CookiesPath)) {
-            CookieList = File.ReadAllText(CookiesPath).JsonDeserialize<List<Cookie>>();
+            CookieList = File.ReadAllText(CookiesPath).JsonDeserialize<List<Cookie>>() ?? [];
         }
         else {
             CookieList = [];

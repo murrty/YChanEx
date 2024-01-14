@@ -1,7 +1,6 @@
 ﻿#nullable enable
 namespace YChanEx.Posts;
 using System.Runtime.Serialization;
-using System.Windows.Forms;
 using YChanEx.Parsers;
 using static YChanEx.Parsers.Helpers.ParsersShared;
 [DataContract]
@@ -15,19 +14,19 @@ public sealed class GenericPost {
     [DataMember(Name = "poster_name")]
     public string PosterName { get; set; }
 
-    [DataMember(Name = "poster_tripcode")]
+    [DataMember(Name = "poster_tripcode", EmitDefaultValue = false)]
     public string? PosterTripcode { get; set; }
 
-    [DataMember(Name = "poster_capcode")]
+    [DataMember(Name = "poster_capcode", EmitDefaultValue = false)]
     public string? PosterCapcode { get; set; }
 
-    [DataMember(Name = "poster_id")]
+    [DataMember(Name = "poster_id", EmitDefaultValue = false)]
     public string? PosterId { get; set; }
 
-    [DataMember(Name = "post_subject")]
+    [DataMember(Name = "post_subject", EmitDefaultValue = false)]
     public string? PostSubject { get; set; }
 
-    [DataMember(Name = "post_message")]
+    [DataMember(Name = "post_message", EmitDefaultValue = false)]
     public string? PostMessage { get; set; }
 
     [DataMember(Name = "files")]
@@ -36,13 +35,13 @@ public sealed class GenericPost {
     [DataMember(Name = "tags")]
     public string[] Tags { get; set; }
 
-    [DataMember(Name = "first")]
+    [DataMember(Name = "first", EmitDefaultValue = false)]
     public bool FirstPost { get; set; }
 
-    [DataMember(Name = "quotes")]
+    [DataMember(Name = "quotes", EmitDefaultValue = false)]
     public ulong[]? Quotes { get; set; }
 
-    [DataMember(Name = "quoted_by")]
+    [DataMember(Name = "quoted_by", EmitDefaultValue = false)]
     public ulong[]? QuotedBy { get; set; }
 
     [IgnoreDataMember]
@@ -296,14 +295,14 @@ public sealed class GenericPost {
             GenericFile Newfile = new(this) {
                 FileId = Post.PostId.ToString(),
                 FileUrl = File.Url,
-                GeneratedFileName = GetFileNameFromUrl(File.Url),
+                GeneratedFileName = GetFileNameFromUrl(File.Url!),
                 OriginalFileName = File.FileName,
                 FileExtension = File.Extension,
                 FileHash = null,
                 FileDimensions = new(File.Width, File.Height),
                 FileSize = File.EstimatedSize,
                 ThumbnailFileUrl = File.ThumbnailUrl,
-                ThumbnailFileName = GetFileNameFromUrl(File.ThumbnailUrl),
+                ThumbnailFileName = GetFileNameFromUrl(File.ThumbnailUrl!),
                 ThumbnailFileExtension = "jpg",
                 ThumbnailFileDimensions = new(File.ThumbnailWidth, File.ThumbnailHeight),
                 ThumbnailFileSpoiled = false,
@@ -329,14 +328,14 @@ public sealed class GenericPost {
             GenericFile Newfile = new(this) {
                 FileId = Post.PostId.ToString(),
                 FileUrl = File.Url,
-                GeneratedFileName = GetFileNameFromUrl(File.Url),
+                GeneratedFileName = GetFileNameFromUrl(File.Url!),
                 OriginalFileName = File.FileName,
                 FileExtension = File.Extension,
                 FileHash = null,
                 FileDimensions = new(File.Width, File.Height),
                 FileSize = File.EstimatedSize,
                 ThumbnailFileUrl = File.ThumbnailUrl,
-                ThumbnailFileName = GetFileNameFromUrl(File.ThumbnailUrl),
+                ThumbnailFileName = GetFileNameFromUrl(File.ThumbnailUrl!),
                 ThumbnailFileExtension = "jpg",
                 ThumbnailFileDimensions = new(File.ThumbnailWidth, File.ThumbnailHeight),
                 ThumbnailFileSpoiled = Post.File.Spoiler,
@@ -367,17 +366,17 @@ public sealed class GenericPost {
         if (Post.HasFile) {
             var File = Post.media;
             GenericFile NewFile = new(this) {
-                FileId = GetExtension(File!.media),
+                FileId = GetExtension(File.media!),
                 FileUrl = File.media_link,
-                GeneratedFileName = GetFileNameFromUrl(File.media),
-                OriginalFileName = GetFileNameFromUrl(File.media_filename),
-                FileExtension = GetExtension(File.media),
+                GeneratedFileName = GetFileNameFromUrl(File.media!),
+                OriginalFileName = GetFileNameFromUrl(File.media_filename!),
+                FileExtension = GetExtension(File.media!),
                 FileHash = File.media_hash,
                 FileDimensions = new(File.media_w, File.media_h),
                 FileSize = File.media_size,
                 ThumbnailFileUrl = File.thumb_link,
-                ThumbnailFileName = GetFileNameFromUrl(File.thumb_link),
-                ThumbnailFileExtension = GetExtension(File.thumb_link),
+                ThumbnailFileName = GetFileNameFromUrl(File.thumb_link!),
+                ThumbnailFileExtension = GetExtension(File.thumb_link!),
                 ThumbnailFileDimensions = new(File.preview_w, File.preview_h),
                 ThumbnailFileSpoiled = File.spoiler == 1,
             };

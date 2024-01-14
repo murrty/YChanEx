@@ -1,6 +1,5 @@
-﻿using System.Runtime.InteropServices;
-using System.Text;
-
+﻿#nullable enable
+using System.Runtime.InteropServices;
 namespace YChanEx {
     public static class NativeMethods {
         #region HintTextBox & UAC Shield Button
@@ -17,10 +16,10 @@ namespace YChanEx {
         #endregion
 
         [DllImport("kernel32", CharSet = CharSet.Unicode)]
-        public static extern int WritePrivateProfileString(string lpAppName, string lpKeyName, string lpDefault, string lpFileName);
+        public static extern int WritePrivateProfileString(string? lpAppName, string lpKeyName, string? lpDefault, string lpFileName);
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
-        public static extern int GetPrivateProfileString(string lpAppName, string lpKeyName, string lpDefault, char[] lpReturnedString, int nSize, string lpFileName);
+        public static extern int GetPrivateProfileString(string? lpAppName, string lpKeyName, string? lpDefault, char[] lpReturnedString, int nSize, string lpFileName);
     }
 }
 
@@ -40,7 +39,7 @@ namespace murrty {
         public static extern nint SetCursor(nint hCursor);
 
         [DllImport("uxtheme.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
-        public static extern int SetWindowTheme(nint hwnd, string pszSubAppName, string pszSubIdList);
+        public static extern int SetWindowTheme(nint hwnd, string pszSubAppName, string? pszSubIdList);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern nint SendMessage(nint hWnd, int msg, nint wParam, nint lParam);

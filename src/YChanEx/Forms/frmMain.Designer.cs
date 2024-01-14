@@ -71,6 +71,7 @@
             this.lbThreadHistoryHint = new System.Windows.Forms.Label();
             this.tpDebug = new System.Windows.Forms.TabPage();
             this.pnUpper = new System.Windows.Forms.Panel();
+            this.mLog = new System.Windows.Forms.MenuItem();
             this.tabControl1.SuspendLayout();
             this.tpCurrentQueue.SuspendLayout();
             this.tpHistory.SuspendLayout();
@@ -102,6 +103,7 @@
             // 
             this.mmMain.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.mSettings,
+            this.mLog,
             this.mAbout});
             // 
             // mSettings
@@ -112,7 +114,7 @@
             // 
             // mAbout
             // 
-            this.mAbout.Index = 1;
+            this.mAbout.Index = 2;
             this.mAbout.Text = "About";
             this.mAbout.Click += new System.EventHandler(this.mAbout_Click);
             // 
@@ -258,7 +260,7 @@
             this.tabControl1.Location = new System.Drawing.Point(0, 33);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(334, 161);
+            this.tabControl1.Size = new System.Drawing.Size(334, 182);
             this.tabControl1.TabIndex = 4;
             // 
             // tpCurrentQueue
@@ -267,7 +269,7 @@
             this.tpCurrentQueue.Location = new System.Drawing.Point(4, 22);
             this.tpCurrentQueue.Name = "tpCurrentQueue";
             this.tpCurrentQueue.Padding = new System.Windows.Forms.Padding(3);
-            this.tpCurrentQueue.Size = new System.Drawing.Size(446, 162);
+            this.tpCurrentQueue.Size = new System.Drawing.Size(326, 156);
             this.tpCurrentQueue.TabIndex = 0;
             this.tpCurrentQueue.Text = "Queue";
             this.tpCurrentQueue.UseVisualStyleBackColor = true;
@@ -286,7 +288,7 @@
             this.lvThreads.HideSelection = false;
             this.lvThreads.Location = new System.Drawing.Point(6, 6);
             this.lvThreads.Name = "lvThreads";
-            this.lvThreads.Size = new System.Drawing.Size(434, 150);
+            this.lvThreads.Size = new System.Drawing.Size(434, 171);
             this.lvThreads.SmallImageList = this.ilIcons;
             this.lvThreads.TabIndex = 3;
             this.lvThreads.UseCompatibleStateImageBehavior = false;
@@ -409,7 +411,7 @@
             this.tpDebug.Location = new System.Drawing.Point(4, 22);
             this.tpDebug.Name = "tpDebug";
             this.tpDebug.Padding = new System.Windows.Forms.Padding(3);
-            this.tpDebug.Size = new System.Drawing.Size(446, 162);
+            this.tpDebug.Size = new System.Drawing.Size(326, 135);
             this.tpDebug.TabIndex = 2;
             this.tpDebug.Text = "Debug";
             this.tpDebug.UseVisualStyleBackColor = true;
@@ -424,11 +426,17 @@
             this.pnUpper.Size = new System.Drawing.Size(334, 33);
             this.pnUpper.TabIndex = 5;
             // 
+            // mLog
+            // 
+            this.mLog.Index = 1;
+            this.mLog.Text = "Log";
+            this.mLog.Click += new System.EventHandler(this.mLog_Click);
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(334, 194);
+            this.ClientSize = new System.Drawing.Size(334, 215);
             this.Controls.Add(this.chkCreateThreadInTheBackground);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.pnUpper);
@@ -495,6 +503,7 @@
         private System.Windows.Forms.Button btnHistoryRemove;
         private System.Windows.Forms.Button btnHistoryRedownload;
         private System.Windows.Forms.TreeView tvHistory;
+        private System.Windows.Forms.MenuItem mLog;
     }
 }
 

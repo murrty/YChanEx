@@ -1,11 +1,13 @@
-﻿namespace YChanEx;
-
+﻿#nullable enable
+namespace YChanEx;
 /// <summary>
 /// Contains initialization program configuration.
 /// </summary>
 internal static class Initialization {
     static Initialization() {
         fFirstTime = IniProvider.Read(FirstTime, true);
+        fCheckForUpdates = IniProvider.Read(CheckForUpdates, true);
+        fCheckForBetaUpdates = IniProvider.Read(CheckForBetaUpdates, false);
         fSkippedVersion = IniProvider.Read(SkippedVersion, Version.Empty);
         fSkippedBetaVersion = IniProvider.Read(SkippedBetaVersion, Version.Empty);
         fUseProxy = IniProvider.Read(UseProxy, false);
@@ -27,6 +29,38 @@ internal static class Initialization {
         }
     }
     private static bool fFirstTime;
+
+    /// <summary>
+    /// Whether the program should check for updates.
+    /// <para/>
+    /// Default: <see langword="false"/>
+    /// </summary>
+    public static bool CheckForUpdates {
+        get => fCheckForUpdates;
+        internal set {
+            if (fCheckForUpdates != value) {
+                fCheckForUpdates = value;
+                IniProvider.Write(CheckForUpdates);
+            }
+        }
+    }
+    private static bool fCheckForUpdates = true;
+
+    /// <summary>
+    /// Whether to check for beta versions of the program.
+    /// <para/>
+    /// Default: <see langword="false"/>
+    /// </summary>
+    public static bool CheckForBetaUpdates {
+        get => fCheckForBetaUpdates;
+        internal set {
+            if (fCheckForBetaUpdates != value) {
+                fCheckForBetaUpdates = value;
+                IniProvider.Write(CheckForBetaUpdates);
+            }
+        }
+    }
+    private static bool fCheckForBetaUpdates = false;
 
     /// <summary>
     /// The decimal version of the skipped update version.

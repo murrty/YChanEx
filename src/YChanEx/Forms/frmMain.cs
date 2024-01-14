@@ -2,14 +2,16 @@
 namespace YChanEx;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Windows.Forms;
+using murrty.classes;
+using murrty.logging;
 public partial class frmMain : Form, IMainFom {
     #region Variables
     private readonly List<frmDownloader> Threads = [];  // The list of Thread download forms
     private readonly List<string> ThreadURLs = [];      // The list of Thread URLs
 
-    private Thread? UpdateCheck;
     private Thread? ThreadLoader;   // The Thread for reloading saved threads
 
     private bool Icon404WasShown;   // Determines if the 404 icon has been shown on the tray.
@@ -98,7 +100,8 @@ public partial class frmMain : Form, IMainFom {
                 lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = " Scanning soon";
             } break;
             case ThreadStatus.ThreadUpdateName: {
-                lvThreads.Items[ThreadIndex].SubItems[clName.Index].Text = Threads[ThreadIndex].ThreadInfo.Data.RetrievedThreadName ? Threads[ThreadIndex].ThreadInfo.Data.ThreadName : Threads[ThreadIndex].ThreadInfo.Data.Url;
+                var CurrentThreadData = Threads[ThreadIndex].ThreadInfo.Data;
+                lvThreads.Items[ThreadIndex].SubItems[clName.Index].Text = CurrentThreadData.ThreadName ?? CurrentThreadData.Url;
             } break;
 
             case ThreadStatus.ThreadInfoNotSet: {
@@ -155,12 +158,12 @@ public partial class frmMain : Form, IMainFom {
                             for (int i = 0; i < SavedThreads.Count; i++) {
                                 var CurrentThread = SavedThreads[i];
                                 try {
-                                    this.Invoke(() => LoadSavedThread(CurrentThread, CurrentThread.FilePath));
+                                    this.Invoke(() => LoadSavedThread(CurrentThread, CurrentThread.JsonFilePath));
                                 }
                                 catch {
                                     this.Invoke(() => {
                                         MessageBox.Show("Could not load saved thread. It will need to be redownloaded.");
-                                        System.IO.File.Move(CurrentThread.FilePath, CurrentThread.FilePath + ".old");
+                                        System.IO.File.Move(CurrentThread.JsonFilePath, CurrentThread.JsonFilePath + ".old");
                                         SavedThreads.RemoveAt(i);
                                         lvThreads.Items.RemoveAt(i--);
                                     });
@@ -168,6 +171,7 @@ public partial class frmMain : Form, IMainFom {
                                 Thread.Sleep(500);
                             }
                         }
+                        this.Invoke(() => niTray.Text = "YChanEx - " + Threads.Count + " threads");
                     }
 
                     if (Arguments.Argv.Length > 0) {
@@ -205,17 +209,10 @@ public partial class frmMain : Form, IMainFom {
     /// </summary>
     /// <param name="ThreadURL">The url of the thread that will be added to the queue.</param>
     /// <returns>Boolean based on it's success</returns>
-    private bool AddNewThread(string ThreadURL, bool FromTrayOrArgument = false) {
-        if (ThreadURL.StartsWith("ychanex:")) {
-            ThreadURL = ThreadURL[8..];
-        }
-        if (ThreadURL.StartsWith("view-source:")) {
-            ThreadURL = ThreadURL[12..];
-        }
-
-        ThreadURL = Networking.CleanURL(ThreadURL);
-
-        if (!Chans.SupportedChan(ThreadURL, out ChanType ReceivedType)) {
+    private bool AddNewThread(string? ThreadURL, bool FromTrayOrArgument = false) {
+        Log.Info("Trying to add new thread...");
+        if (!Chans.TryGetThreadData(ThreadURL, out var ThreadData)) {
+            Log.Error("Invalid thread.");
             if (FromTrayOrArgument) {
                 niTray.BalloonTipText = $"The url is not valid: {ThreadURL}";
                 niTray.BalloonTipIcon = ToolTipIcon.Error;
@@ -238,107 +235,93 @@ public partial class frmMain : Form, IMainFom {
                 niTray.BalloonTipIcon = ToolTipIcon.Info;
             }
             niTray.ShowBalloonTip(5000);
+            Log.Info("The thread is already in the queue.");
             return true;
         }
-        else {
-            switch (ReceivedType) {
-                case ChanType.EightKun:
+
+        ThreadInfo NewInfo = new(ThreadData);
+        NewInfo.Data.Url = ThreadURL;
+        NewInfo.ThreadIndex = ThreadURLs.Count;
+        if (ThreadData.ChanType == ChanType.FoolFuuka) {
+            NewInfo.Data.UrlHost = Networking.GetHost(ThreadURL);
+        }
+        ThreadURLs.Add(ThreadURL);
+
+        frmDownloader newThread = new(this, NewInfo) {
+            Name = ThreadURL,
+        };
+        newThread.ManageThread(ThreadEvent.ParseForInfo);
+        newThread.Show();
+
+        ListViewItem lvi = new() {
+            Name = ThreadURL
+        };
+        lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+        lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+        lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+        lvi.ImageIndex = (int)NewInfo.Chan;
+        lvi.SubItems[clStatus.Index].Text = " Creating";
+        lvi.SubItems[clThread.Index].Text = $"/{NewInfo.Data.Board}/ - {NewInfo.Data.Id}";
+        lvi.SubItems[clName.Index].Text = ThreadURL;
+
+        lvThreads.Items.Add(lvi);
+
+        Threads.Add(newThread);
+
+        if (chkCreateThreadInTheBackground.Checked) {
+            newThread.Hide();
+        }
+
+        if (FromTrayOrArgument) {
+            newThread.Hide();
+            niTray.BalloonTipTitle = "Thread added to queue";
+            niTray.BalloonTipText = $"Added /{NewInfo.Data.Board}/{NewInfo.Data.Id}/ to the queue";
+            niTray.BalloonTipIcon = ToolTipIcon.Info;
+            niTray.ShowBalloonTip(5000);
+        }
+
+        newThread.Opacity = 100;
+        newThread.ShowInTaskbar = true;
+
+        newThread.ManageThread(ThreadEvent.StartDownload);
+        if (General.AutoSaveThreads) {
+            SaveThreads();
+        }
+
+        if (General.SaveThreadHistory && !DownloadHistory.Contains(ThreadData.ChanType, ThreadURL)) {
+            DownloadHistory.Add(ThreadData.ChanType, ThreadURL);
+            switch (ThreadData.ChanType) {
+                case ChanType.FourChan: {
+                    tvHistory.Nodes[0].Nodes.Add(ThreadURL, ThreadURL);
+                } break;
+                case ChanType.FourTwentyChan: {
+                    tvHistory.Nodes[1].Nodes.Add(ThreadURL, ThreadURL);
+                } break;
+                case ChanType.SevenChan: {
+                    tvHistory.Nodes[2].Nodes.Add(ThreadURL, ThreadURL);
+                } break;
                 case ChanType.EightChan: {
-                    ThreadURL = ThreadURL.Replace(".json", ".html");
+                    tvHistory.Nodes[3].Nodes.Add(ThreadURL, ThreadURL);
                 } break;
-
+                case ChanType.EightKun: {
+                    tvHistory.Nodes[4].Nodes.Add(ThreadURL, ThreadURL);
+                } break;
                 case ChanType.fchan: {
-                    ThreadURL = ThreadURL.Replace("https://", "http://");
+                    tvHistory.Nodes[5].Nodes.Add(ThreadURL, ThreadURL);
                 } break;
-
-                case ChanType.Unsupported:
-                    return false;
-            }
-
-            ThreadInfo NewInfo = new(ReceivedType);
-            NewInfo.Data.Url = ThreadURL;
-            NewInfo.ThreadIndex = ThreadURLs.Count;
-            if (ReceivedType == ChanType.FoolFuuka) {
-                NewInfo.Data.UrlHost = Networking.GetHost(ThreadURL);
-            }
-            ThreadURLs.Add(ThreadURL);
-
-            frmDownloader newThread = new(this, NewInfo) {
-                Name = ThreadURL,
-            };
-            newThread.ManageThread(ThreadEvent.ParseForInfo);
-            newThread.Show();
-
-            ListViewItem lvi = new() {
-                Name = ThreadURL
-            };
-            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
-            lvi.ImageIndex = (int)NewInfo.Chan;
-            lvi.SubItems[clStatus.Index].Text = " Creating";
-            lvi.SubItems[clThread.Index].Text = $"/{NewInfo.Data.Board}/ - {NewInfo.Data.Id}";
-            lvi.SubItems[clName.Index].Text = ThreadURL;
-
-            lvThreads.Items.Add(lvi);
-
-            Threads.Add(newThread);
-
-            if (chkCreateThreadInTheBackground.Checked) {
-                newThread.Hide();
-            }
-
-            if (FromTrayOrArgument) {
-                newThread.Hide();
-                niTray.BalloonTipTitle = "Thread added to queue";
-                niTray.BalloonTipText = $"Added /{NewInfo.Data.Board}/{NewInfo.Data.Id}/ to the queue";
-                niTray.BalloonTipIcon = ToolTipIcon.Info;
-                niTray.ShowBalloonTip(5000);
-            }
-
-            newThread.Opacity = 100;
-            newThread.ShowInTaskbar = true;
-
-            newThread.ManageThread(ThreadEvent.StartDownload);
-            if (General.AutoSaveThreads) {
-                SaveThreads();
-            }
-
-            if (General.SaveThreadHistory && !DownloadHistory.Contains(ReceivedType, ThreadURL)) {
-                DownloadHistory.Add(ReceivedType, ThreadURL);
-                switch (ReceivedType) {
-                    case ChanType.FourChan: {
-                        tvHistory.Nodes[0].Nodes.Add(ThreadURL, ThreadURL);
-                    } break;
-                    case ChanType.FourTwentyChan: {
-                        tvHistory.Nodes[1].Nodes.Add(ThreadURL, ThreadURL);
-                    } break;
-                    case ChanType.SevenChan: {
-                        tvHistory.Nodes[2].Nodes.Add(ThreadURL, ThreadURL);
-                    } break;
-                    case ChanType.EightChan: {
-                        tvHistory.Nodes[3].Nodes.Add(ThreadURL, ThreadURL);
-                    } break;
-                    case ChanType.EightKun: {
-                        tvHistory.Nodes[4].Nodes.Add(ThreadURL, ThreadURL);
-                    } break;
-                    case ChanType.fchan: {
-                        tvHistory.Nodes[5].Nodes.Add(ThreadURL, ThreadURL);
-                    } break;
-                    case ChanType.u18chan: {
-                        tvHistory.Nodes[6].Nodes.Add(ThreadURL, ThreadURL);
-                    } break;
-                    case ChanType.FoolFuuka: {
-                        tvHistory.Nodes[7].Nodes.Add(ThreadURL, ThreadURL);
-                    }
-                    break;
+                case ChanType.u18chan: {
+                    tvHistory.Nodes[6].Nodes.Add(ThreadURL, ThreadURL);
+                } break;
+                case ChanType.FoolFuuka: {
+                    tvHistory.Nodes[7].Nodes.Add(ThreadURL, ThreadURL);
                 }
-                DownloadHistory.Save();
+                break;
             }
-
-            niTray.Text = "YChanEx - " + lvThreads.Items.Count + " threads";
-            return true;
+            DownloadHistory.Save();
         }
+
+        niTray.Text = "YChanEx - " + lvThreads.Items.Count + " threads";
+        return true;
     }
 
     /// <summary>
@@ -347,21 +330,12 @@ public partial class frmMain : Form, IMainFom {
     /// <param name="Info"></param>
     /// <returns></returns>
     private bool LoadSavedThread(ThreadData Info, string InfoPath) {
-        Info.Url = Networking.CleanURL(Info.Url);
-
-        if (!Chans.SupportedChan(Info.Url, out ChanType ReceivedType) || ThreadURLs.Contains(Info.Url)) {
+        if (!Chans.ReverifyThreadData(Info) || ThreadURLs.Contains(Info.Url)) {
             return false;
-        }
-
-        if (ReceivedType == ChanType.Unsupported) {
-            return false;
-        }
-        if (ReceivedType == ChanType.fchan) {
-            Info.Url = Info.Url.Replace("https://", "http://");
         }
 
         ThreadURLs.Add(Info.Url);
-        ThreadInfo NewInfo = new(Info, ReceivedType) {
+        ThreadInfo NewInfo = new(Info) {
             ThreadIndex = ThreadURLs.Count - 1,
             SavedThreadJson = InfoPath,
             ThreadReloaded = true,
@@ -393,10 +367,10 @@ public partial class frmMain : Form, IMainFom {
         newThread.ShowInTaskbar = true;
 
         Threads.Add(newThread);
-        if (Info.SetCustomName) {
+        if (Info.CustomThreadName != null) {
             lvi.SubItems[clName.Index].Text = Info.CustomThreadName;
         }
-        else if (Info.RetrievedThreadName) {
+        else if (Info.ThreadName != null) {
             lvi.SubItems[clName.Index].Text = Info.ThreadName;
         }
         else {
@@ -404,7 +378,6 @@ public partial class frmMain : Form, IMainFom {
         }
 
         newThread.ManageThread(ThreadEvent.StartDownload);
-        niTray.Text = "YChanEx - " + Threads.Count + " threads";
         return true;
     }
 
@@ -464,10 +437,6 @@ public partial class frmMain : Form, IMainFom {
             ThreadLoader.Abort();
         }
 
-        if (UpdateCheck?.IsAlive == true) {
-            UpdateCheck.Abort();
-        }
-
         Saved.MainFormLocation = this.Location;
         Saved.MainFormSize = this.Size;
         Saved.CreateThreadInTheBackground = chkCreateThreadInTheBackground.Checked;
@@ -483,6 +452,34 @@ public partial class frmMain : Form, IMainFom {
         TrayExit = tray;
 
         return true;
+    }
+
+    [Conditional("RELEASE")]
+    private async void CheckForUpdate() {
+        if (!Initialization.CheckForUpdates) {
+            return;
+        }
+
+        try {
+            switch (await Updater.CheckForUpdate(false)) {
+                case true: {
+                    if (!Updater.IsSkipped()) {
+                        Updater.ShowUpdateForm(true);
+                    }
+                } break;
+                case false: {
+                    Log.Info("Update checker found no new version.");
+                } break;
+                default: {
+                    Log.Error("Update check failed.");
+                } break;
+            }
+        }
+        catch (Exception ex) {
+            DateTime ExceptionTime = DateTime.Now;
+            Log.Error(ExceptionTime, $"Could not check for update. {(ex.InnerException is not null ? ex.InnerException.Message : ex.Message)}. Check \"previous exceptions\" for the stacktrace.");
+            Log.AddExceptionToLog(new ExceptionInfo(ex) { ExceptionTime = ExceptionTime });
+        }
     }
     #endregion
 
@@ -585,17 +582,10 @@ public partial class frmMain : Form, IMainFom {
         }
 
         chkCreateThreadInTheBackground.Checked = Saved.CreateThreadInTheBackground;
-
-        if (General.EnableUpdates && !Program.DebugMode) {
-            UpdateCheck = new(() => UpdateChecker.CheckForUpdate(false)) {
-                IsBackground = true,
-                Name = "Startup update checker"
-            };
-            UpdateCheck.Start();
-        }
     }
     private void frmMain_Shown(object sender, EventArgs e) {
         CheckThreads();
+        CheckForUpdate();
     }
     private void frmMain_FormClosing(object sender, FormClosingEventArgs e) {
         if (!TrayExit) {
@@ -627,6 +617,9 @@ public partial class frmMain : Form, IMainFom {
                 Threads[Thread].UpdateThreadName();
             }
         }
+    }
+    private void mLog_Click(object sender, EventArgs e) {
+        Log.ShowLog();
     }
     private void mAbout_Click(object sender, EventArgs e) {
         frmAbout About = new();
@@ -730,21 +723,23 @@ public partial class frmMain : Form, IMainFom {
     }
     private void mSetCustomName_Click(object sender, EventArgs e) {
         if (lvThreads.SelectedIndices.Count > 0) {
-            frmNewName newName = new();
-            newName.txtNewName.Text = lvThreads.Items[lvThreads.SelectedIndices[0]].SubItems[clName.Index].Text;
+            ThreadInfo CurrentThread = Threads[lvThreads.SelectedIndices[0]].ThreadInfo;
+            ListViewItem.ListViewSubItem SubItem = lvThreads.Items[lvThreads.SelectedIndices[0]].SubItems[clName.Index];
+            using frmNewName newName = new(CurrentThread.Data.CustomThreadName ?? CurrentThread.Data.ThreadName ?? CurrentThread.Data.Id);
             switch (newName.ShowDialog()) {
-                case DialogResult.OK:
-                    lvThreads.Items[lvThreads.SelectedIndices[0]].SubItems[clName.Index].Text = newName.txtNewName.Text;
-                    Threads[lvThreads.SelectedIndices[0]].ThreadInfo.Data.SetCustomName = true;
-                    Threads[lvThreads.SelectedIndices[0]].ThreadInfo.Data.CustomThreadName = newName.txtNewName.Text;
+                case DialogResult.OK when CurrentThread.Data.ThreadName?.Equals(newName.SetName, StringComparison.InvariantCultureIgnoreCase) != true:
+                    SubItem.Text = newName.SetName;
+                    CurrentThread.Data.CustomThreadName = newName.SetName;
+                    CurrentThread.ThreadModified = true;
+                    CurrentThread.SaveThread();
                     break;
                 case DialogResult.No:
-                    lvThreads.Items[lvThreads.SelectedIndices[0]].SubItems[clName.Index].Text = Threads[lvThreads.SelectedIndices[0]].ThreadInfo.Data.ThreadName;
-                    Threads[lvThreads.SelectedIndices[0]].ThreadInfo.Data.SetCustomName = false;
-                    Threads[lvThreads.SelectedIndices[0]].ThreadInfo.Data.CustomThreadName = null;
+                    SubItem.Text = CurrentThread.Data.ThreadName;
+                    CurrentThread.Data.CustomThreadName = null;
+                    CurrentThread.ThreadModified = true;
+                    CurrentThread.SaveThread();
                     break;
             }
-            newName.Dispose();
         }
         //using (Form newName = new Form())
         //using (TextBox threadName = new TextBox())

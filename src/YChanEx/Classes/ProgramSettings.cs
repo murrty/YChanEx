@@ -1,7 +1,6 @@
-﻿namespace YChanEx;
-
+﻿#nullable enable
+namespace YChanEx;
 using System.IO;
-
 /// <summary>
 /// Contains usability methods governing the application events.
 /// </summary>
@@ -51,24 +50,23 @@ internal static class ProgramSettings {
 
     public static List<ThreadData> LoadThreads() {
         List<ThreadData> list = [];
-
         List<FileInfo> SavedFiles = [];
         DirectoryInfo ScanningDirectory;
         if (Directory.Exists($"{Program.SavedThreadsPath}")) {
             ScanningDirectory = new($"{Program.SavedThreadsPath}");
             SavedFiles =
             [ .. SavedFiles,
-                .. ScanningDirectory .GetFiles("*.thread.json", SearchOption.TopDirectoryOnly), ];
+                .. ScanningDirectory.GetFiles("*.thread.json", SearchOption.TopDirectoryOnly), ];
         }
 
         if (SavedFiles.Count > 0) {
             for (int i = 0; i < SavedFiles.Count; i++) {
                 try {
-                    ThreadData Thread = File.ReadAllText(SavedFiles[i].FullName).JsonDeserialize<ThreadData>();
+                    var Thread = File.ReadAllText(SavedFiles[i].FullName).JsonDeserialize<ThreadData>();
                     if (Thread == null) {
                         continue;
                     }
-                    Thread.FilePath = SavedFiles[i].FullName;
+                    Thread.JsonFilePath = SavedFiles[i].FullName;
                     list.Add(Thread);
                 }
                 catch {

@@ -2,4 +2,4 @@
 global using System.Collections.Generic;
 global using System.Linq;
 global using System.Threading.Tasks;
-global using Version = murrty.structs.Version;
+global using Version = murrty.Version;

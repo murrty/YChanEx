@@ -1,8 +1,7 @@
-﻿namespace murrty.classes;
-
+﻿#nullable enable
+namespace murrty.classes;
 using System.Drawing;
 using System.Runtime.InteropServices;
-
 /// <summary>
 /// A class that contains information about the text when rendering in the dwm composition.
 /// </summary>
@@ -63,7 +62,7 @@ internal sealed class DwmCompositionTextInfo {
     /// <summary>
     /// Renderer.
     /// </summary>
-    public System.Windows.Forms.VisualStyles.VisualStyleRenderer renderer =
+    public System.Windows.Forms.VisualStyles.VisualStyleRenderer renderer { get; } =
                         new(System.Windows.Forms.VisualStyles.VisualStyleElement.Window.Caption.Active);
 
     public DwmCompositionTextInfo(string text, Font font, Color color, int glowsize, Rectangle rectangle) {

@@ -1,7 +1,6 @@
-﻿namespace YChanEx;
-
+﻿#nullable enable
+namespace YChanEx;
 using System.Runtime.Serialization;
-
 [DataContract]
 public sealed class DownloadHistory {
     [IgnoreDataMember]
@@ -172,7 +171,7 @@ public sealed class DownloadHistory {
 
     public static void Load() {
         if (System.IO.File.Exists(HistoryFile)) {
-            Data = System.IO.File.ReadAllText(HistoryFile).JsonDeserialize<DownloadHistory>();
+            Data = System.IO.File.ReadAllText(HistoryFile).JsonDeserialize<DownloadHistory>() ?? new();
         }
     }
 

@@ -1,8 +1,6 @@
 ﻿#nullable enable
 namespace YChanEx.Posts;
-
 using System.Runtime.Serialization;
-
 [DataContract]
 public class FoolFuukaBoard {
     [DataMember]

@@ -1,6 +1,5 @@
-﻿namespace YChanEx;
-
-using System.Runtime.Remoting.Messaging;
+﻿#nullable enable
+namespace YChanEx;
 using System.Text.RegularExpressions;
 internal readonly struct ProxyData {
     public static readonly ProxyData Empty = new();
@@ -86,7 +85,7 @@ internal readonly struct ProxyData {
     }
 
     public readonly bool HasValue => IP_S1 > 1 && ProxyType != ProxyType.None && Port > 0;
-    public override readonly bool Equals(object obj) => obj is ProxyData pv && Equals(pv);
+    public override readonly bool Equals(object? obj) => obj is ProxyData pv && Equals(pv);
     public bool Equals(ProxyData other) {
         if (other.IP_S1 != this.IP_S1) {
             return false;

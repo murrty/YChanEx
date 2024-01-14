@@ -1,4 +1,5 @@
-﻿namespace YChanEx;
+﻿#nullable enable
+namespace YChanEx;
 /// <summary>
 /// Contains usability methods governing local files.
 /// </summary>
@@ -38,31 +39,13 @@ internal static class FileHandler {
     }
 
     /// <summary>
-    /// Return the name of the file, and the extension of the file.
-    /// </summary>
-    /// <param name="Input">The <see cref="string"/> input to parse.</param>
-    /// <param name="FileName">The <see cref="string"/> output name of the file.</param>
-    /// <param name="FileExt">The <see cref="string"/> output extension of the file.</param>
-    /// <returns>If <paramref name="Input"/> was parsed properly. True regardless, because there's no reason not to.</returns>
-    public static bool StripFileNameAndExtension(string Input, out string FileName, out string FileExt) {
-        try {
-            while (Input.Contains("\\")) Input = Input[(Input.IndexOf("\\") + 1)..];
-            FileName = Input[..Input.IndexOf(".")];
-            if (Input.Contains(".")) FileExt = Input.Split('.')[^1];
-            else FileExt = string.Empty;
-            return true;
-        }
-        catch { throw; }
-    }
-
-    /// <summary>
     /// Generates a short 64-char thread name for the title and main form for easier identification.
     /// </summary>
     /// <param name="Subtitle">The subtitle of the post, IE the main thing about it. Optional.</param>
     /// <param name="Comment">The main post text, containing the message in the post.</param>
     /// <param name="FallbackName">The fallback name that will be used if the new name isn't a usable name.</param>
     /// <returns>If either the subtitle or comment contain text, returns them either grouped or solo; otherwise, the thread ID.</returns>
-    public static string GetShortThreadName(string Subtitle, string Comment, string FallbackName) {
+    public static string GetShortThreadName(string? Subtitle, string? Comment, string FallbackName) {
         string NewName = string.Empty;
 
         if (string.IsNullOrEmpty(FallbackName)) {
@@ -84,9 +67,9 @@ internal static class FileHandler {
                 .Replace("<wbr>", "") // Weird inserts between URLs
                 .Replace("<span class=\"quote\">", "") // >implying text xd
                 .Replace("</span>", "") // close of >implying text xd
-                //.Replace("&gt;", ">")  // These are fixed by WebUtility.HtmlDecode.
-                //.Replace("&lt;", "<")  // But I'm keeping them commented.
-                //.Replace("&amp;", "&") // Just in case.
+                                        //.Replace("&gt;", ">")  // These are fixed by WebUtility.HtmlDecode.
+                                        //.Replace("&lt;", "<")  // But I'm keeping them commented.
+                                        //.Replace("&amp;", "&") // Just in case.
                 .Replace("</a>", "") // the end of any quote-link urls.
                 .Replace("\n", " ")
                 .Trim(); // Cleans up any trailing spaces, new-line and the windows \n, too.

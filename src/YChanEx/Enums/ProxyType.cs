@@ -1,4 +1,5 @@
-﻿namespace YChanEx;
+﻿#nullable enable
+namespace YChanEx;
 public enum ProxyType : byte {
     None = 0x0,
     HTTP = 0x1,

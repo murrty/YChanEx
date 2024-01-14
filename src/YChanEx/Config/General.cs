@@ -1,5 +1,5 @@
-﻿namespace YChanEx;
-
+﻿#nullable enable
+namespace YChanEx;
 /// <summary>
 /// Contains general program configuration.
 /// </summary>
@@ -10,7 +10,6 @@ public static class General {
         fShowTrayIcon = IniProvider.Read(ShowTrayIcon, false, ConfigName);
         fMinimizeToTray = IniProvider.Read(MinimizeToTray, true, ConfigName);
         fShowExitWarning = IniProvider.Read(ShowExitWarning, false, ConfigName);
-        fEnableUpdates = IniProvider.Read(EnableUpdates, true, ConfigName);
         fUseFullBoardNameForTitle = IniProvider.Read(UseFullBoardNameForTitle, true, ConfigName);
         fSaveQueueOnExit = IniProvider.Read(SaveQueueOnExit, true, ConfigName);
         fMinimizeInsteadOfExiting = IniProvider.Read(MinimizeInsteadOfExiting, false, ConfigName);
@@ -59,20 +58,6 @@ public static class General {
         }
     }
     private static bool fShowExitWarning;
-
-    /// <summary>
-    /// Whether checking for updates is enabled.
-    /// </summary>
-    public static bool EnableUpdates {
-        get => fEnableUpdates;
-        set {
-            if (fEnableUpdates != value) {
-                fEnableUpdates = value;
-                IniProvider.Write(EnableUpdates, ConfigName);
-            }
-        }
-    }
-    private static bool fEnableUpdates;
 
     /// <summary>
     /// Whether to use the full board name for the thread title.
@@ -148,7 +133,6 @@ public static class General {
         ShowTrayIcon = false;
         MinimizeToTray = true;
         ShowExitWarning = false;
-        EnableUpdates = true;
         UseFullBoardNameForTitle = false;
         SaveQueueOnExit = true;
         MinimizeInsteadOfExiting = false;

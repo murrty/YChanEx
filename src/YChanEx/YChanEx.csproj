@@ -84,7 +84,9 @@
     <Compile Include="Classes\Post Objects\U18ChanTag.cs" />
     <Compile Include="Classes\ProgramSettings.cs" />
     <Compile Include="Classes\ProxyData.cs" />
+    <Compile Include="Classes\ThreadData.cs" />
     <Compile Include="Classes\ThreadInfo.cs" />
+    <Compile Include="Classes\VolatileHttpClient.cs" />
     <Compile Include="Config\Helpers\Cookies.cs" />
     <Compile Include="Controls\ExtendedListView.cs">
       <SubType>Component</SubType>
@@ -117,6 +119,7 @@
     <Compile Include="Logging\DwmCompositionInfo.cs" />
     <Compile Include="Logging\DwmCompositionTextInfo.cs" />
     <Compile Include="Logging\ExceptionInfo.cs" />
+    <Compile Include="Logging\ExceptionType.cs" />
     <Compile Include="Logging\Forms\frmException.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -150,9 +153,6 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Controls\ExtendedTextBox.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Controls\ExtendedWebClient.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Controls\SplitButton.cs">

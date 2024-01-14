@@ -1,4 +1,5 @@
-﻿namespace YChanEx;
+﻿#nullable enable
+namespace YChanEx;
 using System;
 internal struct DateTimeCounter {
     public DateTime Start;

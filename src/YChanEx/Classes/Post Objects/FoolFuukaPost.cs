@@ -1,6 +1,7 @@
 ﻿#nullable enable
 namespace YChanEx.Posts;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 [DataContract]
 [DebuggerDisplay("{num} | HasFile = {HasFile}")]
@@ -111,6 +112,7 @@ public sealed class FoolFuukaPost {
     public FoolFuukaBoard? board { get; set; }
 
     [IgnoreDataMember]
+    [MemberNotNullWhen(true, nameof(media))]
     public bool HasFile => media != null;
 
     [IgnoreDataMember]

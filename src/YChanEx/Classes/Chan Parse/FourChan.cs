@@ -1,4 +1,5 @@
-﻿namespace YChanEx.Parsers;
+﻿#nullable enable
+namespace YChanEx.Parsers;
 internal static class FourChan {
     public static DateTimeOffset GetPostTime(long timestamp) {
         return DateTimeOffset.FromUnixTimeSeconds(timestamp);

@@ -1,9 +1,8 @@
-﻿namespace YChanEx;
-
+﻿#nullable enable
+namespace YChanEx;
 using System.IO;
 using System.Text;
 using YChanEx.Posts;
-
 internal static class HtmlControl {
     private static readonly string[] SizeSuffix =
         [ "B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB" ];
@@ -474,7 +473,7 @@ $"""
         return Thread.Chan switch {
             //ChanType.EightChan or
             //ChanType.EightKun => "The content archived from this site is highly fucking stupid and is not reviewed by, endorsed by, or reflect the views of YChanEx, the developer, nor contributors.",
-            ChanType.FourChan when Thread.Data.Board.Equals("pol", StringComparison.OrdinalIgnoreCase) => "The content archived from this board is actually braindead. YChanEx, developer, and contributors, reject the content archived here.",
+            ChanType.FourChan or ChanType.FoolFuuka when Thread.Data.Board.Equals("pol", StringComparison.OrdinalIgnoreCase) => "The content archived from this board is actually braindead. YChanEx, developer, and contributors, reject the content archived here.",
             _ => "The content archived here was not previously reviewed by YChanEx (developer or contributors), and is not endorsed by nor reflect the views of YChanEx (developer or contributors)."
         };
     }

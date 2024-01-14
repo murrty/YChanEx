@@ -57,17 +57,17 @@ internal static class EightKun {
                         return FoundBoard;
                     }
                 }
-                Log.Write("Could not find board in board cache, re-downloading...");
+                Log.Warn("Could not find board in board cache, re-downloading...");
             }
             catch {
-                Log.Write("Could not load cache file, re-downloading...");
+                Log.Warn("Could not load cache file, re-downloading...");
             }
         }
 
         HttpRequestMessage Request = new(HttpMethod.Get, BoardsUrl);
         using var Response = await Networking.GetResponseAsync(Request, DownloadClient, token);
         if (Response == null) {
-            Log.Write("Could not get board info.");
+            Log.Warn("Could not get board info.");
             return null;
         }
 
@@ -75,7 +75,7 @@ internal static class EightKun {
         var NewBoards = BoardsString.JsonDeserialize<EightKunBoard[]>();
 
         if (NewBoards == null || NewBoards.Length < 1) {
-            Log.Write("Could not update boards cache.");
+            Log.Warn("Could not update boards cache.");
             return null;
         }
 

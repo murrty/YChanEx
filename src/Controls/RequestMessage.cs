@@ -1,4 +1,5 @@
-﻿namespace YChanEx;
+﻿#nullable enable
+namespace YChanEx;
 using System;
 using System.Net.Http;
 using System.Reflection;

@@ -1,3 +1,4 @@
-﻿namespace YChanEx;
+﻿#nullable enable
+namespace YChanEx;
 public class FourTwentyChanThread {
 }

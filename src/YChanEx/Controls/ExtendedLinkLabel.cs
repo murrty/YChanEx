@@ -1,4 +1,5 @@
-﻿namespace murrty.controls;
+﻿#nullable enable
+namespace murrty.controls;
 using System.Windows.Forms;
 internal class ExtendedLinkLabel : LinkLabel {
     /// <summary>

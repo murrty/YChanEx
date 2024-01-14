@@ -21,10 +21,10 @@ internal static class EightChan {
                             return board;
                         }
                     }
-                    Log.Write("Could not find board in board cache, re-downloading...");
+                    Log.Warn("Could not find board in board cache, re-downloading...");
                 }
                 catch {
-                    Log.Write("Could not load cache file, re-downloading...");
+                    Log.Warn("Could not load cache file, re-downloading...");
                 }
             }
         }
@@ -37,7 +37,7 @@ internal static class EightChan {
 
         using var Response = await Networking.GetResponseAsync(Request, DownloadClient, token);
         if (Response == null) {
-            Log.Write("Could not get board info.");
+            Log.Warn("Could not get board info.");
             return null;
         }
 

@@ -1,10 +1,10 @@
-﻿namespace murrty.controls;
+﻿#nullable enable
+namespace murrty.controls;
 using System.ComponentModel;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-
 /// <summary>
 /// An enumeration of types of characters allowed in the textbox.
 /// </summary>
@@ -53,7 +53,7 @@ public class ExtendedTextBox : TextBox {
     /// <summary>
     /// If the button is enabled.
     /// </summary>
-    private bool _ButtonEnabled = false;
+    private bool _ButtonEnabled;
     /// <summary>
     /// The alignment of the button.
     /// </summary>
@@ -61,11 +61,11 @@ public class ExtendedTextBox : TextBox {
     /// <summary>
     /// If the font should be syncronized across the button and text.
     /// </summary>
-    private bool _SyncFont = false;
+    private bool _SyncFont;
     /// <summary>
     /// If the text is currently changing.
     /// </summary>
-    private bool Changing = false;
+    private bool Changing;
 
     /// <summary>
     /// The button that appears inside the textbox.
@@ -266,7 +266,7 @@ public class ExtendedTextBox : TextBox {
         get { return _TextHint; }
         set {
             _TextHint = value;
-            SendMessage(this.Handle, 0x1501, (IntPtr)1, value);
+            _ = SendMessage(this.Handle, 0x1501, (IntPtr)1, value);
         }
     }
 
@@ -285,10 +285,10 @@ public class ExtendedTextBox : TextBox {
     public const int EC_LEFTMARGIN = 1;
 
     [DllImport("user32.dll", CharSet = CharSet.Auto)]
-    internal static extern IntPtr SendMessage(IntPtr hWnd, int wMsg, IntPtr wParam, IntPtr lParam);
+    internal static extern nint SendMessage(nint hWnd, int wMsg, nint wParam, nint lParam);
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode, ThrowOnUnmappableChar = true)]
-    internal static extern IntPtr SendMessage(IntPtr hWnd, int wMsg, IntPtr wParam, string lParam);
+    internal static extern nint SendMessage(nint hWnd, int wMsg, nint wParam, string lParam);
     #endregion
 
     #region Constructor
@@ -303,20 +303,15 @@ public class ExtendedTextBox : TextBox {
     public override void Refresh() {
         switch (_ButtonEnabled) {
             case true:
-                switch (_ButtonAlignment) {
-                    default:
-                        SendMessage(Handle, EM_SETMARGINS, (IntPtr)EC_RIGHTMARGIN, (IntPtr)(InsetButton.Width << 16));
-                        break;
-
-                    case ButtonAlignment.Right:
-                        SendMessage(Handle, EM_SETMARGINS, (IntPtr)EC_LEFTMARGIN, (IntPtr)(InsetButton.Width));
-                        break;
-                }
+                _ = _ButtonAlignment switch {
+                    ButtonAlignment.Right => SendMessage(Handle, EM_SETMARGINS, (IntPtr)EC_LEFTMARGIN, (IntPtr)(InsetButton.Width)),
+                    _ => SendMessage(Handle, EM_SETMARGINS, (IntPtr)EC_RIGHTMARGIN, (IntPtr)(InsetButton.Width << 16)),
+                };
                 break;
 
             case false:
-                SendMessage(Handle, EM_SETMARGINS, (IntPtr)EC_LEFTMARGIN, IntPtr.Zero);
-                SendMessage(Handle, EM_SETMARGINS, (IntPtr)EC_RIGHTMARGIN, IntPtr.Zero);
+                _ = SendMessage(Handle, EM_SETMARGINS, (IntPtr)EC_LEFTMARGIN, IntPtr.Zero);
+                _ = SendMessage(Handle, EM_SETMARGINS, (IntPtr)EC_RIGHTMARGIN, IntPtr.Zero);
                 break;
         }
         base.Refresh();

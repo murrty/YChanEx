@@ -1,7 +1,6 @@
-﻿namespace YChanEx;
-
+﻿#nullable enable
+namespace YChanEx;
 using System.Drawing;
-
 /// <summary>
 /// Contains saved info configuration.
 /// </summary>

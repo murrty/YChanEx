@@ -1,4 +1,5 @@
-﻿namespace YChanEx;
+﻿#nullable enable
+namespace YChanEx;
 public enum ThreadState : byte {
     /// <summary>
     /// The thread was alive when it was saved.

@@ -93,4 +93,80 @@ internal static class Extensions {
         }
         return null!;
     }
+
+    public static string Format(this string value, params object[] vals) {
+        return string.Format(value, vals);
+    }
+    public static string[] SplitRemoveEmpty(this string value, params char[] separator) {
+        return value.Split(separator, StringSplitOptions.RemoveEmptyEntries);
+    }
+
+    public static string SubstringBeforeChar(this string input, char ch) {
+        for (int i = 0; i < input.Length; i++) {
+            if (input[i] == ch)
+                return input[..i];
+        }
+        return input;
+    }
+    public static string SubstringAfterChar(this string input, char ch) {
+        for (int i = 0; i < input.Length; i++) {
+            if (input[i] == ch)
+                return input[(i + 1)..];
+        }
+        return input;
+    }
+    public static string SubstringBeforeLastChar(this string input, char ch) {
+        for (int i = input.Length - 1; i > -1; i--) {
+            if (input[i] == ch)
+                return input[..i];
+        }
+        return input;
+    }
+    public static string SubstringAfterLastChar(this string input, char ch) {
+        for (int i = input.Length - 1; i > -1; i--) {
+            if (input[i] == ch)
+                return input[(i + 1)..];
+        }
+        return input;
+    }
+    public static string SubstringBeforeChar(this string input, char ch, out int index) {
+        for (int i = 0; i < input.Length; i++) {
+            if (input[i] == ch) {
+                index = i;
+                return input[..i];
+            }
+        }
+        index = -1;
+        return input;
+    }
+    public static string SubstringAfterChar(this string input, char ch, out int index) {
+        for (int i = 0; i < input.Length; i++) {
+            if (input[i] == ch) {
+                index = i;
+                return input[(i + 1)..];
+            }
+        }
+        index = -1;
+        return input;
+    }
+    public static string SubstringBeforeLastChar(this string input, char ch, out int index) {
+        for (int i = input.Length - 1; i > -1; i--) {
+            if (input[i] == ch) {
+                index = i;
+                return input[..i];
+            }
+        }
+        index = -1;
+        return input;
+    }
+    public static string SubstringAfterLastChar(this string input, char ch, out int index) {
+        for (int i = input.Length - 1; i > -1; i--) {
+            if (input[i] == ch) {
+                index = i;
+                return input[(i + 1)..];
+            }
+        }
+        index = -1;
+        return input;
+    }
 }

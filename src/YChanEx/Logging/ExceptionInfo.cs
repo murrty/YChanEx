@@ -1,43 +1,57 @@
-﻿namespace murrty.forms;
-
+﻿#nullable enable
+namespace murrty.logging;
+using System.Windows.Forms;
 /// <summary>
 /// The base exception detail class containing information about the exception, and modifiers about the actions.
 /// </summary>
-public sealed class ExceptionInfo {
-    #region Fields
+internal sealed class ExceptionInfo {
+    #region Properties
     /// <summary>
-    /// The dynamic exception that is received.
+    /// Gets the <see cref="System.Exception"/> object that is received.
     /// </summary>
-    public Exception ReceivedException { get; init; } = null;
+    public Exception Exception { get; init; }
     /// <summary>
-    /// Extra information regarding the exception.
+    /// Gets the extra data object regarding the exception.
     /// </summary>
-    public object ExtraInfo { get; init; } = null;
+    public object? ExtraInfo { get; init; }
 
     /// <summary>
-    /// An extra message that's printed before the main exception text.
+    /// Gets the extra message that's printed before the main exception text.
     /// </summary>
-    public string ExtraMessage { get; init; } = null;
+    public string? ExtraMessage { get; init; }
     /// <summary>
-    /// The description that is posted to the exception form instead of one that gets parsed.
+    /// Gets the description that is posted to the exception form instead of one that gets parsed.
     /// </summary>
-    public string CustomDescription { get; init; } = null;
+    public string? CustomDescription { get; init; }
     /// <summary>
-    /// If the exception was caused from loading the language file.
+    /// Gets whether the exception was caused from loading the language file. This will load internal English values.
     /// </summary>
-    public bool FromLanguage { get; init; } = false;
+    public bool FromLanguage { get; init; }
     /// <summary>
-    /// If the cause of exception can be retried.
+    /// Gets whether the cause of exception can be retried.
     /// </summary>
-    public bool AllowRetry { get; init; } = false;
+    public bool AllowRetry { get; init; }
     /// <summary>
-    /// If the exception is not recoverable, and the progarm must be terminated.
+    /// Gets whether the cause of the exception can be aborted.
     /// </summary>
-    public bool Unrecoverable { get; init; } = false;
+    public bool AllowAbort { get; init; }
     /// <summary>
-    /// If the exception form should skip dwm compositing.
+    /// Gets the <see cref="forms.ExceptionType"/> of exception thrown.
     /// </summary>
-    public bool SkipDwmComposition { get; init; } = false;
+    public ExceptionType ExceptionType { get; init; }
+    /// <summary>
+    /// Gets whether the exception form should skip dwm compositing.
+    /// </summary>
+    public bool SkipDwmComposition { get; init; }
+    /// <summary>
+    /// Gets the <see cref="DateTime"/> of the received exception.
+    /// </summary>
+    public DateTime ExceptionTime { get; init; }
+    /// <summary>
+    /// Gets the owner window of the exception to block input.
+    /// If it is null, the exception will not block any window.
+    /// </summary>
+    public IWin32Window? WindowOwner { get; init; }
     #endregion
 
     #region Constructor
@@ -45,29 +59,23 @@ public sealed class ExceptionInfo {
     /// Initializes a new instance of <see cref="ExceptionInfo"/>.
     /// </summary>
     /// <param name="ReceivedException">The received exception.</param>
-    public ExceptionInfo(Exception ReceivedException) {
-        this.ReceivedException = ReceivedException;
-    }
+    public ExceptionInfo(Exception ReceivedException) => this.Exception = ReceivedException;
 
     /// <summary>
     /// Initializes a new instance of <see cref="ExceptionInfo"/>.
     /// </summary>
     /// <param name="ReceivedException">The received exception.</param>
     /// <param name="ExtraInfo">Extra information of the exception.</param>
-    public ExceptionInfo(Exception ReceivedException, object ExtraInfo) {
-        this.ReceivedException = ReceivedException;
-        this.ExtraInfo = ExtraInfo;
-    }
+    public ExceptionInfo(Exception ReceivedException, object? ExtraInfo)
+        : this(ReceivedException) => this.ExtraInfo = ExtraInfo;
 
     /// <summary>
     /// Initializes a new instance of <see cref="ExceptionInfo"/>.
     /// </summary>
     /// <param name="ReceivedException">The received exception.</param>
     /// <param name="ExtraMessage">The extra message relating to the exception.</param>
-    public ExceptionInfo(Exception ReceivedException, string ExtraMessage) {
-        this.ReceivedException = ReceivedException;
-        this.ExtraMessage = ExtraMessage;
-    }
+    public ExceptionInfo(Exception ReceivedException, string? ExtraMessage)
+        : this(ReceivedException) => this.ExtraMessage = ExtraMessage;
 
     /// <summary>
     /// Initializes a new instance of <see cref="ExceptionInfo"/>.
@@ -75,10 +83,17 @@ public sealed class ExceptionInfo {
     /// <param name="ReceivedException">The received exception.</param>
     /// <param name="ExtraInfo">Extra information of the exception.</param>
     /// <param name="ExtraMessage">The extra message relating to the exception.</param>
-    public ExceptionInfo(Exception ReceivedException, object ExtraInfo, string ExtraMessage) {
-        this.ReceivedException = ReceivedException;
-        this.ExtraInfo = ExtraInfo;
-        this.ExtraMessage = ExtraMessage;
-    }
+    public ExceptionInfo(Exception ReceivedException, object? ExtraInfo, string? ExtraMessage)
+        : this(ReceivedException, ExtraInfo) => this.ExtraMessage = ExtraMessage;
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="ExceptionInfo"/>.
+    /// </summary>
+    /// <param name="ReceivedException">The received exception.</param>
+    /// <param name="ExtraInfo">Extra information of the exception.</param>
+    /// <param name="ExtraMessage">The extra message relating to the exception.</param>
+    /// <param name="Owner">The owner that the form will appear over.</param>
+    public ExceptionInfo(Exception ReceivedException, object? ExtraInfo, string? ExtraMessage, IWin32Window? Owner)
+        : this(ReceivedException, ExtraInfo, ExtraMessage) => this.WindowOwner = Owner;
     #endregion
 }

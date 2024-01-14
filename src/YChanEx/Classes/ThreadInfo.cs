@@ -1,11 +1,8 @@
-﻿namespace YChanEx;
-
+﻿#nullable enable
+namespace YChanEx;
 using System.IO;
 using System.Net;
-using System.Runtime.Serialization;
 using System.Text;
-using System.Threading;
-using YChanEx.Posts;
 /// <summary>
 /// Skeleton of thread downloads, used as a maintainer of thread information such as thread URL, ID, board, status.
 /// <para>This contains all private information of the thread to reduce clutter on the main class.</para>
@@ -14,21 +11,21 @@ public sealed class ThreadInfo {
     /// <summary>
     /// Contains all the data in the thread, such as posts, links, and lists.
     /// </summary>
-    public ThreadData Data = new();
+    public ThreadData Data { get; }
 
     /// <summary>
     /// The chan type that will be parsed.
     /// <seealso cref="ThreadStatus"/>
     /// </summary>
-    public ChanType Chan = ChanType.Unsupported;
+    public ChanType Chan => Data.ChanType;
     /// <summary>
     /// The index of the thread in the queue.
     /// </summary>
-    public int ThreadIndex { get; set; } = -1;
+    public int ThreadIndex { get; set; }
     /// <summary>
     /// The string to the json file for the thread if it is saved.
     /// </summary>
-    public string SavedThreadJson { get; set; } = string.Empty;
+    public string SavedThreadJson { get; set; }
     /// <summary>
     /// The path that the thread will be downloaded to.
     /// </summary>
@@ -76,7 +73,7 @@ public sealed class ThreadInfo {
     /// The status of the thread, used to determine what's happening in the thread.
     /// <seealso cref="ThreadStatus"/>
     /// </summary>
-    public ThreadStatus CurrentActivity { get; set; } = ThreadStatus.NoStatusSet;
+    public ThreadStatus CurrentActivity { get; set; }
     /// <summary>
     /// The status code from the previous httprequest.
     /// </summary>
@@ -93,11 +90,11 @@ public sealed class ThreadInfo {
     /// <summary>
     /// The URI of the ThreadUrl.
     /// </summary>
-    public Uri ThreadUri { get; set; }
+    public Uri? ThreadUri { get; set; }
     /// <summary>
     /// The API link for the current thread, if it has an API link.
     /// </summary>
-    public string ApiLink {
+    public string? ApiLink {
         get {
             return this.Chan switch {
                 ChanType.FourChan => $"https://a.4cdn.org/{Data.Board}/thread/{Data.Id}.json",
@@ -119,14 +116,13 @@ public sealed class ThreadInfo {
         }
     }
 
-    public ThreadInfo(ThreadData Data, ChanType Chan) {
-        this.Chan = Chan;
+    public ThreadInfo(ThreadData Data) {
         this.Data = Data;
-    }
-
-    public ThreadInfo(ChanType Chan) {
-        this.Chan = Chan;
-        this.Data = new();
+        this.ThreadIndex = -1;
+        this.SavedThreadJson = string.Empty;
+        this.DownloadPath = Downloads.DownloadPath;
+        this.ThreadTopHtml = string.Empty;
+        this.ThreadBottomHtml = string.Empty;
     }
 
     public void UpdateJsonPath() {
@@ -170,152 +166,4 @@ public sealed class ThreadInfo {
                 .ToArray();
         }
     }
-}
-
-public sealed class ThreadData {
-    /// <summary>
-    /// The overall status of the thread. (Alive/404/Aborted/Archived).
-    /// <seealso cref="YChanEx.ThreadStatus"/>
-    /// </summary>
-    [DataMember]
-    public ThreadState ThreadState { get; set; }
-
-    /// <summary>
-    /// The ID of the thread being downloaded.
-    /// </summary>
-    [DataMember]
-    public string Id { get; set; }
-    /// <summary>
-    /// The board that the thread that's being downloaded is on. Generally an acronym or a single letter.
-    /// </summary>
-    [DataMember]
-    public string Board { get; set; }
-    /// <summary>
-    /// The URL of the thread that will be downloaded.
-    /// </summary>
-    [DataMember]
-    public string Url { get; set; }
-    /// <summary>
-    /// The host string that will be used when downloading the API.
-    /// </summary>
-    [DataMember(EmitDefaultValue = false)]
-    public string UrlHost { get; set; }
-
-    /// <summary>
-    /// The list of post IDs that have been parsed.
-    /// </summary>
-    [DataMember]
-    public List<ulong> ParsedPostIds { get; set; } = [];
-    /// <summary>
-    /// The posts in the thread.
-    /// </summary>
-    [DataMember]
-    public List<GenericPost> ThreadPosts { get; set; } = [];
-    /// <summary>
-    /// Dictionary of duplicate names.
-    /// </summary>
-    [DataMember]
-    public Dictionary<string, int> DuplicateNames { get; set; } = [];
-    /// <summary>
-    /// The estimated total size of the thread.
-    /// </summary>
-    [DataMember]
-    public long EstimatedSize { get; set; }
-
-    /// <summary>
-    /// Counts the images in the thread when they were added.
-    /// <para>Used by all chans.</para>
-    /// </summary>
-    [DataMember]
-    public int ThreadImagesCount { get; set; }
-    /// <summary>
-    /// Counts how many images were downloaded, for the form.
-    /// <para>Used by all chans.</para>
-    /// </summary>
-    [DataMember]
-    public int DownloadedImagesCount { get; set; }
-    /// <summary>
-    /// The amount of posts counted up to.
-    /// <para>Used by 8chan and 8kun.</para>
-    /// </summary>
-    [DataMember]
-    public int ThreadPostsCount { get; set; }
-
-    /// <summary>
-    /// The last modified date, used as a header when trying to download json or html information.
-    /// <para>Uses "If-Modified-Since" header on HttpWebRequests to prevent overload.</para>
-    /// <para>All download logic includes this, but only a few actually make use of it.</para>
-    /// </summary>
-    [DataMember]
-    public DateTimeOffset? LastModified { get; set; }
-    /// <summary>
-    /// Determines if the thread is archived.
-    /// </summary>
-    [DataMember]
-    public bool ThreadArchived { get; set; }
-    /// <summary>
-    /// The board name of the thread retrieved from <seealso cref="BoardTitles"/>.
-    /// <para>Chans that support user-made boards requires the name to be parsed from HTML.</para>
-    /// </summary>
-    [DataMember]
-    public string BoardName { get; set; }
-    /// <summary>
-    /// Determines if the board name has been retrieved, either from HTML or <seealso cref="BoardTitles"/>.
-    /// <para>Prevents unneccessary parsing.</para>
-    /// </summary>
-    [DataMember]
-    public bool RetrievedBoardName { get; set; }
-    /// <summary>
-    /// The name of the thread, given by OP of the Thread.
-    /// <para>Used for easier thread identification.</para>
-    /// </summary>
-    [DataMember]
-    public string ThreadName { get; set; }
-    /// <summary>
-    /// Determines if the thread name has been retrieved from the current thread, either through API or HTML parsing.
-    /// <para>Used for easier thread identification.</para>
-    /// </summary>
-    [DataMember]
-    public bool RetrievedThreadName { get; set; }
-    /// <summary>
-    /// Determines if a custom name was set for the thread.
-    /// </summary>
-    [DataMember]
-    public bool SetCustomName { get; set; }
-    /// <summary>
-    /// The user-set name for the thread. Only appears in the main form listview, and the thread form text.
-    /// </summary>
-    [DataMember]
-    public string CustomThreadName { get; set; }
-    /// <summary>
-    /// Determines if the thread name was set into the HTML that will be saved.
-    /// </summary>
-    [DataMember]
-    public bool HtmlThreadNameSet { get; set; }
-    /// <summary>
-    /// The subtitle of the board used by certain chans.
-    /// </summary>
-    [DataMember]
-    public string BoardSubtitle { get; set; }
-
-    /// <summary>
-    /// The thread name that is displayed on the download form.
-    /// </summary>
-    [IgnoreDataMember]
-    public string DownloadFormThreadNameDisplay {
-        get {
-            if (SetCustomName) {
-                return CustomThreadName;
-            }
-            if (RetrievedThreadName) {
-                return ThreadName;
-            }
-            return Id;
-        }
-    }
-    /// <summary>
-    /// Json file path, for reloading the thread.
-    /// </summary>
-    [IgnoreDataMember]
-    public string FilePath { get; set; }
 }

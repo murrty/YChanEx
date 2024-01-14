@@ -1,4 +1,5 @@
-﻿namespace YChanEx;
+﻿#nullable enable
+namespace YChanEx;
 using System;
 using System.Windows.Forms;
 public partial class frmSettings : Form {
@@ -14,6 +15,11 @@ public partial class frmSettings : Form {
     }
 
     private void LoadSettings() {
+        chkUseProxy.Checked = Initialization.UseProxy;
+        txtProxy.Text = Initialization.Proxy.GetReadableIp();
+        chkEnableUpdates.Checked = Initialization.CheckForUpdates;
+        chkEnableBetaUpdates.Checked = Initialization.CheckForBetaUpdates;
+
         txtSavePath.Text = Downloads.DownloadPath;
         numTimer.Value = Downloads.ScannerDelay;
         chkSaveOriginalFileNames.Checked = Downloads.SaveOriginalFilenames;
@@ -28,7 +34,6 @@ public partial class frmSettings : Form {
         chkMinimizeToTray.Checked = General.MinimizeToTray;
         chkMinimizeInsteadOfExiting.Checked = General.MinimizeInsteadOfExiting;
         chkShowExitWarning.Checked = General.ShowExitWarning;
-        chkEnableUpdates.Checked = General.EnableUpdates;
         chkUseFullBoardNameForTitle.Checked = General.UseFullBoardNameForTitle;
         chkSaveDownloadQueueOnExit.Checked = General.SaveQueueOnExit;
         chkSaveDownloadHistory.Checked = General.SaveThreadHistory;
@@ -47,9 +52,6 @@ public partial class frmSettings : Form {
             btnProtocol.Visible = false;
             btnProtocol.Enabled = false;
         }
-
-        chkUseProxy.Checked = Initialization.UseProxy;
-        txtProxy.Text = Initialization.Proxy.GetReadableIp();
     }
 
     private void SaveSettings() {
@@ -59,12 +61,13 @@ public partial class frmSettings : Form {
                 return;
             }
             Initialization.Proxy = Proxy;
-            frmDownloader.RecreateDownloadClient();
         }
         else {
             chkUseProxy.Checked = false;
         }
         Initialization.UseProxy = chkUseProxy.Checked;
+        Initialization.CheckForUpdates = chkEnableUpdates.Checked;
+        Initialization.CheckForBetaUpdates = chkEnableBetaUpdates.Checked;
 
         Downloads.DownloadPath = txtSavePath.Text;
         Downloads.ScannerDelay = (int)numTimer.Value;
@@ -80,7 +83,6 @@ public partial class frmSettings : Form {
         General.MinimizeToTray = chkMinimizeToTray.Checked;
         General.MinimizeInsteadOfExiting = chkMinimizeInsteadOfExiting.Checked;
         General.ShowExitWarning = chkShowExitWarning.Checked;
-        General.EnableUpdates = chkEnableUpdates.Checked;
         General.UseFullBoardNameForTitle = chkUseFullBoardNameForTitle.Checked;
         General.SaveQueueOnExit = chkSaveDownloadQueueOnExit.Checked;
         General.SaveThreadHistory = chkSaveDownloadHistory.Checked;
@@ -172,7 +174,7 @@ public partial class frmSettings : Form {
 
     private void btnAddCookie_Click(object sender, EventArgs e) {
         using frmAddCookie co = new();
-        if (co.ShowDialog() == DialogResult.OK) {
+        if (co.ShowDialog() == DialogResult.OK && co.Cookie != null) {
             ListViewItem NewCookie = new(co.Cookie.Name) {
                 Tag = co.Cookie
             };

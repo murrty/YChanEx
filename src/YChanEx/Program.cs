@@ -1,6 +1,5 @@
 ﻿#nullable enable
 namespace YChanEx;
-
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -9,17 +8,16 @@ using System.Security.Principal;
 using System.Threading;
 using System.Windows.Forms;
 using murrty.classes;
-
 static class Program {
     /// <summary>
     /// The current version of the software.
     /// </summary>
-    public static Version CurrentVersion { get; } = new(3, 0, 0, 1);
+    public static Version CurrentVersion { get; } = new(2, 0, 0, 1);
 
     /// <summary>
     /// The user-agent used by ychanex.
     /// </summary>
-    public static string UserAgent { get; } = $"Mozilla/5.0 Gecko/20100101 ychanex/{CurrentVersion}";
+    public static string UserAgent { get; }
 
     /// <summary>
     /// Whether to load saved threads while debugging.
@@ -139,6 +137,7 @@ static class Program {
 
         // Set the saved threads path.
         SavedThreadsPath = Path.Combine(Environment.CurrentDirectory, "SavedThreads");
+        UserAgent = $"Mozilla/5.0 Gecko/20100101 ychanex/{CurrentVersion} ({CLR})";
     }
 
     [STAThread]
@@ -172,9 +171,9 @@ static class Program {
         Log.InitializeLogging();
 
         if (!string.Equals(Environment.CurrentDirectory, ApplicationDirectory, StringComparison.InvariantCultureIgnoreCase)) {
-            Log.Write($"Environment.CurrentDirectory is set to '{Environment.CurrentDirectory}', when it should be '{ApplicationDirectory}'.");
+            Log.Warn($"Environment.CurrentDirectory is set to '{Environment.CurrentDirectory}', when it should be '{ApplicationDirectory}'.");
             Environment.CurrentDirectory = ApplicationDirectory;
-            Log.Write("Set the Environment.CurrentDirectory to the correct one.");
+            Log.Warn("Set the Environment.CurrentDirectory to the correct one.");
             SavedThreadsPath = Path.Combine(Environment.CurrentDirectory, "SavedThreads");
         }
 

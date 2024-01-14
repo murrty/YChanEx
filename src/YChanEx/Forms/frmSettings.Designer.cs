@@ -76,6 +76,7 @@
             this.btnCancel = new System.Windows.Forms.Button();
             this.btnSave = new System.Windows.Forms.Button();
             this.ttSettings = new System.Windows.Forms.ToolTip(this.components);
+            this.chkEnableBetaUpdates = new System.Windows.Forms.CheckBox();
             this.tcMain.SuspendLayout();
             this.tabDownloads.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numTimer)).BeginInit();
@@ -336,6 +337,7 @@
             // 
             // tabApplication
             // 
+            this.tabApplication.Controls.Add(this.chkEnableBetaUpdates);
             this.tabApplication.Controls.Add(this.chkSaveDownloadHistory);
             this.tabApplication.Controls.Add(this.chkMinimizeInsteadOfExiting);
             this.tabApplication.Controls.Add(this.chkUseFullBoardNameForTitle);
@@ -355,7 +357,7 @@
             // chkSaveDownloadHistory
             // 
             this.chkSaveDownloadHistory.AutoSize = true;
-            this.chkSaveDownloadHistory.Location = new System.Drawing.Point(213, 98);
+            this.chkSaveDownloadHistory.Location = new System.Drawing.Point(213, 63);
             this.chkSaveDownloadHistory.Name = "chkSaveDownloadHistory";
             this.chkSaveDownloadHistory.Size = new System.Drawing.Size(132, 17);
             this.chkSaveDownloadHistory.TabIndex = 33;
@@ -366,7 +368,7 @@
             // chkMinimizeInsteadOfExiting
             // 
             this.chkMinimizeInsteadOfExiting.AutoSize = true;
-            this.chkMinimizeInsteadOfExiting.Location = new System.Drawing.Point(40, 52);
+            this.chkMinimizeInsteadOfExiting.Location = new System.Drawing.Point(40, 40);
             this.chkMinimizeInsteadOfExiting.Name = "chkMinimizeInsteadOfExiting";
             this.chkMinimizeInsteadOfExiting.Size = new System.Drawing.Size(188, 17);
             this.chkMinimizeInsteadOfExiting.TabIndex = 32;
@@ -378,7 +380,7 @@
             // chkUseFullBoardNameForTitle
             // 
             this.chkUseFullBoardNameForTitle.AutoSize = true;
-            this.chkUseFullBoardNameForTitle.Location = new System.Drawing.Point(166, 75);
+            this.chkUseFullBoardNameForTitle.Location = new System.Drawing.Point(114, 109);
             this.chkUseFullBoardNameForTitle.Name = "chkUseFullBoardNameForTitle";
             this.chkUseFullBoardNameForTitle.Size = new System.Drawing.Size(159, 17);
             this.chkUseFullBoardNameForTitle.TabIndex = 31;
@@ -389,7 +391,7 @@
             // chkSaveDownloadQueueOnExit
             // 
             this.chkSaveDownloadQueueOnExit.AutoSize = true;
-            this.chkSaveDownloadQueueOnExit.Location = new System.Drawing.Point(41, 98);
+            this.chkSaveDownloadQueueOnExit.Location = new System.Drawing.Point(41, 63);
             this.chkSaveDownloadQueueOnExit.Name = "chkSaveDownloadQueueOnExit";
             this.chkSaveDownloadQueueOnExit.Size = new System.Drawing.Size(166, 17);
             this.chkSaveDownloadQueueOnExit.TabIndex = 29;
@@ -401,7 +403,7 @@
             // chkEnableUpdates
             // 
             this.chkEnableUpdates.AutoSize = true;
-            this.chkEnableUpdates.Location = new System.Drawing.Point(61, 75);
+            this.chkEnableUpdates.Location = new System.Drawing.Point(79, 86);
             this.chkEnableUpdates.Name = "chkEnableUpdates";
             this.chkEnableUpdates.Size = new System.Drawing.Size(99, 17);
             this.chkEnableUpdates.TabIndex = 30;
@@ -412,7 +414,7 @@
             // chkShowExitWarning
             // 
             this.chkShowExitWarning.AutoSize = true;
-            this.chkShowExitWarning.Location = new System.Drawing.Point(235, 52);
+            this.chkShowExitWarning.Location = new System.Drawing.Point(235, 40);
             this.chkShowExitWarning.Name = "chkShowExitWarning";
             this.chkShowExitWarning.Size = new System.Drawing.Size(111, 17);
             this.chkShowExitWarning.TabIndex = 29;
@@ -424,7 +426,7 @@
             // chkMinimizeToTray
             // 
             this.chkMinimizeToTray.AutoSize = true;
-            this.chkMinimizeToTray.Location = new System.Drawing.Point(195, 29);
+            this.chkMinimizeToTray.Location = new System.Drawing.Point(195, 17);
             this.chkMinimizeToTray.Name = "chkMinimizeToTray";
             this.chkMinimizeToTray.Size = new System.Drawing.Size(97, 17);
             this.chkMinimizeToTray.TabIndex = 28;
@@ -435,7 +437,7 @@
             // chkShowTrayIcon
             // 
             this.chkShowTrayIcon.AutoSize = true;
-            this.chkShowTrayIcon.Location = new System.Drawing.Point(94, 29);
+            this.chkShowTrayIcon.Location = new System.Drawing.Point(94, 17);
             this.chkShowTrayIcon.Name = "chkShowTrayIcon";
             this.chkShowTrayIcon.Size = new System.Drawing.Size(95, 17);
             this.chkShowTrayIcon.TabIndex = 27;
@@ -699,6 +701,18 @@
             this.ttSettings.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Info;
             this.ttSettings.ToolTipTitle = "Information:";
             // 
+            // chkEnableBetaUpdates
+            // 
+            this.chkEnableBetaUpdates.AutoSize = true;
+            this.chkEnableBetaUpdates.Location = new System.Drawing.Point(184, 86);
+            this.chkEnableBetaUpdates.Name = "chkEnableBetaUpdates";
+            this.chkEnableBetaUpdates.Size = new System.Drawing.Size(123, 17);
+            this.chkEnableBetaUpdates.TabIndex = 34;
+            this.chkEnableBetaUpdates.Text = "Enable beta updates";
+            this.ttSettings.SetToolTip(this.chkEnableBetaUpdates, "Enables checking for beta updates for this application, if checking for updates i" +
+        "s enabled\r\n\r\nDefault: Off");
+            this.chkEnableBetaUpdates.UseVisualStyleBackColor = true;
+            // 
             // frmSettings
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -785,5 +799,6 @@
         private System.Windows.Forms.ColumnHeader chCookieDomain;
         private murrty.controls.ExtendedTextBox txtProxy;
         private System.Windows.Forms.CheckBox chkUseProxy;
+        private System.Windows.Forms.CheckBox chkEnableBetaUpdates;
     }
 }

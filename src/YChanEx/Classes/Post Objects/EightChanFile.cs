@@ -35,7 +35,7 @@ internal sealed class EightChanFile {
     [IgnoreDataMember]
     public string? id {
         get {
-            return GetFileNameFromUrl(this.path);
+            return GetFileNameFromUrl(this.path!);
         }
     }
 

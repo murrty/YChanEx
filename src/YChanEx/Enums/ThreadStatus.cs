@@ -1,4 +1,5 @@
-﻿namespace YChanEx;
+﻿#nullable enable
+namespace YChanEx;
 /// <summary>
 /// Enumeration of the various thread statuses available
 /// </summary>

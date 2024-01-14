@@ -1,5 +1,5 @@
-﻿namespace YChanEx;
-
+﻿#nullable enable
+namespace YChanEx;
 /// <summary>
 /// Contains advanced configuration.
 /// </summary>

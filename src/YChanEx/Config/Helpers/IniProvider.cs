@@ -1,5 +1,4 @@
 ﻿#nullable enable
-#define USE_CHAR_ARRAY
 namespace YChanEx;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
@@ -45,15 +44,9 @@ internal static class IniProvider {
             Length = EmptyStringLengthNull;
         }
 
-#if USE_CHAR_ARRAY
         char[] ReadValue = new char[Length];
         int ReadChars = NativeMethods.GetPrivateProfileString(Section ?? DefaultSection, Key, EmptyString, ReadValue, Length, IniPath);
         Value = new string(ReadValue, 0, ReadChars);
-#else
-        StringBuilder ReadValue = new(Length);
-        _ = NativeMethods.GetPrivateProfileString(Section ?? DefaultSection, Key, EmptyString, ReadValue, Length, IniPath);
-        Value = ReadValue.ToString();
-#endif
 
         if (Value.IsNullEmptyWhitespace()) {
             Value = null;

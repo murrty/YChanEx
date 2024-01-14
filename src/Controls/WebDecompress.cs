@@ -1,4 +1,5 @@
-﻿namespace murrty.controls;
+﻿#nullable enable
+namespace murrty.controls;
 using System.IO.Compression;
 using System.IO;
 using System.Threading.Tasks;

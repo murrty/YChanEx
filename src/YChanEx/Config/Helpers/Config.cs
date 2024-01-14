@@ -1,7 +1,6 @@
-﻿namespace YChanEx;
-
+﻿#nullable enable
+namespace YChanEx;
 using System.Drawing;
-
 public static class Config {
     internal static readonly Point InvalidPoint = new(-32_000, -32_000);
 

@@ -1,7 +1,6 @@
-﻿namespace murrty.controls;
-
+﻿#nullable enable
+namespace murrty.controls;
 using System.Windows.Forms;
-
 internal class ExtendedListView : ListView {
     protected override void OnHandleCreated(EventArgs e) {
         NativeMethods.SetWindowTheme(this.Handle, "explorer", null);

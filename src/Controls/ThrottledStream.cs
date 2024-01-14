@@ -1,4 +1,5 @@
-﻿namespace murrty.controls;
+﻿#nullable enable
+namespace murrty.controls;
 using System;
 using System.IO;
 using System.Threading;
@@ -19,7 +20,7 @@ public class ThrottledStream : Stream {
     private readonly AutoResetEvent wh;
     private readonly Stream parent;
 
-    private ThrottledStream() {
+    public ThrottledStream(Stream ParentStream, long MaxBytesPerSecond){
         wh = new(true);
         processed = 0;
         resetTimer = new() {
@@ -30,8 +31,6 @@ public class ThrottledStream : Stream {
             wh.Set();
         };
         resetTimer.Start();
-    }
-    public ThrottledStream(Stream ParentStream, long MaxBytesPerSecond) : this() {
         this.MaxBytesPerSecond = MaxBytesPerSecond;
         parent = ParentStream;
     }

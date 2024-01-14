@@ -3,7 +3,6 @@ namespace YChanEx.Posts;
 using System.Drawing;
 using System.Runtime.Serialization;
 using System.Windows.Forms;
-
 [DataContract]
 public sealed class GenericFile {
     [DataMember(Name = "file_id")]
@@ -21,7 +20,7 @@ public sealed class GenericFile {
     [DataMember(Name = "file_extension")]
     public string? FileExtension { get; set; }
 
-    [DataMember(Name = "file_hash")]
+    [DataMember(Name = "file_hash", EmitDefaultValue = false)]
     public string? FileHash { get; set; }
 
     [DataMember(Name = "file_dimensions")]

@@ -1,68 +1,165 @@
-﻿namespace YChanEx;
-
+﻿#nullable enable
+namespace YChanEx;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
-
 /// <summary>
-/// This class contains methods for translating and managing chan threads.
-/// Most backend is here, except for individual chan apis and parsing.
+/// This class contains methods for verification and minor usability.
 /// </summary>
 internal static class Chans {
-    private static readonly Regex FourChanRegex = new(@"^(http(s)?:\/\/)?(boards\.)?4chan(nel)?\.org\/[a-zA-Z0-9]+\/thread\/\d+", RegexOptions.IgnoreCase);
-    private static readonly Regex SevenChanRegex = new(@"^(http(s)?:\/\/)?(www\.)?7chan\.org\/[a-zA-Z0-9]+\/res\/\d+", RegexOptions.IgnoreCase);
-    private static readonly Regex EightChanRegex = new(@"^(http(s)?:\/\/)?(www\.)?8chan\.(moe|se|cc)\/[a-zA-Z0-9]+\/res\/\d+\.(html|json)", RegexOptions.IgnoreCase);
-    //private static readonly Regex EightKunRegex = new(@"^(http(s)?:\/\/)?(www\.)?8kun\.top\/(?!(qresearch)|(qnotables)|(pnd)|(midnightriders)|(qrb)|(philogeometric)|(qsocial)|(qrnews)|(thestorm)|(patriotsfight)|(projectdcomms)|(greatawakening))[a-zA-Z0-9]+\/res\/\d+\.(html|json)", RegexOptions.IgnoreCase);
-    private static readonly Regex FChanRegex = new(@"^(http(s)?:\/\/)?(www\.)?fchan\.us\/[a-zA-Z0-9]+\/res\/\d+\.(html)", RegexOptions.IgnoreCase);
-    private static readonly Regex U18ChanRegex = new(@"^(http(s)?:\/\/)?(www\.)?u18chan\.com\/(board\/u18chan\/)?[a-zA-Z0-9]+\/topic\/\d+", RegexOptions.IgnoreCase);
-    private static readonly Regex FoolFuukaRegex = new(@"^(http(s)?:\/\/)?((arch\.b4k\.co)|((www\.)?((archived\.moe)|((www\.)?desuarchive\.org))))\/[a-zA-Z0-9_]+\/thread\/\d+", RegexOptions.IgnoreCase);
+    private static readonly Regex FourChanRegex = new(@"^https:\/\/(boards\.)?4chan(nel)?\.org\/[a-zA-Z0-9]+\/thread\/\d+", RegexOptions.IgnoreCase);
+    private static readonly Regex SevenChanRegex = new(@"^https:\/\/7chan\.org\/[a-zA-Z0-9]+\/res\/\d+", RegexOptions.IgnoreCase);
+    private static readonly Regex EightChanRegex = new(@"^https:\/\/8chan\.(moe|se|cc)\/[a-zA-Z0-9]+\/res\/\d+\.(html|json)", RegexOptions.IgnoreCase);
+    //private static readonly Regex EightKunRegex = new(@"^https:\/\/8kun\.top\/(?!(qresearch)|(qnotables)|(pnd)|(midnightriders)|(qrb)|(philogeometric)|(qsocial)|(qrnews)|(thestorm)|(patriotsfight)|(projectdcomms)|(greatawakening))[a-zA-Z0-9]+\/res\/\d+\.(html|json)", RegexOptions.IgnoreCase);
+    private static readonly Regex FChanRegex = new(@"^https:\/\/fchan\.us\/[a-zA-Z0-9]+\/res\/\d+\.(html)", RegexOptions.IgnoreCase);
+    private static readonly Regex U18ChanRegex = new(@"^https:\/\/u18chan\.com\/(board\/u18chan\/)?[a-zA-Z0-9]+\/topic\/\d+", RegexOptions.IgnoreCase);
+    private static readonly Regex FoolFuukaRegex = new(@"^https:\/\/((arch\.b4k\.co)|((archived\.moe)|((www\.)?desuarchive\.org)))\/[a-zA-Z0-9_]+\/thread\/\d+", RegexOptions.IgnoreCase);
 
     /// <summary>
-    /// Whether the input <paramref name="URL"/> is supported by the program, with <paramref name="Type"/> as the output <see cref="ChanType"/> if true.
+    /// Tries to verify a chan URL.
     /// </summary>
-    /// <param name="URL">The URL to the thread that is requested to be parsed.</param>
-    /// <param name="Type">The out-ChanType chan of the url.</param>
+    /// <param name="Url">The Url that will be scanned.</param>
+    /// <param name="ThreadData">The thread data associated with the chan, if it's valid and can be used.</param>
+    /// <returns><see langword="true"/> if the chan url is valid and can be use; otherwise, <see langword="false"/>.</returns>
+    public static bool TryGetThreadData([NotNullWhen(true)] string? Url, [NotNullWhen(true)] out ThreadData? ThreadData) {
+        if (Url.IsNullEmptyWhitespace()) {
+            ThreadData = null;
+            return false;
+        }
+
+        if (Url.StartsWith("ychanex:")) {
+            Url = Url[8..];
+        }
+        if (Url.StartsWith("view-source:")) {
+            Url = Url[12..];
+        }
+        Url = Networking.CleanURL(Url);
+
+        if (FourChanRegex.IsMatch(Url)) {
+            string[] URLSplit = Url.Split('/');
+            ThreadData = new ThreadData(
+                ThreadId: URLSplit[^1],
+                ThreadBoard: URLSplit[^3],
+                Url: Url,
+                Type: ChanType.FourChan);
+            return true;
+        }
+
+        if (SevenChanRegex.IsMatch(Url)) {
+            string[] URLSplit = Url.Split('/');
+            ThreadData = new ThreadData(
+                ThreadId: URLSplit[^1],
+                ThreadBoard: URLSplit[^3],
+                Url: Url,
+                Type: ChanType.SevenChan);
+            return true;
+        }
+
+        if (EightChanRegex.IsMatch(Url)) {
+            string[] URLSplit = Url.Split('/');
+            ThreadData = new ThreadData(
+                ThreadId: URLSplit[^1].SubstringBeforeLastChar('.'),
+                ThreadBoard: URLSplit[^3],
+                Url: Url,
+                Type: ChanType.EightChan);
+            return true;
+        }
+
+        /* 8kun is dead, this check disables it from being used. May re-enable in the future. * /
+        if (EightKunRegex.IsMatch(Url)) {
+            if (StupidFuckingBoard(ChanType.EightKun, Url)) {
+                //Log.Write("This program doesn't support archiving boards with content that is considered highly fucking stupid.");
+                System.Windows.Forms.MessageBox.Show("This program doesn't support archiving boards with content that is considered highly fucking stupid.", "YChanEx");
+                ThreadData = null;
+                return false;
+            }
+
+            string[] URLSplit = Url.Split('/');
+            ThreadData = new ThreadData(
+                ThreadId: URLSplit[^1].SubstringBeforeLastChar('.'),
+                ThreadBoard: URLSplit[^3],
+                Url: Url,
+                Type: ChanType.EightKun);
+            return true;
+        }
+        /**/
+
+        if (FChanRegex.IsMatch(Url)) {
+            string[] URLSplit = Url.Split('/');
+            ThreadData = new ThreadData(
+                ThreadId: URLSplit[^1],
+                ThreadBoard: URLSplit[^3],
+                Url: "http" + Url[5..],
+                Type: ChanType.fchan);
+            return true;
+        }
+        if (U18ChanRegex.IsMatch(Url)) {
+            string[] URLSplit = Url.Split('/');
+            ThreadData = new ThreadData(
+                ThreadId: URLSplit[^1],
+                ThreadBoard: URLSplit[^3],
+                Url: Url,
+                Type: ChanType.u18chan);
+            return true;
+        }
+
+        if (FoolFuukaRegex.IsMatch(Url)) {
+            string[] URLSplit = Url.Split('/');
+            ThreadData = new ThreadData(
+                ThreadId: URLSplit[^1],
+                ThreadBoard: URLSplit[^3],
+                Url: Url,
+                Type: ChanType.FoolFuuka);
+            return true;
+        }
+
+        ThreadData = null;
+        return false;
+    }
+    /// <summary>
+    /// Whether the input <paramref name="Data"/> is supported by the program.
+    /// </summary>
+    /// <param name="Data">The data to reverify.</param>
     /// <returns></returns>
-    public static bool SupportedChan(string URL, out ChanType Type) {
-        if (FourChanRegex.IsMatch(URL)) {
-            Type = ChanType.FourChan;
+    public static bool ReverifyThreadData(ThreadData Data) {
+        if (FourChanRegex.IsMatch(Data.Url)) {
+            Data.ChanType = ChanType.FourChan;
             return true;
         }
-        if (SevenChanRegex.IsMatch(URL)) {
-            Type = ChanType.SevenChan;
+        if (SevenChanRegex.IsMatch(Data.Url)) {
+            Data.ChanType = ChanType.SevenChan;
             return true;
         }
-        if (EightChanRegex.IsMatch(URL)) {
-            Type = ChanType.EightChan;
+        if (EightChanRegex.IsMatch(Data.Url)) {
+            Data.ChanType = ChanType.EightChan;
             return true;
         }
 
         /* 8kun is dead, this check disables it from being used. May re-enable in the future.
-        if (EightKunRegex.IsMatch(URL)) {
-            if (StupidFuckingBoard(ChanType.EightKun, URL)) {
+        if (EightKunRegex.IsMatch(Data.Url)) {
+            if (StupidFuckingBoard(ChanType.EightKun, Data.Url)) {
                 //Log.Write("This program doesn't support archiving boards with content that is considered highly fucking stupid.");
                 System.Windows.Forms.MessageBox.Show("This program doesn't support archiving boards with content that is considered highly fucking stupid.", "YChanEx");
-                Type = ChanType.Unsupported;
                 return false;
             }
-            Type = ChanType.EightKun;
+            Data.ChanType = ChanType.EightKun;
             return true;
         }
         */
 
-        if (FChanRegex.IsMatch(URL)) {
-            Type = ChanType.fchan;
+        if (FChanRegex.IsMatch(Data.Url)) {
+            Data.ChanType = ChanType.fchan;
             return true;
         }
-        if (U18ChanRegex.IsMatch(URL)) {
-            Type = ChanType.u18chan;
-            return true;
-        }
-
-        if (FoolFuukaRegex.IsMatch(URL)) {
-            Type = ChanType.FoolFuuka;
+        if (U18ChanRegex.IsMatch(Data.Url)) {
+            Data.ChanType = ChanType.u18chan;
             return true;
         }
 
-        Type = ChanType.Unsupported;
+        if (FoolFuukaRegex.IsMatch(Data.Url)) {
+            Data.ChanType = ChanType.FoolFuuka;
+            return true;
+        }
+
         return false;
     }
 
@@ -428,7 +525,7 @@ internal static class Chans {
     [System.Diagnostics.DebuggerStepThrough]
     public static bool StupidFuckingBoard(ChanType Chan, string URL) {
         return Chan switch {
-            ChanType.EightKun => System.Text.RegularExpressions.Regex.IsMatch(URL,
+            ChanType.EightKun => Regex.IsMatch(URL,
                 "(qresearch)|(qnotables)|(pnd)|(midnightriders)|(qrb)|(philogeometric)|(qsocial)|(qrnews)|(thestorm)|(patriotsfight)|(projectdcomms)|(greatawakening)"),
             _ => false
         };

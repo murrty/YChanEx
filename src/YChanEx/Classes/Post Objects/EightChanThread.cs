@@ -1,6 +1,5 @@
 ﻿#nullable enable
 namespace YChanEx.Posts;
-
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using static YChanEx.Parsers.EightChan;

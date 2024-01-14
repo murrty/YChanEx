@@ -1,3 +1,4 @@
+#nullable enable
 namespace murrty.controls;
 using System;
 /// <summary>

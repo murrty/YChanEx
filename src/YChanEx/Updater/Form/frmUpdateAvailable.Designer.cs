@@ -39,7 +39,7 @@
             // 
             // txtUpdateAvailableName
             // 
-            this.txtUpdateAvailableName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.txtUpdateAvailableName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtUpdateAvailableName.Location = new System.Drawing.Point(11, 107);
             this.txtUpdateAvailableName.Name = "txtUpdateAvailableName";
@@ -58,8 +58,8 @@
             // 
             // rtbUpdateAvailableChangelog
             // 
-            this.rtbUpdateAvailableChangelog.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.rtbUpdateAvailableChangelog.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.rtbUpdateAvailableChangelog.Location = new System.Drawing.Point(11, 133);
             this.rtbUpdateAvailableChangelog.Name = "rtbUpdateAvailableChangelog";
@@ -67,6 +67,7 @@
             this.rtbUpdateAvailableChangelog.Size = new System.Drawing.Size(300, 140);
             this.rtbUpdateAvailableChangelog.TabIndex = 14;
             this.rtbUpdateAvailableChangelog.Text = "";
+            this.rtbUpdateAvailableChangelog.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.rtbUpdateAvailableChangelog_KeyPress);
             // 
             // lbUpdateAvailableCurrentVersion
             // 
@@ -173,6 +174,7 @@
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Update available";
+            this.Load += new System.EventHandler(this.frmUpdateAvailable_Load);
             this.pnLower.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();

@@ -1,4 +1,5 @@
-﻿namespace YChanEx;
+﻿#nullable enable
+namespace YChanEx;
 /// <summary>
 /// Enumeration of file download status, that determines the current state of the file.
 /// </summary>

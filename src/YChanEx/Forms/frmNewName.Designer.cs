@@ -35,7 +35,7 @@
             this.txtNewName.Name = "txtNewName";
             this.txtNewName.Size = new System.Drawing.Size(258, 22);
             this.txtNewName.TabIndex = 0;
-            this.txtNewName.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtNewName_KeyPress);
+            this.txtNewName.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtNewName_KeyDown);
             // 
             // btnCancel
             // 
@@ -93,7 +93,7 @@
 
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.Button btnSetName;
-        public System.Windows.Forms.TextBox txtNewName;
         private System.Windows.Forms.Button btnReset;
+        private System.Windows.Forms.TextBox txtNewName;
     }
 }

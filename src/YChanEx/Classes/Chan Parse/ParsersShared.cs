@@ -1,4 +1,5 @@
-﻿namespace YChanEx.Parsers.Helpers;
+﻿#nullable enable
+namespace YChanEx.Parsers.Helpers;
 using System.Text.RegularExpressions;
 internal static class ParsersShared {
     private const int MaximumThumbnailSize = 150;
