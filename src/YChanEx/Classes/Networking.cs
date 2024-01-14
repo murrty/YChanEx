@@ -144,7 +144,8 @@ internal static class Networking {
             } break;
         }
 
-        CachedClient = new(NewHandler);
+        VolatileHttpClient NewClient = new(NewHandler);
+        CachedClient = NewClient;
     }
 
     [MemberNotNull(nameof(CookieContainer))]
@@ -265,7 +266,7 @@ internal static class Networking {
         using Stream Content = await Response.Content.ReadAsStreamAsync();
         using MemoryStream Destination = new();
 
-        await VolatileHttpClient.WriteToStreamAsync(Content, Destination, token);
+        await CachedClient.WriteStreamAsync(Content, Destination, token);
         await Destination.FlushAsync();
 
         byte[] Bytes;

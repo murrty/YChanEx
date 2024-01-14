@@ -44,7 +44,7 @@ internal static class Initialization {
             }
         }
     }
-    private static bool fCheckForUpdates = true;
+    private static bool fCheckForUpdates;
 
     /// <summary>
     /// Whether to check for beta versions of the program.
@@ -60,7 +60,7 @@ internal static class Initialization {
             }
         }
     }
-    private static bool fCheckForBetaUpdates = false;
+    private static bool fCheckForBetaUpdates;
 
     /// <summary>
     /// The decimal version of the skipped update version.
