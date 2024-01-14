@@ -188,7 +188,7 @@ internal static class Log {
     /// <param name="message">
     /// The message to be sent to the log.
     /// </param>
-    internal static void Write(DateTime time, string message) {
+    private static void Write(DateTime time, string message) {
         System.Diagnostics.Debug.Print(message);
         if (LogFormUsable) {
             LogForm.Append(time, $"{message}");
