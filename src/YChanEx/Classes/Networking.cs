@@ -12,7 +12,7 @@ internal static class Networking {
         try {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(url);
-            Request.UserAgent = Advanced.UserAgent;
+            Request.UserAgent = Program.UserAgent;
             Request.Method = "GET";
             if (ModifiedSince != default)
                 Request.IfModifiedSince = ModifiedSince;
@@ -42,6 +42,26 @@ internal static class Networking {
             return url[5..url.IndexOf('/', 8)].TrimStart(':', '/');
         }
         return url[..url.IndexOf('/')].TrimStart(':', '/');
+    }
+
+    public static async Task Test() {
+        HttpClientHandler DownloadClientHandler = new();
+        DownloadClientHandler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+
+        HttpClient DownloadClient = new(DownloadClientHandler);
+        DownloadClient.DefaultRequestHeaders.Accept.Add(new("*/*"));
+        //DownloadClient.DefaultRequestHeaders.AcceptEncoding.Add(new("br"));
+        DownloadClient.DefaultRequestHeaders.AcceptEncoding.Add(new("gzip"));
+        DownloadClient.DefaultRequestHeaders.AcceptEncoding.Add(new("deflate"));
+        DownloadClient.DefaultRequestHeaders.AcceptLanguage.Add(new("*"));
+        DownloadClient.DefaultRequestHeaders.ConnectionClose = false;
+        DownloadClient.DefaultRequestHeaders.UserAgent.ParseAdd(Program.UserAgent);
+
+        await Task.Delay(1);
+
+        //using var response = await GetResponseAsync(new HttpRequestMessage(HttpMethod.Get, ""), DownloadClient, default);
+
+        //string? re = await response?.Content.ReadAsStringAsync();
     }
 
     public static async Task<HttpResponseMessage?> GetResponseAsync(HttpRequestMessage request, HttpClient downloadClient, CancellationToken token) {

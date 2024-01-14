@@ -17,6 +17,11 @@ static class Program {
     public static Version CurrentVersion { get; } = new(3, 0, 0, 1);
 
     /// <summary>
+    /// The user-agent used by ychanex.
+    /// </summary>
+    public static string UserAgent { get; } = $"Mozilla/5.0 Gecko/20100101 ychanex/{CurrentVersion}";
+
+    /// <summary>
     /// Whether to load saved threads while debugging.
     /// </summary>
     public static readonly bool LoadThreadsInDebug = true;

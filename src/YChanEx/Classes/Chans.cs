@@ -7,13 +7,13 @@ using System.Text.RegularExpressions;
 /// Most backend is here, except for individual chan apis and parsing.
 /// </summary>
 internal static class Chans {
-    private static readonly Regex FourChanRegex = new(@"^(http(s)?:\/\/)?(boards\.)?4chan(nel)?\.org\/[a-zA-Z0-9]*?\/thread\/\d+", RegexOptions.IgnoreCase);
-    private static readonly Regex SevenChanRegex = new(@"^(http(s)?:\/\/)?(www\.)?7chan\.org\/[a-zA-Z0-9]*?\/res\/\d+", RegexOptions.IgnoreCase);
-    private static readonly Regex EightChanRegex = new(@"^(http(s)?:\/\/)?(www\.)?8chan\.(moe|se|cc)\/[a-zA-Z0-9]*?\/res\/\d+\.(html|json)", RegexOptions.IgnoreCase);
-    //private static readonly Regex EightKunRegex = new(@"^(http(s)?:\/\/)?(www\.)?8kun\.top\/(?!(qresearch)|(qnotables)|(pnd)|(midnightriders)|(qrb)|(philogeometric)|(qsocial)|(qrnews)|(thestorm)|(patriotsfight)|(projectdcomms)|(greatawakening))[a-zA-Z0-9]*?\/res\/\d+\.(html|json)", RegexOptions.IgnoreCase);
-    private static readonly Regex FChanRegex = new(@"^(http(s)?:\/\/)?(www\.)?fchan\.us\/[a-zA-Z0-9]*?\/res\/\d+\.(html)", RegexOptions.IgnoreCase);
-    private static readonly Regex U18ChanRegex = new(@"^(http(s)?:\/\/)?(www\.)?u18chan\.com\/(board\/u18chan\/)?[a-zA-Z0-9]*?\/topic\/\d+", RegexOptions.IgnoreCase);
-    private static readonly Regex FoolFuukaRegex = new(@"^(http(s)?:\/\/)?(arch\.b4k\.co)|((www\.)?(archived\.moe|desuarchive\.org))\/[a-zA-Z0-9_]\/thread\/\d+", RegexOptions.IgnoreCase);
+    private static readonly Regex FourChanRegex = new(@"^(http(s)?:\/\/)?(boards\.)?4chan(nel)?\.org\/[a-zA-Z0-9]+\/thread\/\d+", RegexOptions.IgnoreCase);
+    private static readonly Regex SevenChanRegex = new(@"^(http(s)?:\/\/)?(www\.)?7chan\.org\/[a-zA-Z0-9]+\/res\/\d+", RegexOptions.IgnoreCase);
+    private static readonly Regex EightChanRegex = new(@"^(http(s)?:\/\/)?(www\.)?8chan\.(moe|se|cc)\/[a-zA-Z0-9]+\/res\/\d+\.(html|json)", RegexOptions.IgnoreCase);
+    //private static readonly Regex EightKunRegex = new(@"^(http(s)?:\/\/)?(www\.)?8kun\.top\/(?!(qresearch)|(qnotables)|(pnd)|(midnightriders)|(qrb)|(philogeometric)|(qsocial)|(qrnews)|(thestorm)|(patriotsfight)|(projectdcomms)|(greatawakening))[a-zA-Z0-9]+\/res\/\d+\.(html|json)", RegexOptions.IgnoreCase);
+    private static readonly Regex FChanRegex = new(@"^(http(s)?:\/\/)?(www\.)?fchan\.us\/[a-zA-Z0-9]+\/res\/\d+\.(html)", RegexOptions.IgnoreCase);
+    private static readonly Regex U18ChanRegex = new(@"^(http(s)?:\/\/)?(www\.)?u18chan\.com\/(board\/u18chan\/)?[a-zA-Z0-9]+\/topic\/\d+", RegexOptions.IgnoreCase);
+    private static readonly Regex FoolFuukaRegex = new(@"^(http(s)?:\/\/)?((arch\.b4k\.co)|((www\.)?((archived\.moe)|((www\.)?desuarchive\.org))))\/[a-zA-Z0-9_]+\/thread\/\d+", RegexOptions.IgnoreCase);
 
     /// <summary>
     /// Whether the input <paramref name="URL"/> is supported by the program, with <paramref name="Type"/> as the output <see cref="ChanType"/> if true.

@@ -56,8 +56,6 @@
             this.btnOpenLocalFiles = new System.Windows.Forms.Button();
             this.chkSilenceErrors = new System.Windows.Forms.CheckBox();
             this.chkDisableScannerWhenOpeningSettings = new System.Windows.Forms.CheckBox();
-            this.txtUserAgent = new murrty.controls.ExtendedTextBox();
-            this.lbUserAgent = new System.Windows.Forms.Label();
             this.tabCookies = new System.Windows.Forms.TabPage();
             this.btnRemoveCookie = new System.Windows.Forms.Button();
             this.btnAddCookie = new System.Windows.Forms.Button();
@@ -450,8 +448,6 @@
             this.tabAdvanced.Controls.Add(this.btnOpenLocalFiles);
             this.tabAdvanced.Controls.Add(this.chkSilenceErrors);
             this.tabAdvanced.Controls.Add(this.chkDisableScannerWhenOpeningSettings);
-            this.tabAdvanced.Controls.Add(this.txtUserAgent);
-            this.tabAdvanced.Controls.Add(this.lbUserAgent);
             this.tabAdvanced.Location = new System.Drawing.Point(4, 22);
             this.tabAdvanced.Name = "tabAdvanced";
             this.tabAdvanced.Padding = new System.Windows.Forms.Padding(3);
@@ -462,7 +458,7 @@
             // 
             // btnOpenLocalFiles
             // 
-            this.btnOpenLocalFiles.Location = new System.Drawing.Point(148, 94);
+            this.btnOpenLocalFiles.Location = new System.Drawing.Point(148, 77);
             this.btnOpenLocalFiles.Name = "btnOpenLocalFiles";
             this.btnOpenLocalFiles.Size = new System.Drawing.Size(98, 24);
             this.btnOpenLocalFiles.TabIndex = 4;
@@ -475,7 +471,7 @@
             // chkSilenceErrors
             // 
             this.chkSilenceErrors.AutoSize = true;
-            this.chkSilenceErrors.Location = new System.Drawing.Point(261, 64);
+            this.chkSilenceErrors.Location = new System.Drawing.Point(261, 47);
             this.chkSilenceErrors.Name = "chkSilenceErrors";
             this.chkSilenceErrors.Size = new System.Drawing.Size(89, 17);
             this.chkSilenceErrors.TabIndex = 3;
@@ -486,39 +482,13 @@
             // chkDisableScannerWhenOpeningSettings
             // 
             this.chkDisableScannerWhenOpeningSettings.AutoSize = true;
-            this.chkDisableScannerWhenOpeningSettings.Location = new System.Drawing.Point(45, 64);
+            this.chkDisableScannerWhenOpeningSettings.Location = new System.Drawing.Point(45, 47);
             this.chkDisableScannerWhenOpeningSettings.Name = "chkDisableScannerWhenOpeningSettings";
             this.chkDisableScannerWhenOpeningSettings.Size = new System.Drawing.Size(210, 17);
             this.chkDisableScannerWhenOpeningSettings.TabIndex = 2;
             this.chkDisableScannerWhenOpeningSettings.Text = "Disable scanner when opening settings";
             this.ttSettings.SetToolTip(this.chkDisableScannerWhenOpeningSettings, resources.GetString("chkDisableScannerWhenOpeningSettings.ToolTip"));
             this.chkDisableScannerWhenOpeningSettings.UseVisualStyleBackColor = true;
-            // 
-            // txtUserAgent
-            // 
-            this.txtUserAgent.ButtonAlignment = murrty.controls.ButtonAlignment.Left;
-            this.txtUserAgent.ButtonCursor = System.Windows.Forms.Cursors.Default;
-            this.txtUserAgent.ButtonFont = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtUserAgent.ButtonImageIndex = -1;
-            this.txtUserAgent.ButtonImageKey = "";
-            this.txtUserAgent.ButtonSize = new System.Drawing.Size(22, 19);
-            this.txtUserAgent.ButtonText = "";
-            this.txtUserAgent.ButtonTextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.txtUserAgent.Location = new System.Drawing.Point(74, 26);
-            this.txtUserAgent.Name = "txtUserAgent";
-            this.txtUserAgent.Size = new System.Drawing.Size(302, 20);
-            this.txtUserAgent.TabIndex = 1;
-            this.txtUserAgent.TextHint = "Mozilla/5.0 (X11; Linux i686; rv:64.0) Gecko/20100101 Firefox/84.0";
-            this.ttSettings.SetToolTip(this.txtUserAgent, "The user-agent for the webclients to use");
-            // 
-            // lbUserAgent
-            // 
-            this.lbUserAgent.AutoSize = true;
-            this.lbUserAgent.Location = new System.Drawing.Point(8, 29);
-            this.lbUserAgent.Name = "lbUserAgent";
-            this.lbUserAgent.Size = new System.Drawing.Size(60, 13);
-            this.lbUserAgent.TabIndex = 0;
-            this.lbUserAgent.Text = "User-Agent";
             // 
             // tabCookies
             // 
@@ -790,10 +760,8 @@
         private System.Windows.Forms.CheckBox chkShowTrayIcon;
         private System.Windows.Forms.ToolTip ttSettings;
         private System.Windows.Forms.CheckBox chkSaveDownloadQueueOnExit;
-        private System.Windows.Forms.Label lbUserAgent;
         private System.Windows.Forms.CheckBox chkSilenceErrors;
         private System.Windows.Forms.CheckBox chkDisableScannerWhenOpeningSettings;
-        private murrty.controls.ExtendedTextBox txtUserAgent;
         private System.Windows.Forms.Button btnOpenLocalFiles;
         private System.Windows.Forms.CheckBox chkAllowFileNamesGreaterThan255;
         private System.Windows.Forms.CheckBox chkMinimizeInsteadOfExiting;

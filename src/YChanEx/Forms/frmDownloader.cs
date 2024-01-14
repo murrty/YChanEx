@@ -141,7 +141,7 @@ public partial class frmDownloader : Form {
         DownloadClient.DefaultRequestHeaders.AcceptEncoding.Add(new("deflate"));
         DownloadClient.DefaultRequestHeaders.AcceptLanguage.Add(new("*"));
         DownloadClient.DefaultRequestHeaders.ConnectionClose = false;
-        DownloadClient.DefaultRequestHeaders.UserAgent.ParseAdd(Advanced.UserAgent);
+        DownloadClient.DefaultRequestHeaders.UserAgent.ParseAdd(Program.UserAgent);
     }
 
     static frmDownloader() {

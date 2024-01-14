@@ -33,7 +33,6 @@ public partial class frmSettings : Form {
         chkSaveDownloadQueueOnExit.Checked = General.SaveQueueOnExit;
         chkSaveDownloadHistory.Checked = General.SaveThreadHistory;
 
-        txtUserAgent.Text = Advanced.UserAgent;
         chkDisableScannerWhenOpeningSettings.Checked = Advanced.DisableScanWhenOpeningSettings;
         chkSilenceErrors.Checked = Advanced.SilenceErrors;
 
@@ -86,7 +85,6 @@ public partial class frmSettings : Form {
         General.SaveQueueOnExit = chkSaveDownloadQueueOnExit.Checked;
         General.SaveThreadHistory = chkSaveDownloadHistory.Checked;
 
-        Advanced.UserAgent = string.IsNullOrWhiteSpace(txtUserAgent.Text) ? Advanced.DefaultUserAgent : txtUserAgent.Text;
         Advanced.DisableScanWhenOpeningSettings = chkDisableScannerWhenOpeningSettings.Checked;
         Advanced.SilenceErrors = chkSilenceErrors.Checked;
     }
