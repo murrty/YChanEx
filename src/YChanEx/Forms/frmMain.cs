@@ -157,8 +157,12 @@ public partial class frmMain : Form, IMainFom {
                                     var Thread = SavedThreads[i];
                                     this.Invoke(() => LoadSavedThread(Thread, Thread.FilePath));
                                 }
-                                catch (Exception ex) {
-                                    murrty.classes.Log.ReportException(ex);
+                                catch {
+                                    this.Invoke(() => {
+                                        MessageBox.Show("Could not load saved thread. It will need to be redownloaded.");
+                                        SavedThreads.RemoveAt(i);
+                                        lvThreads.Items.RemoveAt(i--);
+                                    });
                                 }
                                 Thread.Sleep(500);
                             }

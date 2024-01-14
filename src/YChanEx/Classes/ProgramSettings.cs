@@ -63,12 +63,17 @@ internal static class ProgramSettings {
 
         if (SavedFiles.Count > 0) {
             for (int i = 0; i < SavedFiles.Count; i++) {
-                ThreadData Thread = File.ReadAllText(SavedFiles[i].FullName).JsonDeserialize<ThreadData>();
-                if (Thread == null) {
-                    continue;
+                try {
+                    ThreadData Thread = File.ReadAllText(SavedFiles[i].FullName).JsonDeserialize<ThreadData>();
+                    if (Thread == null) {
+                        continue;
+                    }
+                    Thread.FilePath = SavedFiles[i].FullName;
+                    list.Add(Thread);
                 }
-                Thread.FilePath = SavedFiles[i].FullName;
-                list.Add(Thread);
+                catch {
+                    File.Move(SavedFiles[i].FullName, SavedFiles[i].FullName + ".broken");
+                }
             }
             //list.Sort((x, y) => x.QueueIndex.CompareTo(y.QueueIndex));
         }
