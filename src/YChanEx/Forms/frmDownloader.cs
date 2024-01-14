@@ -1387,7 +1387,7 @@ public partial class frmDownloader : Form {
 
                 // Main loop
                 do {
-                    Log.Info($"Scanning 4chan thread {ThreadInfo.Data.BoardName}/{ThreadInfo.Data.Id}");
+                    Log.Info($"Scanning 4chan /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id}");
 
                     // Check the download client iteration.
                     CheckDownloadClient();
@@ -1406,7 +1406,7 @@ public partial class frmDownloader : Form {
                         HandleStatusCode();
                         if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
                             ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
-                            Log.Info($"4chan thread {ThreadInfo.Data.BoardName}/{ThreadInfo.Data.Id} not modified, waiting for next loop.");
+                            Log.Info($"4chan /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id} not modified, waiting for next loop.");
                             this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                             ResetThread.Reset();
                             ResetThread.Wait();
@@ -1470,6 +1470,7 @@ public partial class frmDownloader : Form {
                     PrepareDownload();
 
                     // Download files.
+                    Log.Info($"Downloading 4chan /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id} files.");
                     await DownloadFilesAsync(CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
@@ -1490,7 +1491,7 @@ public partial class frmDownloader : Form {
                     ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
 
                     // Invoke the post-download management.
-                    Log.Info($"4chan thread {ThreadInfo.Data.BoardName}/{ThreadInfo.Data.Id} has finished scan, waiting for next loop.");
+                    Log.Info($"4chan /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id} has finished scan, waiting for next loop.");
                     this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
 
                     // Synchronously wait, since this thread is separate.
@@ -1533,7 +1534,7 @@ public partial class frmDownloader : Form {
 
                 // Main loop
                 do {
-                    Log.Info($"Scanning 7chan thread {ThreadInfo.Data.BoardName}/{ThreadInfo.Data.Id}");
+                    Log.Info($"Scanning 7chan /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id}");
 
                     // Check the download client iteration.
                     CheckDownloadClient();
@@ -1552,7 +1553,7 @@ public partial class frmDownloader : Form {
                         HandleStatusCode();
                         if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
                             ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
-                            Log.Info($"7chan thread {ThreadInfo.Data.BoardName}/{ThreadInfo.Data.Id} not modified, waiting for next loop.");
+                            Log.Info($"7chan /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id} not modified, waiting for next loop.");
                             this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                             ResetThread.Reset();
                             ResetThread.Wait();
@@ -1629,6 +1630,7 @@ public partial class frmDownloader : Form {
                     PrepareDownload();
 
                     // Download files.
+                    Log.Info($"Downloading 7chan /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id} files.");
                     await DownloadFilesAsync(CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
@@ -1649,7 +1651,7 @@ public partial class frmDownloader : Form {
                     ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
 
                     // Invoke the post-download management.
-                    Log.Info($"7chan thread {ThreadInfo.Data.BoardName}/{ThreadInfo.Data.Id} has finished scan, waiting for next loop.");
+                    Log.Info($"7chan /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id} has finished scan, waiting for next loop.");
                     this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
 
                     // Synchronously wait, since this thread is separate.
@@ -1709,12 +1711,12 @@ public partial class frmDownloader : Form {
 
                 // Request that will be sent to the API.
                 HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.ApiLink);
-                Request.Headers.Referrer = new("https://8chan.moe");
+                Request.Headers.Referrer = new("https://8chan.moe/");
                 // Should more headers be added?
 
                 // Main loop
                 do {
-                    Log.Info($"Scanning 8chan thread {ThreadInfo.Data.BoardName}/{ThreadInfo.Data.Id}");
+                    Log.Info($"Scanning 8chan /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id}");
 
                     // Check the download client iteration.
                     CheckDownloadClient();
@@ -1733,7 +1735,7 @@ public partial class frmDownloader : Form {
                         HandleStatusCode();
                         if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
                             ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
-                            Log.Info($"8chan thread {ThreadInfo.Data.BoardName}/{ThreadInfo.Data.Id} not modified, waiting for next loop.");
+                            Log.Info($"8chan /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id} not modified, waiting for next loop.");
                             this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                             ResetThread.Reset();
                             ResetThread.Wait();
@@ -1811,6 +1813,7 @@ public partial class frmDownloader : Form {
                     PrepareDownload();
 
                     // Download files.
+                    Log.Info($"Downloading 8chan /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id} files.");
                     await DownloadFilesAsync(CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
@@ -1831,7 +1834,7 @@ public partial class frmDownloader : Form {
                     ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
 
                     // Invoke the post-download management.
-                    Log.Info($"8chan thread {ThreadInfo.Data.BoardName}/{ThreadInfo.Data.Id} has finished scan, waiting for next loop.");
+                    Log.Info($"8chan /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id} has finished scan, waiting for next loop.");
                     this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
 
                     // Synchronously wait, since this thread is separate.
@@ -1893,7 +1896,7 @@ public partial class frmDownloader : Form {
 
                 // Main loop
                 do {
-                    Log.Info($"Scanning 8kun thread {ThreadInfo.Data.BoardName}/{ThreadInfo.Data.Id}");
+                    Log.Info($"Scanning 8kun /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id}");
 
                     // Check the download client iteration.
                     CheckDownloadClient();
@@ -1912,7 +1915,7 @@ public partial class frmDownloader : Form {
                         HandleStatusCode();
                         if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
                             ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
-                            Log.Info($"8kun thread {ThreadInfo.Data.BoardName}/{ThreadInfo.Data.Id} not modified, waiting for next loop.");
+                            Log.Info($"8kun /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id} not modified, waiting for next loop.");
                             this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                             ResetThread.Reset();
                             ResetThread.Wait();
@@ -1979,6 +1982,7 @@ public partial class frmDownloader : Form {
                     PrepareDownload();
 
                     // Download files.
+                    Log.Info($"Downloading 8kun /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id} files.");
                     await DownloadFilesAsync(CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
@@ -1999,7 +2003,7 @@ public partial class frmDownloader : Form {
                     ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
 
                     // Invoke the post-download management.
-                    Log.Info($"8kun thread {ThreadInfo.Data.BoardName}/{ThreadInfo.Data.Id} has finished scan, waiting for next loop.");
+                    Log.Info($"8kun /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id} has finished scan, waiting for next loop.");
                     this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
 
                     // Synchronously wait, since this thread is separate.
@@ -2042,7 +2046,7 @@ public partial class frmDownloader : Form {
 
                 // Main loop
                 do {
-                    Log.Info($"Scanning fchan thread {ThreadInfo.Data.BoardName}/{ThreadInfo.Data.Id}");
+                    Log.Info($"Scanning fchan /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id}");
 
                     // Check the download client iteration.
                     CheckDownloadClient();
@@ -2060,7 +2064,7 @@ public partial class frmDownloader : Form {
                         HandleStatusCode();
                         if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
                             ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
-                            Log.Info($"fchan thread {ThreadInfo.Data.BoardName}/{ThreadInfo.Data.Id} not modified, waiting for next loop.");
+                            Log.Info($"fchan /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id} not modified, waiting for next loop.");
                             this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                             ResetThread.Reset();
                             ResetThread.Wait();
@@ -2134,6 +2138,7 @@ public partial class frmDownloader : Form {
                     PrepareDownload();
 
                     // Download files.
+                    Log.Info($"Downloading fchan /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id} files.");
                     await DownloadFilesAsync(CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
@@ -2154,7 +2159,7 @@ public partial class frmDownloader : Form {
                     ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
 
                     // Invoke the post-download management.
-                    Log.Info($"fchan thread {ThreadInfo.Data.BoardName}/{ThreadInfo.Data.Id} has finished scan, waiting for next loop.");
+                    Log.Info($"fchan /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id} has finished scan, waiting for next loop.");
                     this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
 
                     // Synchronously wait, since this thread is separate.
@@ -2197,7 +2202,7 @@ public partial class frmDownloader : Form {
 
                 // Main loop
                 do {
-                    Log.Info($"Scanning u18chan thread {ThreadInfo.Data.BoardName}/{ThreadInfo.Data.Id}");
+                    Log.Info($"Scanning u18chan /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id}");
 
                     // Check the download client iteration.
                     CheckDownloadClient();
@@ -2216,7 +2221,7 @@ public partial class frmDownloader : Form {
                         HandleStatusCode();
                         if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
                             ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
-                            Log.Info($"u18chan thread {ThreadInfo.Data.BoardName}/{ThreadInfo.Data.Id} not modified, waiting for next loop.");
+                            Log.Info($"u18chan /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id} not modified, waiting for next loop.");
                             this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                             ResetThread.Reset();
                             ResetThread.Wait();
@@ -2289,6 +2294,7 @@ public partial class frmDownloader : Form {
                     PrepareDownload();
 
                     // Download files.
+                    Log.Info($"Downloading u18chan /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id} files.");
                     await DownloadFilesAsync(CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
@@ -2309,7 +2315,7 @@ public partial class frmDownloader : Form {
                     ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
 
                     // Invoke the post-download management.
-                    Log.Info($"u18chan thread {ThreadInfo.Data.BoardName}/{ThreadInfo.Data.Id} has finished scan, waiting for next loop.");
+                    Log.Info($"u18chan /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id} has finished scan, waiting for next loop.");
                     this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
 
                     // Synchronously wait, since this thread is separate.
@@ -2343,7 +2349,7 @@ public partial class frmDownloader : Form {
 
                 // Main loop
                 do {
-                    Log.Info($"Scanning {ThreadInfo.Data.UrlHost} thread {ThreadInfo.Data.BoardName}/{ThreadInfo.Data.Id}");
+                    Log.Info($"Scanning {ThreadInfo.Data.UrlHost} /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id}");
 
                     // Check the download client iteration.
                     CheckDownloadClient();
@@ -2362,7 +2368,7 @@ public partial class frmDownloader : Form {
                         HandleStatusCode();
                         if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
                             ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
-                            Log.Info($"{ThreadInfo.Data.UrlHost} thread {ThreadInfo.Data.BoardName}/{ThreadInfo.Data.Id} not modified, waiting for next loop.");
+                            Log.Info($"{ThreadInfo.Data.UrlHost} /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id} not modified, waiting for next loop.");
                             this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                             ResetThread.Reset();
                             ResetThread.Wait();
@@ -2440,6 +2446,7 @@ public partial class frmDownloader : Form {
                     PrepareDownload();
 
                     // Download files.
+                    Log.Info($"Downloading {ThreadInfo.Data.UrlHost} /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id} files.");
                     await DownloadFilesAsync(CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
@@ -2460,7 +2467,7 @@ public partial class frmDownloader : Form {
                     ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
 
                     // Invoke the post-download management.
-                    Log.Info($"{ThreadInfo.Data.UrlHost} thread {ThreadInfo.Data.BoardName}/{ThreadInfo.Data.Id} has finished scan, waiting for next loop.");
+                    Log.Info($"{ThreadInfo.Data.UrlHost} /{ThreadInfo.Data.BoardName}/ thread {ThreadInfo.Data.Id} has finished scan, waiting for next loop.");
                     this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
 
                     // Synchronously wait, since this thread is separate.

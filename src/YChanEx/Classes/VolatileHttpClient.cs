@@ -38,15 +38,15 @@ internal sealed class VolatileHttpClient : HttpClient {
         this._timeout = Initialization.Timeout;
 
         if (Initialization.UseThrottling) {
-            this._throttle = false;
-            this._throttleSize = 0;
-            this.WriteStreamAsync = WriteToStreamAsync;
-        }
-        else {
             this._throttle = true;
             this._throttleSize = Initialization.ThrottleSize;
             this._throttleBuffer = Math.Min(_throttleSize, DefaultBuffer);
             this.WriteStreamAsync = ThrottledWriteToStreamAsync;
+        }
+        else {
+            this._throttle = false;
+            this._throttleSize = 0;
+            this.WriteStreamAsync = WriteToStreamAsync;
         }
 
         this.DefaultRequestHeaders.Accept.Add(new("*/*"));

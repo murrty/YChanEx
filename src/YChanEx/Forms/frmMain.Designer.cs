@@ -36,6 +36,7 @@
             this.txtThreadURL = new System.Windows.Forms.TextBox();
             this.mmMain = new System.Windows.Forms.MainMenu(this.components);
             this.mSettings = new System.Windows.Forms.MenuItem();
+            this.mLog = new System.Windows.Forms.MenuItem();
             this.mAbout = new System.Windows.Forms.MenuItem();
             this.niTray = new System.Windows.Forms.NotifyIcon(this.components);
             this.changeTray = new System.Windows.Forms.Timer(this.components);
@@ -71,7 +72,6 @@
             this.lbThreadHistoryHint = new System.Windows.Forms.Label();
             this.tpDebug = new System.Windows.Forms.TabPage();
             this.pnUpper = new System.Windows.Forms.Panel();
-            this.mLog = new System.Windows.Forms.MenuItem();
             this.tabControl1.SuspendLayout();
             this.tpCurrentQueue.SuspendLayout();
             this.tpHistory.SuspendLayout();
@@ -81,7 +81,7 @@
             // btnAdd
             // 
             this.btnAdd.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnAdd.Location = new System.Drawing.Point(274, 2);
+            this.btnAdd.Location = new System.Drawing.Point(394, 2);
             this.btnAdd.Name = "btnAdd";
             this.btnAdd.Size = new System.Drawing.Size(48, 25);
             this.btnAdd.TabIndex = 1;
@@ -95,7 +95,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtThreadURL.Location = new System.Drawing.Point(12, 5);
             this.txtThreadURL.Name = "txtThreadURL";
-            this.txtThreadURL.Size = new System.Drawing.Size(256, 22);
+            this.txtThreadURL.Size = new System.Drawing.Size(376, 22);
             this.txtThreadURL.TabIndex = 0;
             this.txtThreadURL.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtThreadURL_KeyPress);
             // 
@@ -111,6 +111,12 @@
             this.mSettings.Index = 0;
             this.mSettings.Text = "Settings";
             this.mSettings.Click += new System.EventHandler(this.mSettings_Click);
+            // 
+            // mLog
+            // 
+            this.mLog.Index = 1;
+            this.mLog.Text = "Log";
+            this.mLog.Click += new System.EventHandler(this.mLog_Click);
             // 
             // mAbout
             // 
@@ -244,7 +250,7 @@
             // 
             this.chkCreateThreadInTheBackground.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.chkCreateThreadInTheBackground.AutoSize = true;
-            this.chkCreateThreadInTheBackground.Location = new System.Drawing.Point(138, 32);
+            this.chkCreateThreadInTheBackground.Location = new System.Drawing.Point(258, 32);
             this.chkCreateThreadInTheBackground.Name = "chkCreateThreadInTheBackground";
             this.chkCreateThreadInTheBackground.Size = new System.Drawing.Size(194, 17);
             this.chkCreateThreadInTheBackground.TabIndex = 2;
@@ -260,7 +266,7 @@
             this.tabControl1.Location = new System.Drawing.Point(0, 33);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(334, 182);
+            this.tabControl1.Size = new System.Drawing.Size(454, 261);
             this.tabControl1.TabIndex = 4;
             // 
             // tpCurrentQueue
@@ -269,7 +275,7 @@
             this.tpCurrentQueue.Location = new System.Drawing.Point(4, 22);
             this.tpCurrentQueue.Name = "tpCurrentQueue";
             this.tpCurrentQueue.Padding = new System.Windows.Forms.Padding(3);
-            this.tpCurrentQueue.Size = new System.Drawing.Size(326, 156);
+            this.tpCurrentQueue.Size = new System.Drawing.Size(446, 235);
             this.tpCurrentQueue.TabIndex = 0;
             this.tpCurrentQueue.Text = "Queue";
             this.tpCurrentQueue.UseVisualStyleBackColor = true;
@@ -288,7 +294,7 @@
             this.lvThreads.HideSelection = false;
             this.lvThreads.Location = new System.Drawing.Point(6, 6);
             this.lvThreads.Name = "lvThreads";
-            this.lvThreads.Size = new System.Drawing.Size(434, 171);
+            this.lvThreads.Size = new System.Drawing.Size(434, 223);
             this.lvThreads.SmallImageList = this.ilIcons;
             this.lvThreads.TabIndex = 3;
             this.lvThreads.UseCompatibleStateImageBehavior = false;
@@ -320,7 +326,7 @@
             this.tpHistory.Location = new System.Drawing.Point(4, 22);
             this.tpHistory.Name = "tpHistory";
             this.tpHistory.Padding = new System.Windows.Forms.Padding(3);
-            this.tpHistory.Size = new System.Drawing.Size(326, 135);
+            this.tpHistory.Size = new System.Drawing.Size(446, 235);
             this.tpHistory.TabIndex = 1;
             this.tpHistory.Text = "Thread history";
             this.tpHistory.UseVisualStyleBackColor = true;
@@ -330,7 +336,7 @@
             this.tvHistory.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.tvHistory.Location = new System.Drawing.Point(8, 29);
+            this.tvHistory.Location = new System.Drawing.Point(6, 29);
             this.tvHistory.Name = "tvHistory";
             treeNode1.Name = "node4chan";
             treeNode1.Text = "4chan";
@@ -357,7 +363,7 @@
             treeNode6,
             treeNode7,
             treeNode8});
-            this.tvHistory.Size = new System.Drawing.Size(220, 100);
+            this.tvHistory.Size = new System.Drawing.Size(342, 200);
             this.tvHistory.TabIndex = 5;
             this.tvHistory.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvHistory_AfterSelect);
             // 
@@ -365,7 +371,7 @@
             // 
             this.btnHistoryClear.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnHistoryClear.Enabled = false;
-            this.btnHistoryClear.Location = new System.Drawing.Point(234, 167);
+            this.btnHistoryClear.Location = new System.Drawing.Point(354, 246);
             this.btnHistoryClear.Name = "btnHistoryClear";
             this.btnHistoryClear.Size = new System.Drawing.Size(84, 23);
             this.btnHistoryClear.TabIndex = 4;
@@ -377,7 +383,7 @@
             // 
             this.btnHistoryRemove.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnHistoryRemove.Enabled = false;
-            this.btnHistoryRemove.Location = new System.Drawing.Point(234, 56);
+            this.btnHistoryRemove.Location = new System.Drawing.Point(354, 56);
             this.btnHistoryRemove.Name = "btnHistoryRemove";
             this.btnHistoryRemove.Size = new System.Drawing.Size(86, 23);
             this.btnHistoryRemove.TabIndex = 3;
@@ -389,7 +395,7 @@
             // 
             this.btnHistoryRedownload.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnHistoryRedownload.Enabled = false;
-            this.btnHistoryRedownload.Location = new System.Drawing.Point(234, 27);
+            this.btnHistoryRedownload.Location = new System.Drawing.Point(354, 27);
             this.btnHistoryRedownload.Name = "btnHistoryRedownload";
             this.btnHistoryRedownload.Size = new System.Drawing.Size(86, 23);
             this.btnHistoryRedownload.TabIndex = 2;
@@ -411,7 +417,7 @@
             this.tpDebug.Location = new System.Drawing.Point(4, 22);
             this.tpDebug.Name = "tpDebug";
             this.tpDebug.Padding = new System.Windows.Forms.Padding(3);
-            this.tpDebug.Size = new System.Drawing.Size(326, 135);
+            this.tpDebug.Size = new System.Drawing.Size(326, 156);
             this.tpDebug.TabIndex = 2;
             this.tpDebug.Text = "Debug";
             this.tpDebug.UseVisualStyleBackColor = true;
@@ -423,20 +429,14 @@
             this.pnUpper.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnUpper.Location = new System.Drawing.Point(0, 0);
             this.pnUpper.Name = "pnUpper";
-            this.pnUpper.Size = new System.Drawing.Size(334, 33);
+            this.pnUpper.Size = new System.Drawing.Size(454, 33);
             this.pnUpper.TabIndex = 5;
-            // 
-            // mLog
-            // 
-            this.mLog.Index = 1;
-            this.mLog.Text = "Log";
-            this.mLog.Click += new System.EventHandler(this.mLog_Click);
             // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(334, 215);
+            this.ClientSize = new System.Drawing.Size(454, 294);
             this.Controls.Add(this.chkCreateThreadInTheBackground);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.pnUpper);

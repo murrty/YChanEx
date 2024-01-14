@@ -101,6 +101,7 @@ internal static class Networking {
                     UseProxy = true,
                     UseCookies = true,
                     CookieContainer = CookieContainer,
+                    AllowAutoRedirect = true,
                 };
             } break;
             case ProxyType.SOCKS4 when Initialization.UseProxy: {
@@ -112,6 +113,7 @@ internal static class Networking {
                 }) {
                     UseCookies = true,
                     CookieContainer = CookieContainer,
+                    AllowAutoRedirect = true,
                 };
             } break;
             case ProxyType.SOCKS4A when Initialization.UseProxy: {
@@ -123,6 +125,7 @@ internal static class Networking {
                 }) {
                     UseCookies = true,
                     CookieContainer = CookieContainer,
+                    AllowAutoRedirect = true,
                 };
             } break;
             case ProxyType.SOCKS5 when Initialization.UseProxy: {
@@ -134,12 +137,14 @@ internal static class Networking {
                 }) {
                     UseCookies = true,
                     CookieContainer = CookieContainer,
+                    AllowAutoRedirect = true,
                 };
             } break;
             default: {
                 NewHandler = new HttpClientHandler() {
                     UseCookies = true,
                     CookieContainer = CookieContainer,
+                    AllowAutoRedirect = true,
                 };
             } break;
         }

@@ -9,41 +9,6 @@ internal static class EightKun {
     private const string BoardsUrl = "https://8kun.top/boards.json";
     private static EightKunBoard[] Boards = [];
 
-    public static DateTimeOffset GetPostTime(EightKunPost post) {
-        return DateTimeOffset.FromUnixTimeSeconds(post.time);
-    }
-    public static string CleanMessage(string? message) {
-        if (message.IsNullEmptyWhitespace()) {
-            return string.Empty;
-        }
-
-        System.Text.RegularExpressions.Regex RegEx = new("<p class=\\\"body-line ltr quote\\\">.*?<\\/p>");
-        System.Text.RegularExpressions.Match RegexMatch = RegEx.Match(message);
-        bool QuoteMatch = RegexMatch.Success;
-        while (QuoteMatch) {
-            string ReplacementString = RegexMatch.Value
-                .Replace("<p class=\"body-line ltr quote\">", "<span class=\"quote\">")[..^4] + "</span><br />";
-            message = message.Replace(RegexMatch.Value, ReplacementString);
-
-            RegexMatch = RegEx.Match(message);
-            QuoteMatch = RegexMatch.Success;
-        }
-        message = System.Text.RegularExpressions.Regex.Replace(message, "", "");
-
-        message = message
-            .Replace("<p class=\"body-line ltr \">", "")
-            .Replace("</p>", "<br />")
-            .Replace("<p class=\"body-line empty \"/>", "")
-            .Replace("<p class=\"body-line empty \">", "")
-            .TrimEnd();
-
-        while (message.EndsWith("<br />")) {
-            message = message[..^6].TrimEnd();
-        }
-
-        return message;
-    }
-
     public static async Task<EightKunBoard?> GetBoardAsync(ThreadInfo Thread, HttpClient DownloadClient, CancellationToken token) {
         string CacheDir = Path.Combine(Downloads.DownloadPath, "8kun");
         string CacheFile = Path.Combine(CacheDir, "boardcache.json");
@@ -106,5 +71,40 @@ internal static class EightKun {
             x.uri?.Equals("projectdcomms", StringComparison.InvariantCultureIgnoreCase) != true &&
             x.uri?.Equals("greatawakening", StringComparison.InvariantCultureIgnoreCase) != true)
         .ToArray();
+    }
+
+    public static DateTimeOffset GetPostTime(EightKunPost post) {
+        return DateTimeOffset.FromUnixTimeSeconds(post.time);
+    }
+    public static string CleanMessage(string? message) {
+        if (message.IsNullEmptyWhitespace()) {
+            return string.Empty;
+        }
+
+        System.Text.RegularExpressions.Regex RegEx = new("<p class=\\\"body-line ltr quote\\\">.*?<\\/p>");
+        System.Text.RegularExpressions.Match RegexMatch = RegEx.Match(message);
+        bool QuoteMatch = RegexMatch.Success;
+        while (QuoteMatch) {
+            string ReplacementString = RegexMatch.Value
+                .Replace("<p class=\"body-line ltr quote\">", "<span class=\"quote\">")[..^4] + "</span><br />";
+            message = message.Replace(RegexMatch.Value, ReplacementString);
+
+            RegexMatch = RegEx.Match(message);
+            QuoteMatch = RegexMatch.Success;
+        }
+        message = System.Text.RegularExpressions.Regex.Replace(message, "", "");
+
+        message = message
+            .Replace("<p class=\"body-line ltr \">", "")
+            .Replace("</p>", "<br />")
+            .Replace("<p class=\"body-line empty \"/>", "")
+            .Replace("<p class=\"body-line empty \">", "")
+            .TrimEnd();
+
+        while (message.EndsWith("<br />")) {
+            message = message[..^6].TrimEnd();
+        }
+
+        return message;
     }
 }

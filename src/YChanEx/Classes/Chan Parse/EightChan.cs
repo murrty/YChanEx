@@ -32,7 +32,7 @@ internal static class EightChan {
             return board;
         }
 
-        HttpRequestMessage Request = new(HttpMethod.Get, "https://8chan.moe/" + boardId);
+        HttpRequestMessage Request = new(HttpMethod.Get, "https://8chan.moe/" + boardId + "/");
         Request.Headers.Referrer = new Uri("https://8chan.moe/");
 
         using var Response = await Networking.GetResponseAsync(Request, DownloadClient, token);
