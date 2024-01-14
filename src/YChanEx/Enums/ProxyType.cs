@@ -1,5 +1,5 @@
 ﻿#nullable enable
-namespace YChanEx;
+namespace murrty.controls;
 public enum ProxyType : byte {
     None = 0x0,
     HTTP = 0x1,

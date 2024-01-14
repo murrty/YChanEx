@@ -83,7 +83,7 @@
     <Compile Include="Classes\Post Objects\U18ChanPost.cs" />
     <Compile Include="Classes\Post Objects\U18ChanTag.cs" />
     <Compile Include="Classes\ProgramSettings.cs" />
-    <Compile Include="Classes\ProxyData.cs" />
+    <Compile Include="Classes\Proxy.cs" />
     <Compile Include="Classes\ThreadData.cs" />
     <Compile Include="Classes\ThreadInfo.cs" />
     <Compile Include="Classes\VolatileHttpClient.cs" />

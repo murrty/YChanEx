@@ -56,7 +56,7 @@ public partial class frmSettings : Form {
 
     private void SaveSettings() {
         if (chkUseProxy.Checked && !txtProxy.Text.IsNullEmptyWhitespace()) {
-            if (!ProxyData.TryParse(txtProxy.Text, out var Proxy)) {
+            if (!Proxy.TryParse(txtProxy.Text, out var Proxy)) {
                 MessageBox.Show("Cannot parse proxy. Enter a valid input string or an empty string to not use a proxy.");
                 return;
             }

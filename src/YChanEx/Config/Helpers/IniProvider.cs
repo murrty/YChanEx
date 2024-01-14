@@ -3,7 +3,7 @@ namespace YChanEx;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Runtime.CompilerServices;
-using System.Text;
+using murrty.controls;
 /// <summary>
 /// The class containing the ini file handling.
 /// </summary>
@@ -136,8 +136,8 @@ internal static class IniProvider {
             return NewGuid;
         return Default;
     }
-    internal static ProxyData Read(ProxyData Value, ProxyData Default, string? Section = null, [CallerArgumentExpression(nameof(Value))] string Key = null!) {
-        if (InternalKeyExists(Key, 32, out string? Data, Section, Value) && ProxyData.TryParse(Data, out var NewIPv4))
+    internal static Proxy Read(Proxy Value, Proxy Default, string? Section = null, [CallerArgumentExpression(nameof(Value))] string Key = null!) {
+        if (InternalKeyExists(Key, 32, out string? Data, Section, Value) && Proxy.TryParse(Data, out var NewIPv4))
             return NewIPv4;
         return Default;
     }
@@ -170,8 +170,8 @@ internal static class IniProvider {
         InternalWriteString(Key, Value.ToString(), Section);
         return Value;
     }
-    internal static ProxyData Write(ProxyData Value, string? Section = null, [CallerArgumentExpression(nameof(Value))] string Key = null!) {
-        InternalWriteString(Key, Value.GetReadableIp(), Section);
+    internal static Proxy Write(Proxy Value, string? Section = null, [CallerArgumentExpression(nameof(Value))] string Key = null!) {
+        InternalWriteString(Key, Value.GetReadableIP(), Section);
         return Value;
     }
 }

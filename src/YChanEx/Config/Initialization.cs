@@ -11,7 +11,7 @@ internal static class Initialization {
         fSkippedVersion = IniProvider.Read(SkippedVersion, Version.Empty);
         fSkippedBetaVersion = IniProvider.Read(SkippedBetaVersion, Version.Empty);
         fUseProxy = IniProvider.Read(UseProxy, false);
-        fProxy = IniProvider.Read(Proxy, ProxyData.Empty);
+        fProxy = IniProvider.Read(Proxy, Proxy.Empty);
         fUseThrottling = IniProvider.Read(UseThrottling, false);
         fThrottleSize = IniProvider.Read(ThrottleSize, 1);
         fTimeout = IniProvider.Read(Timeout, VolatileHttpClient.DefaultTimeout);
@@ -108,7 +108,7 @@ internal static class Initialization {
     /// <summary>
     /// The proxy data that will be used.
     /// </summary>
-    public static ProxyData Proxy {
+    public static Proxy Proxy {
         get => fProxy;
         set {
             if (fProxy != value) {
@@ -117,7 +117,7 @@ internal static class Initialization {
             }
         }
     }
-    private static ProxyData fProxy;
+    private static Proxy fProxy;
 
     /// <summary>
     /// Whether to use throttling to throttle download speed.
@@ -168,7 +168,7 @@ internal static class Initialization {
         SkippedVersion = Version.Empty;
         fSkippedBetaVersion = Version.Empty;
         fUseProxy = false;
-        fProxy = ProxyData.Empty;
+        fProxy = Proxy.Empty;
         fUseThrottling = false;
         fThrottleSize = 1;
     }

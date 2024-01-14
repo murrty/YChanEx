@@ -41,6 +41,10 @@ public partial class frmDownloader : Form {
     /// used for updating the main form with this forms' threads' status, or name.
     /// </summary>
     private readonly IMainFom MainFormInstance;
+    /// <summary>
+    /// The download client that will be used.
+    /// Refreshed before each scan.
+    /// </summary>
     private VolatileHttpClient DownloadClient;
 
     /// <summary>

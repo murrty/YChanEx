@@ -22,7 +22,7 @@ internal sealed class VolatileHttpClient : HttpClient {
 
     internal delegate Task DownloadStream(Stream HttpStream, Stream Output, CancellationToken token);
 
-    private readonly ProxyData _proxy;
+    private readonly Proxy _proxy;
     private readonly bool _useProxy;
     private readonly bool _throttle;
     private readonly int _throttleSize;

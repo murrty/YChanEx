@@ -44,6 +44,7 @@
             this.chkMoveExistingDownloads = new System.Windows.Forms.CheckBox();
             this.lbScanDelaySeconds = new System.Windows.Forms.Label();
             this.tabApplication = new System.Windows.Forms.TabPage();
+            this.chkEnableBetaUpdates = new System.Windows.Forms.CheckBox();
             this.chkSaveDownloadHistory = new System.Windows.Forms.CheckBox();
             this.chkMinimizeInsteadOfExiting = new System.Windows.Forms.CheckBox();
             this.chkUseFullBoardNameForTitle = new System.Windows.Forms.CheckBox();
@@ -76,7 +77,8 @@
             this.btnCancel = new System.Windows.Forms.Button();
             this.btnSave = new System.Windows.Forms.Button();
             this.ttSettings = new System.Windows.Forms.ToolTip(this.components);
-            this.chkEnableBetaUpdates = new System.Windows.Forms.CheckBox();
+            this.tabNetwork = new System.Windows.Forms.TabPage();
+            this.lbNetworkNotice = new System.Windows.Forms.Label();
             this.tcMain.SuspendLayout();
             this.tabDownloads.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numTimer)).BeginInit();
@@ -84,6 +86,7 @@
             this.tabAdvanced.SuspendLayout();
             this.tabCookies.SuspendLayout();
             this.tabReset.SuspendLayout();
+            this.tabNetwork.SuspendLayout();
             this.SuspendLayout();
             // 
             // tcMain
@@ -91,6 +94,7 @@
             this.tcMain.Controls.Add(this.tabDownloads);
             this.tcMain.Controls.Add(this.tabApplication);
             this.tcMain.Controls.Add(this.tabAdvanced);
+            this.tcMain.Controls.Add(this.tabNetwork);
             this.tcMain.Controls.Add(this.tabCookies);
             this.tcMain.Controls.Add(this.tabReset);
             this.tcMain.Dock = System.Windows.Forms.DockStyle.Top;
@@ -102,8 +106,6 @@
             // 
             // tabDownloads
             // 
-            this.tabDownloads.Controls.Add(this.chkUseProxy);
-            this.tabDownloads.Controls.Add(this.txtProxy);
             this.tabDownloads.Controls.Add(this.chkAutoRemoveDeadThreads);
             this.tabDownloads.Controls.Add(this.chkCleanThreadHTML);
             this.tabDownloads.Controls.Add(this.chkAllowFileNamesGreaterThan255);
@@ -129,7 +131,7 @@
             // chkUseProxy
             // 
             this.chkUseProxy.AutoSize = true;
-            this.chkUseProxy.Location = new System.Drawing.Point(178, 39);
+            this.chkUseProxy.Location = new System.Drawing.Point(85, 75);
             this.chkUseProxy.Name = "chkUseProxy";
             this.chkUseProxy.Size = new System.Drawing.Size(51, 17);
             this.chkUseProxy.TabIndex = 38;
@@ -147,7 +149,7 @@
             this.txtProxy.ButtonSize = new System.Drawing.Size(22, 19);
             this.txtProxy.ButtonText = "";
             this.txtProxy.ButtonTextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.txtProxy.Location = new System.Drawing.Point(231, 37);
+            this.txtProxy.Location = new System.Drawing.Point(142, 73);
             this.txtProxy.Name = "txtProxy";
             this.txtProxy.Size = new System.Drawing.Size(143, 20);
             this.txtProxy.TabIndex = 37;
@@ -353,6 +355,18 @@
             this.tabApplication.TabIndex = 1;
             this.tabApplication.Text = "Application";
             this.tabApplication.UseVisualStyleBackColor = true;
+            // 
+            // chkEnableBetaUpdates
+            // 
+            this.chkEnableBetaUpdates.AutoSize = true;
+            this.chkEnableBetaUpdates.Location = new System.Drawing.Point(184, 86);
+            this.chkEnableBetaUpdates.Name = "chkEnableBetaUpdates";
+            this.chkEnableBetaUpdates.Size = new System.Drawing.Size(123, 17);
+            this.chkEnableBetaUpdates.TabIndex = 34;
+            this.chkEnableBetaUpdates.Text = "Enable beta updates";
+            this.ttSettings.SetToolTip(this.chkEnableBetaUpdates, "Enables checking for beta updates for this application, if checking for updates i" +
+        "s enabled\r\n\r\nDefault: Off");
+            this.chkEnableBetaUpdates.UseVisualStyleBackColor = true;
             // 
             // chkSaveDownloadHistory
             // 
@@ -701,17 +715,30 @@
             this.ttSettings.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Info;
             this.ttSettings.ToolTipTitle = "Information:";
             // 
-            // chkEnableBetaUpdates
+            // tabNetwork
             // 
-            this.chkEnableBetaUpdates.AutoSize = true;
-            this.chkEnableBetaUpdates.Location = new System.Drawing.Point(184, 86);
-            this.chkEnableBetaUpdates.Name = "chkEnableBetaUpdates";
-            this.chkEnableBetaUpdates.Size = new System.Drawing.Size(123, 17);
-            this.chkEnableBetaUpdates.TabIndex = 34;
-            this.chkEnableBetaUpdates.Text = "Enable beta updates";
-            this.ttSettings.SetToolTip(this.chkEnableBetaUpdates, "Enables checking for beta updates for this application, if checking for updates i" +
-        "s enabled\r\n\r\nDefault: Off");
-            this.chkEnableBetaUpdates.UseVisualStyleBackColor = true;
+            this.tabNetwork.Controls.Add(this.lbNetworkNotice);
+            this.tabNetwork.Controls.Add(this.chkUseProxy);
+            this.tabNetwork.Controls.Add(this.txtProxy);
+            this.tabNetwork.Location = new System.Drawing.Point(4, 22);
+            this.tabNetwork.Name = "tabNetwork";
+            this.tabNetwork.Padding = new System.Windows.Forms.Padding(3);
+            this.tabNetwork.Size = new System.Drawing.Size(386, 144);
+            this.tabNetwork.TabIndex = 6;
+            this.tabNetwork.Text = "Network";
+            this.tabNetwork.UseVisualStyleBackColor = true;
+            // 
+            // lbNetworkNotice
+            // 
+            this.lbNetworkNotice.Anchor = System.Windows.Forms.AnchorStyles.Top;
+            this.lbNetworkNotice.AutoSize = true;
+            this.lbNetworkNotice.Location = new System.Drawing.Point(37, 20);
+            this.lbNetworkNotice.Name = "lbNetworkNotice";
+            this.lbNetworkNotice.Size = new System.Drawing.Size(313, 26);
+            this.lbNetworkNotice.TabIndex = 39;
+            this.lbNetworkNotice.Text = "Any changes here will not take affect on pre-existing threads until\r\nthe thread s" +
+    "tarts to re-scan.";
+            this.lbNetworkNotice.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // frmSettings
             // 
@@ -742,6 +769,8 @@
             this.tabCookies.ResumeLayout(false);
             this.tabReset.ResumeLayout(false);
             this.tabReset.PerformLayout();
+            this.tabNetwork.ResumeLayout(false);
+            this.tabNetwork.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -800,5 +829,7 @@
         private murrty.controls.ExtendedTextBox txtProxy;
         private System.Windows.Forms.CheckBox chkUseProxy;
         private System.Windows.Forms.CheckBox chkEnableBetaUpdates;
+        private System.Windows.Forms.TabPage tabNetwork;
+        private System.Windows.Forms.Label lbNetworkNotice;
     }
 }
