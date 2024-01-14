@@ -59,6 +59,8 @@
     <Compile Include="Classes\Chan Parse\U18Chan.cs" />
     <Compile Include="Classes\Chans.cs" />
     <Compile Include="Classes\FileHandler.cs" />
+    <Compile Include="Classes\Post Objects\FoolFuukaThread.cs" />
+    <Compile Include="Classes\Post Objects\FoolFuukaBoard.cs" />
     <Compile Include="Classes\Post Objects\FoolFuukaFile.cs" />
     <Compile Include="Classes\Post Objects\FoolFuukaPost.cs" />
     <Compile Include="Classes\Post Objects\EightChanBoard.cs" />
@@ -238,9 +240,6 @@
     <None Include="Resources\ProgramIcon_Dead.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\SiteIcons\u18chan.ico" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\SiteIcons\4chan.ico" />
   </ItemGroup>
   <ItemGroup>
@@ -257,6 +256,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\SiteIcons\fchan.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\SiteIcons\u18chan.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\SiteIcons\foolfuuka.ico" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Status\404.png" />

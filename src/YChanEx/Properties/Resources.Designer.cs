@@ -133,6 +133,16 @@ namespace YChanEx.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
+        internal static System.Drawing.Icon _foolfuuka {
+            get {
+                object obj = ResourceManager.GetObject("_foolfuuka", resourceCulture);
+                return ((System.Drawing.Icon)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        /// </summary>
         internal static System.Drawing.Icon _u18chan {
             get {
                 object obj = ResourceManager.GetObject("_u18chan", resourceCulture);
@@ -151,7 +161,7 @@ namespace YChanEx.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 2023-08-04.
+        ///   Looks up a localized string similar to 2024-01-13.
         /// </summary>
         internal static string BuildDate {
             get {
