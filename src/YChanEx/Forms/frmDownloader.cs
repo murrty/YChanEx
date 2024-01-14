@@ -1346,7 +1346,7 @@ public partial class frmDownloader : Form {
             ThreadInfo.ThreadModified = false;
         }
     }
-    private static async Task<bool> GetFile(HttpResponseMessage Response, string dest, CancellationToken token) {
+    private async Task<bool> GetFile(HttpResponseMessage Response, string dest, CancellationToken token) {
         try {
             using Stream Content = await Response.Content.ReadAsStreamAsync();
             using FileStream Destination = new(
@@ -1355,7 +1355,7 @@ public partial class frmDownloader : Form {
                 access: FileAccess.ReadWrite,
                 share: FileShare.Read);
 
-            await VolatileHttpClient.WriteToStreamAsync(Content, Destination, token);
+            await DownloadClient.WriteStreamAsync(Content, Destination, token);
             await Destination.FlushAsync();
             Destination.Close();
             return true;

@@ -21,13 +21,12 @@ internal sealed class VolatileHttpClient : HttpClient {
         HighestTimeout = 1_800_000;
 
     internal delegate Task DownloadStream(Stream HttpStream, Stream Output, CancellationToken token);
-    private readonly int ThrottleSize;
-    private readonly int ThrottleBufferSize;
 
     private readonly ProxyData _proxy;
     private readonly bool _useProxy;
     private readonly bool _throttle;
     private readonly int _throttleSize;
+    private readonly int _throttleBuffer;
     private readonly int _timeout;
     public HttpMessageHandler Handler;
     public ulong Iteration;
@@ -46,7 +45,7 @@ internal sealed class VolatileHttpClient : HttpClient {
         else {
             this._throttle = true;
             this._throttleSize = Initialization.ThrottleSize;
-            this.ThrottleBufferSize = Math.Min(_throttleSize, DefaultBuffer);
+            this._throttleBuffer = Math.Min(_throttleSize, DefaultBuffer);
             this.WriteStreamAsync = ThrottledWriteToStreamAsync;
         }
 
@@ -81,11 +80,7 @@ internal sealed class VolatileHttpClient : HttpClient {
             return true;
         }
 
-        if (this._timeout != Initialization.Timeout) {
-            return true;
-        }
-
-        return false;
+        return this._timeout != Initialization.Timeout;
     }
 
     public DownloadStream WriteStreamAsync { get; }
@@ -98,10 +93,10 @@ internal sealed class VolatileHttpClient : HttpClient {
         }
     }
     internal async Task ThrottledWriteToStreamAsync(Stream HttpStream, Stream Output, CancellationToken token) {
-        byte[] buffer = new byte[ThrottleBufferSize];
+        byte[] buffer = new byte[_throttleBuffer];
         int bytesRead;
 
-        using ThrottledStream ThrottledWriter = new(Output, ThrottleSize);
+        using ThrottledStream ThrottledWriter = new(Output, _throttleSize);
         while ((bytesRead = await HttpStream.ReadAsync(buffer, 0, buffer.Length, token).ConfigureAwait(false)) != 0) {
             await ThrottledWriter.WriteAsync(buffer, 0, bytesRead, token).ConfigureAwait(false);
         }
