@@ -153,13 +153,14 @@ public partial class frmMain : Form, IMainFom {
                                 this.Invoke(() => lvThreads.Items.Add(lvi));
                             }
                             for (int i = 0; i < SavedThreads.Count; i++) {
+                                var CurrentThread = SavedThreads[i];
                                 try {
-                                    var Thread = SavedThreads[i];
-                                    this.Invoke(() => LoadSavedThread(Thread, Thread.FilePath));
+                                    this.Invoke(() => LoadSavedThread(CurrentThread, CurrentThread.FilePath));
                                 }
                                 catch {
                                     this.Invoke(() => {
                                         MessageBox.Show("Could not load saved thread. It will need to be redownloaded.");
+                                        System.IO.File.Move(CurrentThread.FilePath, CurrentThread.FilePath + ".old");
                                         SavedThreads.RemoveAt(i);
                                         lvThreads.Items.RemoveAt(i--);
                                     });
