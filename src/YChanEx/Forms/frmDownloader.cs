@@ -46,7 +46,7 @@ public partial class frmDownloader : Form {
     /// <summary>
     /// The ThreadInfo containing all information about this forms' thread.
     /// </summary>
-    public ThreadInfo ThreadInfo { get; init; }
+    public ThreadInfo ThreadInfo;
 
     /// <summary>
     /// The thread for the thread parser/downloader
@@ -60,17 +60,11 @@ public partial class frmDownloader : Form {
     /// The reste vent that is used to block the thread during idle.
     /// </summary>
     private readonly ManualResetEventSlim ResetThread;
-
-    // Mostly-debug
-    /// <summary>
-    /// Pauses the file downloader 100ms between each file,
-    /// used to prevent sending too many requests.
-    /// </summary>
-    private const bool PauseBetweenFiles = true;
     /// <summary>
     /// The cancellation token that will be used to kill the main loop.
     /// </summary>
     private CancellationTokenSource CancellationToken;
+
     static frmDownloader() {
         DownloadImages.ColorDepth = ColorDepth.Depth32Bit;
         DownloadImages.Images.Add(Properties.Resources.waiting);            // 0
@@ -1333,9 +1327,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Sleep for 100ms.
-                    if (PauseBetweenFiles) {
-                        Thread.Sleep(100);
-                    }
+                    Thread.Sleep(100);
                 }
             }
         }
