@@ -1,5 +1,6 @@
 ﻿#nullable enable
 namespace YChanEx;
+using murrty.controls;
 /// <summary>
 /// Contains initialization program configuration.
 /// </summary>

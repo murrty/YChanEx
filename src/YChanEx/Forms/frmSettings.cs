@@ -2,6 +2,7 @@
 namespace YChanEx;
 using System;
 using System.Windows.Forms;
+using murrty.controls;
 public partial class frmSettings : Form {
     public frmSettings() {
         InitializeComponent();
@@ -16,7 +17,7 @@ public partial class frmSettings : Form {
 
     private void LoadSettings() {
         chkUseProxy.Checked = Initialization.UseProxy;
-        txtProxy.Text = Initialization.Proxy.GetReadableIp();
+        txtProxy.Text = Initialization.Proxy.GetReadableIP();
         chkEnableUpdates.Checked = Initialization.CheckForUpdates;
         chkEnableBetaUpdates.Checked = Initialization.CheckForBetaUpdates;
 
@@ -56,11 +57,11 @@ public partial class frmSettings : Form {
 
     private void SaveSettings() {
         if (chkUseProxy.Checked && !txtProxy.Text.IsNullEmptyWhitespace()) {
-            if (!Proxy.TryParse(txtProxy.Text, out var Proxy)) {
+            if (!Proxy.TryParse(txtProxy.Text, out var NewProxy)) {
                 MessageBox.Show("Cannot parse proxy. Enter a valid input string or an empty string to not use a proxy.");
                 return;
             }
-            Initialization.Proxy = Proxy;
+            Initialization.Proxy = NewProxy;
         }
         else {
             chkUseProxy.Checked = false;
