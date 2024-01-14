@@ -1,5 +1,7 @@
 ﻿#nullable enable
 namespace YChanEx;
+
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -17,7 +19,7 @@ public sealed class ThreadInfo {
     /// The chan type that will be parsed.
     /// <seealso cref="ThreadStatus"/>
     /// </summary>
-    public ChanType Chan => Data.ChanType;
+    public ChanType Chan => this.Data.ChanType;
     /// <summary>
     /// The index of the thread in the queue.
     /// </summary>
@@ -97,15 +99,19 @@ public sealed class ThreadInfo {
     public string? ApiLink {
         get {
             return this.Chan switch {
-                ChanType.FourChan => $"https://a.4cdn.org/{Data.Board}/thread/{Data.Id}.json",
-                ChanType.FourTwentyChan => $"https://api.420chan.org/{Data.Board}/res/{Data.Id}.json",
-                ChanType.EightChan => $"https://8chan.moe/{Data.Board}/res/{Data.Id}.json",
-                ChanType.EightKun => $"https://8kun.top/{Data.Board}/res/{Data.Id}.json",
-                ChanType.FoolFuuka => $"https://{Data.UrlHost}/_/api/chan/thread?board={Data.Board}&num={Data.Id}",
-                _ => null
+                ChanType.FourChan => $"https://a.4cdn.org/{this.Data.Board}/thread/{this.Data.Id}.json",
+                ChanType.FourTwentyChan => $"https://api.420chan.org/{this.Data.Board}/res/{this.Data.Id}.json",
+                ChanType.EightChan => $"https://8chan.moe/{this.Data.Board}/res/{this.Data.Id}.json",
+                ChanType.EightKun => $"https://8kun.top/{this.Data.Board}/res/{this.Data.Id}.json",
+                ChanType.FoolFuuka => $"https://{this.Data.UrlHost}/_/api/chan/thread?board={this.Data.Board}&num={this.Data.Id}",
+                _ => this.Data.Url
             };
         }
     }
+    /// <summary>
+    /// Gets the string that this thread is represented by in the log.
+    /// </summary>
+    public string ThreadLogDisplay { get; set; }
     /// <summary>
     /// Whether the HTML file exists.
     /// </summary>
@@ -123,6 +129,16 @@ public sealed class ThreadInfo {
         this.DownloadPath = Downloads.DownloadPath;
         this.ThreadTopHtml = string.Empty;
         this.ThreadBottomHtml = string.Empty;
+        this.ThreadLogDisplay = Data.ChanType switch {
+            ChanType.FourChan => $"4chan /{Data.Board}/ thread {Data.Id}",
+            ChanType.SevenChan => $"7chan /{Data.Board}/ thread {Data.Id}",
+            ChanType.EightChan => $"8chan /{Data.Board}/ thread {Data.Id}",
+            ChanType.EightKun => $"8kun /{Data.Board}/ thread {Data.Id}",
+            ChanType.fchan => $"fchan /{Data.Board}/ thread {Data.Id}",
+            ChanType.u18chan => $"u18chan /{Data.Board}/ thread {Data.Id}",
+            ChanType.FoolFuuka => $"{Data.UrlHost} /{Data.Board}/ thread {Data.Id}",
+            _ => "Unknown chan!!!"
+        };
     }
 
     public void UpdateJsonPath() {
@@ -139,28 +155,28 @@ public sealed class ThreadInfo {
         }}{this.Data.Board}-{this.Data.Id}.thread.json";
 
         if (this.SavedThreadJson != NewFile) {
-            if (File.Exists(SavedThreadJson)) {
-                File.Move(SavedThreadJson, NewFile);
+            if (File.Exists(this.SavedThreadJson)) {
+                File.Move(this.SavedThreadJson, NewFile);
             }
 
             this.SavedThreadJson = NewFile;
         }
     }
     public void SaveHtml() {
-        string HtmlFile = Path.Combine(DownloadPath, "Thread.html");
+        string HtmlFile = Path.Combine(this.DownloadPath, "Thread.html");
         using FileStream fs = new(HtmlFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
         using StreamWriter Writer = new(fs, Encoding.UTF8);
-        Writer.Write(ThreadTopHtml);
-        for (int i = 0; i < Data.ThreadPosts.Count; i++) {
-            HtmlControl.WritePostHtmlData(Data.ThreadPosts[i], this, Writer);
+        Writer.Write(this.ThreadTopHtml);
+        for (int i = 0; i < this.Data.ThreadPosts.Count; i++) {
+            HtmlControl.WritePostHtmlData(this.Data.ThreadPosts[i], this, Writer);
         }
-        Writer.Write(ThreadBottomHtml);
+        Writer.Write(this.ThreadBottomHtml);
         Writer.Flush();
     }
     public void CheckQuotes() {
-        for (int i = 0; i < Data.ThreadPosts.Count; i++) {
-            var CurrentPost = Data.ThreadPosts[i];
-            CurrentPost.QuotedBy = Data.ThreadPosts
+        for (int i = 0; i < this.Data.ThreadPosts.Count; i++) {
+            var CurrentPost = this.Data.ThreadPosts[i];
+            CurrentPost.QuotedBy = this.Data.ThreadPosts
                 .Where(x => x.Quotes?.Contains(CurrentPost.PostId) == true)
                 .Select(x => x.PostId)
                 .ToArray();
