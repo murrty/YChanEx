@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
 using System.Security.Principal;
 using System.Threading;
 using System.Windows.Forms;

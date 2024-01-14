@@ -323,6 +323,10 @@ public partial class frmMain : Form, IMainFom {
                     case ChanType.u18chan: {
                         tvHistory.Nodes[6].Nodes.Add(ThreadURL, ThreadURL);
                     } break;
+                    case ChanType.FoolFuuka: {
+                        tvHistory.Nodes[7].Nodes.Add(ThreadURL, ThreadURL);
+                    }
+                    break;
                 }
                 DownloadHistory.Save();
             }
@@ -516,6 +520,7 @@ public partial class frmMain : Form, IMainFom {
         ilIcons.Images.Add(Properties.Resources._8kun);
         ilIcons.Images.Add(Properties.Resources._fchan);
         ilIcons.Images.Add(Properties.Resources._u18chan);
+        ilIcons.Images.Add(Properties.Resources._foolfuuka);
         lvThreads.SmallImageList = ilIcons;
         lvThreads.ContextMenu = cmThreads;
 

@@ -34,5 +34,9 @@ public enum ChanType : int {
     /// <summary>
     /// u18chan was selected to download.
     /// </summary>
-    u18chan = 6
+    u18chan = 6,
+    /// <summary>
+    /// An archival chan was selected to download.
+    /// </summary>
+    FoolFuuka = 7,
 }
