@@ -7,7 +7,18 @@ using System.Threading;
 using murrty.controls;
 internal sealed class VolatileHttpClient : HttpClient {
     private const int DefaultBuffer = 81920;
-    internal const int _timeout = 60_000;
+    /// <summary>
+    /// Represents the lowest timeout possible, 5 seconds (in milliseconds).
+    /// </summary>
+    internal const int LowestTimeout = 5_000,
+    /// <summary>
+    /// Represents the default timeout, 1 minute (in milliseconds).
+    /// </summary>
+        DefaultTimeout = 60_000,
+    /// <summary>
+    /// Represents the highest timeout possible, 30 minutes (in milliseconds).
+    /// </summary>
+        HighestTimeout = 1_800_000;
 
     internal delegate Task DownloadStream(Stream HttpStream, Stream Output, CancellationToken token);
     private readonly int ThrottleSize;
@@ -17,6 +28,7 @@ internal sealed class VolatileHttpClient : HttpClient {
     private readonly bool _useProxy;
     private readonly bool _throttle;
     private readonly int _throttleSize;
+    private readonly int _timeout;
     public HttpMessageHandler Handler;
     public ulong Iteration;
 
@@ -24,15 +36,7 @@ internal sealed class VolatileHttpClient : HttpClient {
         this.Handler = NewHandler;
         this._proxy = Initialization.Proxy;
         this._useProxy = Initialization.UseProxy;
-
-        this.DefaultRequestHeaders.Accept.Add(new("*/*"));
-        //this.DefaultRequestHeaders.AcceptEncoding.Add(new("br"));
-        this.DefaultRequestHeaders.AcceptEncoding.Add(new("gzip"));
-        this.DefaultRequestHeaders.AcceptEncoding.Add(new("deflate"));
-        this.DefaultRequestHeaders.AcceptLanguage.Add(new("*"));
-        this.DefaultRequestHeaders.ConnectionClose = false;
-        this.DefaultRequestHeaders.UserAgent.ParseAdd(Program.UserAgent);
-        this.Timeout = new(0, 0, 0, 0, _timeout);
+        this._timeout = Initialization.Timeout;
 
         if (Initialization.UseThrottling) {
             this._throttle = false;
@@ -45,6 +49,15 @@ internal sealed class VolatileHttpClient : HttpClient {
             this.ThrottleBufferSize = Math.Min(_throttleSize, DefaultBuffer);
             this.WriteStreamAsync = ThrottledWriteToStreamAsync;
         }
+
+        this.DefaultRequestHeaders.Accept.Add(new("*/*"));
+        //this.DefaultRequestHeaders.AcceptEncoding.Add(new("br"));
+        this.DefaultRequestHeaders.AcceptEncoding.Add(new("gzip"));
+        this.DefaultRequestHeaders.AcceptEncoding.Add(new("deflate"));
+        this.DefaultRequestHeaders.AcceptLanguage.Add(new("*"));
+        this.DefaultRequestHeaders.ConnectionClose = false;
+        this.DefaultRequestHeaders.UserAgent.ParseAdd(Program.UserAgent);
+        this.Timeout = new(0, 0, 0, 0, _timeout);
     }
     public bool UpdateRequired() {
         if (Initialization.UseProxy) {
@@ -65,6 +78,10 @@ internal sealed class VolatileHttpClient : HttpClient {
             }
         }
         else if (_throttle) {
+            return true;
+        }
+
+        if (this._timeout != Initialization.Timeout) {
             return true;
         }
 

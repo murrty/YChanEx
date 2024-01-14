@@ -107,8 +107,8 @@ internal static class Networking {
                 NewHandler = new SocksSharp.Socks4ProxyClientHandler(new SocksSharp.Proxy.ProxySettings() {
                     Host = Initialization.Proxy.IP,
                     Port = Initialization.Proxy.Port,
-                    ConnectTimeout = VolatileHttpClient._timeout,
-                    ReadWriteTimeOut = VolatileHttpClient._timeout,
+                    ConnectTimeout = VolatileHttpClient.DefaultTimeout,
+                    ReadWriteTimeOut = VolatileHttpClient.DefaultTimeout,
                 }) {
                     UseCookies = true,
                     CookieContainer = CookieContainer,
@@ -118,8 +118,8 @@ internal static class Networking {
                 NewHandler = new SocksSharp.Socks4aProxyClientHandler(new SocksSharp.Proxy.ProxySettings() {
                     Host = Initialization.Proxy.IP, //Proxy.Domain ?? Proxy.IP,
                     Port = Initialization.Proxy.Port,
-                    ConnectTimeout = VolatileHttpClient._timeout,
-                    ReadWriteTimeOut = VolatileHttpClient._timeout,
+                    ConnectTimeout = VolatileHttpClient.DefaultTimeout,
+                    ReadWriteTimeOut = VolatileHttpClient.DefaultTimeout,
                 }) {
                     UseCookies = true,
                     CookieContainer = CookieContainer,
@@ -129,8 +129,8 @@ internal static class Networking {
                 NewHandler = new SocksSharp.Socks5ProxyClientHandler(new SocksSharp.Proxy.ProxySettings() {
                     Host = Initialization.Proxy.IP, //Proxy.Domain ?? Proxy.IP,
                     Port = Initialization.Proxy.Port,
-                    ConnectTimeout = VolatileHttpClient._timeout,
-                    ReadWriteTimeOut = VolatileHttpClient._timeout,
+                    ConnectTimeout = VolatileHttpClient.DefaultTimeout,
+                    ReadWriteTimeOut = VolatileHttpClient.DefaultTimeout,
                 }) {
                     UseCookies = true,
                     CookieContainer = CookieContainer,

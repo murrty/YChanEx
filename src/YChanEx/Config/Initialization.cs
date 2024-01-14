@@ -14,6 +14,7 @@ internal static class Initialization {
         fProxy = IniProvider.Read(Proxy, ProxyData.Empty);
         fUseThrottling = IniProvider.Read(UseThrottling, false);
         fThrottleSize = IniProvider.Read(ThrottleSize, 1);
+        fTimeout = IniProvider.Read(Timeout, VolatileHttpClient.DefaultTimeout);
     }
 
     /// <summary>
@@ -145,6 +146,23 @@ internal static class Initialization {
         }
     }
     private static int fThrottleSize;
+
+    /// <summary>
+    /// The timeout of each request per second.
+    /// <para/>
+    /// Default: <see langword="60,000"/>
+    /// </summary>
+    public static int Timeout {
+        get => fTimeout;
+        internal set {
+            value = value.Clamp(VolatileHttpClient.LowestTimeout, VolatileHttpClient.HighestTimeout);
+            if (fTimeout != value) {
+                fTimeout = value;
+                IniProvider.Write(Timeout);
+            }
+        }
+    }
+    private static int fTimeout;
 
     public static void Reset() {
         SkippedVersion = Version.Empty;

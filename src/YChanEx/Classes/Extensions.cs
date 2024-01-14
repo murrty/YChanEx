@@ -169,4 +169,27 @@ internal static class Extensions {
         index = -1;
         return input;
     }
+
+    public static int Clamp(this int val, int min, int max) {
+        if (val < min) {
+            return min;
+        }
+        if (val > max) {
+            return max;
+        }
+        else {
+            return val;
+        }
+    }
+    public static long Clamp(this long val, long min, long max) {
+        if (val < min) {
+            return min;
+        }
+        if (val > max) {
+            return max;
+        }
+        else {
+            return val;
+        }
+    }
 }
