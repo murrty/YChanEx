@@ -229,7 +229,7 @@ public partial class frmMain : Form, IMainFom {
             }
             else {
                 niTray.BalloonTipTitle = "Already in queue";
-                niTray.BalloonTipText = $"{ThreadURL} is already downloading.";
+                niTray.BalloonTipText = $"{ThreadURL} is already loaded and in queue.";
                 niTray.BalloonTipIcon = ToolTipIcon.Info;
             }
             niTray.ShowBalloonTip(5000);
@@ -250,10 +250,13 @@ public partial class frmMain : Form, IMainFom {
                     return false;
             }
 
-            ThreadURLs.Add(ThreadURL);
             ThreadInfo NewInfo = new(ReceivedType);
             NewInfo.Data.Url = ThreadURL;
-            NewInfo.ThreadIndex = ThreadURLs.Count - 1;
+            NewInfo.ThreadIndex = ThreadURLs.Count;
+            if (ReceivedType == ChanType.FoolFuuka) {
+                NewInfo.Data.UrlHost = Networking.GetHost(ThreadURL);
+            }
+            ThreadURLs.Add(ThreadURL);
 
             frmDownloader newThread = new(this, NewInfo) {
                 Name = ThreadURL,
@@ -538,25 +541,36 @@ public partial class frmMain : Form, IMainFom {
 
         if (DownloadHistory.Count > 0) {
             for (int i = 0; i < DownloadHistory.Data.FourChanHistory.Count; i++) {
-                tvHistory.Nodes[0].Nodes.Add(DownloadHistory.Data.FourChanHistory[i], DownloadHistory.Data.FourChanHistory[i]);
+                string url = DownloadHistory.Data.FourChanHistory[i];
+                tvHistory.Nodes[0].Nodes.Add(url, url);
             }
             for (int i = 0; i < DownloadHistory.Data.FourTwentyChanHistory.Count; i++) {
-                tvHistory.Nodes[1].Nodes.Add(DownloadHistory.Data.FourTwentyChanHistory[i], DownloadHistory.Data.FourTwentyChanHistory[i]);
+                string url = DownloadHistory.Data.FourTwentyChanHistory[i];
+                tvHistory.Nodes[1].Nodes.Add(url, url);
             }
             for (int i = 0; i < DownloadHistory.Data.SevenChanHistory.Count; i++) {
-                tvHistory.Nodes[2].Nodes.Add(DownloadHistory.Data.SevenChanHistory[i], DownloadHistory.Data.SevenChanHistory[i]);
+                string url = DownloadHistory.Data.SevenChanHistory[i];
+                tvHistory.Nodes[2].Nodes.Add(url, url);
             }
             for (int i = 0; i < DownloadHistory.Data.EightChanHistory.Count; i++) {
-                tvHistory.Nodes[3].Nodes.Add(DownloadHistory.Data.EightChanHistory[i], DownloadHistory.Data.EightChanHistory[i]);
+                string url = DownloadHistory.Data.EightChanHistory[i];
+                tvHistory.Nodes[3].Nodes.Add(url, url);
             }
             for (int i = 0; i < DownloadHistory.Data.EightKunHistory.Count; i++) {
-                tvHistory.Nodes[4].Nodes.Add(DownloadHistory.Data.EightKunHistory[i], DownloadHistory.Data.EightKunHistory[i]);
+                string url = DownloadHistory.Data.EightKunHistory[i];
+                tvHistory.Nodes[4].Nodes.Add(url, url);
             }
             for (int i = 0; i < DownloadHistory.Data.FchanHistory.Count; i++) {
-                tvHistory.Nodes[5].Nodes.Add(DownloadHistory.Data.FchanHistory[i], DownloadHistory.Data.FchanHistory[i]);
+                string url = DownloadHistory.Data.FchanHistory[i];
+                tvHistory.Nodes[5].Nodes.Add(url, url);
             }
             for (int i = 0; i < DownloadHistory.Data.u18chanHistory.Count; i++) {
-                tvHistory.Nodes[6].Nodes.Add(DownloadHistory.Data.u18chanHistory[i], DownloadHistory.Data.u18chanHistory[i]);
+                string url = DownloadHistory.Data.u18chanHistory[i];
+                tvHistory.Nodes[6].Nodes.Add(url, url);
+            }
+            for (int i = 0; i < DownloadHistory.Data.FoolFuukaHistory.Count; i++) {
+                string url = DownloadHistory.Data.FoolFuukaHistory[i];
+                tvHistory.Nodes[7].Nodes.Add(url, url);
             }
         }
 
@@ -767,7 +781,7 @@ public partial class frmMain : Form, IMainFom {
     private void mOpenDownloadFolder_Click(object sender, EventArgs e) {
         if (lvThreads.SelectedIndices.Count > 0) {
             for (int CurrentThread = lvThreads.SelectedIndices.Count - 1; CurrentThread >= 0; CurrentThread--) {
-                string FoundThreadDownloadPath = Threads[lvThreads.SelectedIndices[CurrentThread]].ThreadInfo.Data.DownloadPath;
+                string FoundThreadDownloadPath = Threads[lvThreads.SelectedIndices[CurrentThread]].ThreadInfo.DownloadPath;
                 if (!string.IsNullOrEmpty(FoundThreadDownloadPath)) {
                     if (System.IO.Directory.Exists(FoundThreadDownloadPath)) {
                         System.Diagnostics.Process.Start(FoundThreadDownloadPath);

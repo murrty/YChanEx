@@ -243,8 +243,8 @@ public partial class frmDownloader : Form {
             if (lvImages.SelectedItems[Post].Tag is not GenericFile PostFile) {
                 continue;
             }
-            if (File.Exists(ThreadInfo.Data.DownloadPath + "\\" + PostFile.SavedFile)) {
-                Process.Start(ThreadInfo.Data.DownloadPath + "\\" + PostFile.SavedFile);
+            if (File.Exists(ThreadInfo.DownloadPath + "\\" + PostFile.SavedFile)) {
+                Process.Start(ThreadInfo.DownloadPath + "\\" + PostFile.SavedFile);
             }
         }
     }
@@ -254,8 +254,8 @@ public partial class frmDownloader : Form {
                 if (lvImages.SelectedItems[Post].Tag is not GenericFile PostFile) {
                     continue;
                 }
-                if (File.Exists(ThreadInfo.Data.DownloadPath + "\\" + PostFile.SavedFile)) {
-                    Process.Start(ThreadInfo.Data.DownloadPath + "\\" + PostFile.SavedFile);
+                if (File.Exists(ThreadInfo.DownloadPath + "\\" + PostFile.SavedFile)) {
+                    Process.Start(ThreadInfo.DownloadPath + "\\" + PostFile.SavedFile);
                 }
             }
             e.Handled = true;
@@ -286,20 +286,20 @@ public partial class frmDownloader : Form {
         }
     }
     private void btnOpenFolder_Click(object sender, EventArgs e) {
-        if (ThreadInfo.Data.DownloadPath == null) {
+        if (ThreadInfo.DownloadPath == null) {
             return;
         }
 
-        if (Directory.Exists(ThreadInfo.Data.DownloadPath)) {
-            Process.Start(ThreadInfo.Data.DownloadPath);
+        if (Directory.Exists(ThreadInfo.DownloadPath)) {
+            Process.Start(ThreadInfo.DownloadPath);
         }
     }
     private void btnClose_Click(object sender, EventArgs e) {
         this.Hide();
     }
     private void mOpenThreadDownloadFolder_Click(object sender, EventArgs e) {
-        if (Directory.Exists(ThreadInfo.Data.DownloadPath)) {
-            Process.Start(ThreadInfo.Data.DownloadPath);
+        if (Directory.Exists(ThreadInfo.DownloadPath)) {
+            Process.Start(ThreadInfo.DownloadPath);
         }
     }
     private void mOpenThreadInBrowser_Click(object sender, EventArgs e) {
@@ -324,6 +324,7 @@ public partial class frmDownloader : Form {
                 case ChanType.FourTwentyChan:
                 case ChanType.EightChan:
                 case ChanType.EightKun:
+                case ChanType.FoolFuuka:
                     Clipboard.SetText(ThreadInfo.ApiLink);
                     break;
 
@@ -340,8 +341,8 @@ public partial class frmDownloader : Form {
             if (lvImages.SelectedItems[Post].Tag is not GenericFile PostFile) {
                 continue;
             }
-            if (File.Exists(ThreadInfo.Data.DownloadPath + "\\" + PostFile.SavedFile)) {
-                Process.Start(ThreadInfo.Data.DownloadPath + "\\" + PostFile.SavedFile);
+            if (File.Exists(ThreadInfo.DownloadPath + "\\" + PostFile.SavedFile)) {
+                Process.Start(ThreadInfo.DownloadPath + "\\" + PostFile.SavedFile);
             }
         }
     }
@@ -433,7 +434,7 @@ public partial class frmDownloader : Form {
             if (lvImages.SelectedItems[Post].Tag is not GenericFile PostFile) {
                 continue;
             }
-            Process.Start("explorer.exe", "/select, \"" + ThreadInfo.Data.DownloadPath + "\\" + PostFile.SavedFile + "\"");
+            Process.Start("explorer.exe", "/select, \"" + ThreadInfo.DownloadPath + "\\" + PostFile.SavedFile + "\"");
         }
     }
     private void cmPosts_Popup(object sender, EventArgs e) {
@@ -487,7 +488,7 @@ public partial class frmDownloader : Form {
                         ThreadInfo.Data.BoardName = ThreadInfo.Data.Board = URLSplit[^3];
                         ThreadInfo.Data.Id = URLSplit[^1].Split('#')[0];
                         ThreadInfo.Data.BoardName = Chans.GetFullBoardName(ThreadInfo);
-                        ThreadInfo.Data.DownloadPath = Path.Combine(Downloads.DownloadPath, "4chan", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
+                        ThreadInfo.DownloadPath = Path.Combine(Downloads.DownloadPath, "4chan", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
                         this.Text = $"4chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                     } break;
                     #endregion
@@ -497,7 +498,7 @@ public partial class frmDownloader : Form {
                         lvImages.Columns.RemoveAt(3);
                         ThreadInfo.Data.BoardName = ThreadInfo.Data.Board = URLSplit[^3];
                         ThreadInfo.Data.Id = URLSplit[^1].Split('#')[0].Replace(".html", "");
-                        ThreadInfo.Data.DownloadPath = Path.Combine(Downloads.DownloadPath, "7chan", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
+                        ThreadInfo.DownloadPath = Path.Combine(Downloads.DownloadPath, "7chan", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
                         this.Text = $"7chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                     } break;
                     #endregion
@@ -507,7 +508,7 @@ public partial class frmDownloader : Form {
                         lvImages.Columns.RemoveAt(3);
                         ThreadInfo.Data.BoardName = ThreadInfo.Data.Board = URLSplit[^3];
                         ThreadInfo.Data.Id = URLSplit[^1].Split('#')[0].Replace(".html", "").Replace(".json", "");
-                        ThreadInfo.Data.DownloadPath = Path.Combine(Downloads.DownloadPath, "8chan", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
+                        ThreadInfo.DownloadPath = Path.Combine(Downloads.DownloadPath, "8chan", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
                         this.Text = $"8chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                     } break;
                     #endregion
@@ -521,7 +522,7 @@ public partial class frmDownloader : Form {
                         }
                         ThreadInfo.Data.BoardName = ThreadInfo.Data.Board = URLSplit[^3];
                         ThreadInfo.Data.Id = URLSplit[^1].Split('#')[0].Replace(".html", "").Replace(".json", "");
-                        ThreadInfo.Data.DownloadPath = Path.Combine(Downloads.DownloadPath, "8kun", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
+                        ThreadInfo.DownloadPath = Path.Combine(Downloads.DownloadPath, "8kun", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
                         this.Text = $"8kun thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                     } break;
                     #endregion
@@ -531,7 +532,7 @@ public partial class frmDownloader : Form {
                         lvImages.Columns.RemoveAt(3);
                         ThreadInfo.Data.BoardName = ThreadInfo.Data.Board = URLSplit[^3];
                         ThreadInfo.Data.Id = URLSplit[^1].Split('#')[0].Replace(".html", "");
-                        ThreadInfo.Data.DownloadPath = Path.Combine(Downloads.DownloadPath, "fchan", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
+                        ThreadInfo.DownloadPath = Path.Combine(Downloads.DownloadPath, "fchan", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
                         this.Text = $"fchan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                     } break;
                     #endregion
@@ -541,8 +542,17 @@ public partial class frmDownloader : Form {
                         lvImages.Columns.RemoveAt(3);
                         ThreadInfo.Data.BoardName = ThreadInfo.Data.Board = URLSplit[^3];
                         ThreadInfo.Data.Id = URLSplit[^1].Split('#')[0];
-                        ThreadInfo.Data.DownloadPath = Path.Combine(Downloads.DownloadPath, "u18chan", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
+                        ThreadInfo.DownloadPath = Path.Combine(Downloads.DownloadPath, "u18chan", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
                         this.Text = $"u18chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
+                    } break;
+                    #endregion
+
+                    #region FoolFuuka
+                    case ChanType.FoolFuuka when !ThreadInfo.Data.UrlHost.IsNullEmptyWhitespace(): {
+                        ThreadInfo.Data.BoardName = ThreadInfo.Data.Board = URLSplit[^3];
+                        ThreadInfo.Data.Id = URLSplit[^1];
+                        ThreadInfo.DownloadPath = Path.Combine(Downloads.DownloadPath, ThreadInfo.Data.UrlHost, ThreadInfo.Data.Board, ThreadInfo.Data.Id);
+                        this.Text = $"{ThreadInfo.Data.UrlHost} thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                     } break;
                     #endregion
 
@@ -553,7 +563,7 @@ public partial class frmDownloader : Form {
                 }
 
                 ThreadInfo.UpdateJsonPath();
-                if (ThreadInfo.Data.DownloadPath != null) {
+                if (ThreadInfo.DownloadPath != null) {
                     btnOpenFolder.Enabled = true;
                 }
             } break;
@@ -561,40 +571,25 @@ public partial class frmDownloader : Form {
             case ThreadEvent.StartDownload: {
                 switch (ThreadInfo.Chan) {
                     case ChanType.FourChan: {
-                        if (ThreadInfo.Data.DownloadPath != $"{Downloads.DownloadPath}\\4chan\\{ThreadInfo.Data.Board}\\{ThreadInfo.Data.Id}") {
-                            ThreadInfo.Data.DownloadPath = $"{Downloads.DownloadPath}\\4chan\\{ThreadInfo.Data.Board}\\{ThreadInfo.Data.Id}";
-                        }
                         Register4chanThread();
                     } break;
                     case ChanType.SevenChan: {
-                        if (ThreadInfo.Data.DownloadPath != $"{Downloads.DownloadPath}\\7chan\\{ThreadInfo.Data.Board}\\{ThreadInfo.Data.Id}") {
-                            ThreadInfo.Data.DownloadPath = $"{Downloads.DownloadPath}\\7chan\\{ThreadInfo.Data.Board}\\{ThreadInfo.Data.Id}";
-                        }
                         Register7chanThread();
                     } break;
                     case ChanType.EightChan: {
-                        if (ThreadInfo.Data.DownloadPath != $"{Downloads.DownloadPath}\\8chan\\{ThreadInfo.Data.Board}\\{ThreadInfo.Data.Id}") {
-                            ThreadInfo.Data.DownloadPath = $"{Downloads.DownloadPath}\\8chan\\{ThreadInfo.Data.Board}\\{ThreadInfo.Data.Id}";
-                        }
                         Register8chanThread();
                     } break;
                     case ChanType.EightKun: {
-                        if (ThreadInfo.Data.DownloadPath != $"{Downloads.DownloadPath}\\8kun\\{ThreadInfo.Data.Board}\\{ThreadInfo.Data.Id}") {
-                            ThreadInfo.Data.DownloadPath = $"{Downloads.DownloadPath}\\8kun\\{ThreadInfo.Data.Board}\\{ThreadInfo.Data.Id}";
-                        }
                         Register8kunThread();
                     } break;
                     case ChanType.fchan: {
-                        if (ThreadInfo.Data.DownloadPath != $"{Downloads.DownloadPath}\\fchan\\{ThreadInfo.Data.Board}\\{ThreadInfo.Data.Id}") {
-                            ThreadInfo.Data.DownloadPath = $"{Downloads.DownloadPath}\\fchan\\{ThreadInfo.Data.Board}\\{ThreadInfo.Data.Id}";
-                        }
                         RegisterfchanThread();
                     } break;
                     case ChanType.u18chan: {
-                        if (ThreadInfo.Data.DownloadPath != $"{Downloads.DownloadPath}\\u18chan\\{ThreadInfo.Data.Board}\\{ThreadInfo.Data.Id}") {
-                            ThreadInfo.Data.DownloadPath = $"{Downloads.DownloadPath}\\u18chan\\{ThreadInfo.Data.Board}\\{ThreadInfo.Data.Id}";
-                        }
                         RegisterU18chanThread();
+                    } break;
+                    case ChanType.FoolFuuka: {
+                        RegisterFoolFuukaThread();
                     } break;
                     default: {
                         MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.NoStatusSet);
@@ -606,7 +601,7 @@ public partial class frmDownloader : Form {
                     return;
                 }
 
-                if (ThreadInfo.Data.DownloadPath != null) {
+                if (ThreadInfo.DownloadPath != null) {
                     btnOpenFolder.Enabled = true;
                 }
 
@@ -802,30 +797,41 @@ public partial class frmDownloader : Form {
 
                 switch (ThreadInfo.Chan) {
                     case ChanType.FourChan: {
+                        ThreadInfo.DownloadPath = Path.Combine(Downloads.DownloadPath, "4chan", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
                         this.Text = $"4chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                     } break;
                     case ChanType.FourTwentyChan: {
+                        ThreadInfo.DownloadPath = Path.Combine(Downloads.DownloadPath, "420chan", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
                         this.Text = $"420chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                     } break;
                     case ChanType.SevenChan: {
                         lvImages.Columns.RemoveAt(3);
+                        ThreadInfo.DownloadPath = Path.Combine(Downloads.DownloadPath, "7chan", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
                         this.Text = $"7chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                     } break;
                     case ChanType.EightChan: {
                         lvImages.Columns.RemoveAt(3);
+                        ThreadInfo.DownloadPath = Path.Combine(Downloads.DownloadPath, "8chan", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
                         this.Text = $"8chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                         ThreadInfo.ThreadUri = new(ThreadInfo.Data.Url);
                     } break;
                     case ChanType.EightKun: {
+                        ThreadInfo.DownloadPath = Path.Combine(Downloads.DownloadPath, "8kun", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
                         this.Text = $"8kun thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                     } break;
                     case ChanType.fchan: {
                         lvImages.Columns.RemoveAt(3);
+                        ThreadInfo.DownloadPath = Path.Combine(Downloads.DownloadPath, "fchan", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
                         this.Text = $"fchan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                     } break;
                     case ChanType.u18chan: {
                         lvImages.Columns.RemoveAt(3);
+                        ThreadInfo.DownloadPath = Path.Combine(Downloads.DownloadPath, "u18chan", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
                         this.Text = $"u18chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
+                    } break;
+                    case ChanType.FoolFuuka: {
+                        ThreadInfo.DownloadPath = Path.Combine(Downloads.DownloadPath, ThreadInfo.Data.UrlHost, ThreadInfo.Data.Board, ThreadInfo.Data.Id);
+                        this.Text = $"{ThreadInfo.Data.UrlHost} thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
                     } break;
 
                     default: {
@@ -834,8 +840,7 @@ public partial class frmDownloader : Form {
                 }
 
                 ThreadInfo.UpdateJsonPath();
-
-                if (ThreadInfo.Data.DownloadPath != null) {
+                if (ThreadInfo.DownloadPath != null) {
                     btnOpenFolder.Enabled = true;
                 }
             } break;
@@ -852,12 +857,12 @@ public partial class frmDownloader : Form {
                 continue;
             }
 
-            string FilePath = Path.Combine(ThreadInfo.Data.DownloadPath, PostFile.SavedFile);
+            string FilePath = Path.Combine(ThreadInfo.DownloadPath, PostFile.SavedFile);
             if (File.Exists(FilePath)) {
                 File.Delete(FilePath);
             }
 
-            string ThumbnailPath = Path.Combine(ThreadInfo.Data.DownloadPath, PostFile.SavedThumbnailFile);
+            string ThumbnailPath = Path.Combine(ThreadInfo.DownloadPath, PostFile.SavedThumbnailFile);
             if (File.Exists(ThumbnailPath)) {
                 File.Delete(ThumbnailPath);
             }
@@ -988,6 +993,18 @@ public partial class frmDownloader : Form {
                     this.Text = string.Format(ThreadNameBuffer, Chans.GetFullBoardName(ThreadInfo), ThreadInfo.Data.Id);
                 }
                 break;
+            case ChanType.FoolFuuka:
+                ThreadNameBuffer = ThreadInfo.Data.UrlHost + " thread - {0} - {1}";
+                if (ThreadInfo.Data.RetrievedThreadName) {
+                    this.Text = string.Format(ThreadNameBuffer, ThreadInfo.Data.Board, ThreadInfo.Data.ThreadName);
+                    if (ApplyToMainForm && !ThreadInfo.Data.SetCustomName) {
+                        MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadUpdateName);
+                    }
+                }
+                else {
+                    this.Text = string.Format(ThreadNameBuffer, ThreadInfo.Data.Board, ThreadInfo.Data.Id);
+                }
+                break;
             default:
                 this.Text = string.Format(ThreadNameBuffer, ThreadInfo.Data.Board, ThreadInfo.Data.Id);
                 return;
@@ -1100,10 +1117,10 @@ public partial class frmDownloader : Form {
         ThreadInfo.CurrentActivity = ThreadStatus.ThreadDownloading;
         ThreadInfo.DownloadingFiles = true;
 
-        string ThumbnailDirectory = Path.Combine(ThreadInfo.Data.DownloadPath, "thumb");
+        string ThumbnailDirectory = Path.Combine(ThreadInfo.DownloadPath, "thumb");
 
-        if (!Directory.Exists(ThreadInfo.Data.DownloadPath)) {
-            Directory.CreateDirectory(ThreadInfo.Data.DownloadPath);
+        if (!Directory.Exists(ThreadInfo.DownloadPath)) {
+            Directory.CreateDirectory(ThreadInfo.DownloadPath);
         }
         if (Downloads.SaveThumbnails && !Directory.Exists(ThumbnailDirectory)) {
             Directory.CreateDirectory(ThumbnailDirectory);
@@ -1129,8 +1146,8 @@ public partial class frmDownloader : Form {
                     // Set the icon in the list to "Downloading".
                     this.Invoke(() => PostFile.ListViewItem.ImageIndex = DownloadingImage);
 
-                    string FileDownloadPath = Path.Combine(ThreadInfo.Data.DownloadPath, PostFile.SavedFile);
-                    string ThumbFileDownloadPath = Path.Combine(ThreadInfo.Data.DownloadPath, PostFile.SavedThumbnailFile);
+                    string FileDownloadPath = Path.Combine(ThreadInfo.DownloadPath, PostFile.SavedFile);
+                    string ThumbFileDownloadPath = Path.Combine(ThreadInfo.DownloadPath, PostFile.SavedThumbnailFile);
 
                     // Check for existing files.
                     if (!File.Exists(FileDownloadPath)) {
@@ -1255,12 +1272,6 @@ public partial class frmDownloader : Form {
         }
         return FileNameSuffix;
     }
-    private string GetLastModifiedTime() {
-        if (!ThreadInfo.Data.LastModified.HasValue) {
-            return "not supported";
-        }
-        return ThreadInfo.Data.LastModified.ToString();
-    }
     private void HandleBadFileName(GenericFile File) {
         Log.Write("Could not handle file " + File.FileId);
         this.Invoke(() => File.ListViewItem.ImageIndex = ErrorImage);
@@ -1281,7 +1292,7 @@ public partial class frmDownloader : Form {
     private void UpdateCounts() {
         lbPostsParsed.Text = "posts parsed: " + ThreadInfo.Data.ParsedPostIds.Count.ToString();
         lbNumberOfFiles.Text = $"number of files:  {ThreadInfo.Data.DownloadedImagesCount} / {ThreadInfo.Data.ThreadImagesCount} (~{HtmlControl.GetSize(ThreadInfo.Data.EstimatedSize)})";
-        lbLastModified.Text = "last modified: " + GetLastModifiedTime();
+        lbLastModified.Text = "last modified: " + (ThreadInfo.Data.LastModified.HasValue ? ThreadInfo.Data.LastModified.ToString() : "not supported");
     }
     private void PrepareDownload() {
         this.Invoke(() => {
@@ -1301,7 +1312,7 @@ public partial class frmDownloader : Form {
                 CurrentFile.SavedThumbnailFile = ThumbFileName;
 
                 if (!Downloads.AllowFileNamesGreaterThan255) {
-                    int FileNameLength = ThreadInfo.Data.DownloadPath.Length +
+                    int FileNameLength = ThreadInfo.DownloadPath.Length +
                         FileName.Length +
                         CurrentFile.FileExtension!.Length +
                         Suffix.Length +
@@ -1317,7 +1328,7 @@ public partial class frmDownloader : Form {
                     }
 
                     if (Downloads.SaveThumbnails) {
-                        int ThumbFileNameLength = ThreadInfo.Data.DownloadPath.Length +
+                        int ThumbFileNameLength = ThreadInfo.DownloadPath.Length +
                             ThumbFileName.Length +
                             CurrentFile.ThumbnailFileExtension!.Length +
                             8; // ext period (1), path separators (2), "thumb" (5)
@@ -1373,7 +1384,7 @@ public partial class frmDownloader : Form {
                 CurrentFile.SavedThumbnailFile = ThumbFileName;
 
                 if (!Downloads.AllowFileNamesGreaterThan255) {
-                    int FileNameLength = ThreadInfo.Data.DownloadPath.Length +
+                    int FileNameLength = ThreadInfo.DownloadPath.Length +
                         FileName.Length +
                         CurrentFile.FileExtension!.Length +
                         Suffix.Length +
@@ -1389,7 +1400,7 @@ public partial class frmDownloader : Form {
                     }
 
                     if (Downloads.SaveThumbnails) {
-                        int ThumbFileNameLength = ThreadInfo.Data.DownloadPath.Length +
+                        int ThumbFileNameLength = ThreadInfo.DownloadPath.Length +
                             ThumbFileName.Length +
                             CurrentFile.ThumbnailFileExtension!.Length +
                             8; // ext period (1), path separators (2), "thumb" (5)
@@ -1450,7 +1461,7 @@ public partial class frmDownloader : Form {
                         lvi.SubItems[3].Text = CurrentFile.FileHash;
                         lvi.ImageIndex = CurrentFile.Status switch {
                             FileDownloadStatus.Downloaded =>
-                                File.Exists(Path.Combine(ThreadInfo.Data.DownloadPath, CurrentFile.SavedFile)) ?
+                                File.Exists(Path.Combine(ThreadInfo.DownloadPath, CurrentFile.SavedFile)) ?
                                     ReloadedDownloadedImage : ReloadedMissingImage,
                             FileDownloadStatus.Error => ErrorImage,
                             FileDownloadStatus.FileNotFound => _404Image,
@@ -1482,7 +1493,7 @@ public partial class frmDownloader : Form {
                         lvi.SubItems[2].Text = CurrentFile.OriginalFileName;
                         lvi.ImageIndex = CurrentFile.Status switch {
                             FileDownloadStatus.Downloaded =>
-                                File.Exists(Path.Combine(ThreadInfo.Data.DownloadPath, CurrentFile.SavedFile)) ?
+                                File.Exists(Path.Combine(ThreadInfo.DownloadPath, CurrentFile.SavedFile)) ?
                                     ReloadedDownloadedImage : ReloadedMissingImage,
                             FileDownloadStatus.Error => ErrorImage,
                             FileDownloadStatus.FileNotFound => _404Image,
@@ -1524,15 +1535,15 @@ public partial class frmDownloader : Form {
                 }
                 CancellationToken.Token.ThrowIfCancellationRequested();
 
+                // Request that will be sent to the API.
+                HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.ApiLink);
+                // Should more headers be added?
+
                 // Main loop
                 do {
                     // Set the activity to scanning.
                     ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
-
-                    // Request that will be sent to the API.
-                    HttpRequestMessage Request = new(HttpMethod.Get,
-                        $"https://a.4cdn.org/{ThreadInfo.Data.Board}/thread/{ThreadInfo.Data.Id}.json");
-                    // Should more headers be added?
+                    RequestMessage.ResetRequest(Request);
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
@@ -1665,14 +1676,15 @@ public partial class frmDownloader : Form {
                 }
                 CancellationToken.Token.ThrowIfCancellationRequested();
 
+                // Request that will be sent to the API.
+                HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.Data.Url);
+                // Should more headers be added?
+
                 // Main loop
                 do {
                     // Set the activity to scanning.
                     ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
-
-                    // Request that will be sent to the API.
-                    HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.Data.Url);
-                    // Should more headers be added?
+                    RequestMessage.ResetRequest(Request);
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
@@ -1835,15 +1847,15 @@ public partial class frmDownloader : Form {
                 }
                 CancellationToken.Token.ThrowIfCancellationRequested();
 
+                // Request that will be sent to the API.
+                HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.ApiLink);
+                // Should more headers be added?
+
                 // Main loop
                 do {
                     // Set the activity to scanning.
                     ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
-
-                    // Request that will be sent to the API.
-                    HttpRequestMessage Request = new(HttpMethod.Get,
-                        $"https://8chan.moe/{ThreadInfo.Data.Board}/res/{ThreadInfo.Data.Id}.json");
-                    // Should more headers be added?
+                    RequestMessage.ResetRequest(Request);
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
@@ -2005,15 +2017,15 @@ public partial class frmDownloader : Form {
                 }
                 CancellationToken.Token.ThrowIfCancellationRequested();
 
+                // Request that will be sent to the API.
+                HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.ApiLink);
+                // Should more headers be added?
+
                 // Main loop
                 do {
                     // Set the activity to scanning.
                     ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
-
-                    // Request that will be sent to the API.
-                    HttpRequestMessage Request = new(HttpMethod.Get,
-                        $"https://8kun.top/{ThreadInfo.Data.Board}/res/{ThreadInfo.Data.Id}.json");
-                    // Should more headers be added?
+                    RequestMessage.ResetRequest(Request);
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
@@ -2149,14 +2161,15 @@ public partial class frmDownloader : Form {
                 }
                 CancellationToken.Token.ThrowIfCancellationRequested();
 
+                // Request that will be sent to the API.
+                HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.Data.Url);
+                // Should more headers be added?
+
                 // Main loop
                 do {
                     // Set the activity to scanning.
                     ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
-
-                    // Request that will be sent to the API.
-                    HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.Data.Url);
-                    // Should more headers be added?
+                    RequestMessage.ResetRequest(Request);
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
@@ -2298,14 +2311,15 @@ public partial class frmDownloader : Form {
                 }
                 CancellationToken.Token.ThrowIfCancellationRequested();
 
+                // Request that will be sent to the API.
+                HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.Data.Url);
+                // Should more headers be added?
+
                 // Main loop
                 do {
                     // Set the activity to scanning.
                     ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
-
-                    // Request that will be sent to the API.
-                    HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.Data.Url);
-                    // Should more headers be added?
+                    RequestMessage.ResetRequest(Request);
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
@@ -2425,6 +2439,153 @@ public partial class frmDownloader : Form {
             Log.Write("Exiting thread " + ThreadInfo.CurrentActivity);
         }) {
             Name = $"u18chan thread {ThreadInfo.Data.Board}/{ThreadInfo.Data.Id}"
+        };
+    }
+    private void RegisterFoolFuukaThread() {
+        this.DownloadThread = new Thread(async () => {
+            try {
+                // Check the thread board and id for null value
+                // Can't really parse the API without them.
+                if (string.IsNullOrWhiteSpace(ThreadInfo.Data.Board) || string.IsNullOrWhiteSpace(ThreadInfo.Data.Id) || string.IsNullOrWhiteSpace(ThreadInfo.Data.UrlHost)) {
+                    ThreadInfo.CurrentActivity = ThreadStatus.ThreadInfoNotSet;
+                    ManageThread(ThreadEvent.AfterDownload);
+                    return;
+                }
+
+                // Request that will be sent to the API.
+                HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.ApiLink);
+                // Should more headers be added?
+
+                // Main loop
+                do {
+                    // Set the activity to scanning.
+                    ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
+                    RequestMessage.ResetRequest(Request);
+
+                    // Try to get the response.
+                    this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
+                    using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
+                    CancellationToken.Token.ThrowIfCancellationRequested();
+
+                    // If the response is null, it's a bad result; break the thread.
+                    if (Response == null) {
+                        HandleStatusCode();
+                        if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
+                            ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
+                            this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+                            ResetThread.Reset();
+                            ResetThread.Wait();
+                            continue;
+                        }
+                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+                        break;
+                    }
+
+                    // Get the json.
+                    string CurrentJson = await GetStringAsync(Response, CancellationToken.Token);
+
+                    // Serialize the json data into a class object.
+                    this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
+                    var ThreadData = FoolFuuka.Deserialize(CurrentJson);
+
+                    CancellationToken.Token.ThrowIfCancellationRequested();
+
+                    // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
+                    if (ThreadData is null || ThreadData.Length < 1) {
+                        ThreadInfo.CurrentActivity = ThreadStatus.NoThreadPosts;
+                        break;
+                    }
+
+                    // Check for the board name
+                    if (!ThreadInfo.Data.RetrievedBoardName) {
+                        ThreadInfo.Data.BoardName = ThreadData[0].board!.name;
+
+                        // HTML
+                        ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo);
+                        ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
+                        if (ThreadInfo.ThreadReloaded) {
+                            LoadExistingPosts();
+                            ThreadReloaded();
+                        }
+                        CancellationToken.Token.ThrowIfCancellationRequested();
+                        ThreadInfo.Data.RetrievedBoardName = true;
+                    }
+
+                    // Checks if the thread name has been retrieved, and retrieves it if not.
+                    // It was supposed to be an option, but honestly, it's not a problematic inclusion.
+                    if (!ThreadInfo.Data.RetrievedThreadName && !ThreadInfo.Data.SetCustomName) {
+                        // NewName is the name that will be used to ID the thread.
+                        // If the comment doesn't exist, it'll just use the ID & URL.
+                        // If the length is 0, override the set info with the ID & URL.
+                        string NewName = FileHandler.GetShortThreadName(
+                            Subtitle: ThreadData[0].title,
+                            Comment: ThreadData[0].comment_sanitized,
+                            FallbackName: ThreadInfo.Data.Id);
+
+                        // Update the data with the new name.
+                        ThreadInfo.Data.ThreadName = NewName;
+                        ThreadInfo.Data.RetrievedThreadName = true;
+                        ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.Replace("<title></title>",
+                            $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 4chan</title>");
+                        ThreadInfo.Data.HtmlThreadNameSet = true;
+
+                        // Update the name application wide.
+                        this.Invoke(() => UpdateThreadName(true));
+                    }
+
+                    // Start counting through the posts.
+                    for (int PostIndex = 0; PostIndex < ThreadData.Length; PostIndex++) {
+                        // Set the temporary post to the looped index post.
+                        FoolFuukaPost Post = ThreadData[PostIndex];
+                        if (!ThreadInfo.Data.ParsedPostIds.Contains(Post.num)) {
+                            GenericPost CurrentPost = new(Post) {
+                                FirstPost = PostIndex == 0
+                            };
+
+                            AddNewPost(CurrentPost);
+                        }
+
+                        CancellationToken.Token.ThrowIfCancellationRequested();
+                    }
+
+                    // update the form totals and status.
+                    PrepareDownload();
+
+                    // Download files.
+                    await DownloadFilesAsync(CancellationToken.Token);
+                    CancellationToken.Token.ThrowIfCancellationRequested();
+
+                    // If the thread is aborted, just break the loop -- its already managed.
+                    if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
+                        break;
+                    }
+
+                    //// check for archive flag in the post.
+                    //if (ThreadData[0].archived) {
+                    //    ThreadInfo.Data.ThreadArchived = true;
+                    //    ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsArchived;
+                    //    this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+                    //    break;
+                    //}
+
+                    // Set the activity.
+                    ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
+
+                    // Invoke the post-download management.
+                    this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+
+                    // Synchronously wait, since this thread is separate.
+                    ResetThread.Reset();
+                    ResetThread.Wait();
+                    CancellationToken.Token.ThrowIfCancellationRequested();
+                } while (ThreadInfo.CurrentActivity is not (ThreadStatus.ThreadIs404 or ThreadStatus.ThreadIsAborted or ThreadStatus.ThreadIsArchived));
+            }
+            catch (ThreadAbortException) { }
+            catch (TaskCanceledException) { }
+            catch (OperationCanceledException) { }
+            Log.Write("Exiting thread " + ThreadInfo.CurrentActivity);
+        }) {
+            Name = $"{ThreadInfo.Data.UrlHost} thread {ThreadInfo.Data.Board}/{ThreadInfo.Data.Id}"
         };
     }
 }

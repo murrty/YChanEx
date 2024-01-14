@@ -46,7 +46,7 @@ public sealed class FoolFuukaFile {
     public string? media_orig { get; set; }
 
     [DataMember]
-    public object? exif { get; set; }
+    public string? exif { get; set; }
 
     [DataMember]
     public int total { get; set; }
@@ -61,7 +61,7 @@ public sealed class FoolFuukaFile {
     public string? safe_media_hash { get; set; }
 
     [DataMember]
-    public object? remote_media_link { get; set; }
+    public string? remote_media_link { get; set; }
 
     [DataMember]
     public string? media_link { get; set; }

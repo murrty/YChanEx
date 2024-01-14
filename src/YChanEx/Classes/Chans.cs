@@ -1,35 +1,19 @@
 ﻿namespace YChanEx;
 
+using System.Text.RegularExpressions;
+
 /// <summary>
 /// This class contains methods for translating and managing chan threads.
 /// Most backend is here, except for individual chan apis and parsing.
 /// </summary>
 internal static class Chans {
-    #region Regex
-    //lang=regex
-    public const string FourChanURL =
-        @"(boards\.)?4chan(nel)?\.org\/[a-zA-Z0-9]*?\/thread\/\d+";
-
-    //lang=regex
-    public const string SevenChanURL =
-        @"7chan\.org\/[a-zA-Z0-9]*?\/res\/\d+";
-
-    //lang=regex
-    public const string EightChanURL =
-        @"8chan\.(moe|se|cc)\/(?!(qresearch)|(qnotables)|(pnd)|(midnightriders)|(qrb)|(philogeometric)|(qsocial)|(qrnews)|(thestorm)|(patriotsfight)|(projectdcomms)|(greatawakening))[a-zA-Z0-9]*?\/res\/\d+\.(html|json)";
-
-    //lang=regex
-    public const string EightKunURL =
-        @"8kun\.top\/[a-zA-Z0-9]*?\/res\/\d+\.(html|json)";
-
-    //lang=regex
-    public const string fchanURL =
-        @"fchan\.us\/[a-zA-Z0-9]*?\/res\/\d+\.(html)";
-
-    //lang=regex
-    public const string u18chanURL =
-        @"u18chan\.com\/(board\/u18chan\/)?[a-zA-Z0-9]*?\/topic\/\d+";
-    #endregion
+    private static readonly Regex FourChanRegex = new(@"^(http(s)?:\/\/)?(boards\.)?4chan(nel)?\.org\/[a-zA-Z0-9]*?\/thread\/\d+", RegexOptions.IgnoreCase);
+    private static readonly Regex SevenChanRegex = new(@"^(http(s)?:\/\/)?(www\.)?7chan\.org\/[a-zA-Z0-9]*?\/res\/\d+", RegexOptions.IgnoreCase);
+    private static readonly Regex EightChanRegex = new(@"^(http(s)?:\/\/)?(www\.)?8chan\.(moe|se|cc)\/[a-zA-Z0-9]*?\/res\/\d+\.(html|json)", RegexOptions.IgnoreCase);
+    //private static readonly Regex EightKunRegex = new(@"^(http(s)?:\/\/)?(www\.)?8kun\.top\/(?!(qresearch)|(qnotables)|(pnd)|(midnightriders)|(qrb)|(philogeometric)|(qsocial)|(qrnews)|(thestorm)|(patriotsfight)|(projectdcomms)|(greatawakening))[a-zA-Z0-9]*?\/res\/\d+\.(html|json)", RegexOptions.IgnoreCase);
+    private static readonly Regex FChanRegex = new(@"^(http(s)?:\/\/)?(www\.)?fchan\.us\/[a-zA-Z0-9]*?\/res\/\d+\.(html)", RegexOptions.IgnoreCase);
+    private static readonly Regex U18ChanRegex = new(@"^(http(s)?:\/\/)?(www\.)?u18chan\.com\/(board\/u18chan\/)?[a-zA-Z0-9]*?\/topic\/\d+", RegexOptions.IgnoreCase);
+    private static readonly Regex FoolFuukaRegex = new(@"^(http(s)?:\/\/)?(arch\.b4k\.co)|((www\.)?(archived\.moe|desuarchive\.org))\/[a-zA-Z0-9_]\/thread\/\d+", RegexOptions.IgnoreCase);
 
     /// <summary>
     /// Whether the input <paramref name="URL"/> is supported by the program, with <paramref name="Type"/> as the output <see cref="ChanType"/> if true.
@@ -38,21 +22,21 @@ internal static class Chans {
     /// <param name="Type">The out-ChanType chan of the url.</param>
     /// <returns></returns>
     public static bool SupportedChan(string URL, out ChanType Type) {
-        if (System.Text.RegularExpressions.Regex.IsMatch(URL, FourChanURL)) {
+        if (FourChanRegex.IsMatch(URL)) {
             Type = ChanType.FourChan;
             return true;
         }
-        if (System.Text.RegularExpressions.Regex.IsMatch(URL, SevenChanURL)) {
+        if (SevenChanRegex.IsMatch(URL)) {
             Type = ChanType.SevenChan;
             return true;
         }
-        if (System.Text.RegularExpressions.Regex.IsMatch(URL, EightChanURL)) {
+        if (EightChanRegex.IsMatch(URL)) {
             Type = ChanType.EightChan;
             return true;
         }
 
         /* 8kun is dead, this check disables it from being used. May re-enable in the future.
-        if (System.Text.RegularExpressions.Regex.IsMatch(URL, EightKunURL)) {
+        if (EightKunRegex.IsMatch(URL)) {
             if (StupidFuckingBoard(ChanType.EightKun, URL)) {
                 //Log.Write("This program doesn't support archiving boards with content that is considered highly fucking stupid.");
                 System.Windows.Forms.MessageBox.Show("This program doesn't support archiving boards with content that is considered highly fucking stupid.", "YChanEx");
@@ -64,12 +48,17 @@ internal static class Chans {
         }
         */
 
-        if (System.Text.RegularExpressions.Regex.IsMatch(URL, fchanURL)) {
+        if (FChanRegex.IsMatch(URL)) {
             Type = ChanType.fchan;
             return true;
         }
-        if (System.Text.RegularExpressions.Regex.IsMatch(URL, u18chanURL)) {
+        if (U18ChanRegex.IsMatch(URL)) {
             Type = ChanType.u18chan;
+            return true;
+        }
+
+        if (FoolFuukaRegex.IsMatch(URL)) {
+            Type = ChanType.FoolFuuka;
             return true;
         }
 

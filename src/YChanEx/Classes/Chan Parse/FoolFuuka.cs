@@ -1,9 +1,9 @@
 ﻿#nullable enable
-using System.Text;
 namespace YChanEx.Parsers;
 using SoftCircuits.HtmlMonkey;
 using YChanEx.Posts;
 internal static class FoolFuuka {
+    const string BadLinkTag = "aremovetag";
     public static FoolFuukaPost[]? Deserialize(string json) {
         var Deserialize = json.JsonDeserialize<Dictionary<ulong, FoolFuukaThread>>()
             .FirstOrDefault().Value;
@@ -34,7 +34,6 @@ internal static class FoolFuuka {
         if (message.IsNullEmptyWhitespace()) {
             return null;
         }
-        // TODO: translate message html
         var htDoc = HtmlDocument.FromHtml("<body>" + message + "</body>", HtmlParseOptions.RemoveEmptyTextNodes | HtmlParseOptions.TrimTextNodes);
         return GetMessage((HtmlElementNode)htDoc.RootNodes[0]);
     }
@@ -46,7 +45,7 @@ internal static class FoolFuuka {
             for (int i = 0; i < node.Children.Count; i++) {
                 if (node.Children[i] is HtmlElementNode element) {
                     CleanMessageNode(element);
-                    if (element.TagName == "linkbad") {
+                    if (element.TagName == BadLinkTag) {
                         node.Children[i] = new HtmlTextNode(element.Text);
                     }
                 }
@@ -91,7 +90,7 @@ internal static class FoolFuuka {
         && node.Attributes.ContainsWithAnyValue("href", StringComparison.InvariantCultureIgnoreCase)
         && node.Attributes.ContainsWithValue("rel", "nofollow", StringComparison.InvariantCultureIgnoreCase)) {
             node.Attributes.Clear();
-            node.TagName = "linkbad";
+            node.TagName = BadLinkTag;
         }
 
         if (node.Children.Count > 0) {

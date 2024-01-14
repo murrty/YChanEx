@@ -31,6 +31,7 @@
             System.Windows.Forms.TreeNode treeNode5 = new System.Windows.Forms.TreeNode("8kun");
             System.Windows.Forms.TreeNode treeNode6 = new System.Windows.Forms.TreeNode("fchan");
             System.Windows.Forms.TreeNode treeNode7 = new System.Windows.Forms.TreeNode("u18chan");
+            System.Windows.Forms.TreeNode treeNode8 = new System.Windows.Forms.TreeNode("foolfuuka");
             this.btnAdd = new System.Windows.Forms.Button();
             this.txtThreadURL = new System.Windows.Forms.TextBox();
             this.mmMain = new System.Windows.Forms.MainMenu(this.components);
@@ -79,7 +80,7 @@
             // btnAdd
             // 
             this.btnAdd.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnAdd.Location = new System.Drawing.Point(394, 2);
+            this.btnAdd.Location = new System.Drawing.Point(274, 2);
             this.btnAdd.Name = "btnAdd";
             this.btnAdd.Size = new System.Drawing.Size(48, 25);
             this.btnAdd.TabIndex = 1;
@@ -93,7 +94,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtThreadURL.Location = new System.Drawing.Point(12, 5);
             this.txtThreadURL.Name = "txtThreadURL";
-            this.txtThreadURL.Size = new System.Drawing.Size(376, 22);
+            this.txtThreadURL.Size = new System.Drawing.Size(256, 22);
             this.txtThreadURL.TabIndex = 0;
             this.txtThreadURL.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtThreadURL_KeyPress);
             // 
@@ -241,7 +242,7 @@
             // 
             this.chkCreateThreadInTheBackground.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.chkCreateThreadInTheBackground.AutoSize = true;
-            this.chkCreateThreadInTheBackground.Location = new System.Drawing.Point(258, 32);
+            this.chkCreateThreadInTheBackground.Location = new System.Drawing.Point(138, 32);
             this.chkCreateThreadInTheBackground.Name = "chkCreateThreadInTheBackground";
             this.chkCreateThreadInTheBackground.Size = new System.Drawing.Size(194, 17);
             this.chkCreateThreadInTheBackground.TabIndex = 2;
@@ -257,7 +258,7 @@
             this.tabControl1.Location = new System.Drawing.Point(0, 33);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(454, 188);
+            this.tabControl1.Size = new System.Drawing.Size(334, 161);
             this.tabControl1.TabIndex = 4;
             // 
             // tpCurrentQueue
@@ -317,13 +318,16 @@
             this.tpHistory.Location = new System.Drawing.Point(4, 22);
             this.tpHistory.Name = "tpHistory";
             this.tpHistory.Padding = new System.Windows.Forms.Padding(3);
-            this.tpHistory.Size = new System.Drawing.Size(446, 162);
+            this.tpHistory.Size = new System.Drawing.Size(326, 135);
             this.tpHistory.TabIndex = 1;
             this.tpHistory.Text = "Thread history";
             this.tpHistory.UseVisualStyleBackColor = true;
             // 
             // tvHistory
             // 
+            this.tvHistory.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.tvHistory.Location = new System.Drawing.Point(8, 29);
             this.tvHistory.Name = "tvHistory";
             treeNode1.Name = "node4chan";
@@ -340,6 +344,8 @@
             treeNode6.Text = "fchan";
             treeNode7.Name = "nodeu18chan";
             treeNode7.Text = "u18chan";
+            treeNode8.Name = "foolfuuka";
+            treeNode8.Text = "foolfuuka";
             this.tvHistory.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
             treeNode1,
             treeNode2,
@@ -347,8 +353,9 @@
             treeNode4,
             treeNode5,
             treeNode6,
-            treeNode7});
-            this.tvHistory.Size = new System.Drawing.Size(340, 190);
+            treeNode7,
+            treeNode8});
+            this.tvHistory.Size = new System.Drawing.Size(220, 100);
             this.tvHistory.TabIndex = 5;
             this.tvHistory.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvHistory_AfterSelect);
             // 
@@ -356,7 +363,7 @@
             // 
             this.btnHistoryClear.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnHistoryClear.Enabled = false;
-            this.btnHistoryClear.Location = new System.Drawing.Point(354, 194);
+            this.btnHistoryClear.Location = new System.Drawing.Point(234, 167);
             this.btnHistoryClear.Name = "btnHistoryClear";
             this.btnHistoryClear.Size = new System.Drawing.Size(84, 23);
             this.btnHistoryClear.TabIndex = 4;
@@ -368,7 +375,7 @@
             // 
             this.btnHistoryRemove.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnHistoryRemove.Enabled = false;
-            this.btnHistoryRemove.Location = new System.Drawing.Point(354, 56);
+            this.btnHistoryRemove.Location = new System.Drawing.Point(234, 56);
             this.btnHistoryRemove.Name = "btnHistoryRemove";
             this.btnHistoryRemove.Size = new System.Drawing.Size(86, 23);
             this.btnHistoryRemove.TabIndex = 3;
@@ -380,7 +387,7 @@
             // 
             this.btnHistoryRedownload.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnHistoryRedownload.Enabled = false;
-            this.btnHistoryRedownload.Location = new System.Drawing.Point(354, 27);
+            this.btnHistoryRedownload.Location = new System.Drawing.Point(234, 27);
             this.btnHistoryRedownload.Name = "btnHistoryRedownload";
             this.btnHistoryRedownload.Size = new System.Drawing.Size(86, 23);
             this.btnHistoryRedownload.TabIndex = 2;
@@ -414,14 +421,14 @@
             this.pnUpper.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnUpper.Location = new System.Drawing.Point(0, 0);
             this.pnUpper.Name = "pnUpper";
-            this.pnUpper.Size = new System.Drawing.Size(454, 33);
+            this.pnUpper.Size = new System.Drawing.Size(334, 33);
             this.pnUpper.TabIndex = 5;
             // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(454, 221);
+            this.ClientSize = new System.Drawing.Size(334, 194);
             this.Controls.Add(this.chkCreateThreadInTheBackground);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.pnUpper);

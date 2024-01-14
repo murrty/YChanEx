@@ -102,7 +102,7 @@ public sealed class FoolFuukaPost {
     public object[]? extra_data { get; set; }
 
     [DataMember]
-    public object? exif { get; set; }
+    public string? exif { get; set; }
 
     [DataMember]
     public FoolFuukaFile? media { get; set; }

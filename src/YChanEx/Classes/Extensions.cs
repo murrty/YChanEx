@@ -19,8 +19,19 @@ internal static class Extensions {
         return value.Length == 0;
     }
     public static void ForEach<T>(this IEnumerable<T> enumerable, Action<T> a) {
-        foreach (T item in enumerable)
+        foreach (T item in enumerable) {
             a(item);
+        }
+    }
+    public static void For<T>(this IList<T> values, Action<T> a) {
+        for (int i = 0; i < values.Count; i++) {
+            a(values[i]);
+        }
+    }
+    public static void For<T>(this T[] values, Action<T> a) {
+        for (int i = 0; i < values.Length; i++) {
+            a(values[i]);
+        }
     }
 
     public static string? RemoveFromStart(this string? input, string value) {

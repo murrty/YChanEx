@@ -132,9 +132,7 @@ internal static class SystemRegistry {
         }
         else {
             using RegistryKey SubKey = UserRegistryKey.CreateSubKey(SubKeyPath, true);
-            if (SubKey is not null) {
-                SubKey.SetValue(KeyName, Value);
-            }
+            SubKey?.SetValue(KeyName, Value);
         }
     }
     /// <summary>
@@ -143,8 +141,6 @@ internal static class SystemRegistry {
     /// <param name="KeyName"></param>
     public static void Delete(string KeyName, string SubKeyPath) {
         using RegistryKey? SubKey = UserRegistryKey.OpenSubKey(SubKeyPath, true);
-        if (SubKey is not null) {
-            SubKey.DeleteValue(KeyName);
-        }
+        SubKey?.DeleteValue(KeyName);
     }
 }

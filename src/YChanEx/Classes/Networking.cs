@@ -8,10 +8,10 @@ using System.Text;
 using System.Threading;
 using murrty.controls;
 internal static class Networking {
-    public static string DownloadString(string InputURL, DateTime ModifiedSince = default) {
+    public static string DownloadString(string url, DateTime ModifiedSince = default) {
         try {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(InputURL);
+            HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(url);
             Request.UserAgent = Advanced.UserAgent;
             Request.Method = "GET";
             if (ModifiedSince != default)
@@ -25,17 +25,23 @@ internal static class Networking {
             throw;
         }
     }
-    public static string CleanURL(string URL) {
-        if (URL.StartsWith("http://")) {
-            URL = URL[7..];
+    public static string CleanURL(string url) {
+        if (url.StartsWith("http://")) {
+            url = url[7..];
         }
-        if (URL.StartsWith("www.")) {
-            URL = URL[4..];
+        if (url.StartsWith("www.")) {
+            url = url[4..];
         }
-        if (!URL.StartsWith("https://")) {
-            URL = "https://" + URL;
+        if (!url.StartsWith("https://")) {
+            url = "https://" + url;
         }
-        return URL.Split('#')[0];
+        return url.Split('#')[0].TrimEnd('/');
+    }
+    public static string GetHost(string url) {
+        if (url.StartsWith("https://") || url.StartsWith("http://")) {
+            return url[5..url.IndexOf('/', 8)].TrimStart(':', '/');
+        }
+        return url[..url.IndexOf('/')].TrimStart(':', '/');
     }
 
     public static async Task<HttpResponseMessage?> GetResponseAsync(HttpRequestMessage request, HttpClient downloadClient, CancellationToken token) {

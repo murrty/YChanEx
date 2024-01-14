@@ -88,6 +88,7 @@ internal static class FileHandler {
                 //.Replace("&lt;", "<")  // But I'm keeping them commented.
                 //.Replace("&amp;", "&") // Just in case.
                 .Replace("</a>", "") // the end of any quote-link urls.
+                .Replace("\n", " ")
                 .Trim(); // Cleans up any trailing spaces, new-line and the windows \n, too.
 
             NewName = System.Text.RegularExpressions.Regex.Replace(NewName, "<a href=\\\"(.*?)\\\" class=\\\"quotelink\\\">", "");

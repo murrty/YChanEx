@@ -125,7 +125,6 @@ internal static class HtmlControl {
             .reply:target {
                 background: #1d1d1d !important;
                 border: 1px solid #111 !important;
-                padding: 2px;
             }
 
             .fileText a {
@@ -135,6 +134,7 @@ internal static class HtmlControl {
                 white-space:nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+                margin-left: 8px;
             }
 
             div.reply .fileText a {
@@ -442,7 +442,7 @@ $"""
 
             _ =>
 $"""
-<img src="{(Downloads.SaveThumbnails ? "thumb/" + File.SavedThumbnailFile : File.SavedFile)}" {GetImageThumbnailDimension(File)}/>
+<img src="{(Downloads.SaveThumbnails && !File.SavedThumbnailFile.IsNullEmptyWhitespace() ? "thumb/" + File.SavedThumbnailFile : File.SavedFile)}" {GetImageThumbnailDimension(File)}/>
 """,
         };
     }

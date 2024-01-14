@@ -29,6 +29,10 @@ public sealed class ThreadInfo {
     /// The string to the json file for the thread if it is saved.
     /// </summary>
     public string SavedThreadJson { get; set; } = string.Empty;
+    /// <summary>
+    /// The path that the thread will be downloaded to.
+    /// </summary>
+    public string DownloadPath { get; set; }
 
     /// <summary>
     /// Determines if a thread is currently downloading images. Used to set FileWas404 on download 404.
@@ -95,11 +99,12 @@ public sealed class ThreadInfo {
     /// </summary>
     public string ApiLink {
         get {
-            return Chan switch {
+            return this.Chan switch {
                 ChanType.FourChan => $"https://a.4cdn.org/{Data.Board}/thread/{Data.Id}.json",
                 ChanType.FourTwentyChan => $"https://api.420chan.org/{Data.Board}/res/{Data.Id}.json",
                 ChanType.EightChan => $"https://8chan.moe/{Data.Board}/res/{Data.Id}.json",
                 ChanType.EightKun => $"https://8kun.top/{Data.Board}/res/{Data.Id}.json",
+                ChanType.FoolFuuka => $"https://{Data.UrlHost}/_/api/chan/thread?board={Data.Board}&num={Data.Id}",
                 _ => null
             };
         }
@@ -109,7 +114,7 @@ public sealed class ThreadInfo {
     /// </summary>
     public bool HtmlExists {
         get {
-            string HtmlFile = Path.Combine(Data.DownloadPath, "Thread.html");
+            string HtmlFile = Path.Combine(DownloadPath, "Thread.html");
             return File.Exists(HtmlFile);
         }
     }
@@ -125,7 +130,7 @@ public sealed class ThreadInfo {
     }
 
     public void UpdateJsonPath() {
-        string NewFile = $"{Program.SavedThreadsPath}\\{ThreadIndex + 1:D4}-{this.Chan switch {
+        string NewFile = $"{Program.SavedThreadsPath}\\{this.ThreadIndex + 1:D4}-{this.Chan switch {
             ChanType.FourChan => "4chan-",
             ChanType.FourTwentyChan => "420chan-",
             ChanType.SevenChan => "7chan-",
@@ -133,18 +138,20 @@ public sealed class ThreadInfo {
             ChanType.EightKun => "8kun-",
             ChanType.fchan => "fchan-",
             ChanType.u18chan => "u18chan-",
+            ChanType.FoolFuuka => this.Data.UrlHost + "-",
             _ => throw new InvalidOperationException(nameof(ChanType))
         }}{this.Data.Board}-{this.Data.Id}.thread.json";
 
-        if (SavedThreadJson != NewFile) {
-            if (System.IO.File.Exists(SavedThreadJson))
-                System.IO.File.Move(SavedThreadJson, NewFile);
+        if (this.SavedThreadJson != NewFile) {
+            if (File.Exists(SavedThreadJson)) {
+                File.Move(SavedThreadJson, NewFile);
+            }
 
-            SavedThreadJson = NewFile;
+            this.SavedThreadJson = NewFile;
         }
     }
     public void SaveHtml() {
-        string HtmlFile = Path.Combine(Data.DownloadPath, "Thread.html");
+        string HtmlFile = Path.Combine(DownloadPath, "Thread.html");
         using FileStream fs = new(HtmlFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
         using StreamWriter Writer = new(fs, Encoding.UTF8);
         Writer.Write(ThreadTopHtml);
@@ -189,10 +196,10 @@ public sealed class ThreadData {
     [DataMember]
     public string Url { get; set; }
     /// <summary>
-    /// The path that the thread will be downloaded to.
+    /// The host string that will be used when downloading the API.
     /// </summary>
-    [DataMember]
-    public string DownloadPath { get; set; }
+    [DataMember(EmitDefaultValue = false)]
+    public string UrlHost { get; set; }
 
     /// <summary>
     /// The list of post IDs that have been parsed.
