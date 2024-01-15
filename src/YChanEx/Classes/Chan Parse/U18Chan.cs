@@ -4,10 +4,6 @@ using SoftCircuits.HtmlMonkey;
 using System.Drawing;
 using YChanEx.Posts;
 internal static class U18Chan {
-    //var doc2 = HtmlDocument.FromFile("C:\\Temp\\u18.html", HtmlParseOptions.RemoveEmptyTextNodes);
-    //var replyNodes = doc2.Find("table[class!=\"ReplyBoxTable\"]").ToArray(); // 55
-    ////doc.Find("td[id:=\"replybox_\\d+\"]").ToArray();
-
     private static readonly Selector FirstPostSelector = Selector.ParseSelector("div[id=\"FirstPost\"]");
     private static readonly Selector RepliesSelector = Selector.ParseSelector("table[class=\"ReplyBoxTable\"]");
 
@@ -65,6 +61,14 @@ internal static class U18Chan {
 
             return array;
         });
+    }
+    public static U18ChanPost[]? TryGenerate(string html) {
+        try {
+            return Generate(html);
+        }
+        catch {
+            return null;
+        }
     }
 
     internal static long ConvertSizeToBytes(string size) {

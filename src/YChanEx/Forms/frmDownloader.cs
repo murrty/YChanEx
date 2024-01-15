@@ -1369,7 +1369,6 @@ public partial class frmDownloader : Form {
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
                     var ThreadData = CurrentJson.JsonDeserialize<FourChanThread>();
-
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
@@ -1518,17 +1517,7 @@ public partial class frmDownloader : Form {
 
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
-                    SevenChanPost[] ThreadData;
-                    try {
-                        ThreadData = SevenChan.Generate(CurrentJson);
-                    }
-                    catch (Exception ex) {
-                        Log.ReportException(ex);
-                        ThreadInfo.CurrentActivity = ThreadStatus.FailedToParseThreadHtml;
-                        this.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
-                        break;
-                    }
-
+                    var ThreadData = SevenChan.TryGenerate(CurrentJson);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
@@ -2030,17 +2019,7 @@ public partial class frmDownloader : Form {
 
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
-                    FChanPost[] ThreadData;
-                    try {
-                        ThreadData = FChan.Generate(CurrentJson);
-                    }
-                    catch (Exception ex) {
-                        Log.ReportException(ex);
-                        ThreadInfo.CurrentActivity = ThreadStatus.FailedToParseThreadHtml;
-                        this.Invoke(() => ManageThread(ThreadEvent.AfterDownload));
-                        break;
-                    }
-
+                    var ThreadData = FChan.TryGenerate(CurrentJson);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
@@ -2189,17 +2168,7 @@ public partial class frmDownloader : Form {
 
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
-                    U18ChanPost[] ThreadData;
-                    try {
-                        ThreadData = U18Chan.Generate(CurrentJson);
-                    }
-                    catch (Exception ex) {
-                        Log.ReportException(ex);
-                        ThreadInfo.CurrentActivity = ThreadStatus.FailedToParseThreadHtml;
-                        this.Invoke(() => ManageThread(ThreadEvent.AfterDownload));
-                        break;
-                    }
-
+                    var ThreadData = U18Chan.TryGenerate(CurrentJson);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.

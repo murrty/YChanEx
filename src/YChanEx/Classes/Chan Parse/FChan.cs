@@ -66,6 +66,14 @@ internal static class FChan {
             return array;
         });
     }
+    public static FChanPost[]? TryGenerate(string html) {
+        try {
+            return Generate(html);
+        }
+        catch {
+            return null;
+        }
+    }
 
     internal static long ConvertSizeToBytes(string size) {
         return long.Parse(size[..size.IndexOf(' ')]);

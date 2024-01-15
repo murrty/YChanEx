@@ -8,12 +8,6 @@ using System.Threading.Tasks;
 using SoftCircuits.HtmlMonkey;
 using YChanEx.Posts;
 internal static class SevenChan {
-    //var chan7 = HtmlDocument.FromFile("X:\\Temp\\7c.html", HtmlParseOptions.RemoveEmptyTextNodes);
-    //var sel = Selector.ParseSelector("div[id:=\"^\\d+$\"][class=\"post\"] > div[class=\"post_header\"]");
-    //var nodes7c = chan7.Find(sel).ToArray(); // 56
-    //var posts = chan7.Find("div[id:=\"^\\d+$\"][class=\"post\"]")
-    //    .ToArray();
-
     private static readonly Selector PostSelector = Selector.ParseSelector("div[id:=\"^\\d+$\"][class=\"post\"]");
 
     public static SevenChanPost[] Generate(string html) {
@@ -58,6 +52,14 @@ internal static class SevenChan {
 
             return array;
         });
+    }
+    public static SevenChanPost[]? TryGenerate(string html) {
+        try {
+            return Generate(html);
+        }
+        catch {
+            return null;
+        }
     }
 
     internal static long ConvertSizeToBytes(string size) {
