@@ -1179,6 +1179,13 @@ public partial class frmDownloader : Form {
 
     private async Task DownloadFilesAsync(VolatileHttpClient DownloadClient, CancellationToken token) {
         Log.Info("Downloading files");
+
+        // Save the thread data now.
+        if (General.AutoSaveThreads) {
+            ThreadInfo.SaveThread();
+            ThreadInfo.ThreadModified = false;
+        }
+
         if (!ThreadInfo.AddedNewPosts) {
             return;
         }
@@ -1241,7 +1248,7 @@ public partial class frmDownloader : Form {
                             }
                         }
                         else {
-                            await GetFile(Response, FileDownloadPath, DownloadClient, token);
+                            await DownloadClient.DownloadFileAsync(Response, FileDownloadPath, token);
 
                             ThreadInfo.Data.DownloadedImagesCount++;
                             PostFile.Status = FileDownloadStatus.Downloaded;
@@ -1270,7 +1277,7 @@ public partial class frmDownloader : Form {
                         }
                         using var Response = await DownloadClient.GetResponseAsync(FileRequest, token);
                         if (Response?.IsSuccessStatusCode == true) {
-                            await GetFile(Response, ThumbFileDownloadPath, DownloadClient, token);
+                            await DownloadClient.DownloadFileAsync(Response, ThumbFileDownloadPath, token);
                         }
                     }
 
@@ -1278,30 +1285,6 @@ public partial class frmDownloader : Form {
                     Thread.Sleep(100);
                 }
             }
-        }
-
-        // Save the thread data now.
-        if (General.AutoSaveThreads) {
-            ThreadInfo.SaveThread();
-            ThreadInfo.ThreadModified = false;
-        }
-    }
-    private async Task<bool> GetFile(HttpResponseMessage Response, string dest, VolatileHttpClient DownloadClient, CancellationToken token) {
-        try {
-            using Stream Content = await Response.Content.ReadAsStreamAsync();
-            using FileStream Destination = new(
-                path: dest,
-                mode: FileMode.Create,
-                access: FileAccess.ReadWrite,
-                share: FileShare.Read);
-
-            await DownloadClient.WriteStreamAsync(Content, Destination, token);
-            await Destination.FlushAsync();
-            Destination.Close();
-            return true;
-        }
-        catch {
-            return false;
         }
     }
 
@@ -1363,6 +1346,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Save the last modified time.
+                    ThreadInfo.ThreadModified = ThreadInfo.Data.LastModified != Response.Content.Headers.LastModified;
                     ThreadInfo.Data.LastModified = Response.Content.Headers.LastModified;
 
                     // Get the json.
@@ -1512,6 +1496,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Save the last modified time.
+                    ThreadInfo.ThreadModified = ThreadInfo.Data.LastModified != Response.Content.Headers.LastModified;
                     ThreadInfo.Data.LastModified = Response.Content.Headers.LastModified;
 
                     // Get the json.
@@ -1682,6 +1667,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Save the last modified time.
+                    ThreadInfo.ThreadModified = ThreadInfo.Data.LastModified != Response.Content.Headers.LastModified;
                     ThreadInfo.Data.LastModified = Response.Content.Headers.LastModified;
 
                     // Get the json.
@@ -1861,6 +1847,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Save the last modified time.
+                    ThreadInfo.ThreadModified = ThreadInfo.Data.LastModified != Response.Content.Headers.LastModified;
                     ThreadInfo.Data.LastModified = Response.Content.Headers.LastModified;
 
                     // Get the json.
@@ -2013,6 +2000,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Save the last modified time.
+                    ThreadInfo.ThreadModified = ThreadInfo.Data.LastModified != Response.Content.Headers.LastModified;
                     ThreadInfo.Data.LastModified = Response.Content.Headers.LastModified;
 
                     // Get the json.
@@ -2163,6 +2151,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Save the last modified time.
+                    ThreadInfo.ThreadModified = ThreadInfo.Data.LastModified != Response.Content.Headers.LastModified;
                     ThreadInfo.Data.LastModified = Response.Content.Headers.LastModified;
 
                     // Get the json.
@@ -2303,6 +2292,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Save the last modified time.
+                    ThreadInfo.ThreadModified = ThreadInfo.Data.LastModified != Response.Content.Headers.LastModified;
                     ThreadInfo.Data.LastModified = Response.Content.Headers.LastModified;
 
                     // Get the json.

@@ -4,7 +4,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading.Tasks;
 internal static class WebDecompress {
-    /*
     internal static async Task<byte[]> Brotli(Stream inputStream) {
         inputStream.Position = 0;
         using MemoryStream outputStream = new();
@@ -17,7 +16,7 @@ internal static class WebDecompress {
         using Org.Brotli.Dec.BrotliInputStream DecompressorStream = new(inputStream);
         await DecompressorStream.CopyToAsync(outputStream);
     }
-    */
+
     internal static async Task<byte[]> GZip(Stream inputStream) {
         inputStream.Position = 0;
         using MemoryStream outputStream = new();
@@ -30,6 +29,7 @@ internal static class WebDecompress {
         using GZipStream DecompressorStream = new(inputStream, CompressionMode.Decompress);
         await DecompressorStream.CopyToAsync(outputStream);
     }
+
     internal static async Task<byte[]> Deflate(Stream inputStream) {
         inputStream.Position = 0;
         using MemoryStream outputStream = new();

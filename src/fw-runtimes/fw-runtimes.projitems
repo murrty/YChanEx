@@ -9,6 +9,21 @@
     <Import_RootNamespace>fw_runtimes</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\BitReader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\BrotliInputStream.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\BrotliRuntimeException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\Context.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\Decode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\Dictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\Huffman.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\HuffmanTreeGroup.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\IntReader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\Prefix.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\RunningState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\State.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\Transform.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\Utils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\WordTransformType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Extensions\HttpHeadersExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Extensions\StringExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Helpers\ContentHelper.cs" />

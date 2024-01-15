@@ -18,20 +18,129 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-*/
+ */
 namespace SocksSharp.Proxy.Response;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Net.Http;
-using System.Net.Sockets;
 using System.Text;
+using System.Net.Sockets;
+using System.Net.Http;
 using System.Threading;
+using System.Threading.Tasks;
 using SocksSharp.Extensions;
 using SocksSharp.Helpers;
 internal class ResponseBuilder : IResponseBuilder {
     private sealed class BytesWraper {
-        public int Length;
-        public byte[] Value;
+        public int Length { get; set; }
+        public byte[] Value { get; set; }
+    }
+
+    private sealed class ZipWraperStream : Stream {
+        #region Поля (закрытые)
+        private readonly Stream _baseStream;
+        private readonly ReceiveHelper _receiverHelper;
+        #endregion
+
+        #region Свойства (открытые)
+        public int BytesRead { get; private set; }
+        public int TotalBytesRead { get; set; }
+        public int LimitBytesRead { get; set; }
+        #region Переопределённые
+        public override bool CanRead {
+            get {
+                return _baseStream.CanRead;
+            }
+        }
+        public override bool CanSeek {
+            get {
+                return _baseStream.CanSeek;
+            }
+        }
+        public override bool CanTimeout {
+            get {
+                return _baseStream.CanTimeout;
+            }
+        }
+        public override bool CanWrite {
+            get {
+                return _baseStream.CanWrite;
+            }
+        }
+        public override long Length {
+            get {
+                return _baseStream.Length;
+            }
+        }
+        public override long Position {
+            get {
+                return _baseStream.Position;
+            }
+            set {
+                _baseStream.Position = value;
+            }
+        }
+        #endregion
+        #endregion
+
+        public ZipWraperStream(Stream baseStream, ReceiveHelper receiverHelper) {
+            _baseStream = baseStream;
+            _receiverHelper = receiverHelper;
+        }
+
+        #region Методы (открытые)
+        public override void Flush() {
+            _baseStream.Flush();
+        }
+
+        public override void SetLength(long value) {
+            _baseStream.SetLength(value);
+        }
+
+        public override long Seek(long offset, SeekOrigin origin) {
+            return _baseStream.Seek(offset, origin);
+        }
+
+        public override int Read(byte[] buffer, int offset, int count) {
+            // Если установлен лимит на количество считанных байт.
+            if (LimitBytesRead != 0) {
+                int length = LimitBytesRead - TotalBytesRead;
+
+                // Если лимит достигнут.
+                if (length == 0) {
+                    return 0;
+                }
+
+                if (length > buffer.Length) {
+                    length = buffer.Length;
+                }
+
+                if (_receiverHelper.HasData) {
+                    BytesRead = _receiverHelper.Read(buffer, offset, length);
+                }
+                else {
+                    BytesRead = _baseStream.Read(buffer, offset, length);
+                }
+            }
+            else {
+                if (_receiverHelper.HasData) {
+                    BytesRead = _receiverHelper.Read(buffer, offset, count);
+                }
+                else {
+                    BytesRead = _baseStream.Read(buffer, offset, count);
+                }
+            }
+
+            TotalBytesRead += BytesRead;
+
+            return BytesRead;
+        }
+
+        public override void Write(byte[] buffer, int offset, int count) {
+            _baseStream.Write(buffer, offset, count);
+        }
+        #endregion
     }
 
     private static readonly byte[] openHtmlSignature = Encoding.ASCII.GetBytes("<html");
@@ -84,13 +193,15 @@ internal class ResponseBuilder : IResponseBuilder {
 
         response.RequestMessage = request;
 
-        return Task.Run(() => {
+        var task = Task.Run(() => {
             ReceiveStartingLine();
             ReceiveHeaders();
             ReceiveContent();
 
             return response;
         });
+
+        return task;
     }
 
     private void ReceiveStartingLine() {
@@ -120,7 +231,7 @@ internal class ResponseBuilder : IResponseBuilder {
             throw new ProxyException("Received empty response");
         }
 
-        response.Version = System.Version.Parse(version);
+        response.Version = Version.Parse(version);
         response.StatusCode = (HttpStatusCode)Enum.Parse(typeof(HttpStatusCode), statusCode);
     }
 
@@ -133,11 +244,11 @@ internal class ResponseBuilder : IResponseBuilder {
             }
 
             int separatorPos = header.IndexOf(':');
-            //if (separatorPos == -1) {
-            //    string message = string.Format(
-            //    Resources.HttpException_WrongHeader, header, Address.Host);
-            //    throw NewHttpException(message);
-            //}
+            if (separatorPos == -1) {
+                //string message = string.Format(
+                //Resources.HttpException_WrongHeader, header, Address.Host);
+                //throw NewHttpException(message);
+            }
             string headerName = header[..separatorPos];
             string headerValue = header[(separatorPos + 1)..].Trim(' ', '\t', '\r', '\n');
 
@@ -149,10 +260,7 @@ internal class ResponseBuilder : IResponseBuilder {
                     values.Add(headerValue);
                 }
                 else {
-                    values = [
-                        headerValue
-                    ];
-
+                    values = [ headerValue ];
                     contentHeaders.Add(headerName, values);
                 }
             }
@@ -168,31 +276,33 @@ internal class ResponseBuilder : IResponseBuilder {
         if (contentHeaders.Count != 0) {
             contentLength = GetContentLength();
 
-            if (contentLength > 0) {
-                var memoryStream = new MemoryStream(contentLength);
-
-                try {
-                    IEnumerable<BytesWraper> source = GetMessageBodySource();
-                    foreach (var bytes in source) {
-                        memoryStream.Write(bytes.Value, 0, bytes.Length);
-                        cancellationToken.ThrowIfCancellationRequested();
-                    }
-                }
-                catch (Exception ex) {
-                    if (ex is IOException || ex is InvalidOperationException) {
-                        //throw NewHttpException(Resources.HttpException_FailedReceiveMessageBody, ex);
-                    }
-
-                    throw;
-                }
-
-                memoryStream.Seek(0, SeekOrigin.Begin);
-                response.Content = new StreamContent(memoryStream);
-            }
-            else {
+            if (contentLength == -1 && response.StatusCode == HttpStatusCode.NotModified) {
                 response.Content = new StreamContent(Stream.Null);
+                foreach (var pair in contentHeaders) {
+                    response.Content.Headers.TryAddWithoutValidation(pair.Key, pair.Value);
+                }
+                return;
             }
 
+            var memoryStream = new MemoryStream(
+                (contentLength == -1) ? 0 : contentLength);
+
+            try {
+                IEnumerable<BytesWraper> source = GetMessageBodySource();
+                foreach (var bytes in source) {
+                    memoryStream.Write(bytes.Value, 0, bytes.Length);
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
+            }
+            catch (Exception ex) {
+                if (ex is IOException || ex is InvalidOperationException) {
+                    //throw NewHttpException(Resources.HttpException_FailedReceiveMessageBody, ex);
+                }
+                throw;
+            }
+
+            memoryStream.Seek(0, SeekOrigin.Begin);
+            response.Content = new StreamContent(memoryStream);
             foreach (var pair in contentHeaders) {
                 response.Content.Headers.TryAddWithoutValidation(pair.Key, pair.Value);
             }
@@ -221,7 +331,7 @@ internal class ResponseBuilder : IResponseBuilder {
             cookieValue = value[(separatorPos + 1)..];
         }
         else {
-            cookieValue = value.Substring(separatorPos + 1, endCookiePos - separatorPos - 1);
+            cookieValue = value[(separatorPos + 1)..(endCookiePos - separatorPos - 1)];
 
             #region Get cookie expires time
             int expiresPos = value.IndexOf("expires=");
@@ -243,11 +353,11 @@ internal class ResponseBuilder : IResponseBuilder {
                 if (DateTime.TryParse(expiresStr, out DateTime expires) &&
                     expires < DateTime.Now) {
                     var collection = cookies.GetCookies(uri);
-                    if (collection[cookieName] != null)
+                    if (collection[cookieName] != null) {
                         collection[cookieName].Expired = true;
+                    }
                 }
             }
-
             #endregion
         }
 
@@ -264,8 +374,30 @@ internal class ResponseBuilder : IResponseBuilder {
     }
 
     private IEnumerable<BytesWraper> GetMessageBodySource() {
+#if ENABLE_AUTO_DECOMPRESSION
+        if (contentHeaders.ContainsKey("Content-Encoding")) {
+            return GetMessageBodySourceZip();
+        }
+#endif
         return GetMessageBodySourceStd();
     }
+
+#if ENABLE_AUTO_DECOMPRESSION
+    // Загрузка сжатых данных.
+    private IEnumerable<BytesWraper> GetMessageBodySourceZip() {
+        if (response.Headers.Contains("Transfer-Encoding")) {
+            return ReceiveMessageBodyChunkedZip();
+        }
+
+        if (contentLength != -1) {
+            return ReceiveMessageBodyZip(contentLength);
+        }
+
+        var streamWrapper = new ZipWraperStream(commonStream, receiveHelper);
+
+        return ReceiveMessageBody(GetZipStream(streamWrapper));
+    }
+#endif
 
     // Загрузка обычных данных.
     private IEnumerable<BytesWraper> GetMessageBodySourceStd() {
@@ -288,6 +420,18 @@ internal class ResponseBuilder : IResponseBuilder {
 
         return -1;
     }
+
+#if ENABLE_AUTO_DECOMPRESSION
+    private string GetContentEncoding() {
+        string encoding = "";
+
+        if (contentHeaders.TryGetValue("Content-Encoding", out List<string> values)) {
+            encoding = values[0];
+        }
+
+        return encoding;
+    }
+#endif
 
     private void WaitData() {
         int sleepTime = 0;
@@ -313,16 +457,27 @@ internal class ResponseBuilder : IResponseBuilder {
         bytesWraper.Value = buffer;
         int begBytesRead = 0;
 
+#if ENABLE_AUTO_DECOMPRESSION
         // Считываем начальные данные из тела сообщения.
-        if (receiveHelper.HasData) {
-            begBytesRead = receiveHelper.Read(buffer, 0, bufferSize);
+        if (stream is GZipStream || stream is DeflateStream) {
+            begBytesRead = stream.Read(buffer, 0, bufferSize);
         }
-        if (begBytesRead < bufferSize) {
-            begBytesRead += stream.Read(buffer, begBytesRead, bufferSize - begBytesRead);
-        }
+        else {
+#endif
 
-        // Возвращаем начальные данные.
-        bytesWraper.Length = begBytesRead;
+            if (receiveHelper.HasData) {
+                begBytesRead = receiveHelper.Read(buffer, 0, bufferSize);
+            }
+            if (begBytesRead < bufferSize) {
+                begBytesRead += stream.Read(buffer, begBytesRead, bufferSize - begBytesRead);
+            }
+
+#if ENABLE_AUTO_DECOMPRESSION
+        }
+#endif
+
+    // Возвращаем начальные данные.
+    bytesWraper.Length = begBytesRead;
         yield return bytesWraper;
         // Проверяем, есть ли открывающий тег '<html'.
         // Если есть, то считываем данные то тех пор, пока не встретим закрывающий тек '</html>'.
@@ -445,6 +600,103 @@ internal class ResponseBuilder : IResponseBuilder {
             }
         }
     }
+
+#if ENABLE_AUTO_DECOMPRESSION
+    private IEnumerable<BytesWraper> ReceiveMessageBodyZip(int contentLength) {
+        var bytesWraper = new BytesWraper();
+        var streamWrapper = new ZipWraperStream(commonStream, receiveHelper);
+        using (Stream stream = GetZipStream(streamWrapper)) {
+            byte[] buffer = new byte[bufferSize];
+            bytesWraper.Value = buffer;
+
+            while (true) {
+                int bytesRead = stream.Read(buffer, 0, bufferSize);
+                if (bytesRead == 0) {
+                    if (streamWrapper.TotalBytesRead == contentLength) {
+                        yield break;
+                    }
+                    else {
+                        WaitData();
+                        continue;
+                    }
+                }
+                bytesWraper.Length = bytesRead;
+                yield return bytesWraper;
+            }
+        }
+    }
+
+    private IEnumerable<BytesWraper> ReceiveMessageBodyChunkedZip() {
+        var bytesWraper = new BytesWraper();
+        var streamWrapper = new ZipWraperStream(commonStream, receiveHelper);
+
+        using (Stream stream = GetZipStream(streamWrapper)) {
+            byte[] buffer = new byte[bufferSize];
+            bytesWraper.Value = buffer;
+            while (true) {
+                string line = receiveHelper.ReadLine();
+                // Если достигнут конец блока.
+                if (line == newLine) {
+                    continue;
+                }
+
+                line = line.Trim(' ', '\r', '\n');
+                // Если достигнут конец тела сообщения.
+                if (line == string.Empty) {
+                    yield break;
+                }
+
+                int blockLength;
+                #region Задаём длину блока
+                try {
+                    blockLength = Convert.ToInt32(line, 16);
+                }
+                catch (Exception ex) {
+                    if (ex is FormatException || ex is OverflowException) {
+                        //throw NewHttpException(string.Format(
+                        //Resources.HttpException_WrongChunkedBlockLength, line), ex);
+                    }
+                    throw;
+                }
+                #endregion
+                // Если достигнут конец тела сообщения.
+                if (blockLength == 0) {
+                    yield break;
+                }
+
+                streamWrapper.TotalBytesRead = 0;
+                streamWrapper.LimitBytesRead = blockLength;
+                while (true) {
+                    int bytesRead = stream.Read(buffer, 0, bufferSize);
+                    if (bytesRead == 0) {
+                        if (streamWrapper.TotalBytesRead == blockLength) {
+                            break;
+                        }
+                        else {
+                            WaitData();
+                            continue;
+                        }
+                    }
+                    bytesWraper.Length = bytesRead;
+                    yield return bytesWraper;
+                }
+            }
+        }
+    }
+
+    private Stream GetZipStream(Stream stream) {
+        string contentEncoding = GetContentEncoding().ToLower();
+
+        switch (contentEncoding) {
+            case "gzip":
+                return new GZipStream(stream, CompressionMode.Decompress, true);
+            case "deflate":
+                return new DeflateStream(stream, CompressionMode.Decompress, true);
+            default:
+                throw new InvalidOperationException($"'{contentEncoding}' not supported encoding format");
+        }
+    }
+#endif
 
     private bool FindSignature(byte[] source, int sourceLength, byte[] signature) {
         int length = (sourceLength - signature.Length) + 1;

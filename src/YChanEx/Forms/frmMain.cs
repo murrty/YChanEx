@@ -221,6 +221,8 @@ public partial class frmMain : Form, IMainFom {
             return false;
         }
 
+        ThreadURL = ThreadData.Url;
+
         if (ThreadURLs.Contains(ThreadURL)) {
             int ThreadURLIndex = ThreadURLs.IndexOf(ThreadURL);
             if (Threads[ThreadURLIndex].ThreadInfo.Data.ThreadState != ThreadState.ThreadIsAlive) {
@@ -239,9 +241,9 @@ public partial class frmMain : Form, IMainFom {
             return true;
         }
 
-        ThreadInfo NewInfo = new(ThreadData);
-        NewInfo.Data.Url = ThreadURL;
-        NewInfo.ThreadIndex = ThreadURLs.Count;
+        ThreadInfo NewInfo = new(ThreadData) {
+            ThreadIndex = ThreadURLs.Count
+        };
         if (ThreadData.ChanType == ChanType.FoolFuuka) {
             NewInfo.Data.UrlHost = Networking.GetHost(ThreadURL);
         }
@@ -327,22 +329,22 @@ public partial class frmMain : Form, IMainFom {
     /// <summary>
     /// Adds a new thread to the queue via saved threads.
     /// </summary>
-    /// <param name="Info"></param>
+    /// <param name="Data"></param>
     /// <returns></returns>
-    private bool LoadSavedThread(ThreadData Info, string InfoPath) {
-        if (!Chans.ReverifyThreadData(Info) || ThreadURLs.Contains(Info.Url)) {
+    private bool LoadSavedThread(ThreadData Data, string InfoPath) {
+        if (!Chans.ReverifyThreadData(Data) || ThreadURLs.Contains(Data.Url)) {
             return false;
         }
 
-        ThreadURLs.Add(Info.Url);
-        ThreadInfo NewInfo = new(Info) {
+        ThreadURLs.Add(Data.Url);
+        ThreadInfo NewInfo = new(Data) {
             ThreadIndex = ThreadURLs.Count - 1,
             SavedThreadJson = InfoPath,
             ThreadReloaded = true,
         };
         NewInfo.UpdateJsonPath();
         frmDownloader newThread = new(this, NewInfo) {
-            Name = Info.Url,
+            Name = Data.Url,
         };
         newThread.Show();
         newThread.Hide();
@@ -367,14 +369,14 @@ public partial class frmMain : Form, IMainFom {
         newThread.ShowInTaskbar = true;
 
         Threads.Add(newThread);
-        if (Info.CustomThreadName != null) {
-            lvi.SubItems[clName.Index].Text = Info.CustomThreadName;
+        if (Data.CustomThreadName != null) {
+            lvi.SubItems[clName.Index].Text = Data.CustomThreadName;
         }
-        else if (Info.ThreadName != null) {
-            lvi.SubItems[clName.Index].Text = Info.ThreadName;
+        else if (Data.ThreadName != null) {
+            lvi.SubItems[clName.Index].Text = Data.ThreadName;
         }
         else {
-            lvi.SubItems[clName.Index].Text = Info.Url;
+            lvi.SubItems[clName.Index].Text = Data.Url;
         }
 
         newThread.ManageThread(ThreadEvent.StartDownload);

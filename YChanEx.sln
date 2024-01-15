@@ -5,8 +5,11 @@ VisualStudioVersion = 17.1.31911.260
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Resources", "Resources", "{0BFFBED3-4512-4194-AFE0-FF802756A43E}"
 	ProjectSection(SolutionItems) = preProject
+		TextFile1.json = TextFile1.json
 		Resources\YChanEx.user.js = Resources\YChanEx.user.js
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YChanEx-Tests", "src\YChanEx-Tests\YChanEx-Tests.csproj", "{96B027A0-3FF7-41DB-A76B-614607C88690}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YChanEx", "src\YChanEx\YChanEx.csproj", "{74A112CE-F6CA-4384-B8A0-6D8337378897}"
 EndProject
@@ -17,17 +20,25 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
 		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{96B027A0-3FF7-41DB-A76B-614607C88690}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{96B027A0-3FF7-41DB-A76B-614607C88690}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96B027A0-3FF7-41DB-A76B-614607C88690}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{96B027A0-3FF7-41DB-A76B-614607C88690}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{96B027A0-3FF7-41DB-A76B-614607C88690}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96B027A0-3FF7-41DB-A76B-614607C88690}.Release|x64.ActiveCfg = Release|Any CPU
 		{74A112CE-F6CA-4384-B8A0-6D8337378897}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{74A112CE-F6CA-4384-B8A0-6D8337378897}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74A112CE-F6CA-4384-B8A0-6D8337378897}.Debug|x64.ActiveCfg = Debug|x64
+		{74A112CE-F6CA-4384-B8A0-6D8337378897}.Debug|x64.Build.0 = Debug|x64
 		{74A112CE-F6CA-4384-B8A0-6D8337378897}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{74A112CE-F6CA-4384-B8A0-6D8337378897}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74A112CE-F6CA-4384-B8A0-6D8337378897}.Release|x64.ActiveCfg = Release|x64
+		{74A112CE-F6CA-4384-B8A0-6D8337378897}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

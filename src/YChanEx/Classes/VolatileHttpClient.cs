@@ -3,6 +3,7 @@ namespace YChanEx;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using murrty.controls;
@@ -70,7 +71,7 @@ internal sealed class VolatileHttpClient : HttpClient {
         }
 
         this.DefaultRequestHeaders.Accept.Add(new("*/*"));
-        //this.DefaultRequestHeaders.AcceptEncoding.Add(new("br"));
+        this.DefaultRequestHeaders.AcceptEncoding.Add(new("br"));
         this.DefaultRequestHeaders.AcceptEncoding.Add(new("gzip"));
         this.DefaultRequestHeaders.AcceptEncoding.Add(new("deflate"));
         this.DefaultRequestHeaders.AcceptLanguage.Add(new("*"));
@@ -178,13 +179,13 @@ internal sealed class VolatileHttpClient : HttpClient {
 
         byte[] Bytes;
         switch (Response.Content.Headers.ContentEncoding.FirstOrDefault()) {
-            //case "br": {
-            //    using MemoryStream DecompressorStream = new();
-            //    await WebDecompress.Brotli(Destination, DecompressorStream);
-            //    Destination.Close();
-            //    Bytes = DecompressorStream.ToArray();
-            //    DecompressorStream.Close();
-            //} break;
+            case "br": {
+                using MemoryStream DecompressorStream = new();
+                await WebDecompress.Brotli(Destination, DecompressorStream);
+                Destination.Close();
+                Bytes = DecompressorStream.ToArray();
+                DecompressorStream.Close();
+            } break;
             case "gzip": {
                 using MemoryStream DecompressorStream = new();
                 await WebDecompress.GZip(Destination, DecompressorStream);
@@ -214,5 +215,23 @@ internal sealed class VolatileHttpClient : HttpClient {
             "utf-16-be" or "utf-16be" or "unicode-be" or "unicodebe" => Encoding.BigEndianUnicode.GetString(Bytes),
             _ => Encoding.UTF8.GetString(Bytes),
         };
+    }
+    public async Task<bool> DownloadFileAsync(HttpResponseMessage Response, string destination, CancellationToken token) {
+        try {
+            using Stream Content = await Response.Content.ReadAsStreamAsync();
+            using FileStream Destination = new(
+                path: destination,
+                mode: FileMode.Create,
+                access: FileAccess.ReadWrite,
+                share: FileShare.Read);
+
+            await WriteStreamAsync(Content, Destination, token);
+            await Destination.FlushAsync();
+            Destination.Close();
+            return true;
+        }
+        catch {
+            return false;
+        }
     }
 }
