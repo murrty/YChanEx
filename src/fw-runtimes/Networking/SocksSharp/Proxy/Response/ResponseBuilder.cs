@@ -191,12 +191,13 @@ internal class ResponseBuilder : IResponseBuilder {
 
                 memoryStream.Seek(0, SeekOrigin.Begin);
                 response.Content = new StreamContent(memoryStream);
-                foreach (var pair in contentHeaders) {
-                    response.Content.Headers.TryAddWithoutValidation(pair.Key, pair.Value);
-                }
             }
             else {
                 response.Content = new StreamContent(Stream.Null);
+            }
+
+            foreach (var pair in contentHeaders) {
+                response.Content.Headers.TryAddWithoutValidation(pair.Key, pair.Value);
             }
         }
     }
