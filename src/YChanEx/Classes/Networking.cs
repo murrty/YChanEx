@@ -4,10 +4,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using murrty.classes;
 using murrty.controls;
-using YChanEx.Parsers;
 internal static class Networking {
+    private static readonly FieldInfo _domainTable;
+    private static readonly FieldInfo _mList;
+
     public static readonly Cookie[] RequiredCookies;
     public static readonly bool Tls12OrHigher;
     public static CookieContainer CookieContainer;
@@ -24,8 +27,13 @@ internal static class Networking {
     }
 
     static Networking() {
+        _domainTable = typeof(CookieContainer)
+            .GetField("m_domainTable", BindingFlags.Instance | BindingFlags.NonPublic);
+        _mList = typeof(CookieContainer).Assembly.GetType("System.Net.PathList")
+            .GetField("m_list", BindingFlags.Instance | BindingFlags.NonPublic);
+
         RequiredCookies = [
-            FChan.AccessCookie,
+            Parsers.FChan.AccessCookie,
             new Cookie("disclaimer1",  "1", "/", "8chan.moe"),
             new Cookie("disclaimer2",  "1", "/", "8chan.moe"),
             new Cookie("disclaimer3",  "1", "/", "8chan.moe"),
@@ -46,8 +54,9 @@ internal static class Networking {
             new Cookie("disclaimer18", "1", "/", "8chan.moe"),
             new Cookie("disclaimer19", "1", "/", "8chan.moe"),
             new Cookie("disclaimer20", "1", "/", "8chan.moe")];
+
         CookieContainer = new();
-        RefreshCookies();
+        RefreshCookies(false);
         RecreateDownloadClient();
 
         // 100 connection limit
@@ -150,7 +159,11 @@ internal static class Networking {
         VolatileHttpClient NewClient = new(NewHandler);
         CachedClient = NewClient;
     }
-    public static void RefreshCookies() {
+    public static void RefreshCookies(bool InvalidateExisting) {
+        if (InvalidateExisting) {
+            CookieContainer.InvalidateCookies();
+        }
+
         for (int i = 0; i < RequiredCookies.Length; i++) {
             CookieContainer.Add(RequiredCookies[i]);
         }
@@ -215,5 +228,30 @@ internal static class Networking {
 
         //using var response = await DownloadClient.GetResponseAsync(new HttpRequestMessage(HttpMethod.Get, ""), default);
         //string? re = await response?.Content.ReadAsStringAsync();
+    }
+
+    internal static CookieCollection GetAllCookies(this CookieContainer container) {
+        var m_domainTable = (System.Collections.Hashtable)_domainTable.GetValue(container);
+        CookieCollection result = [];
+        foreach (System.Collections.DictionaryEntry element in m_domainTable) {
+            var l = (System.Collections.SortedList)_mList.GetValue(element.Value);
+            foreach (var e in l) {
+                var cl = (CookieCollection)((System.Collections.DictionaryEntry)e).Value;
+                foreach (Cookie fc in cl) {
+                    result.Add(fc);
+                }
+            }
+        }
+        return result;
+    }
+    internal static void InvalidateCookies(this CookieContainer container) {
+        foreach (System.Collections.DictionaryEntry element in (System.Collections.Hashtable)_domainTable.GetValue(container)) {
+            foreach (var e in (System.Collections.SortedList)_mList.GetValue(element.Value)) {
+                foreach (Cookie fc in (CookieCollection)((System.Collections.DictionaryEntry)e).Value) {
+                    fc.Expired = true;
+                }
+            }
+        }
+
     }
 }

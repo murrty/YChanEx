@@ -579,6 +579,7 @@ public partial class frmDownloader : Form {
                         ThreadInfo.CountdownToNextScan = (ThreadInfo.Chan == ChanType.u18chan ? (60 * 30) : Downloads.ScannerDelay) - 1;
                         if (Program.DebugMode) {
                             ThreadInfo.CountdownToNextScan = 10;
+                            //ThreadInfo.CountdownToNextScan = 99999;
                         }
                         lbScanTimer.Text = "soon (tm)";
                         ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
@@ -591,6 +592,7 @@ public partial class frmDownloader : Form {
                         ThreadInfo.CountdownToNextScan = Downloads.ScannerDelay - 1;
                         if (Program.DebugMode) {
                             ThreadInfo.CountdownToNextScan = 10;
+                            //ThreadInfo.CountdownToNextScan = 99999;
                         }
                         ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
                         tmrScan.Start();

@@ -30,9 +30,8 @@ using SocksSharp.Extensions;
 using SocksSharp.Helpers;
 internal class ResponseBuilder : IResponseBuilder {
     private sealed class BytesWraper {
-        public int Length { get; set; }
-
-        public byte[] Value { get; set; }
+        public int Length;
+        public byte[] Value;
     }
 
     private static readonly byte[] openHtmlSignature = Encoding.ASCII.GetBytes("<html");
@@ -85,15 +84,13 @@ internal class ResponseBuilder : IResponseBuilder {
 
         response.RequestMessage = request;
 
-        var task = Task.Run(() => {
+        return Task.Run(() => {
             ReceiveStartingLine();
             ReceiveHeaders();
             ReceiveContent();
 
             return response;
         });
-
-        return task;
     }
 
     private void ReceiveStartingLine() {
@@ -136,11 +133,11 @@ internal class ResponseBuilder : IResponseBuilder {
             }
 
             int separatorPos = header.IndexOf(':');
-            if (separatorPos == -1) {
-                //string message = string.Format(
-                //Resources.HttpException_WrongHeader, header, Address.Host);
-                //throw NewHttpException(message);
-            }
+            //if (separatorPos == -1) {
+            //    string message = string.Format(
+            //    Resources.HttpException_WrongHeader, header, Address.Host);
+            //    throw NewHttpException(message);
+            //}
             string headerName = header[..separatorPos];
             string headerValue = header[(separatorPos + 1)..].Trim(' ', '\t', '\r', '\n');
 
@@ -309,7 +306,6 @@ internal class ResponseBuilder : IResponseBuilder {
     }
 
     #region Receive Content (F*cking trash, but works (not sure (really)))
-
     // Загрузка тела сообщения неизвестной длины.
     private IEnumerable<BytesWraper> ReceiveMessageBody(Stream stream) {
         var bytesWraper = new BytesWraper();
@@ -470,6 +466,5 @@ internal class ResponseBuilder : IResponseBuilder {
         }
         return false;
     }
-
     #endregion
 }

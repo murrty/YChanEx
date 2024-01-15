@@ -4,6 +4,7 @@ namespace System.Runtime.CompilerServices;
 [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 // This will be required to duplicated in projects that require the use of this.
 internal static class RuntimeHelpers {
+    public static int OffsetToStringData { get; }
     public static T[] GetSubArray<T>(T[] array, Range range) {
         if (array is null) {
             throw new ArgumentNullException();

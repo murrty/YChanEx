@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading;
 using murrty.controls;
 using SocksSharp;
-
 internal sealed class VolatileHttpClient : HttpClient {
     private const int DefaultBuffer = 81920;
     /// <summary>
@@ -17,7 +16,8 @@ internal sealed class VolatileHttpClient : HttpClient {
     /// <summary>
     /// Represents the default timeout, 1 minute (in milliseconds).
     /// </summary>
-    internal const int DefaultTimeout = 60_000;
+    //internal const int DefaultTimeout = 60_000;
+    internal const int DefaultTimeout = 1_800_000;
     /// <summary>
     /// Represents the highest timeout possible, 30 minutes (in milliseconds).
     /// </summary>
@@ -70,7 +70,7 @@ internal sealed class VolatileHttpClient : HttpClient {
         }
 
         this.DefaultRequestHeaders.Accept.Add(new("*/*"));
-        this.DefaultRequestHeaders.AcceptEncoding.Add(new("br"));
+        //this.DefaultRequestHeaders.AcceptEncoding.Add(new("br"));
         this.DefaultRequestHeaders.AcceptEncoding.Add(new("gzip"));
         this.DefaultRequestHeaders.AcceptEncoding.Add(new("deflate"));
         this.DefaultRequestHeaders.AcceptLanguage.Add(new("*"));
@@ -178,13 +178,13 @@ internal sealed class VolatileHttpClient : HttpClient {
 
         byte[] Bytes;
         switch (Response.Content.Headers.ContentEncoding.FirstOrDefault()) {
-            case "br": {
-                using MemoryStream DecompressorStream = new();
-                await WebDecompress.Brotli(Destination, DecompressorStream);
-                Destination.Close();
-                Bytes = DecompressorStream.ToArray();
-                DecompressorStream.Close();
-            } break;
+            //case "br": {
+            //    using MemoryStream DecompressorStream = new();
+            //    await WebDecompress.Brotli(Destination, DecompressorStream);
+            //    Destination.Close();
+            //    Bytes = DecompressorStream.ToArray();
+            //    DecompressorStream.Close();
+            //} break;
             case "gzip": {
                 using MemoryStream DecompressorStream = new();
                 await WebDecompress.GZip(Destination, DecompressorStream);
