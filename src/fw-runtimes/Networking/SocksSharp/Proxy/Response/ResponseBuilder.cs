@@ -171,28 +171,32 @@ internal class ResponseBuilder : IResponseBuilder {
         if (contentHeaders.Count != 0) {
             contentLength = GetContentLength();
 
-            var memoryStream = new MemoryStream(
-                (contentLength == -1) ? 0 : contentLength);
-
-            try {
-                IEnumerable<BytesWraper> source = GetMessageBodySource();
-                foreach (var bytes in source) {
-                    memoryStream.Write(bytes.Value, 0, bytes.Length);
-                    cancellationToken.ThrowIfCancellationRequested();
-                }
+            if (contentLength < 0) {
+                response.Content = new StreamContent(Stream.Null);
             }
-            catch (Exception ex) {
-                if (ex is IOException || ex is InvalidOperationException) {
-                    //throw NewHttpException(Resources.HttpException_FailedReceiveMessageBody, ex);
+            else {
+                var memoryStream = new MemoryStream(contentLength);
+
+                try {
+                    IEnumerable<BytesWraper> source = GetMessageBodySource();
+                    foreach (var bytes in source) {
+                        memoryStream.Write(bytes.Value, 0, bytes.Length);
+                        cancellationToken.ThrowIfCancellationRequested();
+                    }
+                }
+                catch (Exception ex) {
+                    if (ex is IOException || ex is InvalidOperationException) {
+                        //throw NewHttpException(Resources.HttpException_FailedReceiveMessageBody, ex);
+                    }
+
+                    throw;
                 }
 
-                throw;
-            }
-
-            memoryStream.Seek(0, SeekOrigin.Begin);
-            response.Content = new StreamContent(memoryStream);
-            foreach (var pair in contentHeaders) {
-                response.Content.Headers.TryAddWithoutValidation(pair.Key, pair.Value);
+                memoryStream.Seek(0, SeekOrigin.Begin);
+                response.Content = new StreamContent(memoryStream);
+                foreach (var pair in contentHeaders) {
+                    response.Content.Headers.TryAddWithoutValidation(pair.Key, pair.Value);
+                }
             }
         }
     }
