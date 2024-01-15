@@ -111,6 +111,9 @@
     <Compile Include="Classes\ThreadInfo.cs" />
     <Compile Include="Classes\VolatileHttpClient.cs" />
     <Compile Include="Config\Helpers\Cookies.cs" />
+    <Compile Include="Controls\ExplorerTreeView.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Controls\ExtendedListView.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -129,7 +132,7 @@
     <Compile Include="Interfaces\IMainForm.cs" />
     <Compile Include="Enums\ThreadEvent.cs" />
     <Compile Include="Enums\ThreadStatus.cs" />
-    <Compile Include="Classes\Threads\FourTwentyChanThread.cs" />
+    <Compile Include="Classes\Post Objects\FourTwentyChanThread.cs" />
     <Compile Include="Classes\Serializer.cs" />
     <Compile Include="Config\Advanced.cs" />
     <Compile Include="Config\Downloads.cs" />

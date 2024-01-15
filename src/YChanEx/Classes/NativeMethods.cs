@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using System.Drawing;
 using System.Runtime.InteropServices;
 namespace YChanEx {
     public static class NativeMethods {
@@ -43,5 +44,50 @@ namespace murrty {
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern nint SendMessage(nint hWnd, int msg, nint wParam, nint lParam);
+
+        [DllImport("user32.dll", EntryPoint = "GetWindowDC", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.SysInt)]
+        internal static extern nint GetWindowDC(nint hWnd);
+
+        [DllImport("user32.dll", EntryPoint = "ReleaseDC", SetLastError = true, CharSet = CharSet.Auto)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool ReleaseDC(nint hWnd, nint hDC);
+
+        [DllImport("user32.dll", EntryPoint = "GetWindowRect")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool GetWindowRect(nint hWnd, ref RECT lpRect);
+
+        [DllImport("gdi32.dll", EntryPoint = "ExcludeClipRect")]
+        [return: MarshalAs(UnmanagedType.I4)]
+        internal static extern int ExcludeClipRect(nint hdc, int nLeftrect, int nTopRect, int nRightRect, int nBottomRect);
+    }
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct NCCALCSIZE_PARAMS {
+        public RECT rgrc0, rgrc1, rgrc2;
+        [MarshalAs(UnmanagedType.SysInt)]
+        public nint lppos;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct RECT {
+        public static readonly RECT Empty = new(0, 0, 0, 0);
+
+        [MarshalAs(UnmanagedType.I4)]
+        public int left;
+        [MarshalAs(UnmanagedType.I4)]
+        public int top;
+        [MarshalAs(UnmanagedType.I4)]
+        public int right;
+        [MarshalAs(UnmanagedType.I4)]
+        public int bottom;
+
+        public RECT(int left, int top, int right, int bottom) {
+            this.left = left;
+            this.top = top;
+            this.right = right;
+            this.bottom = bottom;
+        }
+
+        public static implicit operator Rectangle(RECT rect) => new(rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
     }
 }

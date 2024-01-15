@@ -133,7 +133,6 @@ internal sealed class BitReader {
         }
     }
 
-    /// <exception cref="System.IO.IOException"/>
     internal static void Close(BitReader br) {
         System.IO.Stream @is = br.input;
         br.input = null;

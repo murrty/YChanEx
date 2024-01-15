@@ -65,7 +65,7 @@
             this.clThread = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.tpHistory = new System.Windows.Forms.TabPage();
-            this.tvHistory = new System.Windows.Forms.TreeView();
+            this.tvHistory = new murrty.controls.ExplorerTreeView();
             this.btnHistoryClear = new System.Windows.Forms.Button();
             this.btnHistoryRemove = new System.Windows.Forms.Button();
             this.btnHistoryRedownload = new System.Windows.Forms.Button();
@@ -336,6 +336,10 @@
             this.tvHistory.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.tvHistory.FullRowSelect = true;
+            this.tvHistory.HotTracking = true;
+            this.tvHistory.Indent = 16;
+            this.tvHistory.ItemHeight = 18;
             this.tvHistory.Location = new System.Drawing.Point(6, 29);
             this.tvHistory.Name = "tvHistory";
             treeNode1.Name = "node4chan";
@@ -363,6 +367,7 @@
             treeNode6,
             treeNode7,
             treeNode8});
+            this.tvHistory.ShowLines = false;
             this.tvHistory.Size = new System.Drawing.Size(342, 200);
             this.tvHistory.TabIndex = 5;
             this.tvHistory.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvHistory_AfterSelect);
@@ -417,7 +422,7 @@
             this.tpDebug.Location = new System.Drawing.Point(4, 22);
             this.tpDebug.Name = "tpDebug";
             this.tpDebug.Padding = new System.Windows.Forms.Padding(3);
-            this.tpDebug.Size = new System.Drawing.Size(326, 156);
+            this.tpDebug.Size = new System.Drawing.Size(446, 235);
             this.tpDebug.TabIndex = 2;
             this.tpDebug.Text = "Debug";
             this.tpDebug.UseVisualStyleBackColor = true;
@@ -502,7 +507,7 @@
         private System.Windows.Forms.Button btnHistoryClear;
         private System.Windows.Forms.Button btnHistoryRemove;
         private System.Windows.Forms.Button btnHistoryRedownload;
-        private System.Windows.Forms.TreeView tvHistory;
+        private murrty.controls.ExplorerTreeView tvHistory;
         private System.Windows.Forms.MenuItem mLog;
     }
 }

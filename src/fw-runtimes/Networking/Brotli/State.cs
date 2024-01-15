@@ -92,7 +92,6 @@ internal sealed class State {
         state.runningState = RunningState.BlockStart;
     }
 
-    /// <exception cref="System.IO.IOException"/>
     internal static void Close(State state) {
         if (state.runningState == RunningState.Uninitialized) {
             throw new InvalidOperationException("State MUST be initialized");

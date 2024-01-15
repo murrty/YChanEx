@@ -1,6 +1,7 @@
 ﻿#nullable enable
 namespace YChanEx;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.RegularExpressions;
 /// <summary>
 /// This class contains methods for verification and minor usability.
@@ -529,5 +530,42 @@ internal static class Chans {
                 "(qresearch)|(qnotables)|(pnd)|(midnightriders)|(qrb)|(philogeometric)|(qsocial)|(qrnews)|(thestorm)|(patriotsfight)|(projectdcomms)|(greatawakening)"),
             _ => false
         };
+    }
+
+    internal static string? SearchMatch(string input, string prefix, string suffix) {
+        Match M = new Regex($"(?<={prefix}).*?(?={suffix})").Match(input);
+        if (!M.Success) {
+            return null;
+        }
+        return M.Value;
+    }
+    internal static string? SearchMatch(string input, string prefix, string suffix, bool escape) {
+        Match M = escape ?
+            new Regex($"(?<={Regex.Escape(prefix)}).*?(?={Regex.Escape(suffix)})").Match(input) :
+            new Regex($"(?<={prefix}).*?(?={suffix})").Match(input);
+        if (!M.Success) {
+            return null;
+        }
+        return M.Value;
+    }
+    internal static string[] SearchMatches(string input, string prefix, string suffix) {
+        MatchCollection M = new Regex($"(?<={prefix}).*?(?={suffix})").Matches(input);
+        if (M.Count < 1) {
+            return [];
+        }
+        return M.Cast<Match>()
+            .Select(x => x.Value)
+            .ToArray();
+    }
+    internal static string[] SearchMatches(string input, string prefix, string suffix, bool escape) {
+        MatchCollection M = escape ?
+            new Regex($"(?<={Regex.Escape(prefix)}).*?(?={Regex.Escape(suffix)})").Matches(input) :
+            new Regex($"(?<={prefix}).*?(?={suffix})").Matches(input);
+        if (M.Count < 1) {
+            return [];
+        }
+        return M.Cast<Match>()
+            .Select(x => x.Value)
+            .ToArray();
     }
 }

@@ -210,26 +210,6 @@ internal static class Networking {
         return url[..url.IndexOf('/')].TrimStart(':', '/');
     }
 
-    public static async Task Test() {
-        HttpClientHandler DownloadClientHandler = new() {
-            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-        };
-
-        HttpClient DownloadClient = new(DownloadClientHandler);
-        DownloadClient.DefaultRequestHeaders.Accept.Add(new("*/*"));
-        //DownloadClient.DefaultRequestHeaders.AcceptEncoding.Add(new("br"));
-        DownloadClient.DefaultRequestHeaders.AcceptEncoding.Add(new("gzip"));
-        DownloadClient.DefaultRequestHeaders.AcceptEncoding.Add(new("deflate"));
-        DownloadClient.DefaultRequestHeaders.AcceptLanguage.Add(new("*"));
-        DownloadClient.DefaultRequestHeaders.ConnectionClose = false;
-        DownloadClient.DefaultRequestHeaders.UserAgent.ParseAdd(Program.UserAgent);
-
-        await Task.Delay(1);
-
-        //using var response = await DownloadClient.GetResponseAsync(new HttpRequestMessage(HttpMethod.Get, ""), default);
-        //string? re = await response?.Content.ReadAsStringAsync();
-    }
-
     internal static CookieCollection GetAllCookies(this CookieContainer container) {
         var m_domainTable = (System.Collections.Hashtable)_domainTable.GetValue(container);
         CookieCollection result = [];
@@ -252,6 +232,5 @@ internal static class Networking {
                 }
             }
         }
-
     }
 }

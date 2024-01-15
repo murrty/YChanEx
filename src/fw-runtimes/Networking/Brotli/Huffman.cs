@@ -42,9 +42,6 @@ internal static class Huffman {
         while (end > 0);
     }
 
-    /// <param name="count">histogram of bit lengths for the remaining symbols,</param>
-    /// <param name="len">code length of the next processed symbol.</param>
-    /// <returns>table width of the next 2nd level table.</returns>
     private static int NextTableBitSize(int[] count, int len, int rootBits) {
         int left = 1 << (len - rootBits);
         while (len < MaxLength) {
