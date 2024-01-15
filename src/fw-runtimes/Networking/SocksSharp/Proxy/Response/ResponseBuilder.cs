@@ -171,10 +171,7 @@ internal class ResponseBuilder : IResponseBuilder {
         if (contentHeaders.Count != 0) {
             contentLength = GetContentLength();
 
-            if (contentLength < 0) {
-                response.Content = new StreamContent(Stream.Null);
-            }
-            else {
+            if (contentLength > 0) {
                 var memoryStream = new MemoryStream(contentLength);
 
                 try {
@@ -197,6 +194,9 @@ internal class ResponseBuilder : IResponseBuilder {
                 foreach (var pair in contentHeaders) {
                     response.Content.Headers.TryAddWithoutValidation(pair.Key, pair.Value);
                 }
+            }
+            else {
+                response.Content = new StreamContent(Stream.Null);
             }
         }
     }
