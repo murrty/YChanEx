@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>a0fc4aca-80c0-4151-b41c-d538b779d1a6</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>fw_runtimes</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\BitReader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\BrotliInputStream.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\BrotliRuntimeException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\Context.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\Decode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\Dictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\Huffman.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\HuffmanTreeGroup.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\IntReader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\Prefix.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\RunningState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\State.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\Transform.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\Utils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\WordTransformType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Extensions\HttpHeadersExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Extensions\StringExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Helpers\ContentHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Helpers\ExceptionHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Helpers\HostHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Helpers\ReceiveHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\ProxyClientHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Proxy\Clients\Socks4.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Proxy\Clients\Socks4a.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Proxy\Clients\Socks5.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Proxy\IProxy.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Proxy\IProxyClient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Proxy\IProxySettings.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Proxy\IProxySettingsFluent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Proxy\ProxyClient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Proxy\ProxyException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Proxy\ProxySettings.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Proxy\Request\RequestBuilder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Proxy\Response\IResponseBuilder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Proxy\Response\ResponseBuilder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Socks4aProxyClientHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Socks4ProxyClientHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Socks5ProxyClientHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\YoveProxy\ProxyClient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Diagnostics\CodeAnalysis\AllowNullAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Diagnostics\CodeAnalysis\DisallowNullAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Diagnostics\CodeAnalysis\DoesNotReturnAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Diagnostics\CodeAnalysis\DoesNotReturnIfAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Diagnostics\CodeAnalysis\ExperimentalAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Diagnostics\CodeAnalysis\MaybeNullAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Diagnostics\CodeAnalysis\MaybeNullWhenAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Diagnostics\CodeAnalysis\MemberNotNullAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Diagnostics\CodeAnalysis\MemberNotNullWhenAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Diagnostics\CodeAnalysis\NotNullAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Diagnostics\CodeAnalysis\NotNullIfNotNullAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Diagnostics\CodeAnalysis\NotNullWhenAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Diagnostics\CodeAnalysis\SetsRequiredMembersAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Diagnostics\CompilerServices\CollectionBuilderAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Diagnostics\CompilerServices\StringSyntaxAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Index.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Range.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Runtime\CompilerServices\CallerArgumentExpressionAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Runtime\CompilerServices\CompilerFeatureRequiredAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Runtime\CompilerServices\IsExternalInit.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Runtime\CompilerServices\RequiredMemberAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Runtime\CompilerServices\RuntimeHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)System\Runtime\CompilerServices\UnsafeAccessorAttribute.cs" />
+  </ItemGroup>
+</Project>

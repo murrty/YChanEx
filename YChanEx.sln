@@ -12,7 +12,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YChanEx", "src\YChanEx\YCha
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Controls", "src\Controls\Controls.shproj", "{538127EF-8951-4448-BB23-51DCB7968424}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "fw-runtimes", "fw-runtimes\fw-runtimes.shproj", "{A0FC4ACA-80C0-4151-B41C-D538B779D1A6}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "fw-runtimes", "src\fw-runtimes\fw-runtimes.shproj", "{A0FC4ACA-80C0-4151-B41C-D538B779D1A6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,8 +37,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Controls\Controls.projitems*{538127ef-8951-4448-bb23-51dcb7968424}*SharedItemsImports = 13
-		fw-runtimes\fw-runtimes.projitems*{74a112ce-f6ca-4384-b8a0-6d8337378897}*SharedItemsImports = 4
 		src\Controls\Controls.projitems*{74a112ce-f6ca-4384-b8a0-6d8337378897}*SharedItemsImports = 4
-		fw-runtimes\fw-runtimes.projitems*{a0fc4aca-80c0-4151-b41c-d538b779d1a6}*SharedItemsImports = 13
+		src\fw-runtimes\fw-runtimes.projitems*{74a112ce-f6ca-4384-b8a0-6d8337378897}*SharedItemsImports = 4
+		src\fw-runtimes\fw-runtimes.projitems*{a0fc4aca-80c0-4151-b41c-d538b779d1a6}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal
