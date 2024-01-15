@@ -4,7 +4,6 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 internal sealed class ExplorerTreeView : TreeView {
     private RECT BorderRect;
-
     protected override void OnHandleCreated(EventArgs e) {
         base.OnHandleCreated(e);
         _ = NativeMethods.SetWindowTheme(this.Handle, "Explorer", null);

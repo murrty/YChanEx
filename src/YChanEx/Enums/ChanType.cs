@@ -3,7 +3,7 @@ namespace YChanEx;
 /// <summary>
 /// Enumeration of the chan types available
 /// </summary>
-public enum ChanType : int {
+public enum ChanType {
     /// <summary>
     /// No chan was selected to download.
     /// </summary>

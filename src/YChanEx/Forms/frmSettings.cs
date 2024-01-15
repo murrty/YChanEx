@@ -53,6 +53,18 @@ public partial class frmSettings : Form {
             btnProtocol.Visible = false;
             btnProtocol.Enabled = false;
         }
+
+        for (int i = 0; i < Cookies.CookieList.Count; i++) {
+            var c = Cookies.CookieList[i];
+            ListViewItem lvi = new(c.Name);
+            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+            lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
+            lvi.SubItems[1].Text = c.Value;
+            lvi.SubItems[2].Text = c.Path;
+            lvi.SubItems[3].Text = c.Domain;
+            lvCookies.Items.Add(lvi);
+        }
     }
 
     private void SaveSettings() {

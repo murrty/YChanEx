@@ -143,7 +143,7 @@ static class Program {
     [STAThread]
     static int Main(string[] argv) {
         Console.WriteLine("Welcome to the amazing world of: Loading application.");
-        if (!(Instance = new(true, ProgramGUID.ToString())).WaitOne(TimeSpan.Zero, true)) {
+        if (!DebugMode && !(Instance = new(true, ProgramGUID.ToString())).WaitOne(TimeSpan.Zero, true)) {
             ExitCode = 1152; // Cannot start more than one instance of the specified program.
 
             if (Arguments.SetProtocol(argv)) {
