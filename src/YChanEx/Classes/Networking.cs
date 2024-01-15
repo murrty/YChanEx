@@ -8,8 +8,6 @@ using System.Text;
 using System.Threading;
 using murrty.controls;
 internal static class Networking {
-    private static ulong Iteration;
-
     public static readonly Cookie[] RequiredCookies;
     public static readonly bool Tls12OrHigher;
     public static CookieContainer CookieContainer;
@@ -19,8 +17,6 @@ internal static class Networking {
         get {
             if (CachedClient.UpdateRequired()) {
                 RecreateDownloadClient();
-                Iteration++;
-                CachedClient.Iteration = Iteration;
             }
             return CachedClient;
         }
@@ -49,6 +45,7 @@ internal static class Networking {
             new Cookie("disclaimer18", "1", "/", "8chan.moe"),
             new Cookie("disclaimer19", "1", "/", "8chan.moe"),
             new Cookie("disclaimer20", "1", "/", "8chan.moe")];
+        CookieContainer = new();
         RefreshCookies();
         RecreateDownloadClient();
 
@@ -152,10 +149,7 @@ internal static class Networking {
         VolatileHttpClient NewClient = new(NewHandler);
         CachedClient = NewClient;
     }
-
-    [MemberNotNull(nameof(CookieContainer))]
     public static void RefreshCookies() {
-        CookieContainer = new();
         for (int i = 0; i < RequiredCookies.Length; i++) {
             CookieContainer.Add(RequiredCookies[i]);
         }
@@ -218,102 +212,7 @@ internal static class Networking {
 
         await Task.Delay(1);
 
-        //using var response = await GetResponseAsync(new HttpRequestMessage(HttpMethod.Get, ""), DownloadClient, default);
-
+        //using var response = await DownloadClient.GetResponseAsync(new HttpRequestMessage(HttpMethod.Get, ""), default);
         //string? re = await response?.Content.ReadAsStringAsync();
-    }
-
-    public static Task<HttpResponseMessage?> GetResponseAsync(HttpRequestMessage request, CancellationToken token) {
-        return GetResponseAsync(request, LatestClient, token);
-    }
-    public static async Task<HttpResponseMessage?> GetResponseAsync(HttpRequestMessage request, HttpClient DownnloadClient, CancellationToken token) {
-        HttpResponseMessage? Response = null;
-        int Retries = 0;
-
-        while (true) {
-            try {
-                Response = await DownnloadClient
-                    .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token)
-                    .ConfigureAwait(false);
-
-                if (!Response.IsSuccessStatusCode) {
-#if !NET6_0_OR_GREATER // Auto-redirect, for 308+ on framework.
-                    if (((int)Response.StatusCode is > 304 and < 400) && Response.Headers.Location is not null) {
-                        request.RequestUri = Response.Headers.Location;
-                        RequestMessage.ResetRequest(request);
-                        Response.Dispose();
-                        return await GetResponseAsync(request, DownnloadClient, token)
-                            .ConfigureAwait(false);
-                    }
-#endif // Auto-redirect, for 308+ on framework.
-
-                    if ((int)Response.StatusCode > 499 && (++Retries) < 5) {
-                        RequestMessage.ResetRequest(request);
-                        Response.Dispose();
-                        continue;
-                    }
-
-                    Response.Dispose();
-                    return null;
-                }
-            }
-            catch {
-                Response?.Dispose();
-                return null;
-            }
-
-            break;
-        }
-
-        return Response;
-    }
-    public static async Task<string> GetStringAsync(HttpResponseMessage Response, CancellationToken token) {
-        using Stream Content = await Response.Content.ReadAsStreamAsync();
-        using MemoryStream Destination = new();
-
-        await CachedClient.WriteStreamAsync(Content, Destination, token);
-        await Destination.FlushAsync();
-
-        byte[] Bytes;
-        switch (Response.Content.Headers.ContentEncoding.FirstOrDefault()) {
-            case "br": {
-                using MemoryStream DecompressorStream = new();
-                await WebDecompress.Brotli(Destination, DecompressorStream);
-                Destination.Close();
-                Bytes = DecompressorStream.ToArray();
-                DecompressorStream.Close();
-            }
-            break;
-            case "gzip": {
-                using MemoryStream DecompressorStream = new();
-                await WebDecompress.GZip(Destination, DecompressorStream);
-                Destination.Close();
-                Bytes = DecompressorStream.ToArray();
-                DecompressorStream.Close();
-            }
-            break;
-            case "deflate": {
-                using MemoryStream DecompressorStream = new();
-                await WebDecompress.Deflate(Destination, DecompressorStream);
-                Destination.Close();
-                Bytes = DecompressorStream.ToArray();
-                DecompressorStream.Close();
-            }
-            break;
-            default: {
-                Bytes = Destination.ToArray();
-                Destination.Close();
-            }
-            break;
-        }
-
-        return (Response.Content.Headers.ContentType.CharSet ?? "utf-8").ToLowerInvariant() switch {
-            "ascii" => Encoding.ASCII.GetString(Bytes),
-            "utf-7" => Encoding.UTF7.GetString(Bytes),
-            "utf-32" => Encoding.UTF32.GetString(Bytes),
-            "utf-16" or "unicode" => Encoding.Unicode.GetString(Bytes),
-            "utf-16-be" or "utf-16be" or "unicode-be" or "unicodebe" => Encoding.BigEndianUnicode.GetString(Bytes),
-            _ => Encoding.UTF8.GetString(Bytes),
-        };
     }
 }

@@ -159,8 +159,9 @@ internal static class Updater {
 
     private async static Task RefreshRelease() {
         Token = new();
+        var DownloadClient = Networking.LatestClient;
         HttpRequestMessage Request = new(HttpMethod.Get, Initialization.CheckForBetaUpdates ? AllReleaseRepo : LatestRepo);
-        using var Response = await Networking.GetResponseAsync(Request, Token.Token);
+        using var Response = await DownloadClient.GetResponseAsync(Request, Token.Token);
         if (Response == null) {
             LastChecked = null;
             LastCheckedLatestRelease = null;
@@ -168,7 +169,7 @@ internal static class Updater {
             return;
         }
 
-        string Json = await Networking.GetStringAsync(Response, Token.Token);
+        string Json = await DownloadClient.GetStringAsync(Response, Token.Token);
 
         if (Json.IsNullEmptyWhitespace()) {
             LastChecked = null;

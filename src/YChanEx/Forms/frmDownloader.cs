@@ -41,11 +41,6 @@ public partial class frmDownloader : Form {
     /// used for updating the main form with this forms' threads' status, or name.
     /// </summary>
     private readonly IMainFom MainFormInstance;
-    /// <summary>
-    /// The download client that will be used.
-    /// Refreshed before each scan.
-    /// </summary>
-    private VolatileHttpClient DownloadClient;
 
     /// <summary>
     /// The ThreadInfo containing all information about this forms' thread.
@@ -82,7 +77,6 @@ public partial class frmDownloader : Form {
     }
     public frmDownloader(IMainFom MainForm, ThreadInfo ThreadInfo) {
         InitializeComponent();
-        this.DownloadClient = Networking.LatestClient;
         this.MainFormInstance = MainForm;
         this.ThreadInfo = ThreadInfo;
 
@@ -693,8 +687,9 @@ public partial class frmDownloader : Form {
             } break;
 
             case ThreadEvent.ReloadThread: {
-                if (Downloads.AutoRemoveDeadThreads && ThreadInfo.CurrentActivity switch {
-                    ThreadStatus.ThreadIs404 or ThreadStatus.ThreadIsArchived or _ when ThreadInfo.Data.ThreadArchived => true,
+                if (Downloads.AutoRemoveDeadThreads && ThreadInfo.Data.ThreadState switch {
+                    ThreadState.ThreadIs404 => true,
+                    ThreadState.ThreadIsArchived or _ when ThreadInfo.Data.ThreadArchived => true,
                     _ => false
                 }) {
                     MainFormInstance.ThreadKilled(ThreadInfo);
@@ -945,8 +940,8 @@ public partial class frmDownloader : Form {
         Log.Warn("Could not handle thumb file " + File.FileId);
         this.Invoke(() => File.ListViewItem.ImageIndex = ErrorImage);
     }
-    private void HandleStatusCode() {
-        ThreadInfo.CurrentActivity = ThreadInfo.StatusCode switch {
+    private void HandleStatusCode(HttpStatusCode StatusCode) {
+        ThreadInfo.CurrentActivity = StatusCode switch {
             HttpStatusCode.NotModified => ThreadStatus.ThreadNotModified,
             HttpStatusCode.Forbidden => ThreadStatus.ThreadIsNotAllowed,
             HttpStatusCode.NotFound when ThreadInfo.DownloadingFiles => ThreadStatus.ThreadFile404,
@@ -1179,66 +1174,8 @@ public partial class frmDownloader : Form {
             ThreadInfo.SaveHtml();
         }
     }
-    private void CheckDownloadClient() {
-        if (this.DownloadClient.Iteration != Networking.LatestClient.Iteration) {
-            this.DownloadClient = Networking.CachedClient;
-        }
-    }
 
-    private async Task<HttpResponseMessage?> TryGetResponseIfModifiedAsync(HttpRequestMessage request, CancellationToken token) {
-        // If-modified-since is a default header.
-        // Any other headers must be added per-chan.
-        request.Headers.IfModifiedSince = ThreadInfo.Data.LastModified;
-        var Response = await TryGetResponseAsync(request, token);
-        if (Response != null) {
-            ThreadInfo.Data.LastModified = Response.Content.Headers.LastModified;
-        }
-        return Response;
-    }
-    private async Task<HttpResponseMessage?> TryGetResponseAsync(HttpRequestMessage request, CancellationToken token) {
-        HttpResponseMessage? Response = null;
-        int Retries = 0;
-        while (true) {
-            try {
-                Response = await DownloadClient
-                    .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token)
-                    .ConfigureAwait(false);
-
-                if (!Response.IsSuccessStatusCode) {
-    #if !NET6_0_OR_GREATER // Auto-redirect, for 308+ on framework.
-                    if (((int)Response.StatusCode is > 305 and < 400) && Response.Headers.Location is not null) {
-                        request.RequestUri = Response.Headers.Location;
-                        RequestMessage.ResetRequest(request);
-                        Response.Dispose();
-                        return await TryGetResponseAsync(request, token)
-                            .ConfigureAwait(false);
-                    }
-    #endif // Auto-redirect, for 308+ on framework.
-
-                    if ((int)Response.StatusCode > 499 && (++Retries) < 5) {
-                        RequestMessage.ResetRequest(request);
-                        Response.Dispose();
-                        CheckDownloadClient();
-                        continue;
-                    }
-
-                    ThreadInfo.StatusCode = Response.StatusCode;
-                    Response.Dispose();
-                    return null;
-                }
-            }
-            catch {
-                Response?.Dispose();
-                return null;
-            }
-
-            break;
-        }
-
-        ThreadInfo.StatusCode = Response.StatusCode;
-        return Response;
-    }
-    private async Task DownloadFilesAsync(CancellationToken token) {
+    private async Task DownloadFilesAsync(VolatileHttpClient DownloadClient, CancellationToken token) {
         Log.Info("Downloading files");
         if (!ThreadInfo.AddedNewPosts) {
             return;
@@ -1285,10 +1222,14 @@ public partial class frmDownloader : Form {
                         if (ThreadInfo.Chan == ChanType.EightChan) {
                             FileRequest.Headers.Add("Referer", ThreadInfo.Data.Url);
                         }
-                        using var Response = await TryGetResponseAsync(FileRequest, token);
+                        using var Response = await DownloadClient.GetResponseAsync(FileRequest, token);
 
                         if (Response == null) {
-                            if (ThreadInfo.StatusCode == HttpStatusCode.NotFound) {
+                            PostFile.Status = FileDownloadStatus.Error;
+                            this.Invoke(() => PostFile.ListViewItem.ImageIndex = ErrorImage);
+                        }
+                        else if (!Response.IsSuccessStatusCode) {
+                            if (Response.StatusCode == HttpStatusCode.NotFound) {
                                 PostFile.Status = FileDownloadStatus.FileNotFound;
                                 this.Invoke(() => PostFile.ListViewItem.ImageIndex = _404Image);
                             }
@@ -1298,7 +1239,7 @@ public partial class frmDownloader : Form {
                             }
                         }
                         else {
-                            await GetFile(Response, FileDownloadPath, token);
+                            await GetFile(Response, FileDownloadPath, DownloadClient, token);
 
                             ThreadInfo.Data.DownloadedImagesCount++;
                             PostFile.Status = FileDownloadStatus.Downloaded;
@@ -1325,9 +1266,9 @@ public partial class frmDownloader : Form {
                         if (ThreadInfo.Chan == ChanType.EightChan) {
                             FileRequest.Headers.Add("Referer", ThreadInfo.Data.Url);
                         }
-                        using var Response = await TryGetResponseAsync(FileRequest, token);
-                        if (Response != null) {
-                            await GetFile(Response, ThumbFileDownloadPath, token);
+                        using var Response = await DownloadClient.GetResponseAsync(FileRequest, token);
+                        if (Response?.IsSuccessStatusCode == true) {
+                            await GetFile(Response, ThumbFileDownloadPath, DownloadClient, token);
                         }
                     }
 
@@ -1343,7 +1284,7 @@ public partial class frmDownloader : Form {
             ThreadInfo.ThreadModified = false;
         }
     }
-    private async Task<bool> GetFile(HttpResponseMessage Response, string dest, CancellationToken token) {
+    private async Task<bool> GetFile(HttpResponseMessage Response, string dest, VolatileHttpClient DownloadClient, CancellationToken token) {
         try {
             using Stream Content = await Response.Content.ReadAsStreamAsync();
             using FileStream Destination = new(
@@ -1382,30 +1323,32 @@ public partial class frmDownloader : Form {
                 }
                 CancellationToken.Token.ThrowIfCancellationRequested();
 
-                // Request that will be sent to the API.
-                HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.ApiLink);
-                // Should more headers be added?
-
                 // Main loop
                 do {
                     Log.Info($"Scanning {ThreadInfo.ThreadLogDisplay}");
 
-                    // Check the download client iteration.
-                    CheckDownloadClient();
-
                     // Set the activity to scanning.
                     ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
-                    RequestMessage.ResetRequest(Request);
+                    VolatileHttpClient DownloadClient = Networking.LatestClient;
+                    HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.ApiLink);
+                    Request.Headers.IfModifiedSince = ThreadInfo.Data.LastModified;
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
+                    using var Response = await DownloadClient.GetResponseAsync(Request, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the response is null, it's a bad result; break the thread.
                     if (Response == null) {
-                        HandleStatusCode();
-                        if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
+                        HandleStatusCode(HttpStatusCode.NoContent);
+                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+                        break;
+                    }
+
+                    // Check the status code, if it's bad it cannot be used.
+                    if (!Response.IsSuccessStatusCode) {
+                        HandleStatusCode(Response.StatusCode);
+                        if (Response.StatusCode == HttpStatusCode.NotModified) {
                             ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
                             Log.Info($"{ThreadInfo.ThreadLogDisplay} not modified, waiting for next loop.");
                             this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
@@ -1418,7 +1361,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Get the json.
-                    string CurrentJson = await Networking.GetStringAsync(Response, CancellationToken.Token);
+                    string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
 
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
@@ -1472,7 +1415,7 @@ public partial class frmDownloader : Form {
 
                     // Download files.
                     Log.Info($"Downloading {ThreadInfo.ThreadLogDisplay} files.");
-                    await DownloadFilesAsync(CancellationToken.Token);
+                    await DownloadFilesAsync(DownloadClient, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the thread is aborted, just break the loop -- its already managed.
@@ -1527,30 +1470,32 @@ public partial class frmDownloader : Form {
                 }
                 CancellationToken.Token.ThrowIfCancellationRequested();
 
-                // Request that will be sent to the API.
-                HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.Data.Url);
-                // Should more headers be added?
-
                 // Main loop
                 do {
                     Log.Info($"Scanning {ThreadInfo.ThreadLogDisplay}");
 
-                    // Check the download client iteration.
-                    CheckDownloadClient();
-
                     // Set the activity to scanning.
                     ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
-                    RequestMessage.ResetRequest(Request);
+                    VolatileHttpClient DownloadClient = Networking.LatestClient;
+                    HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.ApiLink);
+                    Request.Headers.IfModifiedSince = ThreadInfo.Data.LastModified;
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
+                    using var Response = await DownloadClient.GetResponseAsync(Request, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the response is null, it's a bad result; break the thread.
                     if (Response == null) {
-                        HandleStatusCode();
-                        if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
+                        HandleStatusCode(HttpStatusCode.NoContent);
+                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+                        break;
+                    }
+
+                    // Check the status code, if it's bad it cannot be used.
+                    if (!Response.IsSuccessStatusCode) {
+                        HandleStatusCode(Response.StatusCode);
+                        if (Response.StatusCode == HttpStatusCode.NotModified) {
                             ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
                             Log.Info($"{ThreadInfo.ThreadLogDisplay} not modified, waiting for next loop.");
                             this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
@@ -1563,7 +1508,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Get the json.
-                    string CurrentJson = await Networking.GetStringAsync(Response, CancellationToken.Token);
+                    string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
 
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
@@ -1630,7 +1575,7 @@ public partial class frmDownloader : Form {
 
                     // Download files.
                     Log.Info($"Downloading {ThreadInfo.ThreadLogDisplay} files.");
-                    await DownloadFilesAsync(CancellationToken.Token);
+                    await DownloadFilesAsync(DownloadClient, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the thread is aborted, just break the loop -- its already managed.
@@ -1682,11 +1627,7 @@ public partial class frmDownloader : Form {
                 // Retrieve the board data before the loop.
                 if (!ThreadInfo.ThreadReloaded) {
                     Log.Info($"Retrieving 8chan board info for {ThreadInfo.Data.Board}");
-
-                    // Check the download client iteration.
-                    CheckDownloadClient();
-
-                    var Board = await EightChan.GetBoardAsync(ThreadInfo.Data.Board, DownloadClient, CancellationToken.Token);
+                    var Board = await EightChan.GetBoardAsync(ThreadInfo.Data.Board, Networking.LatestClient, CancellationToken.Token);
                     if (Board != null) {
                         ThreadInfo.Data.BoardName = Board.BoardName;
                         ThreadInfo.Data.BoardSubtitle = Board.BoardDescription;
@@ -1706,31 +1647,32 @@ public partial class frmDownloader : Form {
                 }
                 CancellationToken.Token.ThrowIfCancellationRequested();
 
-                // Request that will be sent to the API.
-                HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.ApiLink);
-                Request.Headers.Referrer = new("https://8chan.moe/");
-                // Should more headers be added?
-
                 // Main loop
                 do {
                     Log.Info($"Scanning {ThreadInfo.ThreadLogDisplay}");
 
-                    // Check the download client iteration.
-                    CheckDownloadClient();
-
                     // Set the activity to scanning.
                     ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
-                    RequestMessage.ResetRequest(Request);
+                    VolatileHttpClient DownloadClient = Networking.LatestClient;
+                    HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.ApiLink);
+                    Request.Headers.IfModifiedSince = ThreadInfo.Data.LastModified;
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
+                    using var Response = await DownloadClient.GetResponseAsync(Request, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the response is null, it's a bad result; break the thread.
                     if (Response == null) {
-                        HandleStatusCode();
-                        if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
+                        HandleStatusCode(HttpStatusCode.NoContent);
+                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+                        break;
+                    }
+
+                    // Check the status code, if it's bad it cannot be used.
+                    if (!Response.IsSuccessStatusCode) {
+                        HandleStatusCode(Response.StatusCode);
+                        if (Response.StatusCode == HttpStatusCode.NotModified) {
                             ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
                             Log.Info($"{ThreadInfo.ThreadLogDisplay} not modified, waiting for next loop.");
                             this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
@@ -1743,7 +1685,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Get the json.
-                    string CurrentJson = await Networking.GetStringAsync(Response, CancellationToken.Token);
+                    string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // Serialize the json data into a class object.
@@ -1811,7 +1753,7 @@ public partial class frmDownloader : Form {
 
                     // Download files.
                     Log.Info($"Downloading {ThreadInfo.ThreadLogDisplay} files.");
-                    await DownloadFilesAsync(CancellationToken.Token);
+                    await DownloadFilesAsync(DownloadClient, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the thread is aborted, just break the loop -- its already managed.
@@ -1861,11 +1803,7 @@ public partial class frmDownloader : Form {
                 // Retrieve the board data before the loop.
                 if (!ThreadInfo.ThreadReloaded) {
                     Log.Info($"Retrieving 8kun board info for {ThreadInfo.Data.Board}");
-
-                    // Check the download client iteration.
-                    CheckDownloadClient();
-
-                    var Board = await EightKun.GetBoardAsync(ThreadInfo, DownloadClient, CancellationToken.Token);
+                    var Board = await EightKun.GetBoardAsync(ThreadInfo, Networking.LatestClient, CancellationToken.Token);
                     if (Board != null) {
                         ThreadInfo.Data.BoardName = Board.title;
                         ThreadInfo.Data.BoardSubtitle = Board.subtitle;
@@ -1885,30 +1823,32 @@ public partial class frmDownloader : Form {
                 }
                 CancellationToken.Token.ThrowIfCancellationRequested();
 
-                // Request that will be sent to the API.
-                HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.ApiLink);
-                // Should more headers be added?
-
                 // Main loop
                 do {
                     Log.Info($"Scanning {ThreadInfo.ThreadLogDisplay}");
 
-                    // Check the download client iteration.
-                    CheckDownloadClient();
-
                     // Set the activity to scanning.
                     ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
-                    RequestMessage.ResetRequest(Request);
+                    VolatileHttpClient DownloadClient = Networking.LatestClient;
+                    HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.ApiLink);
+                    Request.Headers.IfModifiedSince = ThreadInfo.Data.LastModified;
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
+                    using var Response = await DownloadClient.GetResponseAsync(Request, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the response is null, it's a bad result; break the thread.
                     if (Response == null) {
-                        HandleStatusCode();
-                        if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
+                        HandleStatusCode(HttpStatusCode.NoContent);
+                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+                        break;
+                    }
+
+                    // Check the status code, if it's bad it cannot be used.
+                    if (!Response.IsSuccessStatusCode) {
+                        HandleStatusCode(Response.StatusCode);
+                        if (Response.StatusCode == HttpStatusCode.NotModified) {
                             ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
                             Log.Info($"{ThreadInfo.ThreadLogDisplay} not modified, waiting for next loop.");
                             this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
@@ -1921,7 +1861,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Get the json.
-                    string CurrentJson = await Networking.GetStringAsync(Response, CancellationToken.Token);
+                    string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // Serialize the json data into a class object.
@@ -1978,7 +1918,7 @@ public partial class frmDownloader : Form {
 
                     // Download files.
                     Log.Info($"Downloading {ThreadInfo.ThreadLogDisplay} files.");
-                    await DownloadFilesAsync(CancellationToken.Token);
+                    await DownloadFilesAsync(DownloadClient, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the thread is aborted, just break the loop -- its already managed.
@@ -2033,29 +1973,31 @@ public partial class frmDownloader : Form {
                 }
                 CancellationToken.Token.ThrowIfCancellationRequested();
 
-                // Request that will be sent to the API.
-                HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.Data.Url);
-                // Should more headers be added?
-
                 // Main loop
                 do {
                     Log.Info($"Scanning {ThreadInfo.ThreadLogDisplay}");
 
-                    // Check the download client iteration.
-                    CheckDownloadClient();
-
                     // Set the activity to scanning.
                     ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
-                    RequestMessage.ResetRequest(Request);
+                    VolatileHttpClient DownloadClient = Networking.LatestClient;
+                    HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.ApiLink);
+                    Request.Headers.IfModifiedSince = ThreadInfo.Data.LastModified;
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
+                    using var Response = await DownloadClient.GetResponseAsync(Request, CancellationToken.Token);
 
                     // If the response is null, it's a bad result; break the thread.
                     if (Response == null) {
-                        HandleStatusCode();
-                        if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
+                        HandleStatusCode(HttpStatusCode.NoContent);
+                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+                        break;
+                    }
+
+                    // Check the status code, if it's bad it cannot be used.
+                    if (!Response.IsSuccessStatusCode) {
+                        HandleStatusCode(Response.StatusCode);
+                        if (Response.StatusCode == HttpStatusCode.NotModified) {
                             ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
                             Log.Info($"{ThreadInfo.ThreadLogDisplay} not modified, waiting for next loop.");
                             this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
@@ -2068,7 +2010,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Get the json.
-                    string CurrentJson = await Networking.GetStringAsync(Response, CancellationToken.Token);
+                    string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // Serialize the json data into a class object.
@@ -2132,7 +2074,7 @@ public partial class frmDownloader : Form {
 
                     // Download files.
                     Log.Info($"Downloading {ThreadInfo.ThreadLogDisplay} files.");
-                    await DownloadFilesAsync(CancellationToken.Token);
+                    await DownloadFilesAsync(DownloadClient, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the thread is aborted, just break the loop -- its already managed.
@@ -2187,30 +2129,32 @@ public partial class frmDownloader : Form {
                 }
                 CancellationToken.Token.ThrowIfCancellationRequested();
 
-                // Request that will be sent to the API.
-                HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.Data.Url);
-                // Should more headers be added?
-
                 // Main loop
                 do {
                     Log.Info($"Scanning {ThreadInfo.ThreadLogDisplay}");
 
-                    // Check the download client iteration.
-                    CheckDownloadClient();
-
                     // Set the activity to scanning.
                     ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
-                    RequestMessage.ResetRequest(Request);
+                    VolatileHttpClient DownloadClient = Networking.LatestClient;
+                    HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.ApiLink);
+                    Request.Headers.IfModifiedSince = ThreadInfo.Data.LastModified;
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
+                    using var Response = await DownloadClient.GetResponseAsync(Request, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the response is null, it's a bad result; break the thread.
                     if (Response == null) {
-                        HandleStatusCode();
-                        if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
+                        HandleStatusCode(HttpStatusCode.NoContent);
+                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+                        break;
+                    }
+
+                    // Check the status code, if it's bad it cannot be used.
+                    if (!Response.IsSuccessStatusCode) {
+                        HandleStatusCode(Response.StatusCode);
+                        if (Response.StatusCode == HttpStatusCode.NotModified) {
                             ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
                             Log.Info($"{ThreadInfo.ThreadLogDisplay} not modified, waiting for next loop.");
                             this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
@@ -2223,7 +2167,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Get the json.
-                    string CurrentJson = await Networking.GetStringAsync(Response, CancellationToken.Token);
+                    string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
 
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
@@ -2286,7 +2230,7 @@ public partial class frmDownloader : Form {
 
                     // Download files.
                     Log.Info($"Downloading {ThreadInfo.ThreadLogDisplay} files.");
-                    await DownloadFilesAsync(CancellationToken.Token);
+                    await DownloadFilesAsync(DownloadClient, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the thread is aborted, just break the loop -- its already managed.
@@ -2332,30 +2276,32 @@ public partial class frmDownloader : Form {
                     return;
                 }
 
-                // Request that will be sent to the API.
-                HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.ApiLink);
-                // Should more headers be added?
-
                 // Main loop
                 do {
                     Log.Info($"Scanning {ThreadInfo.ThreadLogDisplay}");
 
-                    // Check the download client iteration.
-                    CheckDownloadClient();
-
                     // Set the activity to scanning.
                     ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanning;
-                    RequestMessage.ResetRequest(Request);
+                    VolatileHttpClient DownloadClient = Networking.LatestClient;
+                    HttpRequestMessage Request = new(HttpMethod.Get, ThreadInfo.ApiLink);
+                    Request.Headers.IfModifiedSince = ThreadInfo.Data.LastModified;
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    using var Response = await TryGetResponseIfModifiedAsync(Request, CancellationToken.Token);
+                    using var Response = await DownloadClient.GetResponseAsync(Request, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the response is null, it's a bad result; break the thread.
                     if (Response == null) {
-                        HandleStatusCode();
-                        if (ThreadInfo.StatusCode == HttpStatusCode.NotModified) {
+                        HandleStatusCode(HttpStatusCode.NoContent);
+                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+                        break;
+                    }
+
+                    // Check the status code, if it's bad it cannot be used.
+                    if (!Response.IsSuccessStatusCode) {
+                        HandleStatusCode(Response.StatusCode);
+                        if (Response.StatusCode == HttpStatusCode.NotModified) {
                             ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
                             Log.Info($"{ThreadInfo.ThreadLogDisplay} not modified, waiting for next loop.");
                             this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
@@ -2368,7 +2314,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Get the json.
-                    string CurrentJson = await Networking.GetStringAsync(Response, CancellationToken.Token);
+                    string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
 
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
@@ -2436,7 +2382,7 @@ public partial class frmDownloader : Form {
 
                     // Download files.
                     Log.Info($"Downloading {ThreadInfo.ThreadLogDisplay} files.");
-                    await DownloadFilesAsync(CancellationToken.Token);
+                    await DownloadFilesAsync(DownloadClient, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the thread is aborted, just break the loop -- its already managed.

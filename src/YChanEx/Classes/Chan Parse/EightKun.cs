@@ -9,7 +9,7 @@ internal static class EightKun {
     private const string BoardsUrl = "https://8kun.top/boards.json";
     private static EightKunBoard[] Boards = [];
 
-    public static async Task<EightKunBoard?> GetBoardAsync(ThreadInfo Thread, HttpClient DownloadClient, CancellationToken token) {
+    public static async Task<EightKunBoard?> GetBoardAsync(ThreadInfo Thread, VolatileHttpClient DownloadClient, CancellationToken token) {
         string CacheDir = Path.Combine(Downloads.DownloadPath, "8kun");
         string CacheFile = Path.Combine(CacheDir, "boardcache.json");
         if (File.Exists(CacheFile)) {
@@ -30,13 +30,13 @@ internal static class EightKun {
         }
 
         HttpRequestMessage Request = new(HttpMethod.Get, BoardsUrl);
-        using var Response = await Networking.GetResponseAsync(Request, DownloadClient, token);
+        using var Response = await DownloadClient.GetResponseAsync(Request, token);
         if (Response == null) {
             Log.Warn("Could not get board info.");
             return null;
         }
 
-        var BoardsString = await Networking.GetStringAsync(Response, token);
+        var BoardsString = await DownloadClient.GetStringAsync(Response, token);
         var NewBoards = BoardsString.JsonDeserialize<EightKunBoard[]>();
 
         if (NewBoards == null || NewBoards.Length < 1) {

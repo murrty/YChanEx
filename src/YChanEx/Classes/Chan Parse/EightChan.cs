@@ -8,7 +8,7 @@ using YChanEx.Posts;
 internal static class EightChan {
     public static Dictionary<string, EightChanBoard> BoardSubtitles = [];
 
-    public static async Task<EightChanBoard?> GetBoardAsync(string boardId, HttpClient DownloadClient, CancellationToken token) {
+    public static async Task<EightChanBoard?> GetBoardAsync(string boardId, VolatileHttpClient DownloadClient, CancellationToken token) {
         string CacheDir = Path.Combine(Downloads.DownloadPath, "8chan");
         string CacheFile = Path.Combine(CacheDir, "boardcache.json");
         if (BoardSubtitles.Count < 1) {
@@ -35,13 +35,13 @@ internal static class EightChan {
         HttpRequestMessage Request = new(HttpMethod.Get, "https://8chan.moe/" + boardId + "/");
         Request.Headers.Referrer = new Uri("https://8chan.moe/");
 
-        using var Response = await Networking.GetResponseAsync(Request, DownloadClient, token);
+        using var Response = await DownloadClient.GetResponseAsync(Request, token);
         if (Response == null) {
             Log.Warn("Could not get board info.");
             return null;
         }
 
-        var BoardString = await Networking.GetStringAsync(Response, token);
+        var BoardString = await DownloadClient.GetStringAsync(Response, token);
         var Board = EightChanBoard.ExtractBoard(BoardString);
         if (Board == null) {
             return null;

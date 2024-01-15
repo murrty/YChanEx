@@ -21,6 +21,11 @@ public sealed class ThreadInfo {
     /// </summary>
     public ChanType Chan => this.Data.ChanType;
     /// <summary>
+    /// The status of the thread, used to determine what's happening in the thread.
+    /// <seealso cref="ThreadStatus"/>
+    /// </summary>
+    public ThreadStatus CurrentActivity { get; set; }
+    /// <summary>
     /// The index of the thread in the queue.
     /// </summary>
     public int ThreadIndex { get; set; }
@@ -70,16 +75,6 @@ public sealed class ThreadInfo {
     /// <para>It is determined by subracting 10 from CountdownToNextScan.</para>
     /// </summary>
     public int HideModifiedLabelAt { get; set; }
-
-    /// <summary>
-    /// The status of the thread, used to determine what's happening in the thread.
-    /// <seealso cref="ThreadStatus"/>
-    /// </summary>
-    public ThreadStatus CurrentActivity { get; set; }
-    /// <summary>
-    /// The status code from the previous httprequest.
-    /// </summary>
-    public HttpStatusCode StatusCode { get; set; }
 
     /// <summary>
     /// The upper portion of the thread HTML, above the posts, custom built for YOUR CONVENIENCE.
