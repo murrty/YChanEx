@@ -1360,6 +1360,9 @@ public partial class frmDownloader : Form {
                         break;
                     }
 
+                    // Save the last modified time.
+                    ThreadInfo.Data.LastModified = Request.Content.Headers.LastModified;
+
                     // Get the json.
                     string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
 
@@ -1506,6 +1509,9 @@ public partial class frmDownloader : Form {
                         this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                         break;
                     }
+
+                    // Save the last modified time.
+                    ThreadInfo.Data.LastModified = Request.Content.Headers.LastModified;
 
                     // Get the json.
                     string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
@@ -1684,6 +1690,9 @@ public partial class frmDownloader : Form {
                         break;
                     }
 
+                    // Save the last modified time.
+                    ThreadInfo.Data.LastModified = Request.Content.Headers.LastModified;
+
                     // Get the json.
                     string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
@@ -1860,6 +1869,9 @@ public partial class frmDownloader : Form {
                         break;
                     }
 
+                    // Save the last modified time.
+                    ThreadInfo.Data.LastModified = Request.Content.Headers.LastModified;
+
                     // Get the json.
                     string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
                     CancellationToken.Token.ThrowIfCancellationRequested();
@@ -2008,6 +2020,9 @@ public partial class frmDownloader : Form {
                         this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                         break;
                     }
+
+                    // Save the last modified time.
+                    ThreadInfo.Data.LastModified = Request.Content.Headers.LastModified;
 
                     // Get the json.
                     string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
@@ -2166,6 +2181,9 @@ public partial class frmDownloader : Form {
                         break;
                     }
 
+                    // Save the last modified time.
+                    ThreadInfo.Data.LastModified = Request.Content.Headers.LastModified;
+
                     // Get the json.
                     string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
 
@@ -2313,13 +2331,15 @@ public partial class frmDownloader : Form {
                         break;
                     }
 
+                    // Save the last modified time.
+                    ThreadInfo.Data.LastModified = Request.Content.Headers.LastModified;
+
                     // Get the json.
                     string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
 
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
                     var ThreadData = FoolFuuka.Deserialize(CurrentJson);
-
                     CancellationToken.Token.ThrowIfCancellationRequested();
 
                     // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
