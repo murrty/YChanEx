@@ -1361,7 +1361,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Save the last modified time.
-                    ThreadInfo.Data.LastModified = Request.Content.Headers.LastModified;
+                    ThreadInfo.Data.LastModified = Response.Content.Headers.LastModified;
 
                     // Get the json.
                     string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
@@ -1510,7 +1510,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Save the last modified time.
-                    ThreadInfo.Data.LastModified = Request.Content.Headers.LastModified;
+                    ThreadInfo.Data.LastModified = Response.Content.Headers.LastModified;
 
                     // Get the json.
                     string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
@@ -1680,7 +1680,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Save the last modified time.
-                    ThreadInfo.Data.LastModified = Request.Content.Headers.LastModified;
+                    ThreadInfo.Data.LastModified = Response.Content.Headers.LastModified;
 
                     // Get the json.
                     string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
@@ -1859,7 +1859,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Save the last modified time.
-                    ThreadInfo.Data.LastModified = Request.Content.Headers.LastModified;
+                    ThreadInfo.Data.LastModified = Response.Content.Headers.LastModified;
 
                     // Get the json.
                     string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
@@ -2011,7 +2011,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Save the last modified time.
-                    ThreadInfo.Data.LastModified = Request.Content.Headers.LastModified;
+                    ThreadInfo.Data.LastModified = Response.Content.Headers.LastModified;
 
                     // Get the json.
                     string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
@@ -2161,7 +2161,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Save the last modified time.
-                    ThreadInfo.Data.LastModified = Request.Content.Headers.LastModified;
+                    ThreadInfo.Data.LastModified = Response.Content.Headers.LastModified;
 
                     // Get the json.
                     string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
@@ -2301,7 +2301,7 @@ public partial class frmDownloader : Form {
                     }
 
                     // Save the last modified time.
-                    ThreadInfo.Data.LastModified = Request.Content.Headers.LastModified;
+                    ThreadInfo.Data.LastModified = Response.Content.Headers.LastModified;
 
                     // Get the json.
                     string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
