@@ -4,10 +4,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Text;
-using System.Threading;
 using murrty.classes;
 using murrty.controls;
+using YChanEx.Parsers;
 internal static class Networking {
     public static readonly Cookie[] RequiredCookies;
     public static readonly bool Tls12OrHigher;
@@ -17,6 +16,7 @@ internal static class Networking {
     public static VolatileHttpClient LatestClient {
         get {
             if (CachedClient.UpdateRequired()) {
+                Log.Debug("Client update required");
                 RecreateDownloadClient();
             }
             return CachedClient;
@@ -25,7 +25,7 @@ internal static class Networking {
 
     static Networking() {
         RequiredCookies = [
-            new Cookie("disclaimer", "seen", "/", "fchan.us"),
+            FChan.AccessCookie,
             new Cookie("disclaimer1",  "1", "/", "8chan.moe"),
             new Cookie("disclaimer2",  "1", "/", "8chan.moe"),
             new Cookie("disclaimer3",  "1", "/", "8chan.moe"),

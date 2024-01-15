@@ -6,6 +6,8 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using murrty.controls;
+using SocksSharp;
+
 internal sealed class VolatileHttpClient : HttpClient {
     private const int DefaultBuffer = 81920;
     /// <summary>
@@ -29,10 +31,28 @@ internal sealed class VolatileHttpClient : HttpClient {
     private readonly int _throttleSize;
     private readonly int _throttleBuffer;
     private readonly int _timeout;
-    public HttpMessageHandler SetHandler;
+    public readonly HttpMessageHandler SetHandler;
+    private readonly HttpClientHandler? _htc;
+    private readonly Socks4ProxyClientHandler? _s4ch;
+    private readonly Socks4aProxyClientHandler? _s4ach;
+    private readonly Socks5ProxyClientHandler? _s5ch;
 
     public VolatileHttpClient(HttpMessageHandler NewHandler) : base(NewHandler) {
         this.SetHandler = NewHandler;
+
+        if (SetHandler is HttpClientHandler htc) {
+            _htc = htc;
+        }
+        else if (SetHandler is Socks4ProxyClientHandler s4ch) {
+            _s4ch = s4ch;
+        }
+        else if (SetHandler is Socks4aProxyClientHandler s4ach) {
+            _s4ach = s4ach;
+        }
+        else if (SetHandler is Socks5ProxyClientHandler s5ch) {
+            _s5ch = s5ch;
+        }
+
         this._proxy = Initialization.Proxy;
         this._useProxy = Initialization.UseProxy;
         this._timeout = Initialization.Timeout;
@@ -58,6 +78,7 @@ internal sealed class VolatileHttpClient : HttpClient {
         this.DefaultRequestHeaders.UserAgent.ParseAdd(Program.UserAgent);
         this.Timeout = new(0, 0, 0, 0, _timeout);
     }
+
     public bool UpdateRequired() {
         if (Initialization.UseProxy) {
             if (Initialization.UseProxy != _useProxy) {
@@ -81,6 +102,20 @@ internal sealed class VolatileHttpClient : HttpClient {
         }
 
         return this._timeout != Initialization.Timeout;
+    }
+    public void UpdateCookies(CookieContainer NewCookies) {
+        if (_htc != null) {
+            _htc.CookieContainer = NewCookies;
+        }
+        else if (_s4ch != null) {
+            _s4ch.CookieContainer = NewCookies;
+        }
+        else if (_s4ach != null) {
+            _s4ach.CookieContainer = NewCookies;
+        }
+        else if (_s5ch != null) {
+            _s5ch.CookieContainer = NewCookies;
+        }
     }
 
     public DownloadStream WriteStreamAsync { get; }
