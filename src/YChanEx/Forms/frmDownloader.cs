@@ -1117,7 +1117,7 @@ public partial class frmDownloader : Form {
                         lvi.Name = CurrentFile.FileId;
                         lvi.SubItems[0].Text = CurrentFile.FileId;
                         lvi.SubItems[1].Text = CurrentFile.FileExtension;
-                        lvi.SubItems[2].Text = CurrentFile.OriginalFileName;
+                        lvi.SubItems[2].Text = CurrentFile.OriginalFileName + "." + CurrentFile.FileExtension;
                         lvi.SubItems[3].Text = CurrentFile.FileHash;
                         lvi.ImageIndex = CurrentFile.Status switch {
                             FileDownloadStatus.Downloaded =>
@@ -1150,7 +1150,7 @@ public partial class frmDownloader : Form {
                         lvi.Name = CurrentFile.FileId;
                         lvi.SubItems[0].Text = CurrentFile.FileId;
                         lvi.SubItems[1].Text = CurrentFile.FileExtension;
-                        lvi.SubItems[2].Text = CurrentFile.OriginalFileName;
+                        lvi.SubItems[2].Text = CurrentFile.OriginalFileName + "." + CurrentFile.FileExtension;
                         lvi.ImageIndex = CurrentFile.Status switch {
                             FileDownloadStatus.Downloaded =>
                                 File.Exists(Path.Combine(ThreadInfo.DownloadPath, CurrentFile.SavedFile)) ?
