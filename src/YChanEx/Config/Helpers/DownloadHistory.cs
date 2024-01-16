@@ -2,6 +2,7 @@
 namespace YChanEx;
 using System.Runtime.Serialization;
 using System.Windows.Forms;
+using YChanEx.Parsers;
 
 [DataContract]
 public sealed class DownloadHistory {
@@ -192,7 +193,7 @@ public sealed class DownloadHistory {
                     if (OldData != null) {
                         for (int i = 0; i < OldData.FourChanHistory.Count; i++) {
                             string url = OldData.FourChanHistory[i];
-                            Data.FourChanHistory.Add(new PreviousThread(url, url));
+                            Data.FourChanHistory.Add(new PreviousThread(url, FourChan.GetOldHistoryName(url)));
                         }
                         for (int i = 0; i < OldData.FourTwentyChanHistory.Count; i++) {
                             string url = OldData.FourTwentyChanHistory[i];
@@ -200,27 +201,27 @@ public sealed class DownloadHistory {
                         }
                         for (int i = 0; i < OldData.SevenChanHistory.Count; i++) {
                             string url = OldData.SevenChanHistory[i];
-                            Data.SevenChanHistory.Add(new PreviousThread(url, url));
+                            Data.SevenChanHistory.Add(new PreviousThread(url, SevenChan.GetOldHistoryName(url)));
                         }
                         for (int i = 0; i < OldData.EightChanHistory.Count; i++) {
                             string url = OldData.EightChanHistory[i];
-                            Data.EightChanHistory.Add(new PreviousThread(url, url));
+                            Data.EightChanHistory.Add(new PreviousThread(url, EightChan.GetOldHistoryName(url)));
                         }
                         for (int i = 0; i < OldData.EightKunHistory.Count; i++) {
                             string url = OldData.EightKunHistory[i];
-                            Data.EightKunHistory.Add(new PreviousThread(url, url));
+                            Data.EightKunHistory.Add(new PreviousThread(url, EightKun.GetOldHistoryName(url)));
                         }
                         for (int i = 0; i < OldData.FchanHistory.Count; i++) {
                             string url = OldData.FchanHistory[i];
-                            Data.FchanHistory.Add(new PreviousThread(url, url));
+                            Data.FchanHistory.Add(new PreviousThread(url, FChan.GetOldHistoryName(url)));
                         }
                         for (int i = 0; i < OldData.u18chanHistory.Count; i++) {
                             string url = OldData.u18chanHistory[i];
-                            Data.u18chanHistory.Add(new PreviousThread(url, url));
+                            Data.u18chanHistory.Add(new PreviousThread(url, U18Chan.GetOldHistoryName(url)));
                         }
                         for (int i = 0; i < OldData.FoolFuukaHistory.Count; i++) {
                             string url = OldData.FoolFuukaHistory[i];
-                            Data.FoolFuukaHistory.Add(new PreviousThread(url, url));
+                            Data.FoolFuukaHistory.Add(new PreviousThread(url, FoolFuuka.GetOldHistoryName(url)));
                         }
                         Data.HistoryModified = true;
                         Save(Stream);
