@@ -3,6 +3,7 @@ namespace YChanEx;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Windows.Forms;
 using murrty.classes;
@@ -19,37 +20,32 @@ public partial class frmMain : Form, IMainFom {
     #endregion
 
     #region Usability methods
-    /// <summary>
-    /// Sets the thread status from another thread handle to change the status on the main form.
-    /// </summary>
-    /// <param name="ThreadIndex">The index of the thread in the list.</param>
-    /// <param name="Status">The new custom status to be set onto it.</param>
-    public void SetItemStatus(int ThreadIndex, ThreadStatus Status) {
+    public void SetItemStatus(ThreadInfo Thread, ThreadStatus Status) {
         switch (Status) {
             case ThreadStatus.Waiting: {
-                lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = " Finished scan";
+                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Finished scan";
             } break;
             case ThreadStatus.ThreadScanning: {
-                lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = " Scanning";
+                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Scanning";
             } break;
             case ThreadStatus.ThreadDownloading: {
-                lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = " Downloading";
+                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Downloading";
             } break;
             case ThreadStatus.ThreadNotModified: {
-                lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = " No new posts";
+                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " No new posts";
             } break;
             case ThreadStatus.ThreadIsNotAllowed: {
-                lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = " Fobridden (403)";
+                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Fobridden (403)";
             } break;
             case ThreadStatus.ThreadReloaded: {
-                lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = "Reloaded";
+                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = "Reloaded";
             } break;
 
             case ThreadStatus.ThreadIs404: {
-                Threads[ThreadIndex].ThreadInfo.Data.ThreadState = ThreadState.ThreadIs404;
-                Threads[ThreadIndex].ThreadInfo.ForceSaveThread();
-                niTray.BalloonTipText = $"{Threads[ThreadIndex].ThreadInfo.Data.Id} on /{Threads[ThreadIndex].ThreadInfo.Data.Board}/ has 404'd";
-                niTray.BalloonTipTitle = Threads[ThreadIndex].ThreadInfo.Chan switch {
+                Thread.Data.ThreadState = ThreadState.ThreadIs404;
+                Thread.ForceSaveThread();
+                niTray.BalloonTipText = $"{Thread.Data.Id} on /{Thread.Data.Board}/ has 404'd";
+                niTray.BalloonTipTitle = Thread.Chan switch {
                     ChanType.FourChan => "4chan",
                     ChanType.FourTwentyChan => "420chan",
                     ChanType.SevenChan => "7chan",
@@ -66,18 +62,18 @@ public partial class frmMain : Form, IMainFom {
                 Icon404WasShown = true;
                 changeTray.Start();
                 niTray.ShowBalloonTip(5000);
-                lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = "404'd";
+                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = "404'd";
             } break;
             case ThreadStatus.ThreadIsAborted: {
-                Threads[ThreadIndex].ThreadInfo.Data.ThreadState = ThreadState.ThreadIsAborted;
-                Threads[ThreadIndex].ThreadInfo.ForceSaveThread();
-                lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = "Aborted";
+                Thread.Data.ThreadState = ThreadState.ThreadIsAborted;
+                Thread.ForceSaveThread();
+                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = "Aborted";
             } break;
             case ThreadStatus.ThreadIsArchived: {
-                Threads[ThreadIndex].ThreadInfo.Data.ThreadState = ThreadState.ThreadIsArchived;
-                Threads[ThreadIndex].ThreadInfo.ForceSaveThread();
-                niTray.BalloonTipText = $"{Threads[ThreadIndex].ThreadInfo.Data.Id} on /{Threads[ThreadIndex].ThreadInfo.Data.Board}/ has been archived.";
-                niTray.BalloonTipTitle = Threads[ThreadIndex].ThreadInfo.Chan switch {
+                Thread.Data.ThreadState = ThreadState.ThreadIsArchived;
+                Thread.ForceSaveThread();
+                niTray.BalloonTipText = $"{Thread.Data.Id} on /{Thread.Data.Board}/ has been archived.";
+                niTray.BalloonTipTitle = Thread.Chan switch {
                     ChanType.FourChan => "4chan",
                     ChanType.FourTwentyChan => "420chan",
                     ChanType.SevenChan => "7chan",
@@ -94,49 +90,75 @@ public partial class frmMain : Form, IMainFom {
                 Icon404WasShown = true;
                 changeTray.Start();
                 niTray.ShowBalloonTip(5000);
-                lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = "Archived";
+                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = "Archived";
             } break;
             case ThreadStatus.ThreadScanningSoon: {
-                lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = " Scanning soon";
+                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Scanning soon";
             } break;
             case ThreadStatus.ThreadUpdateName: {
-                var CurrentThreadData = Threads[ThreadIndex].ThreadInfo.Data;
-                lvThreads.Items[ThreadIndex].SubItems[clName.Index].Text = CurrentThreadData.ThreadName ?? CurrentThreadData.Url;
+                lvThreads.Items[Thread.ThreadIndex].SubItems[clName.Index].Text = Thread.Data.ThreadName ?? Thread.Data.Url;
             } break;
 
             case ThreadStatus.ThreadInfoNotSet: {
-                lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = " Info not set";
+                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Info not set";
             } break;
             case ThreadStatus.ThreadRetrying: {
-                Threads[ThreadIndex].ThreadInfo.Data.ThreadState = ThreadState.ThreadIsAlive;
-                Threads[ThreadIndex].ThreadInfo.ForceSaveThread();
-                lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = " Retrying";
+                Thread.Data.ThreadState = ThreadState.ThreadIsAlive;
+                Thread.ForceSaveThread();
+                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Retrying";
             } break;
             case ThreadStatus.ThreadImproperlyDownloaded: {
-                lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = " Bad download";
+                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Bad download";
             } break;
             case ThreadStatus.NoThreadPosts: {
-                lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = " No thread posts";
+                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " No thread posts";
             } break;
             case ThreadStatus.FailedToParseThreadHtml: {
-                lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = " Could not parse html";
+                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Could not parse html";
             } break;
             case ThreadStatus.ThreadUnknownError: {
-                lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = " Unknown thread error";
+                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Unknown thread error";
             } break;
 
             default: {
-                lvThreads.Items[ThreadIndex].SubItems[clStatus.Index].Text = " Unknown state";
+                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Unknown state";
             } break;
         }
         GC.Collect();
     }
-
-    /// <summary>
-    /// Removes the thread if it was killed (archived or 404)
-    /// </summary>
-    /// <param name="Thread"></param>
     public void ThreadKilled(ThreadInfo Thread) => RemoveThread(Thread);
+    public void AddToHistory(PreviousThread Thread) {
+        if (General.SaveThreadHistory && !DownloadHistory.Contains(Thread.Type, Thread.Url)) {
+            DownloadHistory.Add(Thread.Type, Thread.Url, Thread.ShortName);
+            switch (Thread.Type) {
+                case ChanType.FourChan: {
+                    tvHistory.Nodes[0].Nodes.Add(Thread.Url, Thread.ShortName);
+                } break;
+                case ChanType.FourTwentyChan: {
+                    tvHistory.Nodes[1].Nodes.Add(Thread.Url, Thread.ShortName);
+                } break;
+                case ChanType.SevenChan: {
+                    tvHistory.Nodes[2].Nodes.Add(Thread.Url, Thread.ShortName);
+                } break;
+                case ChanType.EightChan: {
+                    tvHistory.Nodes[3].Nodes.Add(Thread.Url, Thread.ShortName);
+                } break;
+                case ChanType.EightKun: {
+                    tvHistory.Nodes[4].Nodes.Add(Thread.Url, Thread.ShortName);
+                } break;
+                case ChanType.fchan: {
+                    tvHistory.Nodes[5].Nodes.Add(Thread.Url, Thread.ShortName);
+                } break;
+                case ChanType.u18chan: {
+                    tvHistory.Nodes[6].Nodes.Add(Thread.Url, Thread.ShortName);
+                } break;
+                case ChanType.FoolFuuka: {
+                    tvHistory.Nodes[7].Nodes.Add(Thread.Url, Thread.ShortName);
+                } break;
+            }
+            DownloadHistory.Save();
+        }
+    }
 
     /// <summary>
     /// Checks the threads from the saved queue, and the arguments.
@@ -288,38 +310,6 @@ public partial class frmMain : Form, IMainFom {
         newThread.ManageThread(ThreadEvent.StartDownload);
         if (General.AutoSaveThreads) {
             SaveThreads();
-        }
-
-        if (General.SaveThreadHistory && !DownloadHistory.Contains(ThreadData.ChanType, ThreadURL)) {
-            DownloadHistory.Add(ThreadData.ChanType, ThreadURL);
-            switch (ThreadData.ChanType) {
-                case ChanType.FourChan: {
-                    tvHistory.Nodes[0].Nodes.Add(ThreadURL, ThreadURL);
-                } break;
-                case ChanType.FourTwentyChan: {
-                    tvHistory.Nodes[1].Nodes.Add(ThreadURL, ThreadURL);
-                } break;
-                case ChanType.SevenChan: {
-                    tvHistory.Nodes[2].Nodes.Add(ThreadURL, ThreadURL);
-                } break;
-                case ChanType.EightChan: {
-                    tvHistory.Nodes[3].Nodes.Add(ThreadURL, ThreadURL);
-                } break;
-                case ChanType.EightKun: {
-                    tvHistory.Nodes[4].Nodes.Add(ThreadURL, ThreadURL);
-                } break;
-                case ChanType.fchan: {
-                    tvHistory.Nodes[5].Nodes.Add(ThreadURL, ThreadURL);
-                } break;
-                case ChanType.u18chan: {
-                    tvHistory.Nodes[6].Nodes.Add(ThreadURL, ThreadURL);
-                } break;
-                case ChanType.FoolFuuka: {
-                    tvHistory.Nodes[7].Nodes.Add(ThreadURL, ThreadURL);
-                }
-                break;
-            }
-            DownloadHistory.Save();
         }
 
         niTray.Text = "YChanEx - " + lvThreads.Items.Count + " threads";
@@ -550,36 +540,68 @@ public partial class frmMain : Form, IMainFom {
 
         if (DownloadHistory.Count > 0) {
             for (int i = 0; i < DownloadHistory.Data.FourChanHistory.Count; i++) {
-                string url = DownloadHistory.Data.FourChanHistory[i];
-                tvHistory.Nodes[0].Nodes.Add(url, url);
+                var url = DownloadHistory.Data.FourChanHistory[i];
+                TreeNode HistoryItem = new(url.ShortName) {
+                    Name = url.Url,
+                    Tag = url,
+                };
+                tvHistory.Nodes[0].Nodes.Add(HistoryItem);
             }
             for (int i = 0; i < DownloadHistory.Data.FourTwentyChanHistory.Count; i++) {
-                string url = DownloadHistory.Data.FourTwentyChanHistory[i];
-                tvHistory.Nodes[1].Nodes.Add(url, url);
+                var url = DownloadHistory.Data.FourTwentyChanHistory[i];
+                TreeNode HistoryItem = new(url.ShortName) {
+                    Name = url.Url,
+                    Tag = url,
+                };
+                tvHistory.Nodes[1].Nodes.Add(HistoryItem);
             }
             for (int i = 0; i < DownloadHistory.Data.SevenChanHistory.Count; i++) {
-                string url = DownloadHistory.Data.SevenChanHistory[i];
-                tvHistory.Nodes[2].Nodes.Add(url, url);
+                var url = DownloadHistory.Data.SevenChanHistory[i];
+                TreeNode HistoryItem = new(url.ShortName) {
+                    Name = url.Url,
+                    Tag = url,
+                };
+                tvHistory.Nodes[2].Nodes.Add(HistoryItem);
             }
             for (int i = 0; i < DownloadHistory.Data.EightChanHistory.Count; i++) {
-                string url = DownloadHistory.Data.EightChanHistory[i];
-                tvHistory.Nodes[3].Nodes.Add(url, url);
+                var url = DownloadHistory.Data.EightChanHistory[i];
+                TreeNode HistoryItem = new(url.ShortName) {
+                    Name = url.Url,
+                    Tag = url,
+                };
+                tvHistory.Nodes[3].Nodes.Add(HistoryItem);
             }
             for (int i = 0; i < DownloadHistory.Data.EightKunHistory.Count; i++) {
-                string url = DownloadHistory.Data.EightKunHistory[i];
-                tvHistory.Nodes[4].Nodes.Add(url, url);
+                var url = DownloadHistory.Data.EightKunHistory[i];
+                TreeNode HistoryItem = new(url.ShortName) {
+                    Name = url.Url,
+                    Tag = url,
+                };
+                tvHistory.Nodes[4].Nodes.Add(HistoryItem);
             }
             for (int i = 0; i < DownloadHistory.Data.FchanHistory.Count; i++) {
-                string url = DownloadHistory.Data.FchanHistory[i];
-                tvHistory.Nodes[5].Nodes.Add(url, url);
+                var url = DownloadHistory.Data.FchanHistory[i];
+                TreeNode HistoryItem = new(url.ShortName) {
+                    Name = url.Url,
+                    Tag = url,
+                };
+                tvHistory.Nodes[5].Nodes.Add(HistoryItem);
             }
             for (int i = 0; i < DownloadHistory.Data.u18chanHistory.Count; i++) {
-                string url = DownloadHistory.Data.u18chanHistory[i];
-                tvHistory.Nodes[6].Nodes.Add(url, url);
+                var url = DownloadHistory.Data.u18chanHistory[i];
+                TreeNode HistoryItem = new(url.ShortName) {
+                    Name = url.Url,
+                    Tag = url,
+                };
+                tvHistory.Nodes[6].Nodes.Add(HistoryItem);
             }
             for (int i = 0; i < DownloadHistory.Data.FoolFuukaHistory.Count; i++) {
-                string url = DownloadHistory.Data.FoolFuukaHistory[i];
-                tvHistory.Nodes[7].Nodes.Add(url, url);
+                var url = DownloadHistory.Data.FoolFuukaHistory[i];
+                TreeNode HistoryItem = new(url.ShortName) {
+                    Name = url.Url,
+                    Tag = url,
+                };
+                tvHistory.Nodes[7].Nodes.Add(HistoryItem);
             }
         }
 

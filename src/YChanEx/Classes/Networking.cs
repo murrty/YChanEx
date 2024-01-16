@@ -174,40 +174,58 @@ internal static class Networking {
         }
     }
 
-    public static string DownloadString(string url, DateTime ModifiedSince = default) {
-        try {
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(url);
-            Request.UserAgent = Program.UserAgent;
-            Request.Method = "GET";
-            if (ModifiedSince != default)
-                Request.IfModifiedSince = ModifiedSince;
-            using HttpWebResponse Response = (HttpWebResponse)Request.GetResponse();
-            using Stream ResponseStream = Response.GetResponseStream();
-            using StreamReader Reader = new(ResponseStream);
-            return Reader.ReadToEnd();
-        }
-        catch {
-            throw;
-        }
-    }
     public static string CleanURL(string url) {
+        // replace the "http" with "https" protocol
         if (url.StartsWith("http://")) {
             url = url[7..];
         }
+
+        // remove "www." since it's inferred by default
         if (url.StartsWith("www.")) {
             url = url[4..];
         }
+
+        // append "https" protocol
         if (!url.StartsWith("https://")) {
             url = "https://" + url;
         }
+
+        // trim the fragment and empty path
         return url.SubstringBeforeLastChar('#').TrimEnd('/');
     }
     public static string GetHost(string url) {
+        int sepIndex;
+
+        // remove 'http' protocol
         if (url.StartsWith("https://") || url.StartsWith("http://")) {
+            sepIndex = url.IndexOf('/');
+            if (sepIndex < 0) {
+                return url;
+            }
             return url[5..url.IndexOf('/', 8)].TrimStart(':', '/');
         }
+
+        // no 'http' protocol (specifically identified)
+        sepIndex = url.IndexOf('/');
+        if (sepIndex < 0) {
+            return url;
+        }
+
         return url[..url.IndexOf('/')].TrimStart(':', '/');
+    }
+    public static string GetHostNameOnly(string url) {
+        url = GetHost(url);
+
+        string[] urlSplit = url.Split('.');
+        // domain.com <- returns 'domain'
+        if (urlSplit.Length == 2) {
+            return urlSplit[0];
+        }
+
+        // example.domain.com       <- returns 'domain'
+        // example.other.domain.com <- returns 'domain'
+        return urlSplit[^2];
+
     }
 
     internal static CookieCollection GetAllCookies(this CookieContainer container) {

@@ -112,6 +112,7 @@
     <Compile Include="Classes\ThreadInfo.cs" />
     <Compile Include="Classes\VolatileHttpClient.cs" />
     <Compile Include="Config\Helpers\Cookies.cs" />
+    <Compile Include="Classes\PreviousThread.cs" />
     <Compile Include="Controls\ExplorerTreeView.cs">
       <SubType>Component</SubType>
     </Compile>

@@ -136,7 +136,7 @@ public partial class frmDownloader : Form {
 
             case 15: {
                 ThreadInfo.CurrentActivity = ThreadStatus.ThreadScanningSoon;
-                MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadInfo.CurrentActivity);
+                MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
                 btnPauseTimer.Enabled = true;
                 lbScanTimer.Text = ThreadInfo.CountdownToNextScan.ToString();
                 ThreadInfo.CountdownToNextScan--;
@@ -423,7 +423,7 @@ public partial class frmDownloader : Form {
                     #region 8kun
                     case ChanType.EightKun: {
                         if (Chans.StupidFuckingBoard(ChanType.EightKun, ThreadInfo.Data.Url)) {
-                            MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadIs404);
+                            MainFormInstance.SetItemStatus(ThreadInfo, ThreadStatus.ThreadIs404);
                             this.Dispose();
                             return;
                         }
@@ -457,7 +457,7 @@ public partial class frmDownloader : Form {
 
                     default: {
                         this.Text = "Invalid chan";
-                        MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadIs404);
+                        MainFormInstance.SetItemStatus(ThreadInfo, ThreadStatus.ThreadIs404);
                     } return;
                 }
 
@@ -491,7 +491,7 @@ public partial class frmDownloader : Form {
                         RegisterFoolFuukaThread();
                     } break;
                     default: {
-                        MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.NoStatusSet);
+                        MainFormInstance.SetItemStatus(ThreadInfo, ThreadStatus.NoStatusSet);
                     } return;
                 }
 
@@ -506,7 +506,7 @@ public partial class frmDownloader : Form {
 
                 DownloadThread.Name = ThreadInfo.ThreadLogDisplay;
                 ThreadInfo.HideModifiedLabelAt = Downloads.ScannerDelay - 10;
-                MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadScanning);
+                MainFormInstance.SetItemStatus(ThreadInfo, ThreadStatus.ThreadScanning);
                 lbScanTimer.Text = "scanning now...";
                 DownloadThread.Start();
             } break;
@@ -518,7 +518,7 @@ public partial class frmDownloader : Form {
                         lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
                         this.Icon = Properties.Resources.ProgramIcon_Dead;
 
-                        MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadInfo.CurrentActivity);
+                        MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
                         btnAbortRetry.Text = "Retry";
                     } break;
 
@@ -532,7 +532,7 @@ public partial class frmDownloader : Form {
                             lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
                             this.Icon = Properties.Resources.ProgramIcon_Dead;
 
-                            MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadInfo.CurrentActivity);
+                            MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
                             btnAbortRetry.Text = "Retry";
                         }
                     } break;
@@ -540,7 +540,7 @@ public partial class frmDownloader : Form {
                     case ThreadStatus.ThreadFile404: {
                         ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
                         ThreadInfo.FileWas404 = true;
-                        MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadInfo.CurrentActivity);
+                        MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
                         ThreadInfo.CountdownToNextScan = Downloads.ScannerDelay - 1;
                         lvImages.Items[ThreadInfo.Data.DownloadedImagesCount].ImageIndex = _404Image;
                         if (ThreadInfo.RetryCountFor404 == 4) {
@@ -565,7 +565,7 @@ public partial class frmDownloader : Form {
                             lbScanTimer.Text = "Archived";
                             lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
                             this.Icon = Properties.Resources.ProgramIcon_Dead;
-                            MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadInfo.CurrentActivity);
+                            MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
                             btnAbortRetry.Text = "Rescan";
                             ThreadInfo.ThreadModified = true;
                         }
@@ -575,7 +575,7 @@ public partial class frmDownloader : Form {
                     case ThreadStatus.Waiting:
                     case ThreadStatus.ThreadNotModified: {
                         lbNotModified.Visible = ThreadInfo.CurrentActivity == ThreadStatus.ThreadNotModified;
-                        MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadInfo.CurrentActivity);
+                        MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
                         ThreadInfo.CountdownToNextScan = (ThreadInfo.Chan == ChanType.u18chan ? (60 * 30) : Downloads.ScannerDelay) - 1;
                         if (Program.DebugMode) {
                             ThreadInfo.CountdownToNextScan = 10;
@@ -588,7 +588,7 @@ public partial class frmDownloader : Form {
 
                     case ThreadStatus.ThreadImproperlyDownloaded: {
                         lbScanTimer.Text = "Bad download";
-                        MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadInfo.CurrentActivity);
+                        MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
                         ThreadInfo.CountdownToNextScan = Downloads.ScannerDelay - 1;
                         if (Program.DebugMode) {
                             ThreadInfo.CountdownToNextScan = 10;
@@ -601,7 +601,7 @@ public partial class frmDownloader : Form {
                     case ThreadStatus.FailedToParseThreadHtml: {
                         lbScanTimer.Text = "Failed to parse thread";
                         lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
-                        MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadInfo.CurrentActivity);
+                        MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
                         btnAbortRetry.Text = "Retry";
                         ThreadInfo.ThreadModified = true;
                     } break;
@@ -610,7 +610,7 @@ public partial class frmDownloader : Form {
                     case ThreadStatus.NoThreadPosts: {
                         lbScanTimer.Text = "No thread posts";
                         lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
-                        MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadInfo.CurrentActivity);
+                        MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
                         btnAbortRetry.Text = "Retry";
                         ThreadInfo.ThreadModified = true;
                     } break;
@@ -618,7 +618,7 @@ public partial class frmDownloader : Form {
                     case ThreadStatus.ThreadIsNotAllowed: {
                         lbScanTimer.Text = "Forbidden";
                         lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
-                        MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadInfo.CurrentActivity);
+                        MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
                         btnAbortRetry.Text = "Retry";
                         ThreadInfo.ThreadModified = true;
                     } break;
@@ -626,14 +626,14 @@ public partial class frmDownloader : Form {
                     case ThreadStatus.ThreadInfoNotSet: {
                         lbScanTimer.Text = "No thread info";
                         lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
-                        MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadInfo.CurrentActivity);
+                        MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
                     } break;
                 }
             } break;
 
             case ThreadEvent.RestartDownload: {
                 ThreadInfo.HideModifiedLabelAt = Downloads.ScannerDelay - 10;
-                MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadScanning);
+                MainFormInstance.SetItemStatus(ThreadInfo, ThreadStatus.ThreadScanning);
                 lbScanTimer.Text = "scanning now...";
                 ResetThread.Set();
             } break;
@@ -653,7 +653,7 @@ public partial class frmDownloader : Form {
                 this.Icon = Properties.Resources.ProgramIcon_Dead;
                 lbScanTimer.Text = "Aborted";
                 lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
-                MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadInfo.CurrentActivity);
+                MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
 
                 btnAbortRetry.Text = "Retry";
                 lbNotModified.Visible = false;
@@ -673,7 +673,7 @@ public partial class frmDownloader : Form {
                     btnForce404.Enabled = true;
                 }
 
-                MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadInfo.CurrentActivity);
+                MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
                 lbScanTimer.Text = "scanning now...";
                 btnAbortRetry.Text = "Abort";
                 tmrScan.Stop();
@@ -817,7 +817,7 @@ public partial class frmDownloader : Form {
                 if (ThreadInfo.Data.ThreadName != null) {
                     this.Text = string.Format(ThreadNameBuffer, Chans.GetFullBoardName(ThreadInfo), ThreadInfo.Data.ThreadName);
                     if (ApplyToMainForm && ThreadInfo.Data.CustomThreadName == null) {
-                        MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadUpdateName);
+                        MainFormInstance.SetItemStatus(ThreadInfo, ThreadStatus.ThreadUpdateName);
                     }
                 }
                 else {
@@ -829,7 +829,7 @@ public partial class frmDownloader : Form {
                 if (ThreadInfo.Data.ThreadName != null) {
                     this.Text = string.Format(ThreadNameBuffer, Chans.GetFullBoardName(ThreadInfo), ThreadInfo.Data.ThreadName);
                     if (ApplyToMainForm && ThreadInfo.Data.CustomThreadName == null) {
-                        MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadUpdateName);
+                        MainFormInstance.SetItemStatus(ThreadInfo, ThreadStatus.ThreadUpdateName);
                     }
                 }
                 else {
@@ -841,7 +841,7 @@ public partial class frmDownloader : Form {
                 if (ThreadInfo.Data.ThreadName != null) {
                     this.Text = string.Format(ThreadNameBuffer, Chans.GetFullBoardName(ThreadInfo), ThreadInfo.Data.ThreadName);
                     if (ApplyToMainForm && ThreadInfo.Data.CustomThreadName == null) {
-                        MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadUpdateName);
+                        MainFormInstance.SetItemStatus(ThreadInfo, ThreadStatus.ThreadUpdateName);
                     }
                 }
                 else {
@@ -853,7 +853,7 @@ public partial class frmDownloader : Form {
                 if (ThreadInfo.Data.ThreadName != null) {
                     this.Text = string.Format(ThreadNameBuffer, ThreadInfo.Data.Board, ThreadInfo.Data.ThreadName);
                     if (ApplyToMainForm && ThreadInfo.Data.CustomThreadName == null) {
-                        MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadUpdateName);
+                        MainFormInstance.SetItemStatus(ThreadInfo, ThreadStatus.ThreadUpdateName);
                     }
                 }
                 else {
@@ -865,7 +865,7 @@ public partial class frmDownloader : Form {
                 if (ThreadInfo.Data.ThreadName != null) {
                     this.Text = string.Format(ThreadNameBuffer, ThreadInfo.Data.Board, ThreadInfo.Data.ThreadName);
                     if (ApplyToMainForm && ThreadInfo.Data.CustomThreadName == null) {
-                        MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadUpdateName);
+                        MainFormInstance.SetItemStatus(ThreadInfo, ThreadStatus.ThreadUpdateName);
                     }
                 }
                 else {
@@ -877,7 +877,7 @@ public partial class frmDownloader : Form {
                 if (ThreadInfo.Data.ThreadName != null) {
                     this.Text = string.Format(ThreadNameBuffer, Chans.GetFullBoardName(ThreadInfo), ThreadInfo.Data.ThreadName);
                     if (ApplyToMainForm && ThreadInfo.Data.CustomThreadName == null) {
-                        MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadUpdateName);
+                        MainFormInstance.SetItemStatus(ThreadInfo, ThreadStatus.ThreadUpdateName);
                     }
                 }
                 else {
@@ -889,7 +889,7 @@ public partial class frmDownloader : Form {
                 if (ThreadInfo.Data.ThreadName != null) {
                     this.Text = string.Format(ThreadNameBuffer, Chans.GetFullBoardName(ThreadInfo), ThreadInfo.Data.ThreadName);
                     if (ApplyToMainForm && ThreadInfo.Data.CustomThreadName == null) {
-                        MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadUpdateName);
+                        MainFormInstance.SetItemStatus(ThreadInfo, ThreadStatus.ThreadUpdateName);
                     }
                 }
                 else {
@@ -901,7 +901,7 @@ public partial class frmDownloader : Form {
                 if (ThreadInfo.Data.ThreadName != null) {
                     this.Text = string.Format(ThreadNameBuffer, ThreadInfo.Data.Board, ThreadInfo.Data.ThreadName);
                     if (ApplyToMainForm && ThreadInfo.Data.CustomThreadName == null) {
-                        MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadUpdateName);
+                        MainFormInstance.SetItemStatus(ThreadInfo, ThreadStatus.ThreadUpdateName);
                     }
                 }
                 else {
@@ -960,7 +960,7 @@ public partial class frmDownloader : Form {
         this.Invoke(() => {
             UpdateCounts();
             lbScanTimer.Text = "Downloading files";
-            MainFormInstance.SetItemStatus(ThreadInfo.ThreadIndex, ThreadStatus.ThreadDownloading);
+            MainFormInstance.SetItemStatus(ThreadInfo, ThreadStatus.ThreadDownloading);
         });
     }
     private void AddNewPost(GenericPost CurrentPost) {
@@ -1379,6 +1379,9 @@ public partial class frmDownloader : Form {
                         ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.Replace("<title></title>",
                             $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 4chan</title>");
 
+                        // Add/update history
+                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
+
                         // Update the name application wide.
                         this.Invoke(() => UpdateThreadName(true));
                     }
@@ -1529,6 +1532,9 @@ public partial class frmDownloader : Form {
                         ThreadInfo.Data.ThreadName = NewName;
                         ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.Replace("<title></title>",
                             $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 7chan</title>");
+
+                        // Add/update history
+                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
 
                         // Update the name application wide.
                         this.Invoke(() => UpdateThreadName(true));
@@ -1701,6 +1707,9 @@ public partial class frmDownloader : Form {
                         ThreadInfo.Data.ThreadName = NewName;
                         ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.Replace("<title></title>",
                             $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 8chan</title>");
+
+                        // Add/update history
+                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
 
                         // Update the name application wide.
                         this.Invoke(() => UpdateThreadName(true));
@@ -1882,6 +1891,9 @@ public partial class frmDownloader : Form {
                         ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.Replace("<title></title>",
                             $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 8kun</title>");
 
+                        // Add/update history
+                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
+
                         // Update the name application wide.
                         this.Invoke(() => UpdateThreadName(true));
                     }
@@ -2034,6 +2046,9 @@ public partial class frmDownloader : Form {
                         ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.Replace("<title></title>",
                             $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - fchan</title>");
 
+                        // Add/update history
+                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
+
                         // Update the name application wide.
                         this.Invoke(() => UpdateThreadName(true));
                     }
@@ -2183,6 +2198,9 @@ public partial class frmDownloader : Form {
                         ThreadInfo.Data.ThreadName = NewName;
                         ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.Replace("<title></title>",
                             $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - u18chan</title>");
+
+                        // Add/update history
+                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
 
                         // Update the name application wide.
                         this.Invoke(() => UpdateThreadName(true));
@@ -2337,7 +2355,10 @@ public partial class frmDownloader : Form {
                         // Update the data with the new name.
                         ThreadInfo.Data.ThreadName = NewName;
                         ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.Replace("<title></title>",
-                            $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 4chan</title>");
+                            $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - {Networking.GetHostNameOnly(ThreadInfo.Data.Url)}</title>");
+
+                        // Add/update history
+                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
 
                         // Update the name application wide.
                         this.Invoke(() => UpdateThreadName(true));

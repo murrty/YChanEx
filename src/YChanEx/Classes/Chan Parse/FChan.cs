@@ -1,11 +1,10 @@
 ﻿#nullable enable
 namespace YChanEx.Parsers;
 using System.Drawing;
-using System.Net;
 using SoftCircuits.HtmlMonkey;
 using YChanEx.Posts;
 internal static class FChan {
-    public static readonly Cookie AccessCookie = new("disclaimer", "seen", "/", "fchan.us");
+    public static readonly System.Net.Cookie AccessCookie = new("disclaimer", "seen", "/", "fchan.us");
     private static readonly Selector ThreadSelector = Selector.ParseSelector("div[id:=\"whole_thread\\d+\"]");
     private static readonly Selector PostsSelector = Selector.ParseSelector("div[id:=\"thread\\d+\"] > table");
 
