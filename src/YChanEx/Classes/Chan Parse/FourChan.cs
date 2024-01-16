@@ -1,6 +1,19 @@
 ﻿#nullable enable
 namespace YChanEx.Parsers;
 internal static class FourChan {
+    public static string GetOldHistoryName(string Url) {
+        if (Url.StartsWith("ychanex:")) {
+            Url = Url[8..];
+        }
+        if (Url.StartsWith("view-source:")) {
+            Url = Url[12..];
+        }
+        Url = Networking.CleanURL(Url);
+
+        string[] URLSplit = Url.Split('/');
+        return $"{URLSplit[^3]} - {URLSplit[^1]}";
+    }
+
     public static string? GetHtmlTitle(ThreadData data) {
         if (data.ThreadName == null) {
             return null;
