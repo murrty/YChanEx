@@ -372,7 +372,7 @@ public sealed class GenericPost {
             var File = Post.media;
             GenericFile NewFile = new(this) {
                 FileId = GetExtension(File.media!),
-                FileUrl = File.media_link,
+                FileUrl = File.media_link ?? File.remote_media_link,
                 GeneratedFileName = GetFileNameFromUrl(File.media!),
                 OriginalFileName = GetFileNameFromUrl(File.media_filename!),
                 FileExtension = GetExtension(File.media!),
