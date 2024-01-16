@@ -77,6 +77,7 @@
     <Compile Include="Classes\Chan Parse\EightKun.cs" />
     <Compile Include="Classes\Chan Parse\FChan.cs" />
     <Compile Include="Classes\Chan Parse\FourChan.cs" />
+    <Compile Include="Classes\Chan Parse\FourTwentyChan.cs" />
     <Compile Include="Classes\Chan Parse\SevenChan.cs" />
     <Compile Include="Classes\Chan Parse\ParsersShared.cs" />
     <Compile Include="Classes\Chan Parse\U18Chan.cs" />

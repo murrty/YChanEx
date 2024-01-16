@@ -197,7 +197,7 @@ public sealed class DownloadHistory {
                         }
                         for (int i = 0; i < OldData.FourTwentyChanHistory.Count; i++) {
                             string url = OldData.FourTwentyChanHistory[i];
-                            Data.FourTwentyChanHistory.Add(new PreviousThread(url, url));
+                            Data.FourTwentyChanHistory.Add(new PreviousThread(url, FourTwentyChan.GetOldHistoryName(url)));
                         }
                         for (int i = 0; i < OldData.SevenChanHistory.Count; i++) {
                             string url = OldData.SevenChanHistory[i];
