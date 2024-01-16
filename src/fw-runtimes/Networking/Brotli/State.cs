@@ -92,7 +92,7 @@ internal sealed class State {
         state.runningState = RunningState.BlockStart;
     }
 
-    internal static void Close(State state) {
+    internal static void Close(State state, bool leaveOpen) {
         if (state.runningState == RunningState.Uninitialized) {
             throw new InvalidOperationException("State MUST be initialized");
         }
@@ -100,6 +100,6 @@ internal sealed class State {
             return;
         }
         state.runningState = RunningState.Closed;
-        BitReader.Close(state.br);
+        BitReader.Close(state.br, leaveOpen);
     }
 }

@@ -20,6 +20,7 @@ public sealed class BrotliInputStream : System.IO.Stream {
     private int bufferOffset;
     /// <summary>Decoder state.</summary>
     private readonly State state = new();
+    private readonly bool leaveOpen;
 
     /// <summary>
     /// Creates a
@@ -100,10 +101,15 @@ public sealed class BrotliInputStream : System.IO.Stream {
         }
     }
 
+    public BrotliInputStream(System.IO.Stream source, bool leaveOpen)
+        : this(source, DefaultInternalBufferSize, null) {
+        this.leaveOpen = leaveOpen;
+    }
+
     /// <summary><inheritDoc/></summary>
     /// <exception cref="System.IO.IOException"/>
     public override void Close() {
-        State.Close(state);
+        State.Close(state, leaveOpen);
     }
 
     /// <summary><inheritDoc/></summary>

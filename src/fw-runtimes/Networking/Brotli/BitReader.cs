@@ -27,7 +27,7 @@ internal sealed class BitReader {
     internal int bitOffset;
     /// <summary>Offset of next item in intBuffer.</summary>
     private int intOffset;
-    private int tailBytes = 0;
+    private int tailBytes;
 
     /* Number of bytes in unfinished "int" item. */
     /// <summary>Fills up the input buffer.</summary>
@@ -133,10 +133,12 @@ internal sealed class BitReader {
         }
     }
 
-    internal static void Close(BitReader br) {
+    internal static void Close(BitReader br, bool leaveOpen) {
         System.IO.Stream @is = br.input;
         br.input = null;
-        @is?.Close();
+        if (!leaveOpen) {
+            @is?.Close();
+        }
     }
 
     internal static void JumpToByteBoundary(BitReader br) {
