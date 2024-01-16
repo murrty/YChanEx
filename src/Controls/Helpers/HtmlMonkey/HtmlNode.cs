@@ -245,7 +245,7 @@ public partial class HtmlElementNode : HtmlNode {
             // Replaces all existing content
             Children.Clear();
             if (!string.IsNullOrEmpty(value)) {
-                var parser = new HtmlParser();
+                var parser = new HtmlStringParser();
                 Children.SetNodes(parser.ParseChildren(value));
             }
         }

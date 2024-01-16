@@ -12,23 +12,22 @@ using System.Threading.Tasks;
 /// </summary>
 public partial class HtmlDocument {
     /// <summary>
-    /// Asynchronously parses an HTML or XML string and returns an <see cref="HtmlDocument"></see> instance that
+    /// Asynchronously parses an HTML or XML string and returns an <see cref="HtmlDocument"/> instance that
     /// contains the parsed nodes.
     /// </summary>
     /// <param name="html">The HTML or XML string to parse.</param>
-    /// <returns>Returns an <see cref="HtmlDocument"></see> instance that contains the parsed
+    /// <returns>Returns an <see cref="HtmlDocument"/> instance that contains the parsed
     /// nodes.</returns>
-    public static async Task<HtmlDocument> FromHtmlAsync(string? html, HtmlParseOptions options = HtmlParseOptions.None) {
-        return await Task.Run(() => FromHtml(html, options))
-            .ConfigureAwait(false);
+    public static Task<HtmlDocument> FromHtmlAsync(string? html, HtmlParseOptions options = HtmlParseOptions.None) {
+        return Task.Run(() => FromHtml(html, options));
     }
 
     /// <summary>
-    /// Asynchronously parses an HTML or XML file and returns an <see cref="HtmlDocument"></see> instance that
+    /// Asynchronously parses an HTML or XML file and returns an <see cref="HtmlDocument"/> instance that
     /// contains the parsed nodes.
     /// </summary>
     /// <param name="path">The HTML or XML file to parse.</param>
-    /// <returns>Returns an <see cref="HtmlDocument"></see> instance that contains the parsed
+    /// <returns>Returns an <see cref="HtmlDocument"/> instance that contains the parsed
     /// nodes.</returns>
     public static async Task<HtmlDocument> FromFileAsync(string path, HtmlParseOptions options = HtmlParseOptions.None) {
 #if NETCOREAPP
@@ -41,12 +40,12 @@ public partial class HtmlDocument {
     }
 
     /// <summary>
-    /// Asynchronously parses an HTML or XML file and returns an <see cref="HtmlDocument"></see> instance that
+    /// Asynchronously parses an HTML or XML file and returns an <see cref="HtmlDocument"/> instance that
     /// contains the parsed nodes.
     /// </summary>
     /// <param name="path">The HTML or XML file to parse.</param>
     /// <param name="encoding">The encoding applied to the contents of the file.</param>
-    /// <returns>Returns an <see cref="HtmlDocument"></see> instance that contains the parsed
+    /// <returns>Returns an <see cref="HtmlDocument"/> instance that contains the parsed
     /// nodes.</returns>
     public static async Task<HtmlDocument> FromFileAsync(string path, Encoding encoding, HtmlParseOptions options = HtmlParseOptions.None) {
 #if NETCOREAPP
@@ -56,5 +55,17 @@ public partial class HtmlDocument {
         return await FromHtmlAsync(await Task.Run(() => File.ReadAllText(path, encoding)).ConfigureAwait(false), options)
             .ConfigureAwait(false);
 #endif
+    }
+
+    /// <summary>
+    /// Asynchronously parses a stream with HTML or XML content and returns an <see cref="HtmlDocument"/> instance that
+    /// contains the parsed nodes.
+    /// </summary>
+    /// <param name="stream">The stream with the content that will be parsed.</param>
+    /// <param name="options">The options that will affect the outcome of the <see cref="HtmlDocument"/></param>
+    /// <returns>Returns an <see cref="HtmlDocument"/> instance that contains the parsed
+    /// nodes.</returns>
+    public static Task<HtmlDocument> FromStreamAsync(Stream stream, HtmlParseOptions options = HtmlParseOptions.None) {
+        return Task.Run(() => FromStream(stream, options));
     }
 }
