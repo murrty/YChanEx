@@ -716,12 +716,14 @@ public partial class frmMain : Form, IMainFom {
     }
     private void niTray_MouseDoubleClick(object sender, MouseEventArgs e) {
         if (!this.Visible) {
-            this.WindowState = FormWindowState.Normal;
             this.Show();
-            this.Activate();
-            if (!General.ShowTrayIcon) {
-                niTray.Visible = false;
-            }
+        }
+        if (this.WindowState != FormWindowState.Normal) {
+            this.WindowState = FormWindowState.Normal;
+        }
+        this.Activate();
+        if (!General.ShowTrayIcon) {
+            niTray.Visible = false;
         }
     }
     #endregion
