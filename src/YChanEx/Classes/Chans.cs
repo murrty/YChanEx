@@ -13,7 +13,7 @@ internal static class Chans {
     //private static readonly Regex EightKunRegex = new(@"^https:\/\/8kun\.top\/(?!(qresearch)|(qnotables)|(pnd)|(midnightriders)|(qrb)|(philogeometric)|(qsocial)|(qrnews)|(thestorm)|(patriotsfight)|(projectdcomms)|(greatawakening))[a-zA-Z0-9]+\/res\/\d+\.(html|json)", RegexOptions.IgnoreCase);
     private static readonly Regex FChanRegex = new(@"^https:\/\/fchan\.us\/[a-zA-Z0-9]+\/res\/\d+\.(html)", RegexOptions.IgnoreCase);
     private static readonly Regex U18ChanRegex = new(@"^https:\/\/u18chan\.com\/(board\/u18chan\/)?[a-zA-Z0-9]+\/topic\/\d+", RegexOptions.IgnoreCase);
-    private static readonly Regex FoolFuukaRegex = new(@"^https:\/\/((arch\.b4k\.co)|((archived\.moe)|((www\.)?desuarchive\.org)))\/[a-zA-Z0-9_]+\/thread\/\d+", RegexOptions.IgnoreCase);
+    private static readonly Regex FoolFuukaRegex = new(@"^https:\/\/((arch\.b4k\.co)|((www\.)?(archived\.moe)|(desuarchive\.org)|(thebarchive\.com)))\/[a-zA-Z0-9_]+\/thread\/\d+", RegexOptions.IgnoreCase);
 
     /// <summary>
     /// Tries to verify a chan URL.
