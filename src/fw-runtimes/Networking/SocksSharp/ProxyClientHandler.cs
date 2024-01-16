@@ -100,11 +100,8 @@ public class ProxyClientHandler<T> : DelegatingHandler where T : IProxy {
             await SendDataAsync(request, cancellationToken).ConfigureAwait(false);
             var responseMessage = await ReceiveDataAsync(request, cancellationToken).ConfigureAwait(false);
 
-            if ((responseMessage.StatusCode == HttpStatusCode.Moved ||
-                 responseMessage.StatusCode == HttpStatusCode.MovedPermanently ||
-                 responseMessage.StatusCode == HttpStatusCode.Redirect) && AllowAutoRedirect) {
+            if (IsRedirect(responseMessage.StatusCode)) {
                 request.RequestUri = responseMessage.Headers.Location;
-
                 return await SendAsync(request, cancellationToken).ConfigureAwait(false);
             }
 
@@ -113,7 +110,6 @@ public class ProxyClientHandler<T> : DelegatingHandler where T : IProxy {
     }
 
     #region Methods (private)
-
     private async Task SendDataAsync(HttpRequestMessage request, CancellationToken ct) {
         byte[] buffer;
         var hasContent = request.Content != null;
@@ -167,6 +163,14 @@ public class ProxyClientHandler<T> : DelegatingHandler where T : IProxy {
         await connectionCommonStream.WriteAsync(buffer, 0, buffer.Length, ct).ConfigureAwait(false);
     }
 
+    private bool IsRedirect(HttpStatusCode code) {
+        return (code == HttpStatusCode.Moved ||
+            code == HttpStatusCode.MovedPermanently ||
+            code == HttpStatusCode.Redirect ||
+            code == HttpStatusCode.TemporaryRedirect ||
+            (int)code == 308) && AllowAutoRedirect;
+    }
+
     protected override void Dispose(bool disposing) {
         if (disposing) {
             connectionCommonStream?.Dispose();
@@ -175,6 +179,5 @@ public class ProxyClientHandler<T> : DelegatingHandler where T : IProxy {
 
         base.Dispose(disposing);
     }
-
     #endregion
 }
