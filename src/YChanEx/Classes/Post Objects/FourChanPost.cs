@@ -98,6 +98,27 @@ internal sealed class FourChanPost {
     [DataMember(Name = "filedeleted")]
     public int filedeleted { get; set; }
 
+    [DataMember(Name = "country")]
+    public string? country { get; set; }
+
+    [DataMember(Name = "country_name")]
+    public string? country_name { get; set; }
+
+    [DataMember(Name = "board_flag")]
+    public string? board_flag { get; set; }
+
+    [DataMember(Name = "flag_name")]
+    public string? flag_name { get; set; }
+
+    [DataMember(Name = "tag")]
+    public string? tag { get; set; }
+
+    [DataMember(Name = "since4pass")]
+    public int since4pass { get; set; }
+
+    [DataMember(Name = "archived_on")]
+    public long archived_on { get; set; }
+
     [IgnoreDataMember]
     [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(filename), nameof(ext), nameof(md5))]
     public bool HasFile {
