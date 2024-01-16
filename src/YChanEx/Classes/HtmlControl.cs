@@ -258,10 +258,10 @@ internal static class HtmlControl {
                 padding-bottom: 11px;
             }
 
-            .archiveNote {
+            div.archiverLink {
                 display: flex;
                 justify-content: center;
-                margin-top: -7px;
+                margin-top: -6px;
             }
 
             div.reply div.postInfo, div.reply div.fileText,
@@ -397,7 +397,9 @@ internal static class HtmlControl {
             <div class="contentSeparator">
                 <hr class="contentSeparator" />
             </div>
-            <a class="archiveNote" href="https://github.com/murrty/ychanex">Archived using YChanEx</a>
+            <div class="archiverLink">
+                <a href="https://github.com/murrty/ychanex">Archived using YChanEx</a>
+            </div>
         </div>
         
         <div class="threadBanner" id="bottom">
