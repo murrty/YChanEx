@@ -62,7 +62,7 @@ public partial class frmDownloader : Form {
     /// <summary>
     /// The cancellation token that will be used to kill the main loop.
     /// </summary>
-    private CancellationTokenSource CancellationToken;
+    private CancellationTokenSource ThreadToken;
 
     static frmDownloader() {
         DownloadImages.ColorDepth = ColorDepth.Depth32Bit;
@@ -98,7 +98,7 @@ public partial class frmDownloader : Form {
         }
         lvImages.SmallImageList = DownloadImages;
         ResetThread = new();
-        CancellationToken = new();
+        ThreadToken = new();
     }
 
     private void frmDownloader_FormClosing(object sender, FormClosingEventArgs e) {
@@ -192,8 +192,17 @@ public partial class frmDownloader : Form {
             case ThreadStatus.ThreadIs404:
             case ThreadStatus.ThreadIsAborted:
             case ThreadStatus.ThreadIsArchived:
+            case ThreadStatus.NoThreadPosts:
+            case ThreadStatus.FailedToParseThreadHtml:
+            case ThreadStatus.ThreadUnknownError:
+            case ThreadStatus.ThreadIsNotAllowed:
                 ManageThread(ThreadEvent.RetryDownload);
                 break;
+
+            case ThreadStatus.ThreadUpdateName:
+            case ThreadStatus.ThreadInfoNotSet:
+                break;
+
             default:
                 ManageThread(ThreadEvent.AbortDownload);
                 break;
@@ -517,7 +526,6 @@ public partial class frmDownloader : Form {
                         lbScanTimer.Text = "Aborted";
                         lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
                         this.Icon = Properties.Resources.ProgramIcon_Dead;
-
                         MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
                         btnAbortRetry.Text = "Retry";
                     } break;
@@ -642,7 +650,7 @@ public partial class frmDownloader : Form {
                 Debug.Print("AbortDownload called");
                 tmrScan.Stop();
                 ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsAborted;
-                CancellationToken.Cancel();
+                ThreadToken.Cancel();
                 ResetThread.Set();
 
                 if (threadRemovedFromForm) {
@@ -677,14 +685,14 @@ public partial class frmDownloader : Form {
                 lbScanTimer.Text = "scanning now...";
                 btnAbortRetry.Text = "Abort";
                 tmrScan.Stop();
-                CancellationToken = new();
+                ThreadToken = new();
                 ResetThread.Set();
                 ManageThread(ThreadEvent.StartDownload);
             } break;
 
             case ThreadEvent.AbortForClosing: {
                 ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsAborted;
-                CancellationToken.Cancel();
+                ThreadToken.Cancel();
                 ResetThread.Set();
             } break;
 
@@ -1219,6 +1227,8 @@ public partial class frmDownloader : Form {
                 var PostFile = Post.PostFiles[FileIndex];
 
                 if (PostFile.Status != FileDownloadStatus.Downloaded && PostFile.Status != FileDownloadStatus.FileNotFound) {
+                    token.ThrowIfCancellationRequested();
+
                     // Set the icon in the list to "Downloading".
                     this.Invoke(() => PostFile.ListViewItem.ImageIndex = DownloadingImage);
 
@@ -1232,6 +1242,7 @@ public partial class frmDownloader : Form {
                             FileRequest.Headers.Add("Referer", ThreadInfo.Data.Url);
                         }
                         using var Response = await DownloadClient.GetResponseAsync(FileRequest, token);
+                        token.ThrowIfCancellationRequested();
 
                         if (Response == null) {
                             PostFile.Status = FileDownloadStatus.Error;
@@ -1249,6 +1260,7 @@ public partial class frmDownloader : Form {
                         }
                         else {
                             await DownloadClient.DownloadFileAsync(Response, FileDownloadPath, token);
+                            token.ThrowIfCancellationRequested();
 
                             ThreadInfo.Data.DownloadedImagesCount++;
                             PostFile.Status = FileDownloadStatus.Downloaded;
@@ -1306,7 +1318,7 @@ public partial class frmDownloader : Form {
                     LoadExistingPosts();
                     ThreadReloaded();
                 }
-                CancellationToken.Token.ThrowIfCancellationRequested();
+                ThreadToken.Token.ThrowIfCancellationRequested();
 
                 // Main loop
                 do {
@@ -1320,8 +1332,8 @@ public partial class frmDownloader : Form {
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    using var Response = await DownloadClient.GetResponseAsync(Request, CancellationToken.Token);
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    using var Response = await DownloadClient.GetResponseAsync(Request, ThreadToken.Token);
+                    ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the response is null, it's a bad result; break the thread.
                     if (Response == null) {
@@ -1350,16 +1362,17 @@ public partial class frmDownloader : Form {
                     ThreadInfo.Data.LastModified = Response.Content.Headers.LastModified;
 
                     // Get the json.
-                    string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
+                    using var JsonStream = await DownloadClient.GetStringStreamAsync(Response);
 
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
-                    var ThreadData = CurrentJson.JsonDeserialize<FourChanThread>();
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    var ThreadData = JsonStream.JsonDeserialize<FourChanThread>();
+                    ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
                     if (ThreadData is null || ThreadData.posts.Length < 1) {
                         ThreadInfo.CurrentActivity = ThreadStatus.NoThreadPosts;
+                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                         break;
                     }
 
@@ -1398,7 +1411,7 @@ public partial class frmDownloader : Form {
                             AddNewPost(CurrentPost);
                         }
 
-                        CancellationToken.Token.ThrowIfCancellationRequested();
+                        ThreadToken.Token.ThrowIfCancellationRequested();
                     }
 
                     // update the form totals and status.
@@ -1406,8 +1419,8 @@ public partial class frmDownloader : Form {
 
                     // Download files.
                     Log.Info($"Downloading {ThreadInfo.ThreadLogDisplay} files.");
-                    await DownloadFilesAsync(DownloadClient, CancellationToken.Token);
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    await DownloadFilesAsync(DownloadClient, ThreadToken.Token);
+                    ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the thread is aborted, just break the loop -- its already managed.
                     if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
@@ -1432,7 +1445,7 @@ public partial class frmDownloader : Form {
                     // Synchronously wait, since this thread is separate.
                     ResetThread.Reset();
                     ResetThread.Wait();
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    ThreadToken.Token.ThrowIfCancellationRequested();
                 } while (ThreadInfo.CurrentActivity is not (ThreadStatus.ThreadIs404 or ThreadStatus.ThreadIsAborted or ThreadStatus.ThreadIsArchived));
             }
             catch (ThreadAbortException) { }
@@ -1459,7 +1472,7 @@ public partial class frmDownloader : Form {
                     LoadExistingPostsNoHash();
                     ThreadReloaded();
                 }
-                CancellationToken.Token.ThrowIfCancellationRequested();
+                ThreadToken.Token.ThrowIfCancellationRequested();
 
                 // Main loop
                 do {
@@ -1473,8 +1486,8 @@ public partial class frmDownloader : Form {
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    using var Response = await DownloadClient.GetResponseAsync(Request, CancellationToken.Token);
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    using var Response = await DownloadClient.GetResponseAsync(Request, ThreadToken.Token);
+                    ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the response is null, it's a bad result; break the thread.
                     if (Response == null) {
@@ -1503,12 +1516,12 @@ public partial class frmDownloader : Form {
                     ThreadInfo.Data.LastModified = Response.Content.Headers.LastModified;
 
                     // Get the json.
-                    string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
+                    string ThreadHtml = await DownloadClient.GetStringAsync(Response, ThreadToken.Token);
 
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
-                    var ThreadData = SevenChan.TryGenerate(CurrentJson);
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    var ThreadData = SevenChan.TryGenerate(ThreadHtml);
+                    ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
                     if (ThreadData is null || ThreadData.Length < 1) {
@@ -1555,7 +1568,7 @@ public partial class frmDownloader : Form {
                             AddNewPostNoHash(CurrentPost);
                         }
 
-                        CancellationToken.Token.ThrowIfCancellationRequested();
+                        ThreadToken.Token.ThrowIfCancellationRequested();
                     }
 
                     // update the form totals and status.
@@ -1563,8 +1576,8 @@ public partial class frmDownloader : Form {
 
                     // Download files.
                     Log.Info($"Downloading {ThreadInfo.ThreadLogDisplay} files.");
-                    await DownloadFilesAsync(DownloadClient, CancellationToken.Token);
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    await DownloadFilesAsync(DownloadClient, ThreadToken.Token);
+                    ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the thread is aborted, just break the loop -- its already managed.
                     if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
@@ -1589,7 +1602,7 @@ public partial class frmDownloader : Form {
                     // Synchronously wait, since this thread is separate.
                     ResetThread.Reset();
                     ResetThread.Wait();
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    ThreadToken.Token.ThrowIfCancellationRequested();
                 } while (ThreadInfo.CurrentActivity is not (ThreadStatus.ThreadIs404 or ThreadStatus.ThreadIsAborted or ThreadStatus.ThreadIsArchived));
             }
             catch (ThreadAbortException) { }
@@ -1615,7 +1628,7 @@ public partial class frmDownloader : Form {
                 // Retrieve the board data before the loop.
                 if (!ThreadInfo.ThreadReloaded) {
                     Log.Info($"Retrieving 8chan board info for {ThreadInfo.Data.Board}");
-                    var Board = await EightChan.GetBoardAsync(ThreadInfo.Data.Board, Networking.LatestClient, CancellationToken.Token);
+                    var Board = await EightChan.GetBoardAsync(ThreadInfo.Data.Board, Networking.LatestClient, ThreadToken.Token);
                     if (Board != null) {
                         ThreadInfo.Data.BoardName = Board.BoardName;
                         ThreadInfo.Data.BoardSubtitle = Board.BoardDescription;
@@ -1633,7 +1646,7 @@ public partial class frmDownloader : Form {
                     LoadExistingPostsNoHash();
                     ThreadReloaded();
                 }
-                CancellationToken.Token.ThrowIfCancellationRequested();
+                ThreadToken.Token.ThrowIfCancellationRequested();
 
                 // Main loop
                 do {
@@ -1647,8 +1660,8 @@ public partial class frmDownloader : Form {
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    using var Response = await DownloadClient.GetResponseAsync(Request, CancellationToken.Token);
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    using var Response = await DownloadClient.GetResponseAsync(Request, ThreadToken.Token);
+                    ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the response is null, it's a bad result; break the thread.
                     if (Response == null) {
@@ -1677,20 +1690,21 @@ public partial class frmDownloader : Form {
                     ThreadInfo.Data.LastModified = Response.Content.Headers.LastModified;
 
                     // Get the json.
-                    string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    var JsonStream = await DownloadClient.GetStringStreamAsync(Response);
+                    ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
-                    var ThreadData = CurrentJson.JsonDeserialize<EightChanThread>();
+                    var ThreadData = JsonStream.JsonDeserialize<EightChanThread>();
 
                     // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
                     if (ThreadData is null) {
                         ThreadInfo.CurrentActivity = ThreadStatus.NoThreadPosts;
+                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                         break;
                     }
 
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // Checks if the thread name has been retrieved, and retrieves it if not.
                     // It was supposed to be an option, but honestly, it's not a problematic inclusion.
@@ -1724,7 +1738,7 @@ public partial class frmDownloader : Form {
                         AddNewPostNoHash(CurrentPost);
                     }
 
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // Start counting through the replies.
                     if (ThreadData.posts?.Length > 0) {
@@ -1739,7 +1753,7 @@ public partial class frmDownloader : Form {
                                 AddNewPostNoHash(CurrentPost);
                             }
 
-                            CancellationToken.Token.ThrowIfCancellationRequested();
+                            ThreadToken.Token.ThrowIfCancellationRequested();
                         }
                     }
 
@@ -1748,8 +1762,8 @@ public partial class frmDownloader : Form {
 
                     // Download files.
                     Log.Info($"Downloading {ThreadInfo.ThreadLogDisplay} files.");
-                    await DownloadFilesAsync(DownloadClient, CancellationToken.Token);
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    await DownloadFilesAsync(DownloadClient, ThreadToken.Token);
+                    ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the thread is aborted, just break the loop -- its already managed.
                     if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
@@ -1774,7 +1788,7 @@ public partial class frmDownloader : Form {
                     // Synchronously wait, since this thread is separate.
                     ResetThread.Reset();
                     ResetThread.Wait();
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    ThreadToken.Token.ThrowIfCancellationRequested();
                 } while (ThreadInfo.CurrentActivity is not (ThreadStatus.ThreadIs404 or ThreadStatus.ThreadIsAborted or ThreadStatus.ThreadIsArchived));
             }
             catch (ThreadAbortException) { }
@@ -1798,7 +1812,7 @@ public partial class frmDownloader : Form {
                 // Retrieve the board data before the loop.
                 if (!ThreadInfo.ThreadReloaded) {
                     Log.Info($"Retrieving 8kun board info for {ThreadInfo.Data.Board}");
-                    var Board = await EightKun.GetBoardAsync(ThreadInfo, Networking.LatestClient, CancellationToken.Token);
+                    var Board = await EightKun.GetBoardAsync(ThreadInfo, Networking.LatestClient, ThreadToken.Token);
                     if (Board != null) {
                         ThreadInfo.Data.BoardName = Board.title;
                         ThreadInfo.Data.BoardSubtitle = Board.subtitle;
@@ -1816,7 +1830,7 @@ public partial class frmDownloader : Form {
                     LoadExistingPosts();
                     ThreadReloaded();
                 }
-                CancellationToken.Token.ThrowIfCancellationRequested();
+                ThreadToken.Token.ThrowIfCancellationRequested();
 
                 // Main loop
                 do {
@@ -1830,8 +1844,8 @@ public partial class frmDownloader : Form {
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    using var Response = await DownloadClient.GetResponseAsync(Request, CancellationToken.Token);
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    using var Response = await DownloadClient.GetResponseAsync(Request, ThreadToken.Token);
+                    ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the response is null, it's a bad result; break the thread.
                     if (Response == null) {
@@ -1860,20 +1874,21 @@ public partial class frmDownloader : Form {
                     ThreadInfo.Data.LastModified = Response.Content.Headers.LastModified;
 
                     // Get the json.
-                    string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    var JsonStream = await DownloadClient.GetStringStreamAsync(Response);
+                    ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
-                    var ThreadData = CurrentJson.JsonDeserialize<EightKunThread>();
+                    var ThreadData = JsonStream.JsonDeserialize<EightKunThread>();
 
                     // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
                     if (ThreadData is null) {
                         ThreadInfo.CurrentActivity = ThreadStatus.NoThreadPosts;
+                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                         break;
                     }
 
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // Checks if the thread name has been retrieved, and retrieves it if not.
                     // It was supposed to be an option, but honestly, it's not a problematic inclusion.
@@ -1911,7 +1926,7 @@ public partial class frmDownloader : Form {
                                 AddNewPost(CurrentPost);
                             }
 
-                            CancellationToken.Token.ThrowIfCancellationRequested();
+                            ThreadToken.Token.ThrowIfCancellationRequested();
                         }
                     }
 
@@ -1920,8 +1935,8 @@ public partial class frmDownloader : Form {
 
                     // Download files.
                     Log.Info($"Downloading {ThreadInfo.ThreadLogDisplay} files.");
-                    await DownloadFilesAsync(DownloadClient, CancellationToken.Token);
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    await DownloadFilesAsync(DownloadClient, ThreadToken.Token);
+                    ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the thread is aborted, just break the loop -- its already managed.
                     if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
@@ -1946,7 +1961,7 @@ public partial class frmDownloader : Form {
                     // Synchronously wait, since this thread is separate.
                     ResetThread.Reset();
                     ResetThread.Wait();
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    ThreadToken.Token.ThrowIfCancellationRequested();
                 } while (ThreadInfo.CurrentActivity is not (ThreadStatus.ThreadIs404 or ThreadStatus.ThreadIsAborted or ThreadStatus.ThreadIsArchived));
             }
             catch (ThreadAbortException) { }
@@ -1973,7 +1988,7 @@ public partial class frmDownloader : Form {
                     LoadExistingPostsNoHash();
                     ThreadReloaded();
                 }
-                CancellationToken.Token.ThrowIfCancellationRequested();
+                ThreadToken.Token.ThrowIfCancellationRequested();
 
                 // Main loop
                 do {
@@ -1987,7 +2002,7 @@ public partial class frmDownloader : Form {
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    using var Response = await DownloadClient.GetResponseAsync(Request, CancellationToken.Token);
+                    using var Response = await DownloadClient.GetResponseAsync(Request, ThreadToken.Token);
 
                     // If the response is null, it's a bad result; break the thread.
                     if (Response == null) {
@@ -2016,17 +2031,17 @@ public partial class frmDownloader : Form {
                     ThreadInfo.Data.LastModified = Response.Content.Headers.LastModified;
 
                     // Get the json.
-                    string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    string ThreadHtml = await DownloadClient.GetStringAsync(Response, ThreadToken.Token);
 
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
-                    var ThreadData = FChan.TryGenerate(CurrentJson);
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    var ThreadData = FChan.TryGenerate(ThreadHtml);
+                    ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
                     if (ThreadData is null || ThreadData.Length < 1) {
                         ThreadInfo.CurrentActivity = ThreadStatus.NoThreadPosts;
+                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                         break;
                     }
 
@@ -2065,7 +2080,7 @@ public partial class frmDownloader : Form {
                             AddNewPostNoHash(CurrentPost);
                         }
 
-                        CancellationToken.Token.ThrowIfCancellationRequested();
+                        ThreadToken.Token.ThrowIfCancellationRequested();
                     }
 
                     // update the form totals and status.
@@ -2073,8 +2088,8 @@ public partial class frmDownloader : Form {
 
                     // Download files.
                     Log.Info($"Downloading {ThreadInfo.ThreadLogDisplay} files.");
-                    await DownloadFilesAsync(DownloadClient, CancellationToken.Token);
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    await DownloadFilesAsync(DownloadClient, ThreadToken.Token);
+                    ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the thread is aborted, just break the loop -- its already managed.
                     if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
@@ -2099,7 +2114,7 @@ public partial class frmDownloader : Form {
                     // Synchronously wait, since this thread is separate.
                     ResetThread.Reset();
                     ResetThread.Wait();
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    ThreadToken.Token.ThrowIfCancellationRequested();
                 } while (ThreadInfo.CurrentActivity is not (ThreadStatus.ThreadIs404 or ThreadStatus.ThreadIsAborted or ThreadStatus.ThreadIsArchived));
             }
             catch (ThreadAbortException) { }
@@ -2126,7 +2141,7 @@ public partial class frmDownloader : Form {
                     LoadExistingPostsNoHash();
                     ThreadReloaded();
                 }
-                CancellationToken.Token.ThrowIfCancellationRequested();
+                ThreadToken.Token.ThrowIfCancellationRequested();
 
                 // Main loop
                 do {
@@ -2140,8 +2155,8 @@ public partial class frmDownloader : Form {
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    using var Response = await DownloadClient.GetResponseAsync(Request, CancellationToken.Token);
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    using var Response = await DownloadClient.GetResponseAsync(Request, ThreadToken.Token);
+                    ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the response is null, it's a bad result; break the thread.
                     if (Response == null) {
@@ -2170,16 +2185,17 @@ public partial class frmDownloader : Form {
                     ThreadInfo.Data.LastModified = Response.Content.Headers.LastModified;
 
                     // Get the json.
-                    string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
+                    string ThreadHtml = await DownloadClient.GetStringAsync(Response, ThreadToken.Token);
 
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
-                    var ThreadData = U18Chan.TryGenerate(CurrentJson);
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    var ThreadData = U18Chan.TryGenerate(ThreadHtml);
+                    ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
                     if (ThreadData is null || ThreadData.Length < 1) {
                         ThreadInfo.CurrentActivity = ThreadStatus.NoThreadPosts;
+                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                         break;
                     }
 
@@ -2218,7 +2234,7 @@ public partial class frmDownloader : Form {
                             AddNewPostNoHash(CurrentPost);
                         }
 
-                        CancellationToken.Token.ThrowIfCancellationRequested();
+                        ThreadToken.Token.ThrowIfCancellationRequested();
                     }
 
                     // update the form totals and status.
@@ -2226,8 +2242,8 @@ public partial class frmDownloader : Form {
 
                     // Download files.
                     Log.Info($"Downloading {ThreadInfo.ThreadLogDisplay} files.");
-                    await DownloadFilesAsync(DownloadClient, CancellationToken.Token);
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    await DownloadFilesAsync(DownloadClient, ThreadToken.Token);
+                    ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the thread is aborted, just break the loop -- its already managed.
                     if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
@@ -2252,7 +2268,7 @@ public partial class frmDownloader : Form {
                     // Synchronously wait, since this thread is separate.
                     ResetThread.Reset();
                     ResetThread.Wait();
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    ThreadToken.Token.ThrowIfCancellationRequested();
                 } while (ThreadInfo.CurrentActivity is not (ThreadStatus.ThreadIs404 or ThreadStatus.ThreadIsAborted or ThreadStatus.ThreadIsArchived));
             }
             catch (ThreadAbortException) { }
@@ -2284,8 +2300,8 @@ public partial class frmDownloader : Form {
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    using var Response = await DownloadClient.GetResponseAsync(Request, CancellationToken.Token);
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    using var Response = await DownloadClient.GetResponseAsync(Request, ThreadToken.Token);
+                    ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the response is null, it's a bad result; break the thread.
                     if (Response == null) {
@@ -2314,16 +2330,17 @@ public partial class frmDownloader : Form {
                     ThreadInfo.Data.LastModified = Response.Content.Headers.LastModified;
 
                     // Get the json.
-                    string CurrentJson = await DownloadClient.GetStringAsync(Response, CancellationToken.Token);
+                    var JsonStream = await DownloadClient.GetStringStreamAsync(Response);
 
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
-                    var ThreadData = FoolFuuka.Deserialize(CurrentJson);
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    var ThreadData = FoolFuuka.Deserialize(JsonStream);
+                    ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
                     if (ThreadData is null || ThreadData.Length < 1) {
                         ThreadInfo.CurrentActivity = ThreadStatus.NoThreadPosts;
+                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                         break;
                     }
 
@@ -2338,7 +2355,7 @@ public partial class frmDownloader : Form {
                             LoadExistingPosts();
                             ThreadReloaded();
                         }
-                        CancellationToken.Token.ThrowIfCancellationRequested();
+                        ThreadToken.Token.ThrowIfCancellationRequested();
                     }
 
                     // Checks if the thread name has been retrieved, and retrieves it if not.
@@ -2376,7 +2393,7 @@ public partial class frmDownloader : Form {
                             AddNewPost(CurrentPost);
                         }
 
-                        CancellationToken.Token.ThrowIfCancellationRequested();
+                        ThreadToken.Token.ThrowIfCancellationRequested();
                     }
 
                     // update the form totals and status.
@@ -2384,8 +2401,8 @@ public partial class frmDownloader : Form {
 
                     // Download files.
                     Log.Info($"Downloading {ThreadInfo.ThreadLogDisplay} files.");
-                    await DownloadFilesAsync(DownloadClient, CancellationToken.Token);
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    await DownloadFilesAsync(DownloadClient, ThreadToken.Token);
+                    ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the thread is aborted, just break the loop -- its already managed.
                     if (ThreadInfo.CurrentActivity == ThreadStatus.ThreadIsAborted) {
@@ -2410,7 +2427,7 @@ public partial class frmDownloader : Form {
                     // Synchronously wait, since this thread is separate.
                     ResetThread.Reset();
                     ResetThread.Wait();
-                    CancellationToken.Token.ThrowIfCancellationRequested();
+                    ThreadToken.Token.ThrowIfCancellationRequested();
                 } while (ThreadInfo.CurrentActivity is not (ThreadStatus.ThreadIs404 or ThreadStatus.ThreadIsAborted or ThreadStatus.ThreadIsArchived));
             }
             catch (ThreadAbortException) { }
