@@ -128,32 +128,53 @@ public partial class frmMain : Form, IMainFom {
     }
     public void ThreadKilled(ThreadInfo Thread) => RemoveThread(Thread);
     public void AddToHistory(PreviousThread Thread) {
+        if (this.InvokeRequired) {
+            this.Invoke(() => AddToHistory(Thread));
+            return;
+        }
+
         if (General.SaveThreadHistory && !DownloadHistory.Contains(Thread.Type, Thread.Url)) {
             DownloadHistory.Add(Thread.Type, Thread.Url, Thread.ShortName);
             switch (Thread.Type) {
                 case ChanType.FourChan: {
-                    tvHistory.Nodes[0].Nodes.Add(Thread.Url, Thread.ShortName);
+                    TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
+                    Thread.Node = HistoryItem;
+                    tvHistory.Nodes[0].Nodes.Add(HistoryItem);
                 } break;
                 case ChanType.FourTwentyChan: {
-                    tvHistory.Nodes[1].Nodes.Add(Thread.Url, Thread.ShortName);
+                    TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
+                    Thread.Node = HistoryItem;
+                    tvHistory.Nodes[1].Nodes.Add(HistoryItem);
                 } break;
                 case ChanType.SevenChan: {
-                    tvHistory.Nodes[2].Nodes.Add(Thread.Url, Thread.ShortName);
+                    TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
+                    Thread.Node = HistoryItem;
+                    tvHistory.Nodes[2].Nodes.Add(HistoryItem);
                 } break;
                 case ChanType.EightChan: {
-                    tvHistory.Nodes[3].Nodes.Add(Thread.Url, Thread.ShortName);
+                    TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
+                    Thread.Node = HistoryItem;
+                    tvHistory.Nodes[3].Nodes.Add(HistoryItem);
                 } break;
                 case ChanType.EightKun: {
-                    tvHistory.Nodes[4].Nodes.Add(Thread.Url, Thread.ShortName);
+                    TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
+                    Thread.Node = HistoryItem;
+                    tvHistory.Nodes[4].Nodes.Add(HistoryItem);
                 } break;
                 case ChanType.fchan: {
-                    tvHistory.Nodes[5].Nodes.Add(Thread.Url, Thread.ShortName);
+                    TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
+                    Thread.Node = HistoryItem;
+                    tvHistory.Nodes[5].Nodes.Add(HistoryItem);
                 } break;
                 case ChanType.u18chan: {
-                    tvHistory.Nodes[6].Nodes.Add(Thread.Url, Thread.ShortName);
+                    TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
+                    Thread.Node = HistoryItem;
+                    tvHistory.Nodes[6].Nodes.Add(HistoryItem);
                 } break;
                 case ChanType.FoolFuuka: {
-                    tvHistory.Nodes[7].Nodes.Add(Thread.Url, Thread.ShortName);
+                    TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
+                    Thread.Node = HistoryItem;
+                    tvHistory.Nodes[7].Nodes.Add(HistoryItem);
                 } break;
             }
             DownloadHistory.Save();
@@ -545,6 +566,7 @@ public partial class frmMain : Form, IMainFom {
                     Name = url.Url,
                     Tag = url,
                 };
+                url.Node = HistoryItem;
                 tvHistory.Nodes[0].Nodes.Add(HistoryItem);
             }
             for (int i = 0; i < DownloadHistory.Data.FourTwentyChanHistory.Count; i++) {
@@ -553,6 +575,7 @@ public partial class frmMain : Form, IMainFom {
                     Name = url.Url,
                     Tag = url,
                 };
+                url.Node = HistoryItem;
                 tvHistory.Nodes[1].Nodes.Add(HistoryItem);
             }
             for (int i = 0; i < DownloadHistory.Data.SevenChanHistory.Count; i++) {
@@ -561,6 +584,7 @@ public partial class frmMain : Form, IMainFom {
                     Name = url.Url,
                     Tag = url,
                 };
+                url.Node = HistoryItem;
                 tvHistory.Nodes[2].Nodes.Add(HistoryItem);
             }
             for (int i = 0; i < DownloadHistory.Data.EightChanHistory.Count; i++) {
@@ -569,6 +593,7 @@ public partial class frmMain : Form, IMainFom {
                     Name = url.Url,
                     Tag = url,
                 };
+                url.Node = HistoryItem;
                 tvHistory.Nodes[3].Nodes.Add(HistoryItem);
             }
             for (int i = 0; i < DownloadHistory.Data.EightKunHistory.Count; i++) {
@@ -577,6 +602,7 @@ public partial class frmMain : Form, IMainFom {
                     Name = url.Url,
                     Tag = url,
                 };
+                url.Node = HistoryItem;
                 tvHistory.Nodes[4].Nodes.Add(HistoryItem);
             }
             for (int i = 0; i < DownloadHistory.Data.FchanHistory.Count; i++) {
@@ -585,6 +611,7 @@ public partial class frmMain : Form, IMainFom {
                     Name = url.Url,
                     Tag = url,
                 };
+                url.Node = HistoryItem;
                 tvHistory.Nodes[5].Nodes.Add(HistoryItem);
             }
             for (int i = 0; i < DownloadHistory.Data.u18chanHistory.Count; i++) {
@@ -593,6 +620,7 @@ public partial class frmMain : Form, IMainFom {
                     Name = url.Url,
                     Tag = url,
                 };
+                url.Node = HistoryItem;
                 tvHistory.Nodes[6].Nodes.Add(HistoryItem);
             }
             for (int i = 0; i < DownloadHistory.Data.FoolFuukaHistory.Count; i++) {
@@ -601,6 +629,7 @@ public partial class frmMain : Form, IMainFom {
                     Name = url.Url,
                     Tag = url,
                 };
+                url.Node = HistoryItem;
                 tvHistory.Nodes[7].Nodes.Add(HistoryItem);
             }
         }

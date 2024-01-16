@@ -1390,7 +1390,7 @@ public partial class frmDownloader : Form {
                             $"<title>{FourChan.GetHtmlTitle(ThreadInfo.Data.Board, NewName)}</title>");
 
                         // Add/update history
-                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
+                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
 
                         // Update the name application wide, if the custom name wasn't set.
                         if (ThreadInfo.Data.CustomThreadName == null) {
@@ -1546,7 +1546,7 @@ public partial class frmDownloader : Form {
                             $"<title>{SevenChan.GetHtmlTitle(ThreadInfo.Data.Board, NewName)}</title>");
 
                         // Add/update history
-                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
+                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
 
                         // Update the name application wide, if the custom name wasn't set.
                         if (ThreadInfo.Data.CustomThreadName == null) {
@@ -1724,7 +1724,7 @@ public partial class frmDownloader : Form {
                             $"<title>{EightChan.GetHtmlTitle(ThreadInfo.Data.Board, NewName)}</title>");
 
                         // Add/update history
-                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
+                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
 
                         // Update the name application wide, if the custom name wasn't set.
                         if (ThreadInfo.Data.CustomThreadName == null) {
@@ -1910,7 +1910,7 @@ public partial class frmDownloader : Form {
                             $"<title>{EightKun.GetHtmlTitle(ThreadInfo.Data.Board, NewName)}</title>");
 
                         // Add/update history
-                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
+                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
 
                         // Update the name application wide, if the custom name wasn't set.
                         if (ThreadInfo.Data.CustomThreadName == null) {
@@ -2067,7 +2067,7 @@ public partial class frmDownloader : Form {
                             $"<title>{FChan.GetHtmlTitle(ThreadInfo.Data.Board, NewName)}</title>");
 
                         // Add/update history
-                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
+                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
 
                         // Update the name application wide, if the custom name wasn't set.
                         if (ThreadInfo.Data.CustomThreadName == null) {
@@ -2223,7 +2223,7 @@ public partial class frmDownloader : Form {
                             $"<title>{U18Chan.GetHtmlTitle(ThreadInfo.Data.Board, NewName)}</title>");
 
                         // Add/update history
-                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
+                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
 
                         // Update the name application wide, if the custom name wasn't set.
                         if (ThreadInfo.Data.CustomThreadName == null) {
@@ -2393,7 +2393,7 @@ public partial class frmDownloader : Form {
                             $"<title>{FoolFuuka.GetHtmlTitle(ThreadInfo.Data.Board, NewName, Networking.GetHostNameOnly(ThreadInfo.Data.Url))}</title>");
 
                         // Add/update history
-                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
+                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
 
                         // Update the name application wide, if the custom name wasn't set.
                         if (ThreadInfo.Data.CustomThreadName == null) {

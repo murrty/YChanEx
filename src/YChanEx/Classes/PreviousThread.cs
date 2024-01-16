@@ -1,5 +1,8 @@
-﻿namespace YChanEx;
+﻿#nullable enable
+namespace YChanEx;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
+using System.Windows.Forms;
 [DataContract]
 public sealed class PreviousThread {
     [IgnoreDataMember]
@@ -10,6 +13,12 @@ public sealed class PreviousThread {
 
     [DataMember(Name = "name")]
     public string ShortName { get; set; }
+
+    [IgnoreDataMember]
+    public TreeNode? Node { get; set; }
+
+    [IgnoreDataMember]
+    public bool HasValue => !Url.IsNullEmptyWhitespace();
 
     public PreviousThread(string Url, string ShortName) {
         this.Url = Url;
@@ -23,7 +32,7 @@ public sealed class PreviousThread {
     [OnDeserialized]
     void D(StreamingContext ctx) {
         this.Url ??= string.Empty;
-        this.ShortName ??= string.Empty;
+        this.ShortName ??= this.Url ?? string.Empty;
     }
 }
 
@@ -45,8 +54,10 @@ public sealed class PreviousThreadCollection : List<PreviousThread> {
     }
     public bool Update(string Url, string ShortName) {
         for (int i = 0; i < this.Count; i++) {
-            if (this[i].Url.Equals(Url, StringComparison.InvariantCultureIgnoreCase)) {
-                this[i].ShortName = ShortName;
+            var Item = this[i];
+            if (Item.Url.Equals(Url, StringComparison.InvariantCultureIgnoreCase)) {
+                Item.ShortName = ShortName;
+                Item.Node?.TreeView?.Invoke(() => Item.Node.Text = ShortName);
                 return true;
             }
         }
