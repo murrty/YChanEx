@@ -16,9 +16,6 @@ internal static class WebDecompress {
         using Org.Brotli.Dec.BrotliInputStream DecompressorStream = new(inputStream);
         await DecompressorStream.CopyToAsync(outputStream);
     }
-    internal static Stream BrotliStream(Stream inputStream) {
-        return new Org.Brotli.Dec.BrotliInputStream(inputStream, false);
-    }
 
     internal static async Task<byte[]> GZip(Stream inputStream) {
         inputStream.Position = 0;
@@ -32,9 +29,6 @@ internal static class WebDecompress {
         using GZipStream DecompressorStream = new(inputStream, CompressionMode.Decompress);
         await DecompressorStream.CopyToAsync(outputStream);
     }
-    internal static Stream GZipStream(Stream inputStream) {
-        return new GZipStream(inputStream, CompressionMode.Decompress, false);
-    }
 
     internal static async Task<byte[]> Deflate(Stream inputStream) {
         inputStream.Position = 0;
@@ -47,8 +41,5 @@ internal static class WebDecompress {
         inputStream.Position = 0;
         using DeflateStream DecompressorStream = new(inputStream, CompressionMode.Decompress);
         await DecompressorStream.CopyToAsync(outputStream);
-    }
-    internal static Stream DeflateStream(Stream inputStream) {
-        return new DeflateStream(inputStream, CompressionMode.Decompress, false);
     }
 }

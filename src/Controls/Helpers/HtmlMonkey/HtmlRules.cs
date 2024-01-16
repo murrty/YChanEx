@@ -216,15 +216,15 @@ internal static class HtmlRules {
     /// <summary>
     /// Returns true if it is valid for the given parent tag to contain the given child tag.
     /// </summary>
-    public static bool TagMayContain(string parentTag, string childTag, HtmlParseOptions options) {
-        return TagMayContain(parentTag, childTag, GetTagFlags(parentTag), options);
+    public static bool TagMayContain(string parentTag, string childTag, HtmlParser parser) {
+        return TagMayContain(parentTag, childTag, GetTagFlags(parentTag), parser);
     }
 
     /// <summary>
     /// Returns true if it is considered valid for the given parent tag to contain the
     /// given child tag. Provide the parent flags, if available, to improve performance.
     /// </summary>
-    public static bool TagMayContain(string parentTag, string childTag, HtmlTagFlag parentFlags, HtmlParseOptions options) {
+    public static bool TagMayContain(string parentTag, string childTag, HtmlTagFlag parentFlags, HtmlParser parser) {
         if (parentFlags.HasFlag(HtmlTagFlag.NoChildren)) {
             return false;
         }
@@ -234,7 +234,7 @@ internal static class HtmlRules {
         }
 
         // Attempt to catch mismatched open/close tags
-        if (options.HasFlag(HtmlParseOptions.UseNestLevels) && GetTagNestLevel(childTag) > GetTagNestLevel(parentTag)) {
+        if (parser.Options.HasFlag(HtmlParseOptions.UseNestLevels) && GetTagNestLevel(childTag) > GetTagNestLevel(parentTag)) {
             return false;
         }
 

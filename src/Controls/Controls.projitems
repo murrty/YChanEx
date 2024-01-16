@@ -26,10 +26,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\HtmlNodeCollection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\HtmlParseOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\HtmlParser.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\HtmlStringParser.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\HtmlStreamParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\HtmlRules.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\ITextParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\Selector.Async.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\Selector.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\Selector.Find.cs" />
@@ -37,7 +34,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\SelectorCollection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\SelectorCollection.Find.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\SelectorParsing.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\StreamParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\TagStack.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\TextParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HttpException.cs" />

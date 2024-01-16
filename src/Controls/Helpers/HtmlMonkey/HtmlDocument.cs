@@ -39,63 +39,46 @@ public partial class HtmlDocument {
     }
 
     /// <summary>
-    /// Generates an HTML string from the contents of this <see cref="HtmlDocument"/>.
+    /// Generates an HTML string from the contents of this <see cref="HtmlDocument"></see>.
     /// </summary>
     /// <returns>A string with the markup for this document.</returns>
     public string ToHtml() => this.RootNodes.ToHtml();
 
     #region Static methods
     /// <summary>
-    /// Parses an HTML or XML string and returns an <see cref="HtmlDocument"/> instance that
+    /// Parses an HTML or XML string and returns an <see cref="HtmlDocument"></see> instance that
     /// contains the parsed nodes.
     /// </summary>
     /// <param name="html">The HTML or XML string to parse.</param>
-    /// <param name="options">The options that will affect the outcome of the <see cref="HtmlDocument"/></param>
-    /// <returns>Returns an <see cref="HtmlDocument"/> instance that contains the parsed
+    /// <returns>Returns an <see cref="HtmlDocument"></see> instance that contains the parsed
     /// nodes.</returns>
     public static HtmlDocument FromHtml(string? html, HtmlParseOptions options = HtmlParseOptions.None) {
-        HtmlStringParser Parser = new();
+        HtmlParser Parser = new();
         HtmlDocument doc = Parser.Parse(html, options);
         return doc;
     }
 
     /// <summary>
-    /// Parses an HTML or XML file and returns an <see cref="HtmlDocument"/> instance that
+    /// Parses an HTML or XML file and returns an <see cref="HtmlDocument"></see> instance that
     /// contains the parsed nodes.
     /// </summary>
     /// <param name="path">The HTML or XML file to parse.</param>
-    /// <param name="options">The options that will affect the outcome of the <see cref="HtmlDocument"/></param>
-    /// <returns>Returns an <see cref="HtmlDocument"/> instance that contains the parsed
+    /// <returns>Returns an <see cref="HtmlDocument"></see> instance that contains the parsed
     /// nodes.</returns>
     public static HtmlDocument FromFile(string path, HtmlParseOptions options = HtmlParseOptions.None) {
         return FromHtml(File.ReadAllText(path), options);
     }
 
     /// <summary>
-    /// Parses an HTML or XML file and returns an <see cref="HtmlDocument"/> instance that
+    /// Parses an HTML or XML file and returns an <see cref="HtmlDocument"></see> instance that
     /// contains the parsed nodes.
     /// </summary>
     /// <param name="path">The HTML or XML file to parse.</param>
     /// <param name="encoding">The encoding applied to the contents of the file.</param>
-    /// <param name="options">The options that will affect the outcome of the <see cref="HtmlDocument"/></param>
-    /// <returns>Returns an <see cref="HtmlDocument"/> instance that contains the parsed
+    /// <returns>Returns an <see cref="HtmlDocument"></see> instance that contains the parsed
     /// nodes.</returns>
     public static HtmlDocument FromFile(string path, Encoding encoding, HtmlParseOptions options = HtmlParseOptions.None) {
         return FromHtml(File.ReadAllText(path, encoding), options);
-    }
-
-    /// <summary>
-    /// Parses a stream with HTML or XML content and returns an <see cref="HtmlDocument"/> instance that
-    /// contains the parsed nodes.
-    /// </summary>
-    /// <param name="stream">The stream with the content that will be parsed.</param>
-    /// <param name="options">The options that will affect the outcome of the <see cref="HtmlDocument"/></param>
-    /// <returns>Returns an <see cref="HtmlDocument"/> instance that contains the parsed
-    /// nodes.</returns>
-    public static HtmlDocument FromStream(Stream stream, HtmlParseOptions options = HtmlParseOptions.None) {
-        HtmlStreamParser Parser = new();
-        HtmlDocument doc = Parser.Parse(stream, options);
-        return doc;
     }
     #endregion
 }
