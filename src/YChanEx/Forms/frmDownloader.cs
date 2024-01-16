@@ -1389,7 +1389,7 @@ public partial class frmDownloader : Form {
 
                         // Update the data with the new name.
                         ThreadInfo.Data.ThreadName = NewName;
-                        ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.Replace("<title></title>",
+                        ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.ReplaceFirst("<title></title>",
                             $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 4chan</title>");
 
                         // Add/update history
@@ -1545,7 +1545,7 @@ public partial class frmDownloader : Form {
 
                         // Update the data with the new name.
                         ThreadInfo.Data.ThreadName = NewName;
-                        ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.Replace("<title></title>",
+                        ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.ReplaceFirst("<title></title>",
                             $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 7chan</title>");
 
                         // Add/update history
@@ -1723,7 +1723,7 @@ public partial class frmDownloader : Form {
 
                         // Update the data with the new name.
                         ThreadInfo.Data.ThreadName = NewName;
-                        ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.Replace("<title></title>",
+                        ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.ReplaceFirst("<title></title>",
                             $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 8chan</title>");
 
                         // Add/update history
@@ -1909,7 +1909,7 @@ public partial class frmDownloader : Form {
 
                         // Update the data with the new name.
                         ThreadInfo.Data.ThreadName = NewName;
-                        ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.Replace("<title></title>",
+                        ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.ReplaceFirst("<title></title>",
                             $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 8kun</title>");
 
                         // Add/update history
@@ -2066,7 +2066,7 @@ public partial class frmDownloader : Form {
 
                         // Update the data with the new name.
                         ThreadInfo.Data.ThreadName = NewName;
-                        ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.Replace("<title></title>",
+                        ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.ReplaceFirst("<title></title>",
                             $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - fchan</title>");
 
                         // Add/update history
@@ -2222,7 +2222,7 @@ public partial class frmDownloader : Form {
 
                         // Update the data with the new name.
                         ThreadInfo.Data.ThreadName = NewName;
-                        ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.Replace("<title></title>",
+                        ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.ReplaceFirst("<title></title>",
                             $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - u18chan</title>");
 
                         // Add/update history
@@ -2383,7 +2383,7 @@ public partial class frmDownloader : Form {
 
                         // Update the data with the new name.
                         ThreadInfo.Data.ThreadName = NewName;
-                        ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.Replace("<title></title>",
+                        ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.ReplaceFirst("<title></title>",
                             $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - {Networking.GetHostNameOnly(ThreadInfo.Data.Url)}</title>");
 
                         // Add/update history

@@ -66,6 +66,35 @@ internal static class Extensions {
         return System.Text.RegularExpressions.Regex.Replace(str, @"\s+", replacement, System.Text.RegularExpressions.RegexOptions.Compiled);
     }
 
+    public static string ReplaceFirst(this string str, string oldValue, string replacement) {
+        int pos = str.IndexOf(oldValue);
+        if (pos < 0) {
+            return str;
+        }
+        return str[..pos] + replacement + str[(pos + oldValue.Length)..];
+    }
+    public static string ReplaceFirst(this string str, string oldValue, string replacement, int startIndex) {
+        int pos = str.IndexOf(oldValue, startIndex);
+        if (pos < 0) {
+            return str;
+        }
+        return str[..pos] + replacement + str[(pos + oldValue.Length)..];
+    }
+    public static string ReplaceLast(this string str, string oldValue, string replacement) {
+        int pos = str.LastIndexOf(oldValue);
+        if (pos < 0) {
+            return str;
+        }
+        return str[..pos] + replacement + str[(pos + oldValue.Length)..];
+    }
+    public static string ReplaceLast(this string str, string oldValue, string replacement, int startIndex) {
+        int pos = str.LastIndexOf(oldValue, startIndex);
+        if (pos < 0) {
+            return str;
+        }
+        return str[..pos] + replacement + str[(pos + oldValue.Length)..];
+    }
+
     public static string UnlessNull([MaybeNull] this string? value, string other) {
         return value ?? other;
     }
