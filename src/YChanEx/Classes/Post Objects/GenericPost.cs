@@ -357,7 +357,12 @@ public sealed class GenericPost {
         this.PostDate = FoolFuuka.GetPostTime(Post.timestamp);
         if (Post.name != null) this.PosterName = Post.name;
         this.PosterTripcode = Post.trip;
-        this.PosterCapcode = Post.capcode;
+        this.PosterCapcode = Post.capcode switch {
+            "m" or "M" => "## Mod",
+            "a" or "A" => "## Admin",
+            "n" or "N" => null,
+            _ => $"## {Post.capcode ?? "?"}"
+        };
         this.PosterId = Post.poster_hash_processed;
         this.PostSubject = Post.title;
         this.PostMessage = FoolFuuka.GetMessage(Post.comment_processed);
