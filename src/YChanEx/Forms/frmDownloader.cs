@@ -451,6 +451,8 @@ public partial class frmDownloader : Form {
                         lvImages.Columns.RemoveAt(3);
                         ThreadInfo.DownloadPath = Path.Combine(Downloads.DownloadPath, "u18chan", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
                         this.Text = $"u18chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
+                        lbLastModified.Text = "not supported";
+                        lbLastModified.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
                     } break;
                     #endregion
 
@@ -582,7 +584,7 @@ public partial class frmDownloader : Form {
                         lbNotModified.Visible = ThreadInfo.CurrentActivity == ThreadStatus.ThreadNotModified;
                         MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
                         ThreadInfo.CountdownToNextScan = (ThreadInfo.Chan == ChanType.u18chan ? (60 * 30) : Downloads.ScannerDelay) - 1;
-                        if (Program.DebugMode) {
+                        if (Program.DebugMode && ThreadInfo.Chan != ChanType.u18chan) {
                             ThreadInfo.CountdownToNextScan = 10;
                             //ThreadInfo.CountdownToNextScan = 99999;
                         }
@@ -595,7 +597,7 @@ public partial class frmDownloader : Form {
                         lbScanTimer.Text = "Bad download";
                         MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
                         ThreadInfo.CountdownToNextScan = Downloads.ScannerDelay - 1;
-                        if (Program.DebugMode) {
+                        if (Program.DebugMode && ThreadInfo.Chan != ChanType.u18chan) {
                             ThreadInfo.CountdownToNextScan = 10;
                             //ThreadInfo.CountdownToNextScan = 99999;
                         }
@@ -736,6 +738,8 @@ public partial class frmDownloader : Form {
                         lvImages.Columns.RemoveAt(3);
                         ThreadInfo.DownloadPath = Path.Combine(Downloads.DownloadPath, "u18chan", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
                         this.Text = $"u18chan thread - {Chans.GetFullBoardName(ThreadInfo)} - {ThreadInfo.Data.DownloadFormThreadNameDisplay}";
+                        lbLastModified.Text = "not supported";
+                        lbLastModified.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
                     } break;
                     case ChanType.FoolFuuka: {
                         ThreadInfo.DownloadPath = Path.Combine(Downloads.DownloadPath, ThreadInfo.Data.UrlHost, ThreadInfo.Data.Board, ThreadInfo.Data.Id);

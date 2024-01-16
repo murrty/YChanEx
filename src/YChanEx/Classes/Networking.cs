@@ -225,7 +225,6 @@ internal static class Networking {
         // example.domain.com       <- returns 'domain'
         // example.other.domain.com <- returns 'domain'
         return urlSplit[^2];
-
     }
 
     internal static CookieCollection GetAllCookies(this CookieContainer container) {
