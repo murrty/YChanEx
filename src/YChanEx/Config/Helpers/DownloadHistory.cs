@@ -83,102 +83,34 @@ public sealed class DownloadHistory {
         }
     }
 
-    public static void Add(ChanType Chan, string URL, string ThreadName) {
-        switch (Chan) {
-            case ChanType.FourChan when !Data.FourChanHistory.Contains(URL): {
-                Data.FourChanHistory.Add(new PreviousThread(URL, ThreadName));
-                Data.HistoryModified = true;
-            } break;
-            case ChanType.FourTwentyChan when !Data.FourTwentyChanHistory.Contains(URL): {
-                Data.FourTwentyChanHistory.Add(new PreviousThread(URL, ThreadName));
-                Data.HistoryModified = true;
-            } break;
-            case ChanType.SevenChan when !Data.SevenChanHistory.Contains(URL): {
-                Data.SevenChanHistory.Add(new PreviousThread(URL, ThreadName));
-                Data.HistoryModified = true;
-            } break;
-            case ChanType.EightChan when !Data.EightChanHistory.Contains(URL): {
-                Data.EightChanHistory.Add(new PreviousThread(URL, ThreadName));
-                Data.HistoryModified = true;
-            } break;
-            case ChanType.EightKun when !Data.EightKunHistory.Contains(URL): {
-                Data.EightKunHistory.Add(new PreviousThread(URL, ThreadName));
-                Data.HistoryModified = true;
-            } break;
-            case ChanType.fchan when !Data.FchanHistory.Contains(URL): {
-                Data.FchanHistory.Add(new PreviousThread(URL, ThreadName));
-                Data.HistoryModified = true;
-            } break;
-            case ChanType.u18chan when !Data.u18chanHistory.Contains(URL): {
-                Data.u18chanHistory.Add(new PreviousThread(URL, ThreadName));
-                Data.HistoryModified = true;
-            } break;
-            case ChanType.FoolFuuka when !Data.FoolFuukaHistory.Contains(URL): {
-                Data.FoolFuukaHistory.Add(new PreviousThread(URL, ThreadName));
-                Data.HistoryModified = true;
-            } break;
-        }
-    }
-
     public static void AddOrUpdate(ChanType Chan, string URL, string ThreadName, IMainFom MainForm) {
         switch (Chan) {
-            case ChanType.FourChan when !Data.FourChanHistory.Update(URL, ThreadName): {
-                TreeNode NewNode = new(ThreadName) { Name = URL, };
-                PreviousThread NewHistory = new(Chan, URL, ThreadName) { Node = NewNode, };
-                Data.FourChanHistory.Add(NewHistory);
-                MainForm.AddToHistory(NewHistory);
-                Data.HistoryModified = true;
+            case ChanType.FourChan: {
+                CheckItem(Data.FourChanHistory, Chan, URL, ThreadName, MainForm);
             } break;
-            case ChanType.FourTwentyChan when !Data.FourTwentyChanHistory.Update(URL, ThreadName): {
-                TreeNode NewNode = new(ThreadName) { Name = URL, };
-                PreviousThread NewHistory = new(Chan, URL, ThreadName) { Node = NewNode, };
-                Data.FourTwentyChanHistory.Add(NewHistory);
-                MainForm.AddToHistory(NewHistory);
-                Data.HistoryModified = true;
+            case ChanType.FourTwentyChan: {
+                CheckItem(Data.FourTwentyChanHistory, Chan, URL, ThreadName, MainForm);
             } break;
-            case ChanType.SevenChan when !Data.SevenChanHistory.Update(URL, ThreadName): {
-                TreeNode NewNode = new(ThreadName) { Name = URL, };
-                PreviousThread NewHistory = new(Chan, URL, ThreadName) { Node = NewNode, };
-                Data.SevenChanHistory.Add(NewHistory);
-                MainForm.AddToHistory(NewHistory);
-                Data.HistoryModified = true;
+            case ChanType.SevenChan: {
+                CheckItem(Data.SevenChanHistory, Chan, URL, ThreadName, MainForm);
             } break;
-            case ChanType.EightChan when !Data.EightChanHistory.Update(URL, ThreadName): {
-                TreeNode NewNode = new(ThreadName) { Name = URL, };
-                PreviousThread NewHistory = new(Chan, URL, ThreadName) { Node = NewNode, };
-                Data.EightChanHistory.Add(NewHistory);
-                MainForm.AddToHistory(NewHistory);
-                Data.HistoryModified = true;
+            case ChanType.EightChan: {
+                CheckItem(Data.EightChanHistory, Chan, URL, ThreadName, MainForm);
             } break;
-            case ChanType.EightKun when !Data.EightKunHistory.Update(URL, ThreadName): {
-                TreeNode NewNode = new(ThreadName) { Name = URL, };
-                PreviousThread NewHistory = new(Chan, URL, ThreadName) { Node = NewNode, };
-                Data.EightKunHistory.Add(NewHistory);
-                MainForm.AddToHistory(NewHistory);
-                Data.HistoryModified = true;
+            case ChanType.EightKun: {
+                CheckItem(Data.EightKunHistory, Chan, URL, ThreadName, MainForm);
             } break;
-            case ChanType.fchan when !Data.FchanHistory.Update(URL, ThreadName): {
-                TreeNode NewNode = new(ThreadName) { Name = URL, };
-                PreviousThread NewHistory = new(Chan, URL, ThreadName) { Node = NewNode, };
-                Data.FchanHistory.Add(NewHistory);
-                MainForm.AddToHistory(NewHistory);
-                Data.HistoryModified = true;
+            case ChanType.fchan: {
+                CheckItem(Data.FchanHistory, Chan, URL, ThreadName, MainForm);
             } break;
-            case ChanType.u18chan when !Data.u18chanHistory.Update(URL, ThreadName): {
-                TreeNode NewNode = new(ThreadName) { Name = URL, };
-                PreviousThread NewHistory = new(Chan, URL, ThreadName) { Node = NewNode, };
-                Data.u18chanHistory.Add(NewHistory);
-                MainForm.AddToHistory(NewHistory);
-                Data.HistoryModified = true;
+            case ChanType.u18chan: {
+                CheckItem(Data.u18chanHistory, Chan, URL, ThreadName, MainForm);
             } break;
-            case ChanType.FoolFuuka when !Data.FoolFuukaHistory.Update(URL, ThreadName): {
-                TreeNode NewNode = new(ThreadName) { Name = URL, };
-                PreviousThread NewHistory = new(Chan, URL, ThreadName) { Node = NewNode, };
-                Data.FoolFuukaHistory.Add(NewHistory);
-                MainForm.AddToHistory(NewHistory);
-                Data.HistoryModified = true;
+            case ChanType.FoolFuuka: {
+                CheckItem(Data.FoolFuukaHistory, Chan, URL, ThreadName, MainForm);
             } break;
         }
+        Save();
     }
 
     public static bool Contains(ChanType Chan, string URL) {
@@ -240,6 +172,7 @@ public sealed class DownloadHistory {
             Data.HistoryModified = false;
         }
     }
+
     private static void Save(System.IO.FileStream fs) {
         fs.Position = 0;
         Data.JsonSerialize(fs);
@@ -307,6 +240,24 @@ public sealed class DownloadHistory {
         Data.FchanHistory.Clear();
         Data.u18chanHistory.Clear();
         Data.FoolFuukaHistory.Clear();
+    }
+
+    private static void CheckItem(PreviousThreadCollection Collection, ChanType Chan, string URL, string ThreadName, IMainFom MainForm) {
+        int Index = Collection.IndexOf(URL);
+        if (Index == -1) {
+            TreeNode NewNode = new(ThreadName) { Name = URL, };
+            PreviousThread NewHistory = new(Chan, URL, ThreadName) { Node = NewNode, };
+            Collection.Add(NewHistory);
+            MainForm.AddToHistory(NewHistory);
+            Data.HistoryModified = true;
+        }
+        else {
+            var Item = Collection[Index];
+            if (!Item.ShortName.Equals(ThreadName)) {
+                Item.ShortName = ThreadName;
+                Data.HistoryModified = true;
+            }
+        }
     }
 
     [OnDeserialized]

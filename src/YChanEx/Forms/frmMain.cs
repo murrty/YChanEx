@@ -134,7 +134,6 @@ public partial class frmMain : Form, IMainFom {
         }
 
         if (General.SaveThreadHistory && !DownloadHistory.Contains(Thread.Type, Thread.Url)) {
-            DownloadHistory.Add(Thread.Type, Thread.Url, Thread.ShortName);
             switch (Thread.Type) {
                 case ChanType.FourChan: {
                     TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
@@ -177,7 +176,6 @@ public partial class frmMain : Form, IMainFom {
                     tvHistory.Nodes[7].Nodes.Add(HistoryItem);
                 } break;
             }
-            DownloadHistory.Save();
         }
     }
 

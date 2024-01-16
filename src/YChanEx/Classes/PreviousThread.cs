@@ -1,6 +1,5 @@
 ﻿#nullable enable
 namespace YChanEx;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using System.Windows.Forms;
 [DataContract]
@@ -39,28 +38,28 @@ public sealed class PreviousThread {
 public sealed class PreviousThreadCollection : List<PreviousThread> {
     public bool Contains(string Url) {
         for (int i = 0; i < this.Count; i++) {
-            if (this[i].Url.Equals(Url, StringComparison.InvariantCultureIgnoreCase)) {
+            var Item = this[i];
+            if (Item.Url.Equals(Url, StringComparison.InvariantCultureIgnoreCase)) {
                 return true;
             }
         }
         return false;
+    }
+    public int IndexOf(string Url) {
+        for (int i = 0; i < this.Count; i++) {
+            var Item = this[i];
+            if (Item.Url.Equals(Url)) {
+                return i;
+            }
+        }
+        return -1;
     }
     public void Remove(string Url) {
         for (int i = 0; i < this.Count; i++) {
-            if (this[i].Url.Equals(Url, StringComparison.InvariantCultureIgnoreCase)) {
+            var Item = this[i];
+            if (Item.Url.Equals(Url, StringComparison.InvariantCultureIgnoreCase)) {
                 this.RemoveAt(i--);
             }
         }
-    }
-    public bool Update(string Url, string ShortName) {
-        for (int i = 0; i < this.Count; i++) {
-            var Item = this[i];
-            if (Item.Url.Equals(Url, StringComparison.InvariantCultureIgnoreCase)) {
-                Item.ShortName = ShortName;
-                Item.Node?.TreeView?.Invoke(() => Item.Node.Text = ShortName);
-                return true;
-            }
-        }
-        return false;
     }
 }
