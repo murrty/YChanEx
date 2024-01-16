@@ -20,7 +20,7 @@ internal static class HtmlControl {
         return HTML;
     }
 
-    public static string GetHTMLBase(ThreadInfo Thread) {
+    public static string GetHTMLBase(ThreadInfo Thread, string? HtmlTitle = null) {
         return $$"""
 <!DOCTYPE html>
 <html>
@@ -297,7 +297,7 @@ internal static class HtmlControl {
                 border-radius: 4px;
             }
         </style>
-        <title></title>
+        <title>{{HtmlTitle ?? string.Empty}}</title>
     </head>
 
     <body>

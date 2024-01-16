@@ -2,7 +2,7 @@
 using System.Runtime.Serialization;
 [DataContract]
 public sealed class PreviousThread {
-    [DataMember(Name = "type")]
+    [IgnoreDataMember]
     public ChanType Type { get; set; }
 
     [DataMember(Name = "url")]
@@ -11,10 +11,13 @@ public sealed class PreviousThread {
     [DataMember(Name = "name")]
     public string ShortName { get; set; }
 
-    public PreviousThread(ChanType Type, string Url, string ShortName) {
-        this.Type = Type;
+    public PreviousThread(string Url, string ShortName) {
         this.Url = Url;
         this.ShortName = ShortName;
+    }
+
+    public PreviousThread(ChanType Type, string Url, string ShortName) : this(Url, ShortName) {
+        this.Type = Type;
     }
 
     [OnDeserialized]

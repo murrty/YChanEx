@@ -1,10 +1,21 @@
 ﻿#nullable enable
 namespace YChanEx.Parsers;
+using System.IO;
 using SoftCircuits.HtmlMonkey;
 using YChanEx.Posts;
 internal static class FoolFuuka {
     const string BadLinkTag = "aremovetag";
     public static FoolFuukaPost[]? Deserialize(string json) {
+        var Deserialize = json.JsonDeserialize<Dictionary<ulong, FoolFuukaThread>>()
+            .FirstOrDefault().Value;
+
+        if (Deserialize?.op == null) {
+            return null;
+        }
+
+        return [Deserialize.op, .. Deserialize.posts?.Select(x => x.Value)];
+    }
+    public static FoolFuukaPost[]? Deserialize(Stream json) {
         var Deserialize = json.JsonDeserialize<Dictionary<ulong, FoolFuukaThread>>()
             .FirstOrDefault().Value;
 
@@ -25,6 +36,28 @@ internal static class FoolFuuka {
 
             return [ Deserialize.op, .. Deserialize.posts?.Select(x => x.Value) ];
         });
+    }
+    public static async Task<FoolFuukaPost[]?> DeserializeAsync(Stream json) {
+        return await Task.Run<FoolFuukaPost[]?>(() => {
+            var Deserialize = json.JsonDeserialize<Dictionary<ulong, FoolFuukaThread>>()
+                .FirstOrDefault().Value;
+
+            if (Deserialize?.op == null) {
+                return null;
+            }
+
+            return [Deserialize.op, .. Deserialize.posts?.Select(x => x.Value)];
+        });
+    }
+
+    public static string? GetHtmlTitle(ThreadData data) {
+        if (data.ThreadName == null) {
+            return null;
+        }
+        return GetHtmlTitle(data.Board, data.ThreadName, Networking.GetHostNameOnly(data.Url));
+    }
+    public static string GetHtmlTitle(string board, string name, string hostName) {
+        return $"/{board}/ - {name} - {hostName}";
     }
 
     public static DateTimeOffset GetPostTime(long timestamp) {

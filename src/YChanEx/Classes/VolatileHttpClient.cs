@@ -234,4 +234,13 @@ internal sealed class VolatileHttpClient : HttpClient {
             return false;
         }
     }
+    public async Task<Stream> GetStringStreamAsync(HttpResponseMessage Response) {
+        Stream Content = await Response.Content.ReadAsStreamAsync();
+        return Response.Content.Headers.ContentEncoding.FirstOrDefault()?.ToLowerInvariant() switch {
+            "br" => new Org.Brotli.Dec.BrotliInputStream(Content, false),
+            "gzip" => new System.IO.Compression.GZipStream(Content, System.IO.Compression.CompressionMode.Decompress, false),
+            "deflate" => new System.IO.Compression.DeflateStream(Content, System.IO.Compression.CompressionMode.Decompress, false),
+            _ => Content,
+        };
+    }
 }

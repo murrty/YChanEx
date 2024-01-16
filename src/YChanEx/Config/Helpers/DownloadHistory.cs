@@ -85,49 +85,49 @@ public sealed class DownloadHistory {
         switch (Chan) {
             case ChanType.FourChan: {
                 if (!Data.FourChanHistory.Contains(URL)) {
-                    Data.FourChanHistory.Add(new PreviousThread(ChanType.FourChan, URL, ThreadName));
+                    Data.FourChanHistory.Add(new PreviousThread(URL, ThreadName));
                     Data.HistoryModified = true;
                 }
             } break;
             case ChanType.FourTwentyChan: {
                 if (!Data.FourTwentyChanHistory.Contains(URL)) {
-                    Data.FourChanHistory.Add(new PreviousThread(ChanType.FourTwentyChan, URL, ThreadName));
+                    Data.FourChanHistory.Add(new PreviousThread(URL, ThreadName));
                     Data.HistoryModified = true;
                 }
             } break;
             case ChanType.SevenChan: {
                 if (!Data.SevenChanHistory.Contains(URL)) {
-                    Data.FourChanHistory.Add(new PreviousThread(ChanType.SevenChan, URL, ThreadName));
+                    Data.FourChanHistory.Add(new PreviousThread(URL, ThreadName));
                     Data.HistoryModified = true;
                 }
             } break;
             case ChanType.EightChan: {
                 if (!Data.EightChanHistory.Contains(URL)) {
-                    Data.FourChanHistory.Add(new PreviousThread(ChanType.EightChan, URL, ThreadName));
+                    Data.FourChanHistory.Add(new PreviousThread(URL, ThreadName));
                     Data.HistoryModified = true;
                 }
             } break;
             case ChanType.EightKun: {
                 if (!Data.EightKunHistory.Contains(URL)) {
-                    Data.FourChanHistory.Add(new PreviousThread(ChanType.EightKun, URL, ThreadName));
+                    Data.FourChanHistory.Add(new PreviousThread(URL, ThreadName));
                     Data.HistoryModified = true;
                 }
             } break;
             case ChanType.fchan: {
                 if (!Data.FchanHistory.Contains(URL)) {
-                    Data.FourChanHistory.Add(new PreviousThread(ChanType.fchan, URL, ThreadName));
+                    Data.FourChanHistory.Add(new PreviousThread(URL, ThreadName));
                     Data.HistoryModified = true;
                 }
             } break;
             case ChanType.u18chan: {
                 if (!Data.u18chanHistory.Contains(URL)) {
-                    Data.FourChanHistory.Add(new PreviousThread(ChanType.u18chan, URL, ThreadName));
+                    Data.FourChanHistory.Add(new PreviousThread(URL, ThreadName));
                     Data.HistoryModified = true;
                 }
             } break;
             case ChanType.FoolFuuka: {
                 if (!Data.FoolFuukaHistory.Contains(URL)) {
-                    Data.FourChanHistory.Add(new PreviousThread(ChanType.FoolFuuka, URL, ThreadName));
+                    Data.FourChanHistory.Add(new PreviousThread(URL, ThreadName));
                     Data.HistoryModified = true;
                 }
             } break;
@@ -138,49 +138,49 @@ public sealed class DownloadHistory {
         switch (Chan) {
             case ChanType.FourChan: {
                 if (!Data.FourChanHistory.Update(URL, ThreadName)) {
-                    Data.FourChanHistory.Add(new PreviousThread(ChanType.FourChan, URL, ThreadName));
+                    Data.FourChanHistory.Add(new PreviousThread(URL, ThreadName));
                     Data.HistoryModified = true;
                 }
             } break;
             case ChanType.FourTwentyChan: {
                 if (!Data.FourTwentyChanHistory.Update(URL, ThreadName)) {
-                    Data.FourChanHistory.Add(new PreviousThread(ChanType.FourTwentyChan, URL, ThreadName));
+                    Data.FourChanHistory.Add(new PreviousThread(URL, ThreadName));
                     Data.HistoryModified = true;
                 }
             } break;
             case ChanType.SevenChan: {
                 if (!Data.SevenChanHistory.Update(URL, ThreadName)) {
-                    Data.FourChanHistory.Add(new PreviousThread(ChanType.SevenChan, URL, ThreadName));
+                    Data.FourChanHistory.Add(new PreviousThread(URL, ThreadName));
                     Data.HistoryModified = true;
                 }
             } break;
             case ChanType.EightChan: {
                 if (!Data.EightChanHistory.Update(URL, ThreadName)) {
-                    Data.FourChanHistory.Add(new PreviousThread(ChanType.EightChan, URL, ThreadName));
+                    Data.FourChanHistory.Add(new PreviousThread(URL, ThreadName));
                     Data.HistoryModified = true;
                 }
             } break;
             case ChanType.EightKun: {
                 if (!Data.EightKunHistory.Update(URL, ThreadName)) {
-                    Data.FourChanHistory.Add(new PreviousThread(ChanType.EightKun, URL, ThreadName));
+                    Data.FourChanHistory.Add(new PreviousThread(URL, ThreadName));
                     Data.HistoryModified = true;
                 }
             } break;
             case ChanType.fchan: {
                 if (!Data.FchanHistory.Update(URL, ThreadName)) {
-                    Data.FourChanHistory.Add(new PreviousThread(ChanType.fchan, URL, ThreadName));
+                    Data.FourChanHistory.Add(new PreviousThread(URL, ThreadName));
                     Data.HistoryModified = true;
                 }
             } break;
             case ChanType.u18chan: {
                 if (!Data.u18chanHistory.Update(URL, ThreadName)) {
-                    Data.FourChanHistory.Add(new PreviousThread(ChanType.u18chan, URL, ThreadName));
+                    Data.FourChanHistory.Add(new PreviousThread(URL, ThreadName));
                     Data.HistoryModified = true;
                 }
             } break;
             case ChanType.FoolFuuka: {
                 if (!Data.FoolFuukaHistory.Update(URL, ThreadName)) {
-                    Data.FourChanHistory.Add(new PreviousThread(ChanType.FoolFuuka, URL, ThreadName));
+                    Data.FourChanHistory.Add(new PreviousThread(URL, ThreadName));
                     Data.HistoryModified = true;
                 }
             } break;
@@ -245,10 +245,14 @@ public sealed class DownloadHistory {
             Data.HistoryModified = false;
         }
     }
+    private static void Save(System.IO.FileStream fs) {
+        fs.Position = 0;
+        Data.JsonSerialize(fs);
+    }
 
     public static void Load() {
         if (System.IO.File.Exists(HistoryFile)) {
-            using var Stream = new System.IO.FileStream(HistoryFile, System.IO.FileMode.Open, System.IO.FileAccess.Read);
+            using var Stream = new System.IO.FileStream(HistoryFile, System.IO.FileMode.Open, System.IO.FileAccess.ReadWrite);
             try {
                 Data = Stream.JsonDeserialize<DownloadHistory>() ?? new();
             }
@@ -260,38 +264,38 @@ public sealed class DownloadHistory {
                     if (OldData != null) {
                         for (int i = 0; i < OldData.FourChanHistory.Count; i++) {
                             string url = OldData.FourChanHistory[i];
-                            Data.FourChanHistory.Add(new PreviousThread(ChanType.FourChan, url, url));
+                            Data.FourChanHistory.Add(new PreviousThread(url, url));
                         }
                         for (int i = 0; i < OldData.FourTwentyChanHistory.Count; i++) {
                             string url = OldData.FourTwentyChanHistory[i];
-                            Data.FourTwentyChanHistory.Add(new PreviousThread(ChanType.FourTwentyChan, url, url));
+                            Data.FourTwentyChanHistory.Add(new PreviousThread(url, url));
                         }
                         for (int i = 0; i < OldData.SevenChanHistory.Count; i++) {
                             string url = OldData.SevenChanHistory[i];
-                            Data.SevenChanHistory.Add(new PreviousThread(ChanType.SevenChan, url, url));
+                            Data.SevenChanHistory.Add(new PreviousThread(url, url));
                         }
                         for (int i = 0; i < OldData.EightChanHistory.Count; i++) {
                             string url = OldData.EightChanHistory[i];
-                            Data.EightChanHistory.Add(new PreviousThread(ChanType.EightChan, url, url));
+                            Data.EightChanHistory.Add(new PreviousThread(url, url));
                         }
                         for (int i = 0; i < OldData.EightKunHistory.Count; i++) {
                             string url = OldData.EightKunHistory[i];
-                            Data.EightKunHistory.Add(new PreviousThread(ChanType.EightKun, url, url));
+                            Data.EightKunHistory.Add(new PreviousThread(url, url));
                         }
                         for (int i = 0; i < OldData.FchanHistory.Count; i++) {
                             string url = OldData.FchanHistory[i];
-                            Data.FchanHistory.Add(new PreviousThread(ChanType.fchan, url, url));
+                            Data.FchanHistory.Add(new PreviousThread(url, url));
                         }
                         for (int i = 0; i < OldData.u18chanHistory.Count; i++) {
                             string url = OldData.u18chanHistory[i];
-                            Data.u18chanHistory.Add(new PreviousThread(ChanType.u18chan, url, url));
+                            Data.u18chanHistory.Add(new PreviousThread(url, url));
                         }
                         for (int i = 0; i < OldData.FoolFuukaHistory.Count; i++) {
                             string url = OldData.FoolFuukaHistory[i];
-                            Data.FoolFuukaHistory.Add(new PreviousThread(ChanType.FoolFuuka, url, url));
+                            Data.FoolFuukaHistory.Add(new PreviousThread(url, url));
                         }
                         Data.HistoryModified = true;
-                        Save();
+                        Save(Stream);
                     }
                 }
                 catch { }

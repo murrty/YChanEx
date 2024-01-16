@@ -110,6 +110,12 @@ internal static class Extensions {
         }
         return value;
     }
+    public static string? IfNotNull([MaybeNull] this string? value, string returnIfNotNull) {
+        if (value == null) {
+            return null;
+        }
+        return returnIfNotNull;
+    }
     public static string FirstNonNullEmptyWhiteSpace(this string?[] values, bool ReturnNullOnNone = false) {
         for (int i = 0; i < values.Length; i++) {
             string? v = values[i];

@@ -73,6 +73,16 @@ internal static class EightKun {
         .ToArray();
     }
 
+    public static string? GetHtmlTitle(ThreadData data) {
+        if (data.ThreadName == null) {
+            return null;
+        }
+        return GetHtmlTitle(data.Board, data.ThreadName);
+    }
+    public static string GetHtmlTitle(string board, string name) {
+        return $"/{board}/ - {name} - 8kun";
+    }
+
     public static DateTimeOffset GetPostTime(EightKunPost post) {
         return DateTimeOffset.FromUnixTimeSeconds(post.time);
     }

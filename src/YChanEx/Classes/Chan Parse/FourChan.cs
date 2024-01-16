@@ -1,6 +1,16 @@
 ﻿#nullable enable
 namespace YChanEx.Parsers;
 internal static class FourChan {
+    public static string? GetHtmlTitle(ThreadData data) {
+        if (data.ThreadName == null) {
+            return null;
+        }
+        return GetHtmlTitle(data.Board, data.ThreadName);
+    }
+    public static string GetHtmlTitle(string board, string name) {
+        return $"/{board}/ - {name} - 4chan";
+    }
+
     public static DateTimeOffset GetPostTime(long timestamp) {
         return DateTimeOffset.FromUnixTimeSeconds(timestamp);
     }

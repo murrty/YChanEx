@@ -1,6 +1,9 @@
 ﻿#nullable enable
 namespace YChanEx.Parsers;
+using System;
 using System.Drawing;
+using System.Linq;
+using System.Threading.Tasks;
 using SoftCircuits.HtmlMonkey;
 using YChanEx.Posts;
 internal static class FChan {
@@ -72,6 +75,16 @@ internal static class FChan {
         catch {
             return null;
         }
+    }
+
+    public static string? GetHtmlTitle(ThreadData data) {
+        if (data.ThreadName == null) {
+            return null;
+        }
+        return GetHtmlTitle(data.Board, data.ThreadName);
+    }
+    public static string GetHtmlTitle(string board, string name) {
+        return $"/{board}/ - {name} - fchan";
     }
 
     internal static long ConvertSizeToBytes(string size) {

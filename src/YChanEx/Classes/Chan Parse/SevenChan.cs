@@ -3,7 +3,6 @@ namespace YChanEx.Parsers;
 using System;
 using System.Drawing;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using SoftCircuits.HtmlMonkey;
 using YChanEx.Posts;
@@ -60,6 +59,16 @@ internal static class SevenChan {
         catch {
             return null;
         }
+    }
+
+    public static string? GetHtmlTitle(ThreadData data) {
+        if (data.ThreadName == null) {
+            return null;
+        }
+        return GetHtmlTitle(data.Board, data.ThreadName);
+    }
+    public static string GetHtmlTitle(string board, string name) {
+        return $"/{board}/ - {name} - 7chan";
     }
 
     internal static long ConvertSizeToBytes(string size) {
@@ -145,35 +154,5 @@ internal static class SevenChan {
                 }
             }
         }
-    }
-
-    public static string TranslateMessage(string Message, ThreadInfo CurThr) {
-        if (!string.IsNullOrWhiteSpace(Message)) {
-            while (Message.EndsWith("<br />")) {
-                Message = Message[..^6];
-            }
-
-            Regex Reply = new($"\\<a href=\"\\/{CurThr.Data.Board}\\/res\\/{CurThr.Data.Id}.html#([0-9]+)\" class=\"ref\\|{CurThr.Data.Board}\\|{CurThr.Data.Id}\\|([0-9]+)\"\\>");
-
-            MatchCollection Matches = Reply.Matches(Message);
-
-            if (Matches.Count > 0) {
-                for (int i = 0; i < Matches.Count; i++) {
-                    Message = Message
-                        .Replace(Matches[i].Value, $"<a href=\"#p{Matches[i].Value[(Matches[i].Value.LastIndexOf("|") + 1)..Matches[i].Value.LastIndexOf("\"")]}\">");
-                }
-            }
-
-            //Regex Quotes = new(">>([0-9]+)");
-            //MatchCollection Matches = Quotes.Matches(Message);
-
-            //if (Matches.Count > 0) {
-            //    for (int i = 0; i < Matches.Count; i++) {
-            //        Message = Message.Replace(Matches[i].Value, $"<a href=\"#p{Matches[i].Value[2..]}\">{Matches[i].Value}</a><br />");
-            //    }
-            //}
-        }
-
-        return Message;
     }
 }

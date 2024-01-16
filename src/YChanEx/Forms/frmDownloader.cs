@@ -7,10 +7,8 @@ namespace YChanEx;
 
 using System;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -18,7 +16,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using murrty.classes;
-using murrty.controls;
 using YChanEx.Parsers;
 using YChanEx.Posts;
 
@@ -1312,7 +1309,7 @@ public partial class frmDownloader : Form {
                 }
 
                 // HTML
-                ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo);
+                ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo, FourChan.GetHtmlTitle(ThreadInfo.Data));
                 ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
                 if (ThreadInfo.ThreadReloaded) {
                     LoadExistingPosts();
@@ -1390,7 +1387,7 @@ public partial class frmDownloader : Form {
                         // Update the data with the new name.
                         ThreadInfo.Data.ThreadName = NewName;
                         ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.ReplaceFirst("<title></title>",
-                            $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 4chan</title>");
+                            $"<title>/{FourChan.GetHtmlTitle(ThreadInfo.Data.Board, NewName)}</title>");
 
                         // Add/update history
                         DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
@@ -1468,7 +1465,7 @@ public partial class frmDownloader : Form {
                 }
 
                 // HTML
-                ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo);
+                ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo, SevenChan.GetHtmlTitle(ThreadInfo.Data));
                 ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
                 if (ThreadInfo.ThreadReloaded) {
                     LoadExistingPostsNoHash();
@@ -1546,7 +1543,7 @@ public partial class frmDownloader : Form {
                         // Update the data with the new name.
                         ThreadInfo.Data.ThreadName = NewName;
                         ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.ReplaceFirst("<title></title>",
-                            $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 7chan</title>");
+                            $"<title>/{SevenChan.GetHtmlTitle(ThreadInfo.Data.Board, NewName)}</title>");
 
                         // Add/update history
                         DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
@@ -1645,7 +1642,7 @@ public partial class frmDownloader : Form {
                     ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
                 }
                 else {
-                    ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo);
+                    ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo, EightChan.GetHtmlTitle(ThreadInfo.Data));
                     ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
                     LoadExistingPostsNoHash();
                     ThreadReloaded();
@@ -1724,7 +1721,7 @@ public partial class frmDownloader : Form {
                         // Update the data with the new name.
                         ThreadInfo.Data.ThreadName = NewName;
                         ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.ReplaceFirst("<title></title>",
-                            $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 8chan</title>");
+                            $"<title>/{EightChan.GetHtmlTitle(ThreadInfo.Data.Board, NewName)}</title>");
 
                         // Add/update history
                         DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
@@ -1831,7 +1828,7 @@ public partial class frmDownloader : Form {
                     ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
                 }
                 else {
-                    ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo);
+                    ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo, EightKun.GetHtmlTitle(ThreadInfo.Data));
                     ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
                     LoadExistingPosts();
                     ThreadReloaded();
@@ -1910,7 +1907,7 @@ public partial class frmDownloader : Form {
                         // Update the data with the new name.
                         ThreadInfo.Data.ThreadName = NewName;
                         ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.ReplaceFirst("<title></title>",
-                            $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - 8kun</title>");
+                            $"<title>/{EightKun.GetHtmlTitle(ThreadInfo.Data.Board, NewName)}</title>");
 
                         // Add/update history
                         DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
@@ -1990,7 +1987,7 @@ public partial class frmDownloader : Form {
                 }
 
                 // HTML
-                ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo);
+                ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo, FChan.GetHtmlTitle(ThreadInfo.Data));
                 ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
                 if (ThreadInfo.ThreadReloaded) {
                     LoadExistingPostsNoHash();
@@ -2067,7 +2064,7 @@ public partial class frmDownloader : Form {
                         // Update the data with the new name.
                         ThreadInfo.Data.ThreadName = NewName;
                         ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.ReplaceFirst("<title></title>",
-                            $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - fchan</title>");
+                            $"<title>/{FChan.GetHtmlTitle(ThreadInfo.Data.Board, NewName)}</title>");
 
                         // Add/update history
                         DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
@@ -2145,7 +2142,7 @@ public partial class frmDownloader : Form {
                 }
 
                 // HTML
-                ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo);
+                ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo, U18Chan.GetHtmlTitle(ThreadInfo.Data));
                 ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
                 if (ThreadInfo.ThreadReloaded) {
                     LoadExistingPostsNoHash();
@@ -2223,7 +2220,7 @@ public partial class frmDownloader : Form {
                         // Update the data with the new name.
                         ThreadInfo.Data.ThreadName = NewName;
                         ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.ReplaceFirst("<title></title>",
-                            $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - u18chan</title>");
+                            $"<title>/{U18Chan.GetHtmlTitle(ThreadInfo.Data.Board, NewName)}</title>");
 
                         // Add/update history
                         DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
@@ -2367,8 +2364,17 @@ public partial class frmDownloader : Form {
                             LoadExistingPosts();
                             ThreadReloaded();
                         }
-                        ThreadToken.Token.ThrowIfCancellationRequested();
                     }
+                    else if (ThreadInfo.ThreadReloaded) {
+                        ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo, FoolFuuka.GetHtmlTitle(ThreadInfo.Data));
+                        ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
+                    }
+                    else {
+                        ThreadInfo.CurrentActivity = ThreadStatus.ThreadUnknownError;
+                        this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
+                        break;
+                    }
+                    ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // Checks if the thread name has been retrieved, and retrieves it if not.
                     // It was supposed to be an option, but honestly, it's not a problematic inclusion.
@@ -2384,7 +2390,7 @@ public partial class frmDownloader : Form {
                         // Update the data with the new name.
                         ThreadInfo.Data.ThreadName = NewName;
                         ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.ReplaceFirst("<title></title>",
-                            $"<title> /{ThreadInfo.Data.Board}/ - {NewName} - {Networking.GetHostNameOnly(ThreadInfo.Data.Url)}</title>");
+                            $"<title>/{FoolFuuka.GetHtmlTitle(ThreadInfo.Data.Board, NewName, Networking.GetHostNameOnly(ThreadInfo.Data.Url))}</title>");
 
                         // Add/update history
                         DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);

@@ -54,6 +54,16 @@ internal static class EightChan {
         return Board;
     }
 
+    public static string? GetHtmlTitle(ThreadData data) {
+        if (data.ThreadName == null) {
+            return null;
+        }
+        return GetHtmlTitle(data.Board, data.ThreadName);
+    }
+    public static string GetHtmlTitle(string board, string name) {
+        return $"/{board}/ - {name} - 8chan";
+    }
+
     public static DateTimeOffset GetPostTime(EightChanThread Thread) {
         return PostTimeInternal(Thread.creation!);
     }

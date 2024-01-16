@@ -1,7 +1,10 @@
 ﻿#nullable enable
 namespace YChanEx.Parsers;
-using SoftCircuits.HtmlMonkey;
+using System;
 using System.Drawing;
+using System.Linq;
+using System.Threading.Tasks;
+using SoftCircuits.HtmlMonkey;
 using YChanEx.Posts;
 internal static class U18Chan {
     private static readonly Selector FirstPostSelector = Selector.ParseSelector("div[id=\"FirstPost\"]");
@@ -69,6 +72,16 @@ internal static class U18Chan {
         catch {
             return null;
         }
+    }
+
+    public static string? GetHtmlTitle(ThreadData data) {
+        if (data.ThreadName == null) {
+            return null;
+        }
+        return GetHtmlTitle(data.Board, data.ThreadName);
+    }
+    public static string GetHtmlTitle(string board, string name) {
+        return $"/{board}/ - {name} - U-18Chan";
     }
 
     internal static long ConvertSizeToBytes(string size) {
