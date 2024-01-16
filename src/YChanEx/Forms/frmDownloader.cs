@@ -1378,7 +1378,7 @@ public partial class frmDownloader : Form {
 
                     // Checks if the thread name has been retrieved, and retrieves it if not.
                     // It was supposed to be an option, but honestly, it's not a problematic inclusion.
-                    if (ThreadInfo.Data.ThreadName == null && ThreadInfo.Data.CustomThreadName == null) {
+                    if (ThreadInfo.Data.ThreadName == null) {
                         // NewName is the name that will be used to ID the thread.
                         // If the comment doesn't exist, it'll just use the ID & URL.
                         // If the length is 0, override the set info with the ID & URL.
@@ -1395,8 +1395,10 @@ public partial class frmDownloader : Form {
                         // Add/update history
                         DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
 
-                        // Update the name application wide.
-                        this.Invoke(() => UpdateThreadName(true));
+                        // Update the name application wide, if the custom name wasn't set.
+                        if (ThreadInfo.Data.CustomThreadName == null) {
+                            this.Invoke(() => UpdateThreadName(true));
+                        }
                     }
 
                     // Start counting through the posts.
@@ -1532,7 +1534,7 @@ public partial class frmDownloader : Form {
 
                     // Checks if the thread name has been retrieved, and retrieves it if not.
                     // It was supposed to be an option, but honestly, it's not a problematic inclusion.
-                    if (ThreadInfo.Data.ThreadName == null && ThreadInfo.Data.CustomThreadName == null) {
+                    if (ThreadInfo.Data.ThreadName == null) {
                         // NewName is the name that will be used to ID the thread.
                         // If the comment doesn't exist, it'll just use the ID & URL.
                         // If the length is 0, override the set info with the ID & URL.
@@ -1549,8 +1551,10 @@ public partial class frmDownloader : Form {
                         // Add/update history
                         DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
 
-                        // Update the name application wide.
-                        this.Invoke(() => UpdateThreadName(true));
+                        // Update the name application wide, if the custom name wasn't set.
+                        if (ThreadInfo.Data.CustomThreadName == null) {
+                            this.Invoke(() => UpdateThreadName(true));
+                        }
                     }
 
                     // check for archive flag in the post.
@@ -1708,7 +1712,7 @@ public partial class frmDownloader : Form {
 
                     // Checks if the thread name has been retrieved, and retrieves it if not.
                     // It was supposed to be an option, but honestly, it's not a problematic inclusion.
-                    if (ThreadInfo.Data.ThreadName == null && ThreadInfo.Data.CustomThreadName == null) {
+                    if (ThreadInfo.Data.ThreadName == null) {
                         // NewName is the name that will be used to ID the thread.
                         // If the comment doesn't exist, it'll just use the ID & URL.
                         // If the length is 0, override the set info with the ID & URL.
@@ -1725,8 +1729,10 @@ public partial class frmDownloader : Form {
                         // Add/update history
                         DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
 
-                        // Update the name application wide.
-                        this.Invoke(() => UpdateThreadName(true));
+                        // Update the name application wide, if the custom name wasn't set.
+                        if (ThreadInfo.Data.CustomThreadName == null) {
+                            this.Invoke(() => UpdateThreadName(true));
+                        }
                     }
 
                     // Parse the first post
@@ -1892,7 +1898,7 @@ public partial class frmDownloader : Form {
 
                     // Checks if the thread name has been retrieved, and retrieves it if not.
                     // It was supposed to be an option, but honestly, it's not a problematic inclusion.
-                    if (ThreadInfo.Data.ThreadName == null && ThreadInfo.Data.CustomThreadName == null) {
+                    if (ThreadInfo.Data.ThreadName == null) {
                         // NewName is the name that will be used to ID the thread.
                         // If the comment doesn't exist, it'll just use the ID & URL.
                         // If the length is 0, override the set info with the ID & URL.
@@ -1909,8 +1915,10 @@ public partial class frmDownloader : Form {
                         // Add/update history
                         DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
 
-                        // Update the name application wide.
-                        this.Invoke(() => UpdateThreadName(true));
+                        // Update the name application wide, if the custom name wasn't set.
+                        if (ThreadInfo.Data.CustomThreadName == null) {
+                            this.Invoke(() => UpdateThreadName(true));
+                        }
                     }
 
                     // Start counting through the posts.
@@ -2047,7 +2055,7 @@ public partial class frmDownloader : Form {
 
                     // Checks if the thread name has been retrieved, and retrieves it if not.
                     // It was supposed to be an option, but honestly, it's not a problematic inclusion.
-                    if (ThreadInfo.Data.ThreadName == null && ThreadInfo.Data.CustomThreadName == null) {
+                    if (ThreadInfo.Data.ThreadName == null) {
                         // NewName is the name that will be used to ID the thread.
                         // If the comment doesn't exist, it'll just use the ID & URL.
                         // If the length is 0, override the set info with the ID & URL.
@@ -2064,8 +2072,10 @@ public partial class frmDownloader : Form {
                         // Add/update history
                         DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
 
-                        // Update the name application wide.
-                        this.Invoke(() => UpdateThreadName(true));
+                        // Update the name application wide, if the custom name wasn't set.
+                        if (ThreadInfo.Data.CustomThreadName == null) {
+                            this.Invoke(() => UpdateThreadName(true));
+                        }
                     }
 
                     // Start counting through the posts.
@@ -2201,7 +2211,7 @@ public partial class frmDownloader : Form {
 
                     // Checks if the thread name has been retrieved, and retrieves it if not.
                     // It was supposed to be an option, but honestly, it's not a problematic inclusion.
-                    if (ThreadInfo.Data.ThreadName == null && ThreadInfo.Data.CustomThreadName == null) {
+                    if (ThreadInfo.Data.ThreadName == null) {
                         // NewName is the name that will be used to ID the thread.
                         // If the comment doesn't exist, it'll just use the ID & URL.
                         // If the length is 0, override the set info with the ID & URL.
@@ -2218,8 +2228,10 @@ public partial class frmDownloader : Form {
                         // Add/update history
                         DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
 
-                        // Update the name application wide.
-                        this.Invoke(() => UpdateThreadName(true));
+                        // Update the name application wide, if the custom name wasn't set.
+                        if (ThreadInfo.Data.CustomThreadName == null) {
+                            this.Invoke(() => UpdateThreadName(true));
+                        }
                     }
 
                     // Start counting through the posts.
@@ -2360,7 +2372,7 @@ public partial class frmDownloader : Form {
 
                     // Checks if the thread name has been retrieved, and retrieves it if not.
                     // It was supposed to be an option, but honestly, it's not a problematic inclusion.
-                    if (ThreadInfo.Data.ThreadName == null && ThreadInfo.Data.CustomThreadName == null) {
+                    if (ThreadInfo.Data.ThreadName == null) {
                         // NewName is the name that will be used to ID the thread.
                         // If the comment doesn't exist, it'll just use the ID & URL.
                         // If the length is 0, override the set info with the ID & URL.
@@ -2377,8 +2389,10 @@ public partial class frmDownloader : Form {
                         // Add/update history
                         DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName);
 
-                        // Update the name application wide.
-                        this.Invoke(() => UpdateThreadName(true));
+                        // Update the name application wide, if the custom name wasn't set.
+                        if (ThreadInfo.Data.CustomThreadName == null) {
+                            this.Invoke(() => UpdateThreadName(true));
+                        }
                     }
 
                     // Start counting through the posts.
