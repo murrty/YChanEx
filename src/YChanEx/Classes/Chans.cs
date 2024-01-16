@@ -1,4 +1,5 @@
 ﻿#nullable enable
+#define ENABLE_8KUN
 namespace YChanEx;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -10,7 +11,9 @@ internal static class Chans {
     private static readonly Regex FourChanRegex = new(@"^https:\/\/(boards\.)?4chan(nel)?\.org\/[a-zA-Z0-9]+\/thread\/\d+", RegexOptions.IgnoreCase);
     private static readonly Regex SevenChanRegex = new(@"^https:\/\/7chan\.org\/[a-zA-Z0-9]+\/res\/\d+", RegexOptions.IgnoreCase);
     private static readonly Regex EightChanRegex = new(@"^https:\/\/8chan\.(moe|se|cc)\/[a-zA-Z0-9]+\/res\/\d+\.(html|json)", RegexOptions.IgnoreCase);
-    //private static readonly Regex EightKunRegex = new(@"^https:\/\/8kun\.top\/(?!(qresearch)|(qnotables)|(pnd)|(midnightriders)|(qrb)|(philogeometric)|(qsocial)|(qrnews)|(thestorm)|(patriotsfight)|(projectdcomms)|(greatawakening))[a-zA-Z0-9]+\/res\/\d+\.(html|json)", RegexOptions.IgnoreCase);
+#if ENABLE_8KUN && !RELEASE
+    private static readonly Regex EightKunRegex = new(@"^https:\/\/8kun\.top\/(?!(qresearch)|(qnotables)|(pnd)|(midnightriders)|(qrb)|(philogeometric)|(qsocial)|(qrnews)|(thestorm)|(patriotsfight)|(projectdcomms)|(greatawakening))[a-zA-Z0-9]+\/res\/\d+\.(html|json)", RegexOptions.IgnoreCase);
+#endif
     private static readonly Regex FChanRegex = new(@"^https:\/\/fchan\.us\/[a-zA-Z0-9]+\/res\/\d+\.(html)", RegexOptions.IgnoreCase);
     private static readonly Regex U18ChanRegex = new(@"^https:\/\/u18chan\.com\/(board\/u18chan\/)?[a-zA-Z0-9]+\/topic\/\d+", RegexOptions.IgnoreCase);
     private static readonly Regex FoolFuukaRegex = new(@"^https:\/\/((arch\.b4k\.co)|((www\.)?(archived\.moe)|(desuarchive\.org)|(thebarchive\.com)))\/[a-zA-Z0-9_]+\/thread\/\d+", RegexOptions.IgnoreCase);
@@ -65,7 +68,8 @@ internal static class Chans {
             return true;
         }
 
-        /* 8kun is dead, this check disables it from being used. May re-enable in the future. * /
+        //8kun is dead, this check disables it from being used. May re-enable in the future.
+#if ENABLE_8KUN && !RELEASE
         if (EightKunRegex.IsMatch(Url)) {
             if (StupidFuckingBoard(ChanType.EightKun, Url)) {
                 //Log.Write("This program doesn't support archiving boards with content that is considered highly fucking stupid.");
@@ -82,7 +86,7 @@ internal static class Chans {
                 Type: ChanType.EightKun);
             return true;
         }
-        /**/
+#endif
 
         if (FChanRegex.IsMatch(Url)) {
             string[] URLSplit = Url.Split('/');
