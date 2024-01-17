@@ -1,5 +1,6 @@
 ﻿#nullable enable
 namespace YChanEx;
+using SoftCircuits.HtmlMonkey;
 /// <summary>
 /// Contains usability methods governing local files.
 /// </summary>
@@ -75,7 +76,7 @@ internal static class FileHandler {
                 .Trim(); // Cleans up any trailing spaces, new-line and the windows \n, too.
 
             NewName = System.Text.RegularExpressions.Regex.Replace(NewName, "<a href=\\\"(.*?)\\\" class=\\\"quotelink\\\">", "");
-            NewName = HtmlUtility.DeEntitize(NewName); //Uri.UnescapeDataString(NewName);
+            NewName = HtmlUtility.Decode(NewName); //Uri.UnescapeDataString(NewName);
 
             if (NewName.Length > 64) {
                 NewName = NewName[..64];

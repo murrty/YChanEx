@@ -1,6 +1,7 @@
 ﻿namespace SocksSharp.Proxy;
 using System.Net.Sockets;
 using System.Security;
+using System.Threading;
 /// <summary>
 /// Represents Proxy Client to <see cref="ProxyClientHandler{T}"/>
 /// </summary>

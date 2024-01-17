@@ -12,7 +12,7 @@ static class Program {
     /// <summary>
     /// The current version of the software.
     /// </summary>
-    public static Version CurrentVersion { get; } = new(2, 0, 0, 1);
+    public static Version CurrentVersion { get; } = new(3, 0, 0, 2);
 
     /// <summary>
     /// The user-agent used by ychanex.

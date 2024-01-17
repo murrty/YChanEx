@@ -27,12 +27,12 @@ public static class HtmlUtility {
     /// <summary>
     /// A collection of entities indexed by name.
     /// </summary>
-    private static Dictionary<int, string> EntityName;
+    private static readonly Dictionary<int, string> EntityName;
 
     /// <summary>
     /// A collection of entities indexed by value.
     /// </summary>
-    private static Dictionary<string, int> EntityValue;
+    private static readonly Dictionary<string, int> EntityValue;
     #endregion
 
     #region Constructors

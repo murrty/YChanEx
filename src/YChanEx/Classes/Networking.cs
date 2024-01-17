@@ -112,7 +112,7 @@ internal static class Networking {
                 };
             } break;
             case ProxyType.SOCKS4 when Initialization.UseProxy: {
-                NewHandler = new SocksSharp.Socks4ProxyClientHandler(new SocksSharp.Proxy.ProxySettings() {
+                NewHandler = new SocksSharp.Socks4ClientHandler(new SocksSharp.Proxy.ProxySettings() {
                     Host = Initialization.Proxy.IP,
                     Port = Initialization.Proxy.Port,
                     ConnectTimeout = VolatileHttpClient.DefaultTimeout,
@@ -124,7 +124,7 @@ internal static class Networking {
                 };
             } break;
             case ProxyType.SOCKS4A when Initialization.UseProxy: {
-                NewHandler = new SocksSharp.Socks4aProxyClientHandler(new SocksSharp.Proxy.ProxySettings() {
+                NewHandler = new SocksSharp.Socks4aClientHandler(new SocksSharp.Proxy.ProxySettings() {
                     Host = Initialization.Proxy.Domain ?? Initialization.Proxy.IP,
                     Port = Initialization.Proxy.Port,
                     ConnectTimeout = VolatileHttpClient.DefaultTimeout,
@@ -136,7 +136,7 @@ internal static class Networking {
                 };
             } break;
             case ProxyType.SOCKS5 when Initialization.UseProxy: {
-                NewHandler = new SocksSharp.Socks5ProxyClientHandler(new SocksSharp.Proxy.ProxySettings() {
+                NewHandler = new SocksSharp.Socks5ClientHandler(new SocksSharp.Proxy.ProxySettings() {
                     Host = Initialization.Proxy.Domain ?? Initialization.Proxy.IP,
                     Port = Initialization.Proxy.Port,
                     ConnectTimeout = VolatileHttpClient.DefaultTimeout,
