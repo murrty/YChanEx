@@ -116,7 +116,6 @@ public sealed class DownloadHistory {
                 CheckItem(Data.FoolFuukaHistory, ThreadInfo, MainForm);
             } break;
         }
-        Save();
     }
 
     public static bool Contains(ChanType Chan, string URL) {
@@ -264,6 +263,9 @@ public sealed class DownloadHistory {
             var Item = Collection[Index];
             if (!Item.ShortName.Equals(ExpectedHistoryName)) {
                 Item.ShortName = ExpectedHistoryName;
+                if (Item.Node != null) {
+                    Item.Node.Text = ExpectedHistoryName;
+                }
                 Data.HistoryModified = true;
             }
         }

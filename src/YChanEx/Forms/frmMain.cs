@@ -184,72 +184,73 @@ public partial class frmMain : Form, IMainFom {
         if (!Program.DebugMode || Program.LoadThreadsInDebug) {
             ThreadLoader = new Thread(() => {
                 try {
-                    if (General.SaveQueueOnExit) {
-                        var SavedThreads = ProgramSettings.LoadThreads();
-                        if (SavedThreads.Count > 0) {
-                            for (int i = 0; i < SavedThreads.Count; i++) {
-                                this.Invoke(() => {
-                                    ListViewItem lvi = new() {
-                                        Name = SavedThreads[i].Url,
-                                        Text = "waiting for load..."
-                                    };
-                                    lvThreads.Items.Add(lvi);
-                                });
-                            }
-
-                            if (Arguments.Argv.Length > 0) {
-                                for (int i = 0; i < Arguments.Argv.Length; i++) {
-                                    this.Invoke(() => {
-                                        ListViewItem lvi = new() {
-                                            Name = SavedThreads[i].Url,
-                                            Text = "waiting for start..."
-                                        };
-                                        lvThreads.Items.Add(lvi);
-                                    });
-                                }
-                            }
-
-                            int lvIndex = 0;
-                            for (int i = 0; i < SavedThreads.Count; i++, lvIndex++) {
-                                var CurrentThread = SavedThreads[i];
-                                try {
-                                    this.Invoke(() => LoadSavedThread(CurrentThread, CurrentThread.JsonFilePath));
-                                }
-                                catch {
-                                    this.Invoke(() => {
-                                        MessageBox.Show("Could not load saved thread. It will need to be redownloaded.");
-                                        System.IO.File.Move(CurrentThread.JsonFilePath, CurrentThread.JsonFilePath + ".old");
-                                        SavedThreads.RemoveAt(i);
-                                        lvThreads.Items.RemoveAt(i--);
-                                        lvIndex--;
-                                    });
-                                }
-                                Thread.Sleep(500);
-                            }
-
-                            if (Arguments.Argv.Length > 0) {
-                                for (int i = 0; i < Arguments.Argv.Length; i++) {
-                                    this.Invoke(() => {
-                                        if (!AddNewThread(Arguments.Argv[i], true, lvThreads.Items[lvIndex])) {
-                                            lvThreads.Items.RemoveAt(lvIndex--);
-                                        }
-                                    });
-                                    Thread.Sleep(500);
-                                }
-                            }
+                    int lvIndex = 0;
+                    var SavedThreads = ProgramSettings.LoadThreads();
+                    if (General.SaveQueueOnExit && SavedThreads.Count > 0) {
+                        for (int i = 0; i < SavedThreads.Count; i++) {
+                            this.Invoke(() => {
+                                ListViewItem lvi = new() {
+                                    Name = SavedThreads[i].Url,
+                                    Text = "waiting for load..."
+                                };
+                                lvThreads.Items.Add(lvi);
+                            });
                         }
-                        this.Invoke(() => niTray.Text = "YChanEx - " + Threads.Count + " threads");
                     }
 
                     if (Arguments.Argv.Length > 0) {
                         for (int i = 0; i < Arguments.Argv.Length; i++) {
-                            this.Invoke(() => AddNewThread(Arguments.Argv[i], true));
+                            this.Invoke(() => {
+                                ListViewItem lvi = new() {
+                                    Name = Arguments.Argv[i],
+                                    Text = "waiting for start..."
+                                };
+                                lvThreads.Items.Add(lvi);
+                            });
                         }
                     }
+
+                    if (General.SaveQueueOnExit && SavedThreads.Count > 0) {
+                        for (int i = 0; i < SavedThreads.Count; i++, lvIndex++) {
+                            var CurrentThread = SavedThreads[i];
+                            try {
+                                this.Invoke(() => {
+                                    if (!LoadSavedThread(CurrentThread, CurrentThread.JsonFilePath) || CurrentThread.Parent == null) {
+                                        throw new Exception("Bad thread info");
+                                    }
+                                    DownloadHistory.AddOrUpdate(CurrentThread.Parent, this);
+                                });
+                            }
+                            catch {
+                                this.Invoke(() => {
+                                    MessageBox.Show("Could not load saved thread. It will need to be redownloaded.");
+                                    System.IO.File.Move(CurrentThread.JsonFilePath, CurrentThread.JsonFilePath + ".old");
+                                    SavedThreads.RemoveAt(i);
+                                    lvThreads.Items.RemoveAt(i--);
+                                    lvIndex--;
+                                });
+                            }
+                            Thread.Sleep(500);
+                        }
+                        DownloadHistory.Save();
+                    }
+
+                    if (Arguments.Argv.Length > 0) {
+                        for (int i = 0; i < Arguments.Argv.Length; i++) {
+                            this.Invoke(() => {
+                                if (!AddNewThread(Arguments.Argv[i], true, lvThreads.Items[lvIndex])) {
+                                    lvThreads.Items.RemoveAt(lvIndex--);
+                                }
+                            });
+                            Thread.Sleep(500);
+                        }
+                    }
+
+                    this.Invoke(() => niTray.Text = "YChanEx - " + Threads.Count + " threads");
                 }
                 catch (ThreadAbortException) { }
                 catch (Exception ex) {
-                    murrty.classes.Log.ReportException(ex);
+                    Log.ReportException(ex);
                 }
             }) {
                 Name = "Saved threads reloader"
@@ -415,7 +416,6 @@ public partial class frmMain : Form, IMainFom {
         }
 
         newThread.ManageThread(ThreadEvent.StartDownload);
-        DownloadHistory.AddOrUpdate(NewInfo, this);
         return true;
     }
 

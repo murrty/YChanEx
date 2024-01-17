@@ -294,6 +294,7 @@
             this.lvThreads.HideSelection = false;
             this.lvThreads.Location = new System.Drawing.Point(6, 6);
             this.lvThreads.Name = "lvThreads";
+            this.lvThreads.ShowItemToolTips = true;
             this.lvThreads.Size = new System.Drawing.Size(434, 223);
             this.lvThreads.SmallImageList = this.ilIcons;
             this.lvThreads.TabIndex = 3;
