@@ -63,7 +63,7 @@ internal static class Chans {
             ThreadData = new ThreadData(
                 ThreadId: URLSplit[^1].SubstringBeforeLastChar('.'),
                 ThreadBoard: URLSplit[^3],
-                Url: Url,
+                Url: Url.Replace(".json", ".html", StringComparison.OrdinalIgnoreCase),
                 Type: ChanType.EightChan);
             return true;
         }
@@ -82,7 +82,7 @@ internal static class Chans {
             ThreadData = new ThreadData(
                 ThreadId: URLSplit[^1].SubstringBeforeLastChar('.'),
                 ThreadBoard: URLSplit[^3],
-                Url: Url,
+                Url: Url.Replace(".json", ".html", StringComparison.OrdinalIgnoreCase),
                 Type: ChanType.EightKun);
             return true;
         }
