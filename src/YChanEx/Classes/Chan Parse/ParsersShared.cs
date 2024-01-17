@@ -64,7 +64,11 @@ internal static class ParsersShared {
     /// Gets the file name (minus extension) from a url.
     /// </summary>
     public static string GetFileNameFromUrl(string url) {
-        return url[(url.LastIndexOf('/') + 1)..url.LastIndexOf('.')];
+        int lastIndex = url.LastIndexOf('.');
+        if (lastIndex < 0) {
+            return url[(url.LastIndexOf('/') + 1)..];
+        }
+        return url[(url.LastIndexOf('/') + 1)..lastIndex];
     }
     /// <summary>
     /// Gets the file name and extension from a url.
