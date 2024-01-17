@@ -1,5 +1,7 @@
 ﻿#nullable enable
 namespace YChanEx;
+
+using System.CodeDom.Compiler;
 using System.Runtime.Serialization;
 using System.Windows.Forms;
 using YChanEx.Parsers;
@@ -83,35 +85,35 @@ public sealed class DownloadHistory {
         }
     }
 
-    public static void AddOrUpdate(ChanType Chan, string URL, string ThreadName, IMainFom MainForm) {
+    public static void AddOrUpdate(ThreadInfo ThreadInfo, IMainFom MainForm) {
         if (!General.SaveThreadHistory) {
             return;
         }
 
         switch (Chan) {
             case ChanType.FourChan: {
-                CheckItem(Data.FourChanHistory, Chan, URL, ThreadName, MainForm);
+                CheckItem(Data.FourChanHistory, ThreadInfo, MainForm);
             } break;
             case ChanType.FourTwentyChan: {
-                CheckItem(Data.FourTwentyChanHistory, Chan, URL, ThreadName, MainForm);
+                CheckItem(Data.FourTwentyChanHistory, ThreadInfo, MainForm);
             } break;
             case ChanType.SevenChan: {
-                CheckItem(Data.SevenChanHistory, Chan, URL, ThreadName, MainForm);
+                CheckItem(Data.SevenChanHistory, ThreadInfo, MainForm);
             } break;
             case ChanType.EightChan: {
-                CheckItem(Data.EightChanHistory, Chan, URL, ThreadName, MainForm);
+                CheckItem(Data.EightChanHistory, ThreadInfo, MainForm);
             } break;
             case ChanType.EightKun: {
-                CheckItem(Data.EightKunHistory, Chan, URL, ThreadName, MainForm);
+                CheckItem(Data.EightKunHistory, ThreadInfo, MainForm);
             } break;
             case ChanType.fchan: {
-                CheckItem(Data.FchanHistory, Chan, URL, ThreadName, MainForm);
+                CheckItem(Data.FchanHistory, ThreadInfo, MainForm);
             } break;
             case ChanType.u18chan: {
-                CheckItem(Data.u18chanHistory, Chan, URL, ThreadName, MainForm);
+                CheckItem(Data.u18chanHistory, ThreadInfo, MainForm);
             } break;
             case ChanType.FoolFuuka: {
-                CheckItem(Data.FoolFuukaHistory, Chan, URL, ThreadName, MainForm);
+                CheckItem(Data.FoolFuukaHistory, ThreadInfo, MainForm);
             } break;
         }
         Save();
@@ -246,19 +248,22 @@ public sealed class DownloadHistory {
         Data.FoolFuukaHistory.Clear();
     }
 
-    private static void CheckItem(PreviousThreadCollection Collection, ChanType Chan, string URL, string ThreadName, IMainFom MainForm) {
-        int Index = Collection.IndexOf(URL);
+    private static void CheckItem(PreviousThreadCollection Collection, ThreadInfo ThreadInfo, IMainFom MainForm) {
+        int Index = Collection.IndexOf(ThreadInfo.Data.Url);
+        string ExpectedHistoryName = ThreadInfo.Data.ThreadName
+            .UnlessNullEmptyWhiteSpace($"/{ThreadInfo.Data.Board}/ - {ThreadInfo.Data.Id}");
+
         if (Index == -1) {
-            TreeNode NewNode = new(ThreadName) { Name = URL, };
-            PreviousThread NewHistory = new(Chan, URL, ThreadName) { Node = NewNode, };
+            TreeNode NewNode = new(ExpectedHistoryName) { Name = ThreadInfo.Data.Url, };
+            PreviousThread NewHistory = new(ThreadInfo.Chan, ThreadInfo.Data.Url, ExpectedHistoryName) { Node = NewNode, };
             Collection.Add(NewHistory);
             MainForm.AddToHistory(NewHistory);
             Data.HistoryModified = true;
         }
         else {
             var Item = Collection[Index];
-            if (!Item.ShortName.Equals(ThreadName)) {
-                Item.ShortName = ThreadName;
+            if (!Item.ShortName.Equals(ExpectedHistoryName)) {
+                Item.ShortName = ExpectedHistoryName;
                 Data.HistoryModified = true;
             }
         }

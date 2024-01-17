@@ -1396,7 +1396,7 @@ public partial class frmDownloader : Form {
                         // Async invoke on the UI form now, in case wonkiness occurs.
                         this.BeginInvoke(() => {
                             // Add/update history
-                            DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
+                            DownloadHistory.AddOrUpdate(ThreadInfo, MainFormInstance);
 
                             // Update the name application wide, if the custom name wasn't set.
                             if (ThreadInfo.Data.CustomThreadName == null) {
@@ -1555,7 +1555,7 @@ public partial class frmDownloader : Form {
                         // Async invoke on the UI form now, in case wonkiness occurs.
                         this.BeginInvoke(() => {
                             // Add/update history
-                            DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
+                            DownloadHistory.AddOrUpdate(ThreadInfo, MainFormInstance);
 
                             // Update the name application wide, if the custom name wasn't set.
                             if (ThreadInfo.Data.CustomThreadName == null) {
@@ -1736,7 +1736,7 @@ public partial class frmDownloader : Form {
                         // Async invoke on the UI form now, in case wonkiness occurs.
                         this.BeginInvoke(() => {
                             // Add/update history
-                            DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
+                            DownloadHistory.AddOrUpdate(ThreadInfo, MainFormInstance);
 
                             // Update the name application wide, if the custom name wasn't set.
                             if (ThreadInfo.Data.CustomThreadName == null) {
@@ -1925,7 +1925,7 @@ public partial class frmDownloader : Form {
                         // Async invoke on the UI form now, in case wonkiness occurs.
                         this.BeginInvoke(() => {
                             // Add/update history
-                            DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
+                            DownloadHistory.AddOrUpdate(ThreadInfo, MainFormInstance);
 
                             // Update the name application wide, if the custom name wasn't set.
                             if (ThreadInfo.Data.CustomThreadName == null) {
@@ -2085,7 +2085,7 @@ public partial class frmDownloader : Form {
                         // Async invoke on the UI form now, in case wonkiness occurs.
                         this.BeginInvoke(() => {
                             // Add/update history
-                            DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
+                            DownloadHistory.AddOrUpdate(ThreadInfo, MainFormInstance);
 
                             // Update the name application wide, if the custom name wasn't set.
                             if (ThreadInfo.Data.CustomThreadName == null) {
@@ -2244,7 +2244,7 @@ public partial class frmDownloader : Form {
                         // Async invoke on the UI form now, in case wonkiness occurs.
                         this.BeginInvoke(() => {
                             // Add/update history
-                            DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
+                            DownloadHistory.AddOrUpdate(ThreadInfo, MainFormInstance);
 
                             // Update the name application wide, if the custom name wasn't set.
                             if (ThreadInfo.Data.CustomThreadName == null) {
@@ -2417,7 +2417,7 @@ public partial class frmDownloader : Form {
                         // Async invoke on the UI form now, in case wonkiness occurs.
                         this.BeginInvoke(() => {
                             // Add/update history
-                            DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
+                            DownloadHistory.AddOrUpdate(ThreadInfo, MainFormInstance);
 
                             // Update the name application wide, if the custom name wasn't set.
                             if (ThreadInfo.Data.CustomThreadName == null) {
