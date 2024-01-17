@@ -604,7 +604,6 @@ public partial class frmDownloader : Form {
                         ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
                         tmrScan.Start();
                     } break;
-
                     case ThreadStatus.FailedToParseThreadHtml: {
                         lbScanTimer.Text = "Failed to parse thread";
                         lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
@@ -612,8 +611,6 @@ public partial class frmDownloader : Form {
                         btnAbortRetry.Text = "Retry";
                         ThreadInfo.ThreadModified = true;
                     } break;
-
-                    // How to handle?
                     case ThreadStatus.NoThreadPosts: {
                         lbScanTimer.Text = "No thread posts";
                         lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
@@ -621,7 +618,6 @@ public partial class frmDownloader : Form {
                         btnAbortRetry.Text = "Retry";
                         ThreadInfo.ThreadModified = true;
                     } break;
-
                     case ThreadStatus.ThreadIsNotAllowed: {
                         lbScanTimer.Text = "Forbidden";
                         lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
@@ -629,7 +625,6 @@ public partial class frmDownloader : Form {
                         btnAbortRetry.Text = "Retry";
                         ThreadInfo.ThreadModified = true;
                     } break;
-
                     case ThreadStatus.ThreadInfoNotSet: {
                         lbScanTimer.Text = "No thread info";
                         lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
@@ -696,15 +691,6 @@ public partial class frmDownloader : Form {
             } break;
 
             case ThreadEvent.ReloadThread: {
-                if (Downloads.AutoRemoveDeadThreads && ThreadInfo.Data.ThreadState switch {
-                    ThreadState.ThreadIs404 => true,
-                    ThreadState.ThreadIsArchived or _ when ThreadInfo.Data.ThreadArchived => true,
-                    _ => false
-                }) {
-                    MainFormInstance.ThreadKilled(ThreadInfo);
-                    return;
-                }
-
                 switch (ThreadInfo.Chan) {
                     case ChanType.FourChan: {
                         ThreadInfo.DownloadPath = Path.Combine(Downloads.DownloadPath, "4chan", ThreadInfo.Data.Board, ThreadInfo.Data.Id);
@@ -754,6 +740,28 @@ public partial class frmDownloader : Form {
                 ThreadInfo.UpdateJsonPath();
                 if (ThreadInfo.DownloadPath != null) {
                     btnOpenFolder.Enabled = true;
+                }
+
+                if (Downloads.AutoRemoveDeadThreads && ThreadInfo.Data.ThreadState switch {
+                    ThreadState.ThreadIs404 => true,
+                    ThreadState.ThreadIsArchived or _ when ThreadInfo.Data.ThreadArchived => true,
+                    _ => false
+                }) {
+                    MainFormInstance.ThreadKilled(ThreadInfo);
+                }
+                else if (ThreadInfo.Data.ThreadState != ThreadState.ThreadIsAlive) {
+                    if (ThreadInfo.Data.ThreadState == ThreadState.ThreadIs404) {
+                        ThreadInfo.CurrentActivity = ThreadStatus.ThreadIs404;
+                        ManageThread(ThreadEvent.AfterDownload);
+                    }
+                    else if (ThreadInfo.Data.ThreadState == ThreadState.ThreadIsAborted) {
+                        ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsAborted;
+                        ManageThread(ThreadEvent.AfterDownload);
+                    }
+                    else if (ThreadInfo.Data.ThreadState == ThreadState.ThreadIsArchived) {
+                        ThreadInfo.CurrentActivity = ThreadStatus.ThreadIsArchived;
+                        ManageThread(ThreadEvent.AfterDownload);
+                    }
                 }
             } break;
         }

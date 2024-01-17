@@ -383,7 +383,6 @@ public partial class frmMain : Form, IMainFom {
         };
         newThread.Show();
         newThread.Hide();
-        newThread.ManageThread(ThreadEvent.ReloadThread);
 
         //ListViewItem lvi = new() {
         //    Name = Info.Url
@@ -412,6 +411,11 @@ public partial class frmMain : Form, IMainFom {
         }
         else {
             lvi.SubItems[clName.Index].Text = Data.Url;
+        }
+
+        newThread.ManageThread(ThreadEvent.ReloadThread);
+        if (Data.ThreadState != ThreadState.ThreadIsAlive) {
+            return true;
         }
 
         newThread.ManageThread(ThreadEvent.StartDownload);
