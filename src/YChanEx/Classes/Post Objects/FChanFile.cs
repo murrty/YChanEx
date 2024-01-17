@@ -52,7 +52,7 @@ internal sealed class FChanFile {
             throw new ArgumentNullException("Could not find link metadata.");
         this.Url = UrlPrefix + FileLink.Attributes["href"]!.Value!;
         this.Extension = GetExtension(FileLink.Text, out int extIndex);
-        this.FileName = GetNameWithoutExtension(FileLink.Text, extIndex);
+        this.FileName = FileLink.Text[..extIndex];
 
         var ExtraMetadata = MetadataNode.Children.FirstOrDefault(DefaultSelectors.em) ??
             throw new ArgumentNullException("Could not find extra metadata.");
