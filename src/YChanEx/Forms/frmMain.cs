@@ -478,11 +478,6 @@ public partial class frmMain : Form, IMainFom {
             ThreadLoader.Abort();
         }
 
-        Saved.MainFormLocation = this.Location;
-        Saved.MainFormSize = this.Size;
-        Saved.CreateThreadInTheBackground = chkCreateThreadInTheBackground.Checked;
-        Saved.MainFormColumnSizes = lvThreads.GetColumnWidths();
-
         for (int i = 0; i < Threads.Count; i++) {
             Threads[i].ManageThread(ThreadEvent.AbortForClosing);
             Threads[i].Dispose();
@@ -566,18 +561,7 @@ public partial class frmMain : Form, IMainFom {
         ilIcons.Images.Add(Properties.Resources._foolfuuka);
         lvThreads.SmallImageList = ilIcons;
         lvThreads.ContextMenu = cmThreads;
-
         niTray.ContextMenu = cmTray;
-
-        if (Config.ValidSize(Saved.MainFormSize)) {
-            this.Size = Saved.MainFormSize;
-        }
-        if (Config.ValidPoint(Saved.MainFormLocation)) {
-            this.Location = Saved.MainFormLocation;
-        }
-        if (!string.IsNullOrEmpty(Saved.MainFormColumnSizes)) {
-            lvThreads.SetColumnWidths(Saved.MainFormColumnSizes);
-        }
 
         if (DownloadHistory.Count > 0) {
             for (int i = 0; i < DownloadHistory.Data.FourChanHistory.Count; i++) {
@@ -662,6 +646,18 @@ public partial class frmMain : Form, IMainFom {
         if (General.ShowTrayIcon) {
             niTray.Visible = true;
         }
+
+        if (Config.ValidPoint(Saved.MainFormLocation)) {
+            this.StartPosition = FormStartPosition.Manual;
+            this.Location = Saved.MainFormLocation;
+        }
+        if (Config.ValidSize(Saved.MainFormSize)) {
+            this.Size = Saved.MainFormSize;
+        }
+        if (!string.IsNullOrEmpty(Saved.MainFormColumnSizes)) {
+            lvThreads.SetColumnWidths(Saved.MainFormColumnSizes);
+        }
+
         chkCreateThreadInTheBackground.Checked = Saved.CreateThreadInTheBackground;
     }
     private void frmMain_Shown(object sender, EventArgs e) {
@@ -674,11 +670,18 @@ public partial class frmMain : Form, IMainFom {
                 this.Hide();
                 niTray.Visible = true;
                 e.Cancel = true;
+                return;
             }
             else if (!ApplicationCanExit(false)) {
                 e.Cancel = true;
+                return;
             }
         }
+
+        Saved.MainFormLocation = this.Location;
+        Saved.MainFormSize = this.Size;
+        Saved.CreateThreadInTheBackground = chkCreateThreadInTheBackground.Checked;
+        Saved.MainFormColumnSizes = lvThreads.GetColumnWidths();
     }
     private void frmMain_SizeChanged(object sender, EventArgs e) {
         if (this.WindowState == FormWindowState.Minimized && General.MinimizeToTray) {
@@ -703,7 +706,7 @@ public partial class frmMain : Form, IMainFom {
         Log.ShowLog();
     }
     private void mAbout_Click(object sender, EventArgs e) {
-        frmAbout About = new();
+        using frmAbout About = new();
         About.ShowDialog();
     }
     private void txtThreadURL_KeyPress(object sender, KeyPressEventArgs e) {
