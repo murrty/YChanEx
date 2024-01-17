@@ -65,16 +65,63 @@ internal static class ParsersShared {
     /// </summary>
     public static string GetFileNameFromUrl(string url) {
         int lastIndex = url.LastIndexOf('.');
+        int lastPathIndex = url.LastIndexOf('/');
+
         if (lastIndex < 0) {
-            return url[(url.LastIndexOf('/') + 1)..];
+            if (lastPathIndex < 0) {
+                return url;
+            }
+            return url[(lastPathIndex + 1)..];
         }
-        return url[(url.LastIndexOf('/') + 1)..lastIndex];
+
+        if (lastPathIndex < 0) {
+            return url[..lastIndex];
+        }
+        return url[(lastPathIndex + 1)..lastIndex];
+    }
+    /// <summary>
+    /// Gets the file name (minus extension) from a url.
+    /// </summary>
+    public static string GetFileNameFromUrl(string url, int startingIndex) {
+        int lastIndex = LastIndexOfFromStart(url, '.', startingIndex);
+        int lastPathIndex = LastIndexOfFromStart(url, '/', startingIndex);
+
+        if (lastIndex < 0) {
+            if (lastPathIndex < 0) {
+                return url;
+            }
+            return url[(lastPathIndex + 1)..];
+        }
+
+        if (lastPathIndex < 0) {
+            return url[..lastIndex];
+        }
+
+        return url[(lastPathIndex + 1)..lastIndex];
     }
     /// <summary>
     /// Gets the file name and extension from a url.
     /// </summary>
     public static string GetFileNameAndExtFromUrl(string url) {
-        return url[(url.LastIndexOf('/') + 1)..];
+        int lastPathIndex = url.LastIndexOf('/');
+
+        if (lastPathIndex < 0) {
+            return url;
+        }
+
+        return url[(lastPathIndex + 1)..];
+    }
+    /// <summary>
+    /// Gets the file name and extension from a url.
+    /// </summary>
+    public static string GetFileNameAndExtFromUrl(string url, int startingIndex) {
+        int lastPathIndex = LastIndexOfFromStart(url, '/', startingIndex);
+
+        if (lastPathIndex < 0) {
+            return url;
+        }
+
+        return url[(lastPathIndex + 1)..];
     }
 
     /// <summary>
@@ -105,5 +152,14 @@ internal static class ParsersShared {
             Height = (int)Math.Round(Height * rnd);
         }
         return new(Width, Height);
+    }
+
+    public static int LastIndexOfFromStart(string s, char c, int startIndex) {
+        for (int i = startIndex; i <s.Length; i++) {
+            if (s[i] == c) {
+                return i;
+            }
+        }
+        return -1;
     }
 }

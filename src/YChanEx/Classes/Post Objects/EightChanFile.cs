@@ -35,7 +35,10 @@ internal sealed class EightChanFile {
     [IgnoreDataMember]
     public string? id {
         get {
-            return GetFileNameFromUrl(this.path!);
+            if (this.path.IsNullEmptyWhitespace()) {
+                throw new Exception("Could not get id from 8chan path");
+            }
+            return GetFileNameFromUrl(this.path!, 4); // /.media/...
         }
     }
 
