@@ -65,7 +65,7 @@ static class Program {
     /// <summary>
     /// The mutex of the program instance.
     /// </summary>
-    private static Mutex? Instance;
+    private static readonly Mutex Instance;
 
     /// <summary>
     /// The GUID of the program.
@@ -138,12 +138,13 @@ static class Program {
         // Set the saved threads path.
         SavedThreadsPath = Path.Combine(Environment.CurrentDirectory, "SavedThreads");
         UserAgent = $"Mozilla/5.0 Gecko/20100101 ychanex/{CurrentVersion} ({CLR})";
+        Instance = new Mutex(true, ProgramGUID.ToString());
     }
 
     [STAThread]
     static int Main(string[] argv) {
         Console.WriteLine("Welcome to the amazing world of: Loading application.");
-        if (!DebugMode && !(Instance = new(true, ProgramGUID.ToString())).WaitOne(TimeSpan.Zero, true)) {
+        if (!DebugMode && !Instance.WaitOne(TimeSpan.Zero, true)) {
             ExitCode = 1152; // Cannot start more than one instance of the specified program.
 
             if (Arguments.SetProtocol(argv)) {
