@@ -3,7 +3,6 @@ namespace YChanEx;
 using System.Runtime.Serialization;
 using System.Windows.Forms;
 using YChanEx.Parsers;
-
 [DataContract]
 public sealed class DownloadHistory {
     [DataContract]
@@ -85,6 +84,10 @@ public sealed class DownloadHistory {
     }
 
     public static void AddOrUpdate(ChanType Chan, string URL, string ThreadName, IMainFom MainForm) {
+        if (!General.SaveThreadHistory) {
+            return;
+        }
+
         switch (Chan) {
             case ChanType.FourChan: {
                 CheckItem(Data.FourChanHistory, Chan, URL, ThreadName, MainForm);
@@ -181,7 +184,7 @@ public sealed class DownloadHistory {
 
     public static void Load() {
         if (System.IO.File.Exists(HistoryFile)) {
-            using var Stream = new System.IO.FileStream(HistoryFile, System.IO.FileMode.Open, System.IO.FileAccess.ReadWrite);
+            using var Stream = new System.IO.FileStream(HistoryFile, System.IO.FileMode.Open, System.IO.FileAccess.ReadWrite, System.IO.FileShare.Read);
             try {
                 Data = Stream.JsonDeserialize<DownloadHistory>() ?? new();
             }

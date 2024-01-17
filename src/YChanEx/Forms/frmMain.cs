@@ -133,49 +133,47 @@ public partial class frmMain : Form, IMainFom {
             return;
         }
 
-        if (General.SaveThreadHistory && !DownloadHistory.Contains(Thread.Type, Thread.Url)) {
-            switch (Thread.Type) {
-                case ChanType.FourChan: {
-                    TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
-                    Thread.Node = HistoryItem;
-                    tvHistory.Nodes[0].Nodes.Add(HistoryItem);
-                } break;
-                case ChanType.FourTwentyChan: {
-                    TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
-                    Thread.Node = HistoryItem;
-                    tvHistory.Nodes[1].Nodes.Add(HistoryItem);
-                } break;
-                case ChanType.SevenChan: {
-                    TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
-                    Thread.Node = HistoryItem;
-                    tvHistory.Nodes[2].Nodes.Add(HistoryItem);
-                } break;
-                case ChanType.EightChan: {
-                    TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
-                    Thread.Node = HistoryItem;
-                    tvHistory.Nodes[3].Nodes.Add(HistoryItem);
-                } break;
-                case ChanType.EightKun: {
-                    TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
-                    Thread.Node = HistoryItem;
-                    tvHistory.Nodes[4].Nodes.Add(HistoryItem);
-                } break;
-                case ChanType.fchan: {
-                    TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
-                    Thread.Node = HistoryItem;
-                    tvHistory.Nodes[5].Nodes.Add(HistoryItem);
-                } break;
-                case ChanType.u18chan: {
-                    TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
-                    Thread.Node = HistoryItem;
-                    tvHistory.Nodes[6].Nodes.Add(HistoryItem);
-                } break;
-                case ChanType.FoolFuuka: {
-                    TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
-                    Thread.Node = HistoryItem;
-                    tvHistory.Nodes[7].Nodes.Add(HistoryItem);
-                } break;
-            }
+        switch (Thread.Type) {
+            case ChanType.FourChan: {
+                TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
+                Thread.Node = HistoryItem;
+                tvHistory.Nodes[0].Nodes.Add(HistoryItem);
+            } break;
+            case ChanType.FourTwentyChan: {
+                TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
+                Thread.Node = HistoryItem;
+                tvHistory.Nodes[1].Nodes.Add(HistoryItem);
+            } break;
+            case ChanType.SevenChan: {
+                TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
+                Thread.Node = HistoryItem;
+                tvHistory.Nodes[2].Nodes.Add(HistoryItem);
+            } break;
+            case ChanType.EightChan: {
+                TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
+                Thread.Node = HistoryItem;
+                tvHistory.Nodes[3].Nodes.Add(HistoryItem);
+            } break;
+            case ChanType.EightKun: {
+                TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
+                Thread.Node = HistoryItem;
+                tvHistory.Nodes[4].Nodes.Add(HistoryItem);
+            } break;
+            case ChanType.fchan: {
+                TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
+                Thread.Node = HistoryItem;
+                tvHistory.Nodes[5].Nodes.Add(HistoryItem);
+            } break;
+            case ChanType.u18chan: {
+                TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
+                Thread.Node = HistoryItem;
+                tvHistory.Nodes[6].Nodes.Add(HistoryItem);
+            } break;
+            case ChanType.FoolFuuka: {
+                TreeNode HistoryItem = new(Thread.ShortName) { Name = Thread.Url, };
+                Thread.Node = HistoryItem;
+                tvHistory.Nodes[7].Nodes.Add(HistoryItem);
+            } break;
         }
     }
 
