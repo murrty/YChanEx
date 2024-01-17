@@ -3,7 +3,6 @@ namespace YChanEx;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Windows.Forms;
 using murrty.classes;
@@ -230,7 +229,7 @@ public partial class frmMain : Form, IMainFom {
                                     lvIndex--;
                                 });
                             }
-                            Thread.Sleep(500);
+                            Thread.Sleep(250);
                         }
                         DownloadHistory.Save();
                     }
@@ -242,7 +241,7 @@ public partial class frmMain : Form, IMainFom {
                                     lvThreads.Items.RemoveAt(lvIndex--);
                                 }
                             });
-                            Thread.Sleep(500);
+                            Thread.Sleep(250);
                         }
                     }
 
@@ -564,14 +563,6 @@ public partial class frmMain : Form, IMainFom {
         lvThreads.SmallImageList = ilIcons;
         lvThreads.ContextMenu = cmThreads;
 
-#if !DEBUG
-        tpDebug.Dispose();
-#endif
-    }
-    private void frmMain_Load(object sender, EventArgs e) {
-        if (General.ShowTrayIcon) {
-            niTray.Visible = true;
-        }
         niTray.ContextMenu = cmTray;
 
         if (Config.ValidSize(Saved.MainFormSize)) {
@@ -659,6 +650,14 @@ public partial class frmMain : Form, IMainFom {
             }
         }
 
+#if !DEBUG
+        tpDebug.Dispose();
+#endif
+    }
+    private void frmMain_Load(object sender, EventArgs e) {
+        if (General.ShowTrayIcon) {
+            niTray.Visible = true;
+        }
         chkCreateThreadInTheBackground.Checked = Saved.CreateThreadInTheBackground;
     }
     private void frmMain_Shown(object sender, EventArgs e) {
