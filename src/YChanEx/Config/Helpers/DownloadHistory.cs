@@ -90,7 +90,7 @@ public sealed class DownloadHistory {
             return;
         }
 
-        switch (Chan) {
+        switch (ThreadInfo.Chan) {
             case ChanType.FourChan: {
                 CheckItem(Data.FourChanHistory, ThreadInfo, MainForm);
             } break;

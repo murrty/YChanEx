@@ -6,6 +6,12 @@ using YChanEx.Posts;
 [DataContract]
 public sealed class ThreadData {
     /// <summary>
+    /// The thread info parent of the data instance.
+    /// </summary>
+    [IgnoreDataMember]
+    public ThreadInfo? Parent { get; set; }
+
+    /// <summary>
     /// The chan type associated with the data.
     /// </summary>
     [IgnoreDataMember]

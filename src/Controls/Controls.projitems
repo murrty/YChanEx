@@ -36,6 +36,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\SelectorParsing.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\TagStack.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\TextParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlUtility.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HttpException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RequestMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ThrottledStream.cs" />

@@ -188,13 +188,29 @@ public partial class frmMain : Form, IMainFom {
                         var SavedThreads = ProgramSettings.LoadThreads();
                         if (SavedThreads.Count > 0) {
                             for (int i = 0; i < SavedThreads.Count; i++) {
-                                ListViewItem lvi = new() {
-                                    Name = SavedThreads[i].Url,
-                                    Text = "waiting for load..."
-                                };
-                                this.Invoke(() => lvThreads.Items.Add(lvi));
+                                this.Invoke(() => {
+                                    ListViewItem lvi = new() {
+                                        Name = SavedThreads[i].Url,
+                                        Text = "waiting for load..."
+                                    };
+                                    lvThreads.Items.Add(lvi);
+                                });
                             }
-                            for (int i = 0; i < SavedThreads.Count; i++) {
+
+                            if (Arguments.Argv.Length > 0) {
+                                for (int i = 0; i < Arguments.Argv.Length; i++) {
+                                    this.Invoke(() => {
+                                        ListViewItem lvi = new() {
+                                            Name = SavedThreads[i].Url,
+                                            Text = "waiting for start..."
+                                        };
+                                        lvThreads.Items.Add(lvi);
+                                    });
+                                }
+                            }
+
+                            int lvIndex = 0;
+                            for (int i = 0; i < SavedThreads.Count; i++, lvIndex++) {
                                 var CurrentThread = SavedThreads[i];
                                 try {
                                     this.Invoke(() => LoadSavedThread(CurrentThread, CurrentThread.JsonFilePath));
@@ -205,9 +221,21 @@ public partial class frmMain : Form, IMainFom {
                                         System.IO.File.Move(CurrentThread.JsonFilePath, CurrentThread.JsonFilePath + ".old");
                                         SavedThreads.RemoveAt(i);
                                         lvThreads.Items.RemoveAt(i--);
+                                        lvIndex--;
                                     });
                                 }
                                 Thread.Sleep(500);
+                            }
+
+                            if (Arguments.Argv.Length > 0) {
+                                for (int i = 0; i < Arguments.Argv.Length; i++) {
+                                    this.Invoke(() => {
+                                        if (!AddNewThread(Arguments.Argv[i], true, lvThreads.Items[lvIndex])) {
+                                            lvThreads.Items.RemoveAt(lvIndex--);
+                                        }
+                                    });
+                                    Thread.Sleep(500);
+                                }
                             }
                         }
                         this.Invoke(() => niTray.Text = "YChanEx - " + Threads.Count + " threads");
@@ -248,7 +276,7 @@ public partial class frmMain : Form, IMainFom {
     /// </summary>
     /// <param name="ThreadURL">The url of the thread that will be added to the queue.</param>
     /// <returns>Boolean based on it's success</returns>
-    private bool AddNewThread(string? ThreadURL, bool FromTrayOrArgument = false) {
+    private bool AddNewThread(string? ThreadURL, bool FromTrayOrArgument = false, ListViewItem? lvi = null) {
         Log.Info("Trying to add new thread...");
         if (!Chans.TryGetThreadData(ThreadURL, out var ThreadData)) {
             Log.Error("Invalid thread.");
@@ -294,7 +322,7 @@ public partial class frmMain : Form, IMainFom {
         newThread.ManageThread(ThreadEvent.ParseForInfo);
         newThread.Show();
 
-        ListViewItem lvi = new() {
+        lvi ??= new() {
             Name = ThreadURL
         };
         lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
@@ -387,6 +415,7 @@ public partial class frmMain : Form, IMainFom {
         }
 
         newThread.ManageThread(ThreadEvent.StartDownload);
+        DownloadHistory.AddOrUpdate(NewInfo, this);
         return true;
     }
 

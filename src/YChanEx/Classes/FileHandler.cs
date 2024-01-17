@@ -75,7 +75,7 @@ internal static class FileHandler {
                 .Trim(); // Cleans up any trailing spaces, new-line and the windows \n, too.
 
             NewName = System.Text.RegularExpressions.Regex.Replace(NewName, "<a href=\\\"(.*?)\\\" class=\\\"quotelink\\\">", "");
-            NewName = Uri.UnescapeDataString(NewName);
+            NewName = HtmlUtility.DeEntitize(NewName); //Uri.UnescapeDataString(NewName);
 
             if (NewName.Length > 64) {
                 NewName = NewName[..64];

@@ -118,6 +118,7 @@ public sealed class ThreadInfo {
     }
 
     public ThreadInfo(ThreadData Data) {
+        Data.Parent = this;
         this.Data = Data;
         this.ThreadIndex = -1;
         this.SavedThreadJson = string.Empty;
@@ -158,6 +159,7 @@ public sealed class ThreadInfo {
         }
     }
     public void SaveHtml() {
+        Directory.CreateDirectory(this.DownloadPath);
         string HtmlFile = Path.Combine(this.DownloadPath, "Thread.html");
         using FileStream fs = new(HtmlFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read);
         using StreamWriter Writer = new(fs, Encoding.UTF8);
