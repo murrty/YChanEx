@@ -34,10 +34,6 @@
             System.Windows.Forms.TreeNode treeNode8 = new System.Windows.Forms.TreeNode("foolfuuka");
             this.btnAdd = new System.Windows.Forms.Button();
             this.txtThreadURL = new System.Windows.Forms.TextBox();
-            this.mmMain = new System.Windows.Forms.MainMenu(this.components);
-            this.mSettings = new System.Windows.Forms.MenuItem();
-            this.mLog = new System.Windows.Forms.MenuItem();
-            this.mAbout = new System.Windows.Forms.MenuItem();
             this.niTray = new System.Windows.Forms.NotifyIcon(this.components);
             this.changeTray = new System.Windows.Forms.Timer(this.components);
             this.cmThreads = new System.Windows.Forms.ContextMenu();
@@ -56,7 +52,6 @@
             this.mAddThread = new System.Windows.Forms.MenuItem();
             this.mTraySep = new System.Windows.Forms.MenuItem();
             this.mTrayExit = new System.Windows.Forms.MenuItem();
-            this.ilIcons = new System.Windows.Forms.ImageList(this.components);
             this.chkCreateThreadInTheBackground = new System.Windows.Forms.CheckBox();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tpCurrentQueue = new System.Windows.Forms.TabPage();
@@ -98,31 +93,6 @@
             this.txtThreadURL.Size = new System.Drawing.Size(376, 22);
             this.txtThreadURL.TabIndex = 0;
             this.txtThreadURL.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtThreadURL_KeyPress);
-            // 
-            // mmMain
-            // 
-            this.mmMain.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
-            this.mSettings,
-            this.mLog,
-            this.mAbout});
-            // 
-            // mSettings
-            // 
-            this.mSettings.Index = 0;
-            this.mSettings.Text = "Settings";
-            this.mSettings.Click += new System.EventHandler(this.mSettings_Click);
-            // 
-            // mLog
-            // 
-            this.mLog.Index = 1;
-            this.mLog.Text = "Log";
-            this.mLog.Click += new System.EventHandler(this.mLog_Click);
-            // 
-            // mAbout
-            // 
-            this.mAbout.Index = 2;
-            this.mAbout.Text = "About";
-            this.mAbout.Click += new System.EventHandler(this.mAbout_Click);
             // 
             // niTray
             // 
@@ -240,12 +210,6 @@
             this.mTrayExit.Text = "Exit";
             this.mTrayExit.Click += new System.EventHandler(this.mTrayExit_Click);
             // 
-            // ilIcons
-            // 
-            this.ilIcons.ColorDepth = System.Windows.Forms.ColorDepth.Depth16Bit;
-            this.ilIcons.ImageSize = new System.Drawing.Size(16, 16);
-            this.ilIcons.TransparentColor = System.Drawing.Color.Transparent;
-            // 
             // chkCreateThreadInTheBackground
             // 
             this.chkCreateThreadInTheBackground.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -296,7 +260,6 @@
             this.lvThreads.Name = "lvThreads";
             this.lvThreads.ShowItemToolTips = true;
             this.lvThreads.Size = new System.Drawing.Size(434, 202);
-            this.lvThreads.SmallImageList = this.ilIcons;
             this.lvThreads.TabIndex = 3;
             this.lvThreads.UseCompatibleStateImageBehavior = false;
             this.lvThreads.View = System.Windows.Forms.View.Details;
@@ -448,7 +411,6 @@
             this.Controls.Add(this.pnUpper);
             this.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Icon = global::YChanEx.Properties.Resources.ProgramIcon;
-            this.Menu = this.mmMain;
             this.MinimumSize = new System.Drawing.Size(350, 250);
             this.Name = "frmMain";
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
@@ -473,9 +435,6 @@
 
         private System.Windows.Forms.Button btnAdd;
         private System.Windows.Forms.TextBox txtThreadURL;
-        private System.Windows.Forms.MainMenu mmMain;
-        private System.Windows.Forms.MenuItem mSettings;
-        private System.Windows.Forms.MenuItem mAbout;
         private System.Windows.Forms.NotifyIcon niTray;
         private murrty.controls.ExtendedListView lvThreads;
         private System.Windows.Forms.ColumnHeader clThread;
@@ -496,7 +455,6 @@
         private System.Windows.Forms.MenuItem mCopyThreadID;
         private System.Windows.Forms.MenuItem mThreadsSep2;
         private System.Windows.Forms.ColumnHeader clName;
-        private System.Windows.Forms.ImageList ilIcons;
         private System.Windows.Forms.CheckBox chkCreateThreadInTheBackground;
         private System.Windows.Forms.MenuItem mSetCustomName;
         private System.Windows.Forms.MenuItem mAddThread;
@@ -510,7 +468,6 @@
         private System.Windows.Forms.Button btnHistoryRemove;
         private System.Windows.Forms.Button btnHistoryRedownload;
         private murrty.controls.ExplorerTreeView tvHistory;
-        private System.Windows.Forms.MenuItem mLog;
     }
 }
 

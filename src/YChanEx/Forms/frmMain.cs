@@ -16,6 +16,12 @@ public partial class frmMain : Form, IMainFom {
 
     private bool Icon404WasShown;   // Determines if the 404 icon has been shown on the tray.
     private bool TrayExit;          // Whether the tray option to exit was used.
+
+    private readonly ImageList ilIcons;
+    private readonly MainMenu mMenu;
+    private readonly MenuItem mSettings;
+    private readonly MenuItem mLog;
+    private readonly MenuItem mAbout;
     #endregion
 
     #region Usability methods
@@ -551,6 +557,25 @@ public partial class frmMain : Form, IMainFom {
     }
     public frmMain() {
         InitializeComponent();
+
+        Threads = [];
+        ThreadURLs = [];
+
+        ilIcons = new() { ColorDepth = ColorDepth.Depth32Bit, ImageSize = new(16, 16), TransparentColor = System.Drawing.Color.Transparent, };
+        mMenu = new() { Name = nameof(mMenu), };
+        mSettings = new() { Name = nameof(mSettings), Text = "Settings", };
+        mLog = new() { Name = nameof(mLog), Text = "Log", };
+        mAbout = new() { Name = nameof(mAbout), Text = "About", };
+
+        mMenu.MenuItems.Add(mSettings);
+        mMenu.MenuItems.Add(mLog);
+        mMenu.MenuItems.Add(mAbout);
+        Menu = mMenu;
+
+        mSettings.Click += mSettings_Click;
+        mLog.Click += mLog_Click;
+        mAbout.Click += mAbout_Click;
+
         ilIcons.Images.Add(Properties.Resources._4chan);
         ilIcons.Images.Add(Properties.Resources._420chan);
         ilIcons.Images.Add(Properties.Resources._7chan);
@@ -952,13 +977,11 @@ public partial class frmMain : Form, IMainFom {
     private void tvHistory_AfterSelect(object sender, TreeViewEventArgs e) {
         btnHistoryRedownload.Enabled = btnHistoryRemove.Enabled = tvHistory.SelectedNode.Parent != null;
     }
-
     private void btnHistoryRedownload_Click(object sender, EventArgs e) {
         if (tvHistory.SelectedNode.Parent != null) {
             AddNewThread(tvHistory.SelectedNode.Name, false);
         }
     }
-
     private void btnHistoryRemove_Click(object sender, EventArgs e) {
         if (tvHistory.SelectedNode.Parent != null) {
             DownloadHistory.Remove(tvHistory.SelectedNode.Name);
@@ -966,7 +989,6 @@ public partial class frmMain : Form, IMainFom {
             DownloadHistory.Save();
         }
     }
-
     private void btnHistoryClear_Click(object sender, EventArgs e) {
         DownloadHistory.Clear();
         tvHistory.Nodes[0].Nodes.Clear();
