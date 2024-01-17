@@ -14,7 +14,6 @@ internal static class HostHelper {
         if (!IPAddress.TryParse(destinationHost, out var ipAddr)) {
             try {
                 var ips = Dns.GetHostAddresses(destinationHost);
-
                 if (ips.Length > 0) {
                     if (preferIpv4) {
                         foreach (var ip in ips) {
@@ -24,7 +23,6 @@ internal static class HostHelper {
                             }
                         }
                     }
-
                     ipAddr = ips[0];
                 }
             }
@@ -32,7 +30,6 @@ internal static class HostHelper {
                 if (ex is SocketException || ex is ArgumentException) {
                     throw new ProxyException("Failed to get host address", ex);
                 }
-
                 throw;
             }
         }
@@ -48,14 +45,11 @@ internal static class HostHelper {
 
             case Socks5Constants.AddressTypeDomainName:
                 byte[] bytes = new byte[host.Length + 1];
-
                 bytes[0] = (byte)host.Length;
                 Encoding.ASCII.GetBytes(host).CopyTo(bytes, 1);
-
                 return bytes;
 
-            default:
-                return null;
+            default: return null;
         }
     }
 }

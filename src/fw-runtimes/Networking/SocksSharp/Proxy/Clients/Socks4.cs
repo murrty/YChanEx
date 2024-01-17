@@ -38,11 +38,11 @@ public class Socks4 : IProxy {
     /// <param name="destinationPort">Port</param>
     /// <param name="client">Connection with proxy server.</param>
     /// <returns>Connection to destination host</returns>
-    /// <exception cref="System.ArgumentException">Value of <paramref name="destinationHost"/> is <see langword="null"/> or empty.</exception>
-    /// <exception cref="System.ArgumentOutOfRangeException">Value of <paramref name="destinationPort"/> less than 1 or greater than 65535.</exception>
+    /// <exception cref="ArgumentException">Value of <paramref name="destinationHost"/> is <see langword="null"/> or empty.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Value of <paramref name="destinationPort"/> less than 1 or greater than 65535.</exception>
     /// <exception cref="ProxyException">Error while working with proxy.</exception>
     public TcpClient CreateConnection(string destinationHost, int destinationPort, TcpClient client) {
-        if (String.IsNullOrEmpty(destinationHost)) {
+        if (string.IsNullOrEmpty(destinationHost)) {
             throw new ArgumentException(nameof(destinationHost));
         }
 
@@ -59,11 +59,9 @@ public class Socks4 : IProxy {
         }
         catch (Exception ex) {
             client.Close();
-
             if (ex is IOException || ex is SocketException) {
                 throw new ProxyException("Error while working with proxy", ex);
             }
-
             throw;
         }
 
@@ -71,14 +69,13 @@ public class Socks4 : IProxy {
     }
 
     #region Methods (protected)
-
     internal protected virtual void SendCommand(NetworkStream nStream, byte command, string destinationHost, int destinationPort) {
         var dstIp = HostHelper.GetIPAddressBytes(destinationHost);
         var dstPort = HostHelper.GetPortBytes(destinationPort);
 
         byte[] userId = [];
         if (Settings.Credentials != null) {
-            if (!String.IsNullOrEmpty(Settings.Credentials.UserName)) {
+            if (!string.IsNullOrEmpty(Settings.Credentials.UserName)) {
                 userId = Encoding.ASCII.GetBytes(Settings.Credentials.UserName);
             }
         }
@@ -122,7 +119,6 @@ public class Socks4 : IProxy {
         };
         throw new ProxyException(errorMessage);
     }
-
     #endregion
 }
 

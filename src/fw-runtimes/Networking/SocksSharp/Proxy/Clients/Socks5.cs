@@ -37,11 +37,11 @@ public class Socks5 : IProxy {
     /// <param name="destinationPort">Port</param>
     /// <param name="client">Connection with proxy server.</param>
     /// <returns>Connection to destination host</returns>
-    /// <exception cref="System.ArgumentException">Value of <paramref name="destinationHost"/> is <see langword="null"/> or empty.</exception>
-    /// <exception cref="System.ArgumentOutOfRangeException">Value of <paramref name="destinationPort"/> less than 1 or greater than 65535.</exception>
+    /// <exception cref="ArgumentException">Value of <paramref name="destinationHost"/> is <see langword="null"/> or empty.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Value of <paramref name="destinationPort"/> less than 1 or greater than 65535.</exception>
     /// <exception cref="ProxyException">Error while working with proxy.</exception>
     public TcpClient CreateConnection(string destinationHost, int destinationPort, TcpClient client) {
-        if (String.IsNullOrEmpty(destinationHost)) {
+        if (string.IsNullOrEmpty(destinationHost)) {
             throw new ArgumentException(nameof(destinationHost));
         }
 
@@ -55,17 +55,14 @@ public class Socks5 : IProxy {
 
         try {
             NetworkStream nStream = client.GetStream();
-
             InitialNegotiation(nStream);
             SendCommand(nStream, CommandConnect, destinationHost, destinationPort);
         }
         catch (Exception ex) {
             client.Close();
-
             if (ex is IOException || ex is SocketException) {
                 throw new ProxyException("Error while working with proxy", ex);
             }
-
             throw;
         }
 
@@ -73,7 +70,6 @@ public class Socks5 : IProxy {
     }
 
     #region Methods (private)
-
     private void InitialNegotiation(NetworkStream nStream) {
         byte authMethod;
 
@@ -117,10 +113,10 @@ public class Socks5 : IProxy {
     }
 
     private void SendUsernameAndPassword(NetworkStream nStream) {
-        byte[] uname = String.IsNullOrEmpty(Settings.Credentials.UserName)
+        byte[] uname = string.IsNullOrEmpty(Settings.Credentials.UserName)
             ? [] : Encoding.ASCII.GetBytes(Settings.Credentials.UserName);
 
-        byte[] passwd = String.IsNullOrEmpty(Settings.Credentials.Password)
+        byte[] passwd = string.IsNullOrEmpty(Settings.Credentials.Password)
             ? [] : Encoding.ASCII.GetBytes(Settings.Credentials.Password);
 
         // +----+------+----------+------+----------+
@@ -204,7 +200,7 @@ public class Socks5 : IProxy {
 
             default:
                 return 0;
-                throw new ProxyException(String.Format("Not supported address type {0}", host));
+                throw new ProxyException(string.Format("Not supported address type {0}", host));
         }
     }
 
@@ -223,7 +219,6 @@ public class Socks5 : IProxy {
         };
         throw new ProxyException(errorMessage);
     }
-
     #endregion
 }
 

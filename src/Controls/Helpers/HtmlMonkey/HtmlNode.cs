@@ -5,7 +5,6 @@ namespace SoftCircuits.HtmlMonkey;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Net;
 using System.Text;
 /// <summary>
 /// Abstract base class for all HTML nodes.
@@ -34,6 +33,18 @@ public abstract class HtmlNode {
     /// </summary>
     [MemberNotNullWhen(false, nameof(ParentNode))]
     public bool IsTopLevelNode => ParentNode == null;
+
+    /// <summary>
+    /// Whether the <see cref="Text"/> value should use <see cref="System.Net.WebUtility"/> to encode or decode HTML.
+    /// </summary>
+    public bool UseWebUtility {
+        get {
+            return HtmlUtility.UseWebUtility;
+        }
+        set {
+            HtmlUtility.UseWebUtility = value;
+        }
+    }
 
     /// <summary>
     /// Gets this node's markup, excluding the outer HTML tags.
@@ -290,18 +301,21 @@ public partial class HtmlElementNode : HtmlNode {
     /// </summary>
     public override string Text {
         get {
-            if (!Children.Any())
+            if (!Children.Any()) {
                 return string.Empty;
+            }
             StringBuilder builder = new();
-            foreach (var node in Children)
+            foreach (var node in Children) {
                 builder.Append(node.Text);
+            }
             return builder.ToString();
         }
         set {
             // Replaces all existing content
             Children.Clear();
-            if (!string.IsNullOrEmpty(value))
+            if (!string.IsNullOrEmpty(value)) {
                 Children.Add(new HtmlTextNode() { Text = value });
+            }
         }
     }
 
@@ -345,8 +359,15 @@ public class HtmlTextNode : HtmlNode {
     /// and decodes text values.
     /// </summary>
     public override string Text {
-        get => WebUtility.HtmlDecode(Content);
-        set => Content = WebUtility.HtmlEncode(value);
+        get => HtmlUtility.Decode(Content);
+        set => Content = HtmlUtility.Encode(value);
+    }
+
+    /// <summary>
+    /// Gets the encoded text for this node.
+    /// </summary>
+    public string EncodedText {
+        get => Content;
     }
 
     /// <summary>

@@ -5,31 +5,34 @@
 // More projects: https://zzzprojects.com/
 // Copyright © ZZZ Projects Inc. All rights reserved.
 #nullable enable
-namespace YChanEx;
+namespace SoftCircuits.HtmlMonkey;
 using System.Globalization;
 using System.Text;
 /// <summary>
 /// A utility class to replace special characters by entities and vice-versa.
-/// Follows HTML 4.0 specification found at http://www.w3.org/TR/html4/sgml/entities.html
-/// Follows Additional specification found at https://en.wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references
-/// See also: https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references
+/// Follows HTML 4.0 specification found at <see href="http://www.w3.org/TR/html4/sgml/entities.html"/>.<para/>
+/// Follows Additional specification found at <see href="https://en.wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references"/><para/>
+/// See also: <see href="https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references"/><para/>
+/// This is directly copied from HtmlAgilityPack by ZZZ Projects (Licensed under MIT) and modified to be more simple to understand.
 /// </summary>
-internal static class HtmlUtility {
+public static class HtmlUtility {
     #region Static Members
-
     private static readonly int _maxEntitySize;
 
+    /// <summary>
+    /// Whether to use <see cref="System.Net.WebUtility"/> instead of this class for decoding and encoding.
+    /// </summary>
     public static bool UseWebUtility { get; set; }
 
     /// <summary>
     /// A collection of entities indexed by name.
     /// </summary>
-    public static Dictionary<int, string> EntityName { get; }
+    private static Dictionary<int, string> EntityName;
 
     /// <summary>
     /// A collection of entities indexed by value.
     /// </summary>
-    public static Dictionary<string, int> EntityValue { get; }
+    private static Dictionary<string, int> EntityValue;
     #endregion
 
     #region Constructors
@@ -564,9 +567,13 @@ internal static class HtmlUtility {
     /// </summary>
     /// <param name="text">The source text.</param>
     /// <returns>The result text.</returns>
-    public static string DeEntitize(string text) {
+    public static string Decode(string text) {
         if (string.IsNullOrWhiteSpace(text)) {
             return string.Empty;
+        }
+
+        if (UseWebUtility) {
+            return System.Net.WebUtility.HtmlDecode(text);
         }
 
         StringBuilder sb = new(text.Length);
@@ -663,41 +670,13 @@ internal static class HtmlUtility {
         return sb.ToString();
     }
 
-#if TEST
-    /// <summary>
-    /// Clone and entitize an HtmlNode. This will affect attribute values and nodes' text. It will also entitize all child nodes.
-    /// </summary>
-    /// <param name="node">The node to entitize.</param>
-    /// <returns>An entitized cloned node.</returns>
-    public static HtmlNode Entitize(HtmlNode node) {
-        if (node == null) {
-            throw new ArgumentNullException("node");
-        }
-
-        HtmlNode result = node.CloneNode(true);
-        if (result.HasAttributes)
-            Entitize(result.Attributes);
-
-        if (result.HasChildNodes) {
-            Entitize(result.ChildNodes);
-        }
-        else {
-            if (result.NodeType == HtmlNodeType.Text) {
-                ((HtmlTextNode)result).Text = Entitize(((HtmlTextNode)result).Text, true, true);
-            }
-        }
-
-        return result;
-    }
-#endif
-
     /// <summary>
     /// Replace characters above 127 by entities.
     /// </summary>
     /// <param name="text">The source text.</param>
     /// <returns>The result text.</returns>
-    public static string Entitize(string text) {
-        return Entitize(text, true);
+    public static string Encode(string text) {
+        return Encode(text, true);
     }
 
     /// <summary>
@@ -706,8 +685,8 @@ internal static class HtmlUtility {
     /// <param name="text">The source text.</param>
     /// <param name="useNames">If set to false, the function will not use known entities name. Default is true.</param>
     /// <returns>The result text.</returns>
-    public static string Entitize(string text, bool useNames) {
-        return Entitize(text, useNames, false);
+    public static string Encode(string text, bool useNames) {
+        return Encode(text, useNames, false);
     }
 
     /// <summary>
@@ -717,7 +696,7 @@ internal static class HtmlUtility {
     /// <param name="useNames">If set to false, the function will not use known entities name. Default is true.</param>
     /// <param name="entitizeQuotAmpAndLtGt">If set to true, the [quote], [ampersand], [lower than] and [greather than] characters will be entitized.</param>
     /// <returns>The result text</returns>
-    public static string Entitize(string text, bool useNames, bool entitizeQuotAmpAndLtGt) {
+    public static string Encode(string text, bool useNames, bool entitizeQuotAmpAndLtGt) {
         //        _entityValue.Add("quot", 34);    // quotation mark = APL quote, U+0022 ISOnum 
         //        _entityName.Add(34, "quot");
         //        _entityValue.Add("amp", 38);    // ampersand, U+0026 ISOnum 
@@ -764,36 +743,15 @@ internal static class HtmlUtility {
 
         return sb.ToString();
     }
-    #endregion
 
-    #region Private Methods
-#if TEST
-    private static void Entitize(HtmlAttributeCollection collection) {
-        foreach (HtmlAttribute at in collection) {
-            if (at.Value == null) {
-                continue;
-            }
-
-            at.Value = Entitize(at.Value);
-        }
+    /// <summary>
+    /// Replaces known Html character codes with their proper values from a <see cref="HtmlNode"/>s text node.
+    /// </summary>
+    /// <param name="node">The source node.</param>
+    /// <returns>The decoded text.</returns>
+    public static string Decode(HtmlNode node) {
+        return Decode(node.Text);
     }
-
-    private static void Entitize(HtmlNodeCollection collection) {
-        foreach (HtmlNode node in collection) {
-            if (node.HasAttributes)
-                Entitize(node.Attributes);
-
-            if (node.HasChildNodes) {
-                Entitize(node.ChildNodes);
-            }
-            else {
-                if (node.NodeType == HtmlNodeType.Text) {
-                    ((HtmlTextNode)node).Text = Entitize(((HtmlTextNode)node).Text, true, true);
-                }
-            }
-        }
-    }
-#endif
     #endregion
 
     #region Nested type: ParseState

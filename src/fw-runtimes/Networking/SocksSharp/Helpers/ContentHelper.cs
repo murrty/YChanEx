@@ -2,8 +2,7 @@
 internal static class ContentHelper {
     public static bool IsContentHeader(string name) {
         //https://github.com/dotnet/corefx/blob/3e72ee5971db5d0bd46606fa672969adde29e307/src/System.Net.Http/src/System/Net/Http/Headers/KnownHeaders.cs
-        var contentHeaders = new[]
-        {
+        string[] contentHeaders = [
             "Last-Modified",
             "Expires",
             "Content-Type",
@@ -14,10 +13,11 @@ internal static class ContentHelper {
             "Content-Language",
             "Content-Encoding",
             "Allow"
-        };
+        ];
 
         bool isContent = false;
-        foreach (var header in contentHeaders) {
+        for (int i = 0; i < contentHeaders.Length; i++) {
+            string header = contentHeaders[i];
             isContent = isContent || header.Equals(name, StringComparison.OrdinalIgnoreCase);
         }
 

@@ -32,7 +32,6 @@ public class ProxySettings : IProxySettings, IProxySettingsFluent {
     public int ReadWriteTimeOut { get; set; } = 10000;
 
     #region Fluent
-
     /// <summary>
     /// Sets the credentials to submit to the proxy server for authentication
     /// </summary>
@@ -95,7 +94,6 @@ public class ProxySettings : IProxySettings, IProxySettingsFluent {
         ConnectTimeout = connectionTimeout;
         return this;
     }
-
     #endregion
 
     /// <summary>
@@ -121,7 +119,7 @@ public class ProxySettings : IProxySettings, IProxySettingsFluent {
         proxySettings = null;
 
         #region Parse Address
-        if (String.IsNullOrEmpty(proxy)) {
+        if (string.IsNullOrEmpty(proxy)) {
             return false;
         }
 
@@ -130,16 +128,14 @@ public class ProxySettings : IProxySettings, IProxySettingsFluent {
         int port = 1080;
         string host = values[0];
 
-        if (values.Length >= 2) {
-            if (!int.TryParse(values[1], out port)) {
-                return false;
-            }
+        if (values.Length >= 2 && !int.TryParse(values[1], out port)) {
+            return false;
         }
         #endregion
 
         #region Parse Credential
         string username;
-        string password = String.Empty;
+        string password = string.Empty;
 
         if (values.Length >= 3) {
             credential = new NetworkCredential();
@@ -150,15 +146,14 @@ public class ProxySettings : IProxySettings, IProxySettingsFluent {
                 password = values[3];
             }
 
-            if (!String.IsNullOrEmpty(username)) {
+            if (!string.IsNullOrEmpty(username)) {
                 credential.UserName = username;
             }
 
-            if (!String.IsNullOrEmpty(password)) {
+            if (!string.IsNullOrEmpty(password)) {
                 credential.Password = password;
             }
         }
-
         #endregion
 
         proxySettings = new() {

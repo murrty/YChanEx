@@ -43,21 +43,21 @@ internal class RequestBuilder {
         List<string> headersList = [];
 
         foreach (var header in headers) {
-            string headerKeyAndValue = String.Empty;
+            string headerKeyAndValue = string.Empty;
 
             if (header.Value is string[] values && values.Length < 2) {
-                if (values.Length > 0 && !String.IsNullOrEmpty(values[0])) {
+                if (values.Length > 0 && !string.IsNullOrEmpty(values[0])) {
                     headerKeyAndValue = header.Key + ": " + values[0];
                 }
             }
             else {
                 string headerValue = headers.GetHeaderString(header.Key);
-                if (!String.IsNullOrEmpty(headerValue)) {
+                if (!string.IsNullOrEmpty(headerValue)) {
                     headerKeyAndValue = header.Key + ": " + headerValue;
                 }
             }
 
-            if (!String.IsNullOrEmpty(headerKeyAndValue)) {
+            if (!string.IsNullOrEmpty(headerKeyAndValue)) {
                 headersList.Add(headerKeyAndValue);
             }
         }
@@ -82,7 +82,7 @@ internal class RequestBuilder {
             }
         }
 
-        return String.Join("\r\n", [.. headersList]);
+        return string.Join("\r\n", [.. headersList]);
     }
 
     private byte[] ToByteArray(string data) {

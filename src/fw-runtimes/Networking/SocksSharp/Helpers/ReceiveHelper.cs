@@ -24,7 +24,6 @@ using System.IO;
 using System.Text;
 internal sealed class ReceiveHelper {
     #region Fields
-
     private const int InitialLineSize = 1000;
 
     private Stream stream;
@@ -34,36 +33,31 @@ internal sealed class ReceiveHelper {
 
     private int linePosition;
     private byte[] lineBuffer = new byte[InitialLineSize];
-
     #endregion
 
     #region Properties
-
     public bool HasData {
         get {
-            return (Length - Position) != 0;
+            return (this.Length - this.Position) != 0;
         }
     }
 
     public int Length { get; private set; }
 
     public int Position { get; private set; }
-
     #endregion
 
     public ReceiveHelper(int bufferSize) {
         this.bufferSize = bufferSize;
-        buffer = new byte[bufferSize];
+        this.buffer = new byte[bufferSize];
     }
 
     #region Methods
-
     public void Init(Stream stream) {
         this.stream = stream;
-        linePosition = 0;
-
-        Length = 0;
-        Position = 0;
+        this.linePosition = 0;
+        this.Length = 0;
+        this.Position = 0;
     }
 
     public string ReadLine() {
@@ -73,26 +67,23 @@ internal sealed class ReceiveHelper {
             if (Position == Length) {
                 Position = 0;
                 Length = stream.Read(buffer, 0, bufferSize);
-
                 if (Length == 0) {
                     break;
                 }
             }
 
             byte b = buffer[Position++];
-
             lineBuffer[linePosition++] = b;
 
-            // Если считан символ '\n'.
+            // If a character is considered '\n' | Если считан символ '\n'.
             if (b == 10) {
                 break;
             }
 
-            // Если достигнут максимальный предел размера буфера линии.
+            // If the maximum line buffer size limit is reached | Если достигнут максимальный предел размера буфера линии.
             if (linePosition == lineBuffer.Length) {
-                // Увеличиваем размер буфера линии в два раза.
+                // Double the line buffer size | Увеличиваем размер буфера линии в два раза.
                 byte[] newLineBuffer = new byte[lineBuffer.Length * 2];
-
                 lineBuffer.CopyTo(newLineBuffer, 0);
                 lineBuffer = newLineBuffer;
             }
@@ -109,11 +100,8 @@ internal sealed class ReceiveHelper {
         }
 
         Array.Copy(this.buffer, Position, buffer, index, curLength);
-
         Position += curLength;
-
         return curLength;
     }
-
     #endregion
 }

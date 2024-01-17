@@ -26,6 +26,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\WordTransformType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Extensions\HttpHeadersExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Extensions\StringExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Handlers\Socks4aClientHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Handlers\Socks4ClientHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Handlers\Socks5ClientHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Helpers\ContentHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Helpers\ExceptionHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Helpers\HostHelper.cs" />
@@ -44,9 +47,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Proxy\Request\RequestBuilder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Proxy\Response\IResponseBuilder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Proxy\Response\ResponseBuilder.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Socks4aProxyClientHandler.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Socks4ProxyClientHandler.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Socks5ProxyClientHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)System\Diagnostics\CodeAnalysis\AllowNullAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)System\Diagnostics\CodeAnalysis\DisallowNullAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)System\Diagnostics\CodeAnalysis\DoesNotReturnAttribute.cs" />

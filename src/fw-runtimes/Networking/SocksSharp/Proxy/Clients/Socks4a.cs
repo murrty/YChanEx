@@ -30,10 +30,8 @@ public class Socks4a : Socks4 {
         byte[] dstIp = [ 0, 0, 0, 1 ];
 
         byte[] userId = [];
-        if (Settings.Credentials != null) {
-            if (!String.IsNullOrEmpty(Settings.Credentials.UserName)) {
-                userId = Encoding.ASCII.GetBytes(Settings.Credentials.UserName);
-            }
+        if (Settings.Credentials != null && !string.IsNullOrEmpty(Settings.Credentials.UserName)) {
+            userId = Encoding.ASCII.GetBytes(Settings.Credentials.UserName);
         }
 
         byte[] dstAddr = Encoding.ASCII.GetBytes(destinationHost);
@@ -65,7 +63,7 @@ public class Socks4a : Socks4 {
 
         byte reply = response[1];
 
-        // Если запрос не выполнен.
+        // If the request is not fulfilled | Если запрос не выполнен.
         if (reply != CommandReplyRequestGranted) {
             HandleCommandError(reply);
         }

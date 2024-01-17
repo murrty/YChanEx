@@ -27,36 +27,32 @@ internal static class StringExtensions {
             return string.Empty;
         }
 
-        #region Проверка параметров
-
-        if (String.IsNullOrEmpty(left)) {
+        #region Checking parameters | Проверка параметров
+        if (string.IsNullOrEmpty(left)) {
             throw new ArgumentException("Value cannot be null or empty", nameof(left));
         }
 
-        //if (startIndex < 0)
-        //{
+        //if (startIndex < 0) {
         //    throw new ArgumentException("Value cannot be less than zero", nameof(left));
         //}
 
-        //if (startIndex >= str.Length)
-        //{
+        //if (startIndex >= str.Length) {
         //    throw new ArgumentOutOfRangeException("startIndex",
         //        Resources.ArgumentOutOfRangeException_StringHelper_MoreLengthString);
         //}
-
         #endregion
 
-        // Ищем начало позиции левой подстроки.
+        // We are looking for the beginning of the position of the left substring | Ищем начало позиции левой подстроки.
         int leftPosBegin = str.IndexOf(left, startIndex, comparsion);
 
         if (leftPosBegin == -1) {
             return string.Empty;
         }
 
-        // Вычисляем конец позиции левой подстроки.
+        // Calculate the end of the position of the left substring | Вычисляем конец позиции левой подстроки.
         int leftPosEnd = leftPosBegin + left.Length;
 
-        // Вычисляем длину найденной подстроки.
+        // Calculate the length of the found substring | Вычисляем длину найденной подстроки.
         int length = str.Length - leftPosEnd;
 
         return str.Substring(leftPosEnd, length);
@@ -73,14 +69,12 @@ internal static class StringExtensions {
             return string.Empty;
         }
 
-        #region Проверка параметров
-
+        #region Checking parameters | Проверка параметров
         if (left == null) {
             throw new ArgumentNullException(nameof(left));
         }
 
-        //if (left.Length == 0)
-        //{
+        //if (left.Length == 0) {
         //    throw ExceptionHelper.EmptyString("left");
         //}
 
@@ -88,32 +82,28 @@ internal static class StringExtensions {
             throw new ArgumentNullException(nameof(right));
         }
 
-        //if (right.Length == 0)
-        //{
+        //if (right.Length == 0) {
         //    throw ExceptionHelper.EmptyString("right");
         //}
 
-        //if (startIndex < 0)
-        //{
+        //if (startIndex < 0) {
         //    throw ExceptionHelper.CanNotBeLess("startIndex", 0);
         //}
 
-        //if (startIndex >= str.Length)
-        //{
+        //if (startIndex >= str.Length) {
         //    throw new ArgumentOutOfRangeException("startIndex",
         //        Resources.ArgumentOutOfRangeException_StringHelper_MoreLengthString);
         //}
-
         #endregion
 
-        // Ищем начало позиции левой подстроки.
+        // We are looking for the beginning of the position of the left substring | Ищем начало позиции левой подстроки.
         int leftPosBegin = str.IndexOf(left, startIndex, comparsion);
 
         if (leftPosBegin == -1) {
             return string.Empty;
         }
 
-        // Вычисляем конец позиции левой подстроки.
+        // Calculate the end of the position of the left substring | Вычисляем конец позиции левой подстроки.
         int leftPosEnd = leftPosBegin + left.Length;
 
         // Ищем начало позиции правой подстроки.
@@ -123,7 +113,7 @@ internal static class StringExtensions {
             return string.Empty;
         }
 
-        // Вычисляем длину найденной подстроки.
+        // Calculate the length of the found substring | Вычисляем длину найденной подстроки.
         int length = rightPos - leftPosEnd;
 
         return str.Substring(leftPosEnd, length);
@@ -140,7 +130,7 @@ internal static class StringExtensions {
             return string.Empty;
         }
 
-        #region Проверка параметров
+        #region Checking parameters | Проверка параметров
 
         if (left == null) {
             throw new ArgumentNullException(nameof(left));
@@ -164,17 +154,17 @@ internal static class StringExtensions {
 
         #endregion
 
-        // Ищем начало позиции левой подстроки.
+        // We are looking for the beginning of the position of the left substring | Ищем начало позиции левой подстроки.
         int leftPosBegin = str.LastIndexOf(left, startIndex, comparsion);
 
         if (leftPosBegin == -1) {
             return string.Empty;
         }
 
-        // Вычисляем конец позиции левой подстроки.
+        // Calculate the end of the position of the left substring | Вычисляем конец позиции левой подстроки.
         int leftPosEnd = leftPosBegin + left.Length;
 
-        // Вычисляем длину найденной подстроки.
+        // Calculate the length of the found substring | Вычисляем длину найденной подстроки.
         int length = str.Length - leftPosEnd;
 
         return str.Substring(leftPosEnd, length);
@@ -195,8 +185,7 @@ internal static class StringExtensions {
             return string.Empty;
         }
 
-        #region Проверка параметров
-
+        #region Checking parameters | Проверка параметров
         if (left == null) {
             throw new ArgumentNullException(nameof(left));
         }
@@ -209,32 +198,28 @@ internal static class StringExtensions {
             throw new ArgumentNullException(nameof(right));
         }
 
-        //if (right.Length == 0)
-        //{
+        //if (right.Length == 0) {
         //    throw ExceptionHelper.EmptyString("right");
         //}
 
-        //if (startIndex < 0)
-        //{
+        //if (startIndex < 0) {
         //    throw ExceptionHelper.CanNotBeLess("startIndex", 0);
         //}
 
-        //if (startIndex >= str.Length)
-        //{
+        //if (startIndex >= str.Length) {
         //    throw new ArgumentOutOfRangeException("startIndex",
         //        Resources.ArgumentOutOfRangeException_StringHelper_MoreLengthString);
         //}
-
         #endregion
 
-        // Ищем начало позиции левой подстроки.
+        // We are looking for the beginning of the position of the left substring | Ищем начало позиции левой подстроки.
         int leftPosBegin = str.LastIndexOf(left, startIndex, comparsion);
 
         if (leftPosBegin == -1) {
             return string.Empty;
         }
 
-        // Вычисляем конец позиции левой подстроки.
+        // Calculate the end of the position of the left substring | Вычисляем конец позиции левой подстроки.
         int leftPosEnd = leftPosBegin + left.Length;
 
         // Ищем начало позиции правой подстроки.
@@ -249,7 +234,7 @@ internal static class StringExtensions {
             }
         }
 
-        // Вычисляем длину найденной подстроки.
+        // Calculate the length of the found substring | Вычисляем длину найденной подстроки.
         int length = rightPos - leftPosEnd;
 
         return str.Substring(leftPosEnd, length);
@@ -270,62 +255,60 @@ internal static class StringExtensions {
             return new string[0];
         }
 
-        #region Проверка параметров
-
+        #region Checking parameters | Проверка параметров
         if (left == null) {
             throw new ArgumentNullException(nameof(left));
         }
 
-        if (left.Length == 0) {
-            //throw ExceptionHelper.EmptyString("left");
-        }
+        //if (left.Length == 0) {
+        //    throw ExceptionHelper.EmptyString("left");
+        //}
 
         if (right == null) {
             throw new ArgumentNullException(nameof(right));
         }
 
-        if (right.Length == 0) {
-            // throw ExceptionHelper.EmptyString("right");
-        }
+        //if (right.Length == 0) {
+        //    throw ExceptionHelper.EmptyString("right");
+        //}
 
-        if (startIndex < 0) {
-            // throw ExceptionHelper.CanNotBeLess("startIndex", 0);
-        }
+        //if (startIndex < 0) {
+        //    throw ExceptionHelper.CanNotBeLess("startIndex", 0);
+        //}
 
-        if (startIndex >= str.Length) {
-            //throw new ArgumentOutOfRangeException("startIndex",
-            //Resources.ArgumentOutOfRangeException_StringHelper_MoreLengthString);
-        }
-
+        //if (startIndex >= str.Length) {
+        //    throw new ArgumentOutOfRangeException("startIndex",
+        //    Resources.ArgumentOutOfRangeException_StringHelper_MoreLengthString);
+        //}
         #endregion
 
         int currentStartIndex = startIndex;
         List<string> strings = [];
 
         while (true) {
-            // Ищем начало позиции левой подстроки.
+            // We are looking for the beginning of the position of the left substring | Ищем начало позиции левой подстроки.
             int leftPosBegin = str.IndexOf(left, currentStartIndex, comparsion);
 
             if (leftPosBegin == -1) {
                 break;
             }
 
-            // Вычисляем конец позиции левой подстроки.
+            // Calculate the end of the position of the left substring | Вычисляем конец позиции левой подстроки.
             int leftPosEnd = leftPosBegin + left.Length;
 
-            // Ищем начало позиции правой строки.
+            // We are looking for the beginning of the position of the right line | Ищем начало позиции правой строки.
             int rightPos = str.IndexOf(right, leftPosEnd, comparsion);
 
             if (rightPos == -1) {
                 break;
             }
 
-            // Вычисляем длину найденной подстроки.
+            // Calculate the length of the found substring | Вычисляем длину найденной подстроки.
             int length = rightPos - leftPosEnd;
 
             strings.Add(str.Substring(leftPosEnd, length));
 
-            // Вычисляем конец позиции правой подстроки.
+            // Calculate the end of the position of the right substring | Вычисляем конец позиции правой подстроки.
             currentStartIndex = rightPos + right.Length;
         }
 

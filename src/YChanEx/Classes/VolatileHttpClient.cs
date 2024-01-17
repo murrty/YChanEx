@@ -34,9 +34,9 @@ internal sealed class VolatileHttpClient : HttpClient {
     private readonly int _timeout;
     public readonly HttpMessageHandler SetHandler;
     private readonly HttpClientHandler? _htc;
-    private readonly Socks4ProxyClientHandler? _s4ch;
-    private readonly Socks4aProxyClientHandler? _s4ach;
-    private readonly Socks5ProxyClientHandler? _s5ch;
+    private readonly Socks4ClientHandler? _s4ch;
+    private readonly Socks4aClientHandler? _s4ach;
+    private readonly Socks5ClientHandler? _s5ch;
 
     public VolatileHttpClient(HttpMessageHandler NewHandler) : base(NewHandler) {
         this.SetHandler = NewHandler;
@@ -44,13 +44,13 @@ internal sealed class VolatileHttpClient : HttpClient {
         if (SetHandler is HttpClientHandler htc) {
             _htc = htc;
         }
-        else if (SetHandler is Socks4ProxyClientHandler s4ch) {
+        else if (SetHandler is Socks4ClientHandler s4ch) {
             _s4ch = s4ch;
         }
-        else if (SetHandler is Socks4aProxyClientHandler s4ach) {
+        else if (SetHandler is Socks4aClientHandler s4ach) {
             _s4ach = s4ach;
         }
-        else if (SetHandler is Socks5ProxyClientHandler s5ch) {
+        else if (SetHandler is Socks5ClientHandler s5ch) {
             _s5ch = s5ch;
         }
 

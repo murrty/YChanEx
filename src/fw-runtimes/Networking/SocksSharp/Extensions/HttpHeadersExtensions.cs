@@ -6,17 +6,15 @@ internal static class HttpHeadersExtensions {
             throw new ArgumentNullException(nameof(headers));
         }
 
-        if (String.IsNullOrEmpty(key)) {
+        if (string.IsNullOrEmpty(key)) {
             throw new ArgumentNullException(nameof(key));
         }
 
-        string value = String.Empty;
-
-        headers.TryGetValues(key, out IEnumerable<string> values);
+        string value = string.Empty;
         string separator = key.Equals("User-Agent") ? " " : ", ";
 
-        if (values?.Count() > 1) {
-            value = String.Join(separator, values.ToArray());
+        if (headers.TryGetValues(key, out IEnumerable<string> values) && values.Count() > 1) {
+            value = string.Join(separator, values.ToArray());
         }
 
         return value;

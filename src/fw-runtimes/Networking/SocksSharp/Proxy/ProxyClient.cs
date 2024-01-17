@@ -1,8 +1,6 @@
 ﻿namespace SocksSharp.Proxy;
 using System.Net.Sockets;
 using System.Security;
-using System.Threading;
-
 /// <summary>
 /// Represents Proxy Client to <see cref="ProxyClientHandler{T}"/>
 /// </summary>
@@ -40,7 +38,6 @@ public class ProxyClient<T> : IProxyClient<T> where T : IProxy {
         client.Settings = Settings;
 
         #region Create Connection
-
         tcpClient = new TcpClient();
         Exception connectException = null;
         var connectDoneEvent = new ManualResetEventSlim();
@@ -91,7 +88,6 @@ public class ProxyClient<T> : IProxyClient<T> where T : IProxy {
             tcpClient.Close();
             throw new ProxyException("Failed to connect to proxy-server");
         }
-
         #endregion
 
         tcpClient.SendTimeout = Settings.ReadWriteTimeOut;

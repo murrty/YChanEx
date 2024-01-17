@@ -36,18 +36,17 @@ internal class ResponseBuilder : IResponseBuilder {
         public int Length { get; set; }
         public byte[] Value { get; set; }
     }
-
     private sealed class ZipWraperStream : Stream {
-        #region Поля (закрытые)
+        #region Fields (closed) | Поля (закрытые)
         private readonly Stream _baseStream;
         private readonly ReceiveHelper _receiverHelper;
         #endregion
 
-        #region Свойства (открытые)
+        #region Properties (public) | Свойства (открытые)
         public int BytesRead { get; private set; }
         public int TotalBytesRead { get; set; }
         public int LimitBytesRead { get; set; }
-        #region Переопределённые
+        #region Overridden | Переопределённые
         public override bool CanRead {
             get {
                 return _baseStream.CanRead;
@@ -89,7 +88,7 @@ internal class ResponseBuilder : IResponseBuilder {
             _receiverHelper = receiverHelper;
         }
 
-        #region Методы (открытые)
+        #region Methods (open) | Методы (открытые)
         public override void Flush() {
             _baseStream.Flush();
         }
@@ -193,15 +192,13 @@ internal class ResponseBuilder : IResponseBuilder {
 
         response.RequestMessage = request;
 
-        var task = Task.Run(() => {
+        return Task.Run(() => {
             ReceiveStartingLine();
             ReceiveHeaders();
             ReceiveContent();
 
             return response;
         });
-
-        return task;
     }
 
     private void ReceiveStartingLine() {
@@ -224,7 +221,7 @@ internal class ResponseBuilder : IResponseBuilder {
         string version = startingLine.Substring("HTTP/", " ");
         string statusCode = startingLine.Substring(" ", " ");
         if (statusCode.Length == 0) {
-            // Если сервер не возвращает Reason Phrase
+            // If the server does not return Reason Phrase | Если сервер не возвращает Reason Phrase
             statusCode = startingLine.Substring(" ", newLine);
         }
         if (version.Length == 0 || statusCode.Length == 0) {
@@ -244,11 +241,11 @@ internal class ResponseBuilder : IResponseBuilder {
             }
 
             int separatorPos = header.IndexOf(':');
-            if (separatorPos == -1) {
-                //string message = string.Format(
-                //Resources.HttpException_WrongHeader, header, Address.Host);
-                //throw NewHttpException(message);
-            }
+            //if (separatorPos == -1) {
+            //    string message = string.Format(
+            //    Resources.HttpException_WrongHeader, header, Address.Host);
+            //    throw NewHttpException(message);
+            //}
             string headerName = header[..separatorPos];
             string headerValue = header[(separatorPos + 1)..].Trim(' ', '\t', '\r', '\n');
 
@@ -287,19 +284,19 @@ internal class ResponseBuilder : IResponseBuilder {
             var memoryStream = new MemoryStream(
                 (contentLength == -1) ? 0 : contentLength);
 
-            try {
-                IEnumerable<BytesWraper> source = GetMessageBodySource();
-                foreach (var bytes in source) {
-                    memoryStream.Write(bytes.Value, 0, bytes.Length);
-                    cancellationToken.ThrowIfCancellationRequested();
-                }
+            //try {
+            IEnumerable<BytesWraper> source = GetMessageBodySource();
+            foreach (var bytes in source) {
+                memoryStream.Write(bytes.Value, 0, bytes.Length);
+                cancellationToken.ThrowIfCancellationRequested();
             }
-            catch (Exception ex) {
-                if (ex is IOException || ex is InvalidOperationException) {
-                    //throw NewHttpException(Resources.HttpException_FailedReceiveMessageBody, ex);
-                }
-                throw;
-            }
+            //}
+            //catch (Exception ex) {
+            //    if (ex is IOException || ex is InvalidOperationException) {
+            //        throw NewHttpException(Resources.HttpException_FailedReceiveMessageBody, ex);
+            //    }
+            //    throw;
+            //}
 
             memoryStream.Seek(0, SeekOrigin.Begin);
             response.Content = new StreamContent(memoryStream);
@@ -314,10 +311,10 @@ internal class ResponseBuilder : IResponseBuilder {
             return;
         }
 
-        // Ищем позицию, где заканчивается куки и начинается описание его параметров.
+        // We are looking for the position where the cookie ends and the description of its parameters begins | Ищем позицию, где заканчивается куки и начинается описание его параметров.
         int endCookiePos = value.IndexOf(';');
 
-        // Ищем позицию между именем и значением куки.
+        // We are looking for the position between the name and value of the cookie | Ищем позицию между именем и значением куки.
         int separatorPos = value.IndexOf('=');
 
         if (separatorPos == -1) {
@@ -349,7 +346,7 @@ internal class ResponseBuilder : IResponseBuilder {
                     expiresStr = value[expiresPos..endExpiresPos];
                 }
 
-                // Если время куки вышло, то удаляем её.
+                // If the cookie's time has expired, we delete it | Если время куки вышло, то удаляем её.
                 if (DateTime.TryParse(expiresStr, out DateTime expires) &&
                     expires < DateTime.Now) {
                     var collection = cookies.GetCookies(uri);
@@ -361,7 +358,7 @@ internal class ResponseBuilder : IResponseBuilder {
             #endregion
         }
 
-        // Если куки нужно удалить.
+        // If cookies need to be deleted | Если куки нужно удалить.
         if (cookieValue.Length == 0 ||
             cookieValue.Equals("deleted", StringComparison.OrdinalIgnoreCase)) {
             var collection = cookies.GetCookies(uri);
@@ -383,7 +380,7 @@ internal class ResponseBuilder : IResponseBuilder {
     }
 
 #if ENABLE_AUTO_DECOMPRESSION
-    // Загрузка сжатых данных.
+    // Loading compressed data | Загрузка сжатых данных.
     private IEnumerable<BytesWraper> GetMessageBodySourceZip() {
         if (response.Headers.Contains("Transfer-Encoding")) {
             return ReceiveMessageBodyChunkedZip();
@@ -394,12 +391,11 @@ internal class ResponseBuilder : IResponseBuilder {
         }
 
         var streamWrapper = new ZipWraperStream(commonStream, receiveHelper);
-
         return ReceiveMessageBody(GetZipStream(streamWrapper));
     }
 #endif
 
-    // Загрузка обычных данных.
+    // Loading regular data | Загрузка обычных данных.
     private IEnumerable<BytesWraper> GetMessageBodySourceStd() {
         if (response.Headers.Contains("Transfer-Encoding")) {
             return ReceiveMessageBodyChunked();
@@ -413,7 +409,7 @@ internal class ResponseBuilder : IResponseBuilder {
 
     private int GetContentLength() {
         if (contentHeaders.TryGetValue("Content-Length", out List<string> values)) {
-            if (Int32.TryParse(values[0], out int length)) {
+            if (int.TryParse(values[0], out int length)) {
                 return length;
             }
         }
@@ -450,7 +446,7 @@ internal class ResponseBuilder : IResponseBuilder {
     }
 
     #region Receive Content (F*cking trash, but works (not sure (really)))
-    // Загрузка тела сообщения неизвестной длины.
+    // Loading message body of unknown length | Загрузка тела сообщения неизвестной длины.
     private IEnumerable<BytesWraper> ReceiveMessageBody(Stream stream) {
         var bytesWraper = new BytesWraper();
         byte[] buffer = new byte[this.bufferSize];
@@ -458,7 +454,7 @@ internal class ResponseBuilder : IResponseBuilder {
         int begBytesRead = 0;
 
 #if ENABLE_AUTO_DECOMPRESSION
-        // Считываем начальные данные из тела сообщения.
+        // Reading the initial data from the message body | Считываем начальные данные из тела сообщения.
         if (stream is GZipStream || stream is DeflateStream) {
             begBytesRead = stream.Read(buffer, 0, bufferSize);
         }
@@ -476,22 +472,22 @@ internal class ResponseBuilder : IResponseBuilder {
         }
 #endif
 
-    // Возвращаем начальные данные.
-    bytesWraper.Length = begBytesRead;
+        // Returning the initial data | Возвращаем начальные данные.
+        bytesWraper.Length = begBytesRead;
         yield return bytesWraper;
-        // Проверяем, есть ли открывающий тег '<html'.
-        // Если есть, то считываем данные то тех пор, пока не встретим закрывающий тек '</html>'.
+        // We check if there is an opening tag '<html' | Проверяем, есть ли открывающий тег '<html'.
+        // If there is, then we read the data until we encounter the closing text '</html>' | Если есть, то считываем данные то тех пор, пока не встретим закрывающий тек '</html>'.
         bool isHtml = FindSignature(buffer, begBytesRead, openHtmlSignature);
         if (isHtml) {
             bool found = FindSignature(buffer, begBytesRead, closeHtmlSignature);
-            // Проверяем, есть ли в начальных данных закрывающий тег.
+            // Checking if the initial data contains a closing tag | Проверяем, есть ли в начальных данных закрывающий тег.
             if (found) {
                 yield break;
             }
         }
         while (true) {
             int bytesRead = stream.Read(buffer, 0, bufferSize);
-            // Если тело сообщения представляет HTML.
+            // If the message body is HTML | Если тело сообщения представляет HTML.
             if (isHtml) {
                 if (bytesRead == 0) {
                     WaitData();
@@ -512,7 +508,7 @@ internal class ResponseBuilder : IResponseBuilder {
         }
     }
 
-    // Загрузка тела сообщения известной длины.
+    // Loading a message body of known length | Загрузка тела сообщения известной длины.
     private IEnumerable<BytesWraper> ReceiveMessageBody(int contentLength) {
         //Stream stream = _request.ClientStream;
         var bytesWraper = new BytesWraper();
@@ -539,7 +535,7 @@ internal class ResponseBuilder : IResponseBuilder {
         }
     }
 
-    // Загрузка тела сообщения частями.
+    // Loading the message body in parts | Загрузка тела сообщения частями.
     private IEnumerable<BytesWraper> ReceiveMessageBodyChunked() {
         //Stream stream = _request.ClientStream;
         var bytesWraper = new BytesWraper();
@@ -553,26 +549,26 @@ internal class ResponseBuilder : IResponseBuilder {
             }
 
             line = line.Trim(' ', '\r', '\n');
-            // Если достигнут конец тела сообщения.
+            // When the end of the message body is reached | Если достигнут конец тела сообщения.
             if (line?.Length == 0) {
                 yield break;
             }
 
             int blockLength;
             int totalBytesRead = 0;
-            #region Задаём длину блока
-            try {
+            #region Set the block length | Задаём длину блока
+            //try {
                 blockLength = Convert.ToInt32(line, 16);
-            }
-            catch (Exception ex) {
-                if (ex is FormatException || ex is OverflowException) {
-                    //throw NewHttpException(string.Format(
-                    //Resources.HttpException_WrongChunkedBlockLength, line), ex);
-                }
-                throw;
-            }
+            //}
+            //catch (Exception ex) {
+            //    if (ex is FormatException || ex is OverflowException) {
+            //        //throw NewHttpException(string.Format(
+            //       //Resources.HttpException_WrongChunkedBlockLength, line), ex);
+            //    }
+            //    throw;
+            //}
             #endregion
-            // Если достигнут конец тела сообщения.
+            // When the end of the message body is reached | Если достигнут конец тела сообщения.
             if (blockLength == 0) {
                 yield break;
             }
@@ -635,31 +631,31 @@ internal class ResponseBuilder : IResponseBuilder {
             bytesWraper.Value = buffer;
             while (true) {
                 string line = receiveHelper.ReadLine();
-                // Если достигнут конец блока.
+                // If the end of the block is reached | Если достигнут конец блока.
                 if (line == newLine) {
                     continue;
                 }
 
                 line = line.Trim(' ', '\r', '\n');
-                // Если достигнут конец тела сообщения.
+                // When the end of the message body is reached | Если достигнут конец тела сообщения.
                 if (line == string.Empty) {
                     yield break;
                 }
 
                 int blockLength;
-                #region Задаём длину блока
-                try {
+                #region Set the block length | Задаём длину блока
+                //try {
                     blockLength = Convert.ToInt32(line, 16);
-                }
-                catch (Exception ex) {
-                    if (ex is FormatException || ex is OverflowException) {
-                        //throw NewHttpException(string.Format(
-                        //Resources.HttpException_WrongChunkedBlockLength, line), ex);
-                    }
-                    throw;
-                }
+                //}
+                //catch (Exception ex) {
+                //    if (ex is FormatException || ex is OverflowException) {
+                //        //throw NewHttpException(string.Format(
+                //        //Resources.HttpException_WrongChunkedBlockLength, line), ex);
+                //    }
+                //    throw;
+                //}
                 #endregion
-                // Если достигнут конец тела сообщения.
+                // When the end of the message body is reached | Если достигнут конец тела сообщения.
                 if (blockLength == 0) {
                     yield break;
                 }
