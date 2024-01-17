@@ -220,7 +220,7 @@ static class Program {
         DownloadHistory.Save();
 
         // Release mutex after the form closes.
-        Instance?.ReleaseMutex();
+        Instance.ReleaseMutex();
         Console.WriteLine("It is now safe to turn off your application.");
         return ExitCode;
     }
