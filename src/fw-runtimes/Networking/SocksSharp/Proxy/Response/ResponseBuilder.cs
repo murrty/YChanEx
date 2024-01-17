@@ -273,16 +273,18 @@ internal class ResponseBuilder : IResponseBuilder {
         if (contentHeaders.Count != 0) {
             contentLength = GetContentLength();
 
-            if (contentLength == -1 && response.StatusCode == HttpStatusCode.NotModified) {
-                response.Content = new StreamContent(Stream.Null);
-                foreach (var pair in contentHeaders) {
-                    response.Content.Headers.TryAddWithoutValidation(pair.Key, pair.Value);
+            if (contentLength == -1) {
+                if (response.StatusCode == HttpStatusCode.NotModified) {
+                    response.Content = new StreamContent(Stream.Null);
+                    foreach (var pair in contentHeaders) {
+                        response.Content.Headers.TryAddWithoutValidation(pair.Key, pair.Value);
+                    }
+                    return;
                 }
-                return;
+                contentLength = 0;
             }
 
-            var memoryStream = new MemoryStream(
-                (contentLength == -1) ? 0 : contentLength);
+            var memoryStream = new MemoryStream(contentLength);
 
             //try {
             IEnumerable<BytesWraper> source = GetMessageBodySource();
