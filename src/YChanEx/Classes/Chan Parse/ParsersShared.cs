@@ -71,8 +71,8 @@ internal static class ParsersShared {
     /// Gets the file name (minus extension) from a url.
     /// </summary>
     public static string GetFileNameFromUrl(string url, int startingIndex) {
-        int lastIndex = LastIndexOfFromStart(url, '.', startingIndex);
-        int lastPathIndex = LastIndexOfFromStart(url, '/', startingIndex);
+        int lastIndex = url.IndexOf('.', startingIndex);
+        int lastPathIndex = url.IndexOf('/', startingIndex);
 
         if (lastIndex < 0) {
             if (lastPathIndex < 0) {
@@ -103,7 +103,7 @@ internal static class ParsersShared {
     /// Gets the file name and extension from a url.
     /// </summary>
     public static string GetFileNameAndExtFromUrl(string url, int startingIndex) {
-        int lastPathIndex = LastIndexOfFromStart(url, '/', startingIndex);
+        int lastPathIndex = url.IndexOf('/', startingIndex);
 
         if (lastPathIndex < 0) {
             return url;
@@ -140,14 +140,5 @@ internal static class ParsersShared {
             Height = (int)Math.Round(Height * rnd);
         }
         return new(Width, Height);
-    }
-
-    public static int LastIndexOfFromStart(string s, char c, int startIndex) {
-        for (int i = startIndex; i <s.Length; i++) {
-            if (s[i] == c) {
-                return i;
-            }
-        }
-        return -1;
     }
 }
