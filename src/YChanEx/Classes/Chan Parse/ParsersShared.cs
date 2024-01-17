@@ -21,12 +21,6 @@ internal static class ParsersShared {
         return file[(index + 1)..];
     }
     /// <summary>
-    /// Gets the extension of a file from the index.
-    /// </summary>
-    public static string GetExtension(string file, int index) {
-        return file[(index + 1)..];
-    }
-    /// <summary>
     /// Gets the extension of a file and outs the index of the char.
     /// </summary>
     public static string GetExtension(string file, out int index) {
@@ -44,12 +38,6 @@ internal static class ParsersShared {
         if (index < 0) {
             return file;
         }
-        return file[..index];
-    }
-    /// <summary>
-    /// Gets the name of the file without extension from the index.
-    /// </summary>
-    public static string GetNameWithoutExtension(string file, int index) {
         return file[..index];
     }
     /// <summary>
