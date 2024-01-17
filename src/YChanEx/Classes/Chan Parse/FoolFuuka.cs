@@ -60,7 +60,7 @@ internal static class FoolFuuka {
         Url = Networking.CleanURL(Url);
 
         string[] URLSplit = Url.Split('/');
-        return $"{URLSplit[^3]} - {URLSplit[^1]}";
+        return $"/{URLSplit[^3]}/ - {URLSplit[^1]}";
     }
 
     public static string? GetHtmlTitle(ThreadData data) {

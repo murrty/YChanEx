@@ -249,8 +249,7 @@ public sealed class DownloadHistory {
 
     private static void CheckItem(PreviousThreadCollection Collection, ThreadInfo ThreadInfo, IMainFom MainForm) {
         int Index = Collection.IndexOf(ThreadInfo.Data.Url);
-        string ExpectedHistoryName = ThreadInfo.Data.ThreadName
-            .UnlessNullEmptyWhiteSpace($"/{ThreadInfo.Data.Board}/ - {ThreadInfo.Data.Id}");
+        string ExpectedHistoryName = $"/{ThreadInfo.Data.Board}/ - {ThreadInfo.Data.ThreadName ?? ThreadInfo.Data.Id}";
 
         if (Index == -1) {
             TreeNode NewNode = new(ExpectedHistoryName) { Name = ThreadInfo.Data.Url, };

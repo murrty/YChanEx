@@ -12,6 +12,6 @@ internal static class FourTwentyChan {
         Url = Networking.CleanURL(Url);
 
         string[] URLSplit = Url.Split('/');
-        return $"{URLSplit[4]} - {URLSplit[6]}";
+        return $"/{URLSplit[4]}/ - {URLSplit[6]}";
     }
 }

@@ -83,7 +83,7 @@ internal static class EightKun {
         Url = Networking.CleanURL(Url);
 
         string[] URLSplit = Url.Split('/');
-        return $"{URLSplit[^3]} - {URLSplit[^1].SubstringBeforeLastChar('.')}";
+        return $"/{URLSplit[^3]}/ - {URLSplit[^1].SubstringBeforeLastChar('.')}";
     }
 
     public static string? GetHtmlTitle(ThreadData data) {
