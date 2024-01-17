@@ -1393,13 +1393,16 @@ public partial class frmDownloader : Form {
                         ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.ReplaceFirst("<title></title>",
                             $"<title>{FourChan.GetHtmlTitle(ThreadInfo.Data.Board, NewName)}</title>");
 
-                        // Add/update history
-                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
+                        // Async invoke on the UI form now, in case wonkiness occurs.
+                        this.BeginInvoke(() => {
+                            // Add/update history
+                            DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
 
-                        // Update the name application wide, if the custom name wasn't set.
-                        if (ThreadInfo.Data.CustomThreadName == null) {
-                            this.Invoke(() => UpdateThreadName(true));
-                        }
+                            // Update the name application wide, if the custom name wasn't set.
+                            if (ThreadInfo.Data.CustomThreadName == null) {
+                                UpdateThreadName(true);
+                            }
+                        });
                     }
 
                     // Start counting through the posts.
@@ -1549,13 +1552,16 @@ public partial class frmDownloader : Form {
                         ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.ReplaceFirst("<title></title>",
                             $"<title>{SevenChan.GetHtmlTitle(ThreadInfo.Data.Board, NewName)}</title>");
 
-                        // Add/update history
-                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
+                        // Async invoke on the UI form now, in case wonkiness occurs.
+                        this.BeginInvoke(() => {
+                            // Add/update history
+                            DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
 
-                        // Update the name application wide, if the custom name wasn't set.
-                        if (ThreadInfo.Data.CustomThreadName == null) {
-                            this.Invoke(() => UpdateThreadName(true));
-                        }
+                            // Update the name application wide, if the custom name wasn't set.
+                            if (ThreadInfo.Data.CustomThreadName == null) {
+                                UpdateThreadName(true);
+                            }
+                        });
                     }
 
                     // check for archive flag in the post.
@@ -1727,13 +1733,16 @@ public partial class frmDownloader : Form {
                         ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.ReplaceFirst("<title></title>",
                             $"<title>{EightChan.GetHtmlTitle(ThreadInfo.Data.Board, NewName)}</title>");
 
-                        // Add/update history
-                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
+                        // Async invoke on the UI form now, in case wonkiness occurs.
+                        this.BeginInvoke(() => {
+                            // Add/update history
+                            DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
 
-                        // Update the name application wide, if the custom name wasn't set.
-                        if (ThreadInfo.Data.CustomThreadName == null) {
-                            this.Invoke(() => UpdateThreadName(true));
-                        }
+                            // Update the name application wide, if the custom name wasn't set.
+                            if (ThreadInfo.Data.CustomThreadName == null) {
+                                UpdateThreadName(true);
+                            }
+                        });
                     }
 
                     // Parse the first post
@@ -1913,13 +1922,16 @@ public partial class frmDownloader : Form {
                         ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.ReplaceFirst("<title></title>",
                             $"<title>{EightKun.GetHtmlTitle(ThreadInfo.Data.Board, NewName)}</title>");
 
-                        // Add/update history
-                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
+                        // Async invoke on the UI form now, in case wonkiness occurs.
+                        this.BeginInvoke(() => {
+                            // Add/update history
+                            DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
 
-                        // Update the name application wide, if the custom name wasn't set.
-                        if (ThreadInfo.Data.CustomThreadName == null) {
-                            this.Invoke(() => UpdateThreadName(true));
-                        }
+                            // Update the name application wide, if the custom name wasn't set.
+                            if (ThreadInfo.Data.CustomThreadName == null) {
+                                UpdateThreadName(true);
+                            }
+                        });
                     }
 
                     // Start counting through the posts.
@@ -2070,13 +2082,16 @@ public partial class frmDownloader : Form {
                         ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.ReplaceFirst("<title></title>",
                             $"<title>{FChan.GetHtmlTitle(ThreadInfo.Data.Board, NewName)}</title>");
 
-                        // Add/update history
-                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
+                        // Async invoke on the UI form now, in case wonkiness occurs.
+                        this.BeginInvoke(() => {
+                            // Add/update history
+                            DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
 
-                        // Update the name application wide, if the custom name wasn't set.
-                        if (ThreadInfo.Data.CustomThreadName == null) {
-                            this.Invoke(() => UpdateThreadName(true));
-                        }
+                            // Update the name application wide, if the custom name wasn't set.
+                            if (ThreadInfo.Data.CustomThreadName == null) {
+                                UpdateThreadName(true);
+                            }
+                        });
                     }
 
                     // Start counting through the posts.
@@ -2226,13 +2241,16 @@ public partial class frmDownloader : Form {
                         ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.ReplaceFirst("<title></title>",
                             $"<title>{U18Chan.GetHtmlTitle(ThreadInfo.Data.Board, NewName)}</title>");
 
-                        // Add/update history
-                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
+                        // Async invoke on the UI form now, in case wonkiness occurs.
+                        this.BeginInvoke(() => {
+                            // Add/update history
+                            DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
 
-                        // Update the name application wide, if the custom name wasn't set.
-                        if (ThreadInfo.Data.CustomThreadName == null) {
-                            this.Invoke(() => UpdateThreadName(true));
-                        }
+                            // Update the name application wide, if the custom name wasn't set.
+                            if (ThreadInfo.Data.CustomThreadName == null) {
+                                UpdateThreadName(true);
+                            }
+                        });
                     }
 
                     // Start counting through the posts.
@@ -2396,13 +2414,16 @@ public partial class frmDownloader : Form {
                         ThreadInfo.ThreadTopHtml = ThreadInfo.ThreadTopHtml.ReplaceFirst("<title></title>",
                             $"<title>{FoolFuuka.GetHtmlTitle(ThreadInfo.Data.Board, NewName, Networking.GetHostNameOnly(ThreadInfo.Data.Url))}</title>");
 
-                        // Add/update history
-                        DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
+                        // Async invoke on the UI form now, in case wonkiness occurs.
+                        this.BeginInvoke(() => {
+                            // Add/update history
+                            DownloadHistory.AddOrUpdate(ThreadInfo.Chan, ThreadInfo.Data.Url, ThreadInfo.Data.ThreadName, MainFormInstance);
 
-                        // Update the name application wide, if the custom name wasn't set.
-                        if (ThreadInfo.Data.CustomThreadName == null) {
-                            this.Invoke(() => UpdateThreadName(true));
-                        }
+                            // Update the name application wide, if the custom name wasn't set.
+                            if (ThreadInfo.Data.CustomThreadName == null) {
+                                UpdateThreadName(true);
+                            }
+                        });
                     }
 
                     // Start counting through the posts.
