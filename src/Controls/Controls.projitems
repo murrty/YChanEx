@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)BetterFolderBrowser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DateTimeCounter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\AttributeSelector.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\AttributeSelectorMode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\HtmlMonkey\CDataDefinition.cs" />
