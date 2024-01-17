@@ -266,7 +266,7 @@
             this.tabControl1.Location = new System.Drawing.Point(0, 33);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(454, 261);
+            this.tabControl1.Size = new System.Drawing.Size(454, 240);
             this.tabControl1.TabIndex = 4;
             // 
             // tpCurrentQueue
@@ -275,7 +275,7 @@
             this.tpCurrentQueue.Location = new System.Drawing.Point(4, 22);
             this.tpCurrentQueue.Name = "tpCurrentQueue";
             this.tpCurrentQueue.Padding = new System.Windows.Forms.Padding(3);
-            this.tpCurrentQueue.Size = new System.Drawing.Size(446, 235);
+            this.tpCurrentQueue.Size = new System.Drawing.Size(446, 214);
             this.tpCurrentQueue.TabIndex = 0;
             this.tpCurrentQueue.Text = "Queue";
             this.tpCurrentQueue.UseVisualStyleBackColor = true;
@@ -295,7 +295,7 @@
             this.lvThreads.Location = new System.Drawing.Point(6, 6);
             this.lvThreads.Name = "lvThreads";
             this.lvThreads.ShowItemToolTips = true;
-            this.lvThreads.Size = new System.Drawing.Size(434, 223);
+            this.lvThreads.Size = new System.Drawing.Size(434, 202);
             this.lvThreads.SmallImageList = this.ilIcons;
             this.lvThreads.TabIndex = 3;
             this.lvThreads.UseCompatibleStateImageBehavior = false;
@@ -327,7 +327,7 @@
             this.tpHistory.Location = new System.Drawing.Point(4, 22);
             this.tpHistory.Name = "tpHistory";
             this.tpHistory.Padding = new System.Windows.Forms.Padding(3);
-            this.tpHistory.Size = new System.Drawing.Size(446, 235);
+            this.tpHistory.Size = new System.Drawing.Size(446, 214);
             this.tpHistory.TabIndex = 1;
             this.tpHistory.Text = "Thread history";
             this.tpHistory.UseVisualStyleBackColor = true;
@@ -423,7 +423,7 @@
             this.tpDebug.Location = new System.Drawing.Point(4, 22);
             this.tpDebug.Name = "tpDebug";
             this.tpDebug.Padding = new System.Windows.Forms.Padding(3);
-            this.tpDebug.Size = new System.Drawing.Size(446, 235);
+            this.tpDebug.Size = new System.Drawing.Size(446, 214);
             this.tpDebug.TabIndex = 2;
             this.tpDebug.Text = "Debug";
             this.tpDebug.UseVisualStyleBackColor = true;
@@ -442,7 +442,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(454, 294);
+            this.ClientSize = new System.Drawing.Size(454, 273);
             this.Controls.Add(this.chkCreateThreadInTheBackground);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.pnUpper);
@@ -451,6 +451,7 @@
             this.Menu = this.mmMain;
             this.MinimumSize = new System.Drawing.Size(350, 250);
             this.Name = "frmMain";
+            this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "YChanEx";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmMain_FormClosing);
