@@ -124,6 +124,9 @@ public partial class frmMain : Form, IMainFom {
             case ThreadStatus.ThreadUnknownError: {
                 lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Unknown thread error";
             } break;
+            case ThreadStatus.ThreadUnhandledException: {
+                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Unhandled exception";
+            } break;
 
             default: {
                 lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Unknown state";

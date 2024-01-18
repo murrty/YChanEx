@@ -1471,6 +1471,21 @@ public partial class frmDownloader : Form {
             catch (ThreadAbortException) { }
             catch (TaskCanceledException) { }
             catch (OperationCanceledException) { }
+            catch (Exception ex) {
+                ThreadInfo.CurrentActivity = ThreadStatus.ThreadUnhandledException;
+                if (this.IsDisposed || !this.IsHandleCreated) {
+                    return;
+                }
+
+                this.Invoke(() => {
+                    lbScanTimer.Text = "Thrown exception";
+                    lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
+                    this.Icon = Properties.Resources.ProgramIcon_Dead;
+                    MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
+                    btnAbortRetry.Text = "Retry";
+                    Log.ReportException(ex);
+                });
+            }
             Log.Info($"Exiting thread {ThreadInfo.ThreadLogDisplay}");
         });
     }

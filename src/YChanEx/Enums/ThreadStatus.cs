@@ -83,4 +83,8 @@ public enum ThreadStatus : ushort {
     /// The thread encountered an unknown error.
     /// </summary>
     ThreadUnknownError = 205,
+    /// <summary>
+    /// The thread encountered an exception that wasn't handled.
+    /// </summary>
+    ThreadUnhandledException = 206,
 }
