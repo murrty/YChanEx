@@ -586,20 +586,6 @@ public partial class frmDownloader : Form {
                         tmrScan.Start();
                     } break;
 
-                    case ThreadStatus.ThreadScanning:
-                    case ThreadStatus.ThreadScanningSoon: {
-                        lbNotModified.Visible = ThreadInfo.CurrentActivity == ThreadStatus.ThreadNotModified;
-                        MainFormInstance.SetItemStatus(ThreadInfo, ThreadStatus.NoStatusSet);
-                        ThreadInfo.CountdownToNextScan = (ThreadInfo.Chan == ChanType.u18chan ? (60 * 30) : Downloads.ScannerDelay) - 1;
-                        if (Program.DebugMode && ThreadInfo.Chan != ChanType.u18chan) {
-                            ThreadInfo.CountdownToNextScan = 10;
-                            //ThreadInfo.CountdownToNextScan = 99999;
-                        }
-                        lbScanTimer.Text = "soon (tm)";
-                        ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
-                        tmrScan.Start();
-                    } break;
-
                     case ThreadStatus.ThreadImproperlyDownloaded: {
                         lbScanTimer.Text = "Bad download";
                         MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
@@ -636,6 +622,19 @@ public partial class frmDownloader : Form {
                         lbScanTimer.Text = "No thread info";
                         lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
                         MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
+                    } break;
+
+                    default: {
+                        lbNotModified.Visible = ThreadInfo.CurrentActivity == ThreadStatus.ThreadNotModified;
+                        MainFormInstance.SetItemStatus(ThreadInfo, ThreadStatus.NoStatusSet);
+                        ThreadInfo.CountdownToNextScan = (ThreadInfo.Chan == ChanType.u18chan ? (60 * 30) : Downloads.ScannerDelay) - 1;
+                        if (Program.DebugMode && ThreadInfo.Chan != ChanType.u18chan) {
+                            ThreadInfo.CountdownToNextScan = 10;
+                            //ThreadInfo.CountdownToNextScan = 99999;
+                        }
+                        lbScanTimer.Text = "soon (tm)";
+                        ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
+                        tmrScan.Start();
                     } break;
                 }
             } break;
