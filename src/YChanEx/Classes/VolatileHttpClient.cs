@@ -163,9 +163,15 @@ internal sealed class VolatileHttpClient : HttpClient {
                         continue;
                     }
                 }
+
+                break;
             }
-            catch { }
-            break;
+            catch {
+                if (++Retries < 5) {
+                    continue;
+                }
+                return null;
+            }
         }
 
         return Response;
