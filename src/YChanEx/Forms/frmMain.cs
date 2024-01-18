@@ -129,7 +129,6 @@ public partial class frmMain : Form, IMainFom {
                 lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Unknown state";
             } break;
         }
-        GC.Collect();
     }
     public void ThreadKilled(ThreadInfo Thread) => RemoveThread(Thread);
     public void AddToHistory(PreviousThread Thread) {

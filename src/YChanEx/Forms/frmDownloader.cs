@@ -529,19 +529,27 @@ public partial class frmDownloader : Form {
                         btnAbortRetry.Text = "Retry";
                     } break;
 
-                    case ThreadStatus.ThreadIs404: {
-                        if (Downloads.AutoRemoveDeadThreads) {
-                            MainFormInstance.ThreadKilled(ThreadInfo);
-                            return;
-                        }
-                        else {
-                            lbScanTimer.Text = "404'd";
-                            lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
-                            this.Icon = Properties.Resources.ProgramIcon_Dead;
+                    case ThreadStatus.ThreadIsArchived when Downloads.AutoRemoveDeadThreads:
+                    case ThreadStatus.ThreadIs404 when Downloads.AutoRemoveDeadThreads: {
+                        MainFormInstance.ThreadKilled(ThreadInfo);
+                    } break;
 
-                            MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
-                            btnAbortRetry.Text = "Retry";
-                        }
+                    case ThreadStatus.ThreadIsArchived: {
+                        lbScanTimer.Text = "Archived";
+                        lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
+                        this.Icon = Properties.Resources.ProgramIcon_Dead;
+                        MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
+                        btnAbortRetry.Text = "Rescan";
+                        ThreadInfo.ThreadModified = true;
+                    } break;
+
+                    case ThreadStatus.ThreadIs404: {
+                        lbScanTimer.Text = "404'd";
+                        lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
+                        this.Icon = Properties.Resources.ProgramIcon_Dead;
+
+                        MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
+                        btnAbortRetry.Text = "Retry";
                     } break;
 
                     case ThreadStatus.ThreadFile404: {
@@ -563,26 +571,25 @@ public partial class frmDownloader : Form {
                         tmrScan.Start();
                     } break;
 
-                    case ThreadStatus.ThreadIsArchived: {
-                        if (Downloads.AutoRemoveDeadThreads) {
-                            MainFormInstance.ThreadKilled(ThreadInfo);
-                            return;
-                        }
-                        else {
-                            lbScanTimer.Text = "Archived";
-                            lbScanTimer.ForeColor = Color.FromKnownColor(KnownColor.Firebrick);
-                            this.Icon = Properties.Resources.ProgramIcon_Dead;
-                            MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
-                            btnAbortRetry.Text = "Rescan";
-                            ThreadInfo.ThreadModified = true;
-                        }
-                    } break;
-
                     case ThreadStatus.ThreadDownloading:
                     case ThreadStatus.Waiting:
                     case ThreadStatus.ThreadNotModified: {
                         lbNotModified.Visible = ThreadInfo.CurrentActivity == ThreadStatus.ThreadNotModified;
                         MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
+                        ThreadInfo.CountdownToNextScan = (ThreadInfo.Chan == ChanType.u18chan ? (60 * 30) : Downloads.ScannerDelay) - 1;
+                        if (Program.DebugMode && ThreadInfo.Chan != ChanType.u18chan) {
+                            ThreadInfo.CountdownToNextScan = 10;
+                            //ThreadInfo.CountdownToNextScan = 99999;
+                        }
+                        lbScanTimer.Text = "soon (tm)";
+                        ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
+                        tmrScan.Start();
+                    } break;
+
+                    case ThreadStatus.ThreadScanning:
+                    case ThreadStatus.ThreadScanningSoon: {
+                        lbNotModified.Visible = ThreadInfo.CurrentActivity == ThreadStatus.ThreadNotModified;
+                        MainFormInstance.SetItemStatus(ThreadInfo, ThreadStatus.NoStatusSet);
                         ThreadInfo.CountdownToNextScan = (ThreadInfo.Chan == ChanType.u18chan ? (60 * 30) : Downloads.ScannerDelay) - 1;
                         if (Program.DebugMode && ThreadInfo.Chan != ChanType.u18chan) {
                             ThreadInfo.CountdownToNextScan = 10;
