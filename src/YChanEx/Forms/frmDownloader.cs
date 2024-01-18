@@ -1323,7 +1323,7 @@ public partial class frmDownloader : Form {
                 // HTML
                 ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo, FourChan.GetHtmlTitle(ThreadInfo.Data));
                 ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
-                if (ThreadInfo.ThreadReloaded) {
+                if (ThreadInfo.ThreadReloaded && ThreadInfo.CurrentActivity != ThreadStatus.ThreadRetrying) {
                     LoadExistingPosts();
                     ThreadReloaded();
                 }
@@ -1482,7 +1482,7 @@ public partial class frmDownloader : Form {
                 // HTML
                 ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo, SevenChan.GetHtmlTitle(ThreadInfo.Data));
                 ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
-                if (ThreadInfo.ThreadReloaded) {
+                if (ThreadInfo.ThreadReloaded && ThreadInfo.CurrentActivity != ThreadStatus.ThreadRetrying) {
                     LoadExistingPostsNoHash();
                     ThreadReloaded();
                 }
@@ -1659,7 +1659,7 @@ public partial class frmDownloader : Form {
                     ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo);
                     ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
                 }
-                else {
+                else if (ThreadInfo.CurrentActivity != ThreadStatus.ThreadRetrying) {
                     ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo, EightChan.GetHtmlTitle(ThreadInfo.Data));
                     ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
                     LoadExistingPostsNoHash();
@@ -1848,7 +1848,7 @@ public partial class frmDownloader : Form {
                     ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo);
                     ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
                 }
-                else {
+                else if (ThreadInfo.CurrentActivity != ThreadStatus.ThreadRetrying) {
                     ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo, EightKun.GetHtmlTitle(ThreadInfo.Data));
                     ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
                     LoadExistingPosts();
@@ -2013,7 +2013,7 @@ public partial class frmDownloader : Form {
                 // HTML
                 ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo, FChan.GetHtmlTitle(ThreadInfo.Data));
                 ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
-                if (ThreadInfo.ThreadReloaded) {
+                if (ThreadInfo.ThreadReloaded && ThreadInfo.CurrentActivity != ThreadStatus.ThreadRetrying) {
                     LoadExistingPostsNoHash();
                     ThreadReloaded();
                 }
@@ -2171,7 +2171,7 @@ public partial class frmDownloader : Form {
                 // HTML
                 ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo, U18Chan.GetHtmlTitle(ThreadInfo.Data));
                 ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
-                if (ThreadInfo.ThreadReloaded) {
+                if (ThreadInfo.ThreadReloaded && ThreadInfo.CurrentActivity != ThreadStatus.ThreadRetrying) {
                     LoadExistingPostsNoHash();
                     ThreadReloaded();
                 }
@@ -2327,6 +2327,8 @@ public partial class frmDownloader : Form {
                     return;
                 }
 
+                bool Retried = ThreadInfo.CurrentActivity == ThreadStatus.ThreadRetrying;
+
                 // Main loop
                 do {
                     Log.Info($"Scanning {ThreadInfo.ThreadLogDisplay}");
@@ -2388,7 +2390,7 @@ public partial class frmDownloader : Form {
                         ThreadInfo.Data.BoardName = ThreadData[0].board!.name;
 
                         // HTML
-                        ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo);
+                        ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo, FoolFuuka.GetHtmlTitle(ThreadInfo.Data));
                         ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
                         if (ThreadInfo.ThreadReloaded) {
                             LoadExistingPosts();
@@ -2396,10 +2398,12 @@ public partial class frmDownloader : Form {
                         }
                     }
                     else if (ThreadInfo.ThreadReloaded) {
-                        ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo, FoolFuuka.GetHtmlTitle(ThreadInfo.Data));
-                        ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
+                        if (!Retried) {
+                            ThreadInfo.ThreadTopHtml = HtmlControl.GetHTMLBase(ThreadInfo, FoolFuuka.GetHtmlTitle(ThreadInfo.Data));
+                            ThreadInfo.ThreadBottomHtml = HtmlControl.GetHTMLFooter(ThreadInfo);
+                        }
                     }
-                    else {
+                    else if (!Retried) {
                         ThreadInfo.CurrentActivity = ThreadStatus.ThreadUnknownError;
                         this?.BeginInvoke(() => ManageThread(ThreadEvent.AfterDownload));
                         break;
