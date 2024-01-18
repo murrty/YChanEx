@@ -146,6 +146,13 @@ internal sealed class VolatileHttpClient : HttpClient {
                 Response = await SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token)
                     .ConfigureAwait(false);
 
+                if (Response == null) {
+                    if (++Retries < 5) {
+                        continue;
+                    }
+                    return null;
+                }
+
                 if (!Response.IsSuccessStatusCode) {
 #if !NET6_0_OR_GREATER // Auto-redirect, for 308+ on framework.
                     if (((int)Response.StatusCode is > 304 and < 400) && Response.Headers.Location is not null) {
@@ -164,7 +171,7 @@ internal sealed class VolatileHttpClient : HttpClient {
                     }
                 }
 
-                break;
+                return Response;
             }
             catch {
                 if (++Retries < 5) {
@@ -173,8 +180,6 @@ internal sealed class VolatileHttpClient : HttpClient {
                 return null;
             }
         }
-
-        return Response;
     }
     public async Task<string> GetStringAsync(HttpResponseMessage Response, CancellationToken token) {
         using Stream Content = await Response.Content.ReadAsStreamAsync();
