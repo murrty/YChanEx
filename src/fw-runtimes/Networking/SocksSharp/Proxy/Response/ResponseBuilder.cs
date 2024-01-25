@@ -436,8 +436,7 @@ internal class ResponseBuilder : IResponseBuilder {
         int delay = (ReceiveTimeout < 10) ?
             10 : ReceiveTimeout;
 
-        var dataAvailable = networkStream?.DataAvailable;
-        while (dataAvailable == false) {
+        while (networkStream?.DataAvailable == false) {
             if (sleepTime >= delay) {
                 throw new ProxyException("Wait data timeout");
             }
