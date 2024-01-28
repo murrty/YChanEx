@@ -437,8 +437,6 @@ public partial class frmMain : Form, IMainFom {
     /// <returns>True if the thread was removed; otherwise, false.</returns>
     private bool RemoveThread(ThreadInfo Thread) {
         if (Thread.ThreadIndex > -1 && Thread.ThreadIndex < ThreadURLs.Count) {
-            Saved.DownloadFormSize = Threads[Thread.ThreadIndex].Size;
-
             if (Threads[Thread.ThreadIndex].ThreadInfo.Data.ThreadState == ThreadState.ThreadIsAlive) {
                 Threads[Thread.ThreadIndex].ManageThread(ThreadEvent.AbortDownload, true);
             }

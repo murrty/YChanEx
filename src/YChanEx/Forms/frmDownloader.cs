@@ -99,6 +99,11 @@ public partial class frmDownloader : Form {
     }
 
     private void frmDownloader_FormClosing(object sender, FormClosingEventArgs e) {
+        if (this.WindowState != FormWindowState.Normal || !this.Visible) {
+            this.Opacity = 0;
+            this.Show();
+            this.WindowState = FormWindowState.Normal;
+        }
         Saved.DownloadFormLocation = this.Location;
         Saved.DownloadFormSize = this.Size;
         e.Cancel = true;
@@ -654,7 +659,7 @@ public partial class frmDownloader : Form {
                 ResetThread.Set();
 
                 if (threadRemovedFromForm) {
-                    this.Dispose();
+                    this.Close();
                     return;
                 }
 
