@@ -1318,6 +1318,8 @@ public partial class frmDownloader : Form {
                 }
             }
         }
+
+        ThreadInfo.DownloadingFiles = false;
     }
 
     private void Register4chanThread() {
