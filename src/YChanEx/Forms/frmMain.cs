@@ -58,6 +58,7 @@ public partial class frmMain : Form, IMainFom {
                     ChanType.EightKun => "8kun",
                     ChanType.fchan => "fchan",
                     ChanType.u18chan => "u18chan",
+                    ChanType.FoolFuuka => Thread.Data.UrlHost,
                     _ => "Unknown chan",
                 };
                 if (changeTray.Enabled) {
@@ -86,6 +87,7 @@ public partial class frmMain : Form, IMainFom {
                     ChanType.EightKun => "8kun",
                     ChanType.fchan => "fchan",
                     ChanType.u18chan => "u18chan",
+                    ChanType.FoolFuuka => Thread.Data.UrlHost,
                     _ => "Unknown chan",
                 };
                 if (changeTray.Enabled) {

@@ -536,6 +536,7 @@ public partial class frmDownloader : Form {
 
                     case ThreadStatus.ThreadIsArchived when Downloads.AutoRemoveDeadThreads:
                     case ThreadStatus.ThreadIs404 when Downloads.AutoRemoveDeadThreads: {
+                        MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
                         MainFormInstance.ThreadKilled(ThreadInfo);
                     } break;
 
