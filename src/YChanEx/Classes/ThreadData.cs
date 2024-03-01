@@ -40,6 +40,7 @@ public sealed class ThreadData {
     public string Url { get; set; }
     /// <summary>
     /// The host string that will be used when downloading the API.
+    /// This should be something like 'chan.org'.
     /// </summary>
     [DataMember(EmitDefaultValue = false)]
     public string? UrlHost { get; set; }

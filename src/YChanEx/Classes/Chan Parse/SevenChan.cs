@@ -3,6 +3,7 @@ namespace YChanEx.Parsers;
 using System;
 using System.Drawing;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using SoftCircuits.HtmlMonkey;
 using YChanEx.Posts;
@@ -82,6 +83,83 @@ internal static class SevenChan {
     }
     public static string GetHtmlTitle(string board, string name) {
         return $"/{board}/ - {name} - 7chan";
+    }
+    public static string GetFullBoardName(string board, bool @override) {
+        if (General.UseFullBoardNameForTitle || @override) {
+            return board.ToLowerInvariant() switch {
+                #region 7chan & Related services
+                "7ch" => "Site Discussion",
+                "ch7" => "Channel7 & Radio7",
+                "irc" => "Internet Relay Circlejerk",
+                #endregion
+
+                #region VIP
+                "VIP" => "Very Important Posters",
+                "civ" => "Civics",
+                //"vip6" => "IPv6 for VIP",
+                #endregion
+
+                #region Premium Content
+                "777" => "weed",
+                "b" => "Random",
+                "banner" => "Banners",
+                "f" => "Flash",
+                "gfx" => "Grahpics Manipulation",
+                "fail" => "Failure",
+                #endregion
+
+                #region SFW
+                //"class" => "The Finer Things",
+                "co" => "Comics and Cartoons",
+                "eh" => "Particularly uninteresting conversation",
+                "fit" => "Fitness & Health",
+                "halp" => "Technical Support",
+                "jew" => "Thrifty Living",
+                "lit" => "Literature",
+                "phi" => "Philosophy",
+                "pr" => "Programming",
+                "rnb" => "Rage and Baww",
+                "sci" => "Science, Technology, Engineering, and Mathematics",
+                "tg" => "Tabletop Games",
+                "w" => "Weapons",
+                "zom" => "Zombies",
+                #endregion
+
+                #region General
+                "a" => "Anime & Manga",
+                "ai" => "AI-Generated Artwork & Text",
+                "grim" => "Cold, Grim & Miserable",
+                "hi" => "History and Culture",
+                "me" => "Film, Music & Television",
+                "rx" => "Drugs",
+                "vg" => "Video Games",
+                "wp" => "Wallpapers",
+                "x" => "Paranormal & Conspiracy",
+                #endregion
+
+                #region Porn
+                "cake" => "Delicious",
+                "cd" => "Crossdressing",
+                "d" => "Alternative Hentai",
+                "di" => "Sexy Beautiful Traps",
+                "elit" => "Erotic Literature",
+                "fag" => "Men Discussion",
+                "fur" => "Furry",
+                "gif" => "Animated GIFs",
+                "h" => "Hentai",
+                "men" => "Sexy Beautiful Men",
+                "pco" => "Porn Comics",
+                "s" => "Sexy Beautiful Women",
+                "sm" => "Shotacon",
+                "ss" => "Straight Shotacon",
+                "unf" => "Uniforms",
+                //"v" => "The Vineyard",
+                #endregion
+
+                _ => $"{board} (Unknown board)"
+            };
+        }
+        return board;
     }
 
     internal static long ConvertSizeToBytes(string size) {

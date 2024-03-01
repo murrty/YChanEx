@@ -95,6 +95,15 @@ internal static class EightKun {
     public static string GetHtmlTitle(string board, string name) {
         return $"/{board}/ - {name} - 8kun";
     }
+    public static string GetFullBoardName(string board, bool @override) {
+        if (General.UseFullBoardNameForTitle || @override) {
+            EightKunBoard? Board = Array.Find(Boards, (b) => string.Equals(b.uri, board, StringComparison.InvariantCultureIgnoreCase));
+            if (Board?.subtitle.IsNullEmptyWhitespace() == false) {
+                return Board.subtitle;
+            }
+        }
+        return board;
+    }
 
     public static DateTimeOffset GetPostTime(EightKunPost post) {
         return DateTimeOffset.FromUnixTimeSeconds(post.time);

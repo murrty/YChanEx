@@ -31,6 +31,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using SocksSharp.Extensions;
 using SocksSharp.Helpers;
+using System.IO.Compression;
+
 internal class ResponseBuilder : IResponseBuilder {
     private sealed class BytesWraper {
         public int Length { get; set; }
@@ -325,17 +327,21 @@ internal class ResponseBuilder : IResponseBuilder {
 
         string cookieValue;
         string cookieName = value[..separatorPos];
+        string cookiePath = "/";
 
         if (endCookiePos == -1) {
             cookieValue = value[(separatorPos + 1)..];
         }
         else {
-            cookieValue = value[(separatorPos + 1)..(endCookiePos - separatorPos - 1)];
+            cookieValue = value[(separatorPos + 1)..endCookiePos];
 
             #region Get cookie expires time
             int expiresPos = value.IndexOf("expires=");
 
-            if (expiresPos != -1) {
+            // Max-Age takes precedent over 'expires'.
+            //int maxAgePos = value.IndexOf("Max-Age=", StringComparison.OrdinalIgnoreCase);
+
+            if (expiresPos > -1) {
                 string expiresStr;
                 int endExpiresPos = value.IndexOf(';', expiresPos);
 
@@ -349,8 +355,7 @@ internal class ResponseBuilder : IResponseBuilder {
                 }
 
                 // If the cookie's time has expired, we delete it | Если время куки вышло, то удаляем её.
-                if (DateTime.TryParse(expiresStr, out DateTime expires) &&
-                    expires < DateTime.Now) {
+                if (DateTime.TryParse(expiresStr, out DateTime expires) && expires < DateTime.Now) {
                     var collection = cookies.GetCookies(uri);
                     if (collection[cookieName] != null) {
                         collection[cookieName].Expired = true;
@@ -358,6 +363,18 @@ internal class ResponseBuilder : IResponseBuilder {
                 }
             }
             #endregion
+
+            int pathPos = value.IndexOf("path");
+            if (pathPos > -1) {
+                int endPathPos = value.IndexOf(";", pathPos);
+                pathPos += 5;
+                if (endPathPos > -1) {
+                    cookiePath = value[pathPos..endPathPos];
+                }
+                else {
+                    cookiePath = value[pathPos..];
+                }
+            }
         }
 
         // If cookies need to be deleted | Если куки нужно удалить.
@@ -368,12 +385,13 @@ internal class ResponseBuilder : IResponseBuilder {
                 collection[cookieName].Expired = true;
         }
         else {
-            cookies.Add(new Cookie(cookieName, cookieValue, "/", uri.Host));
+            Cookie newCookie = new(cookieName, cookieValue, cookiePath, uri.Host);
+            cookies.Add(newCookie);
         }
     }
 
     private IEnumerable<BytesWraper> GetMessageBodySource() {
-#if ENABLE_AUTO_DECOMPRESSION
+#if ENABLE_AUTO_DECOMPRESS
         if (contentHeaders.ContainsKey("Content-Encoding")) {
             return GetMessageBodySourceZip();
         }
@@ -381,7 +399,6 @@ internal class ResponseBuilder : IResponseBuilder {
         return GetMessageBodySourceStd();
     }
 
-#if ENABLE_AUTO_DECOMPRESSION
     // Loading compressed data | Загрузка сжатых данных.
     private IEnumerable<BytesWraper> GetMessageBodySourceZip() {
         if (response.Headers.Contains("Transfer-Encoding")) {
@@ -393,9 +410,9 @@ internal class ResponseBuilder : IResponseBuilder {
         }
 
         var streamWrapper = new ZipWraperStream(commonStream, receiveHelper);
-        return ReceiveMessageBody(GetZipStream(streamWrapper));
+        using var zipStream = GetZipStream(streamWrapper);
+        return ReceiveMessageBody(zipStream);
     }
-#endif
 
     // Loading regular data | Загрузка обычных данных.
     private IEnumerable<BytesWraper> GetMessageBodySourceStd() {
@@ -419,17 +436,15 @@ internal class ResponseBuilder : IResponseBuilder {
         return -1;
     }
 
-#if ENABLE_AUTO_DECOMPRESSION
     private string GetContentEncoding() {
         string encoding = "";
 
         if (contentHeaders.TryGetValue("Content-Encoding", out List<string> values)) {
-            encoding = values[0];
+            encoding = values[0].ToLowerInvariant();
         }
 
         return encoding;
     }
-#endif
 
     private void WaitData() {
         int sleepTime = 0;
@@ -454,28 +469,23 @@ internal class ResponseBuilder : IResponseBuilder {
         bytesWraper.Value = buffer;
         int begBytesRead = 0;
 
-#if ENABLE_AUTO_DECOMPRESSION
         // Reading the initial data from the message body | Считываем начальные данные из тела сообщения.
-        if (stream is GZipStream || stream is DeflateStream) {
+        if (stream is GZipStream || stream is DeflateStream || stream is Org.Brotli.Dec.BrotliInputStream) {
             begBytesRead = stream.Read(buffer, 0, bufferSize);
         }
         else {
-#endif
-
             if (receiveHelper.HasData) {
                 begBytesRead = receiveHelper.Read(buffer, 0, bufferSize);
             }
             if (begBytesRead < bufferSize) {
                 begBytesRead += stream.Read(buffer, begBytesRead, bufferSize - begBytesRead);
             }
-
-#if ENABLE_AUTO_DECOMPRESSION
         }
-#endif
 
         // Returning the initial data | Возвращаем начальные данные.
         bytesWraper.Length = begBytesRead;
         yield return bytesWraper;
+
         // We check if there is an opening tag '<html' | Проверяем, есть ли открывающий тег '<html'.
         // If there is, then we read the data until we encounter the closing text '</html>' | Если есть, то считываем данные то тех пор, пока не встретим закрывающий тек '</html>'.
         bool isHtml = FindSignature(buffer, begBytesRead, openHtmlSignature);
@@ -486,6 +496,7 @@ internal class ResponseBuilder : IResponseBuilder {
                 yield break;
             }
         }
+
         while (true) {
             int bytesRead = stream.Read(buffer, 0, bufferSize);
             // If the message body is HTML | Если тело сообщения представляет HTML.
@@ -494,6 +505,7 @@ internal class ResponseBuilder : IResponseBuilder {
                     WaitData();
                     continue;
                 }
+
                 bool found = FindSignature(buffer, bytesRead, closeHtmlSignature);
                 if (found) {
                     bytesWraper.Length = bytesRead;
@@ -501,9 +513,11 @@ internal class ResponseBuilder : IResponseBuilder {
                     yield break;
                 }
             }
-            else if (bytesRead == 0) {
+
+            if (bytesRead == 0) {
                 yield break;
             }
+
             bytesWraper.Length = bytesRead;
             yield return bytesWraper;
         }
@@ -551,7 +565,7 @@ internal class ResponseBuilder : IResponseBuilder {
 
             line = line.Trim(' ', '\r', '\n');
             // When the end of the message body is reached | Если достигнут конец тела сообщения.
-            if (line?.Length == 0) {
+            if (line.Length == 0) {
                 yield break;
             }
 
@@ -598,28 +612,23 @@ internal class ResponseBuilder : IResponseBuilder {
         }
     }
 
-#if ENABLE_AUTO_DECOMPRESSION
     private IEnumerable<BytesWraper> ReceiveMessageBodyZip(int contentLength) {
         var bytesWraper = new BytesWraper();
         var streamWrapper = new ZipWraperStream(commonStream, receiveHelper);
-        using (Stream stream = GetZipStream(streamWrapper)) {
-            byte[] buffer = new byte[bufferSize];
-            bytesWraper.Value = buffer;
+        using Stream stream = GetZipStream(streamWrapper);
+        byte[] buffer = new byte[bufferSize];
+        bytesWraper.Value = buffer;
 
-            while (true) {
-                int bytesRead = stream.Read(buffer, 0, bufferSize);
-                if (bytesRead == 0) {
-                    if (streamWrapper.TotalBytesRead == contentLength) {
-                        yield break;
-                    }
-                    else {
-                        WaitData();
-                        continue;
-                    }
+        while (true) {
+            int bytesRead = stream.Read(buffer, 0, bufferSize);
+            if (bytesRead == 0) {
+                if (streamWrapper.TotalBytesRead == contentLength) {
+                    yield break;
                 }
-                bytesWraper.Length = bytesRead;
-                yield return bytesWraper;
+                WaitData();
             }
+            bytesWraper.Length = bytesRead;
+            yield return bytesWraper;
         }
     }
 
@@ -627,73 +636,65 @@ internal class ResponseBuilder : IResponseBuilder {
         var bytesWraper = new BytesWraper();
         var streamWrapper = new ZipWraperStream(commonStream, receiveHelper);
 
-        using (Stream stream = GetZipStream(streamWrapper)) {
-            byte[] buffer = new byte[bufferSize];
-            bytesWraper.Value = buffer;
+        using Stream stream = GetZipStream(streamWrapper);
+        byte[] buffer = new byte[bufferSize];
+        bytesWraper.Value = buffer;
+        while (true) {
+            string line = receiveHelper.ReadLine();
+            // If the end of the block is reached | Если достигнут конец блока.
+            if (line == newLine) {
+                continue;
+            }
+
+            line = line.Trim(' ', '\r', '\n');
+            // When the end of the message body is reached | Если достигнут конец тела сообщения.
+            if (line.Length == 0) {
+                yield break;
+            }
+
+            int blockLength;
+            #region Set the block length | Задаём длину блока
+            //try {
+            blockLength = Convert.ToInt32(line, 16);
+            //}
+            //catch (Exception ex) {
+            //    if (ex is FormatException || ex is OverflowException) {
+            //        //throw NewHttpException(string.Format(
+            //        //Resources.HttpException_WrongChunkedBlockLength, line), ex);
+            //    }
+            //    throw;
+            //}
+            #endregion
+            // When the end of the message body is reached | Если достигнут конец тела сообщения.
+            if (blockLength == 0) {
+                yield break;
+            }
+
+            streamWrapper.TotalBytesRead = 0;
+            streamWrapper.LimitBytesRead = blockLength;
             while (true) {
-                string line = receiveHelper.ReadLine();
-                // If the end of the block is reached | Если достигнут конец блока.
-                if (line == newLine) {
-                    continue;
-                }
-
-                line = line.Trim(' ', '\r', '\n');
-                // When the end of the message body is reached | Если достигнут конец тела сообщения.
-                if (line == string.Empty) {
-                    yield break;
-                }
-
-                int blockLength;
-                #region Set the block length | Задаём длину блока
-                //try {
-                    blockLength = Convert.ToInt32(line, 16);
-                //}
-                //catch (Exception ex) {
-                //    if (ex is FormatException || ex is OverflowException) {
-                //        //throw NewHttpException(string.Format(
-                //        //Resources.HttpException_WrongChunkedBlockLength, line), ex);
-                //    }
-                //    throw;
-                //}
-                #endregion
-                // When the end of the message body is reached | Если достигнут конец тела сообщения.
-                if (blockLength == 0) {
-                    yield break;
-                }
-
-                streamWrapper.TotalBytesRead = 0;
-                streamWrapper.LimitBytesRead = blockLength;
-                while (true) {
-                    int bytesRead = stream.Read(buffer, 0, bufferSize);
-                    if (bytesRead == 0) {
-                        if (streamWrapper.TotalBytesRead == blockLength) {
-                            break;
-                        }
-                        else {
-                            WaitData();
-                            continue;
-                        }
+                int bytesRead = stream.Read(buffer, 0, bufferSize);
+                if (bytesRead == 0) {
+                    if (streamWrapper.TotalBytesRead == blockLength) {
+                        break;
                     }
-                    bytesWraper.Length = bytesRead;
-                    yield return bytesWraper;
+                    WaitData();
                 }
+                bytesWraper.Length = bytesRead;
+                yield return bytesWraper;
             }
         }
     }
 
     private Stream GetZipStream(Stream stream) {
-        string contentEncoding = GetContentEncoding().ToLower();
-
-        switch (contentEncoding) {
-            case "gzip":
-                return new GZipStream(stream, CompressionMode.Decompress, true);
-            case "deflate":
-                return new DeflateStream(stream, CompressionMode.Decompress, true);
-            default:
-                throw new InvalidOperationException($"'{contentEncoding}' not supported encoding format");
-        }
+        string contentEncoding = GetContentEncoding();
+        return contentEncoding switch {
+            "gzip" => new GZipStream(stream, CompressionMode.Decompress, true),
+            "deflate" => new DeflateStream(stream, CompressionMode.Decompress, true),
+            "br" => new Org.Brotli.Dec.BrotliInputStream(stream, true),
+            _ => throw new InvalidOperationException($"'{contentEncoding}' not supported encoding format"),
+        };
     }
-#endif
 
     private bool FindSignature(byte[] source, int sourceLength, byte[] signature) {
         int length = (sourceLength - signature.Length) + 1;
@@ -708,7 +709,7 @@ internal class ResponseBuilder : IResponseBuilder {
                 if (sourceByte != signature[signatureIndex]) {
                     break;
                 }
-                else if (signatureIndex == (signature.Length - 1)) {
+                if (signatureIndex == (signature.Length - 1)) {
                     return true;
                 }
             }

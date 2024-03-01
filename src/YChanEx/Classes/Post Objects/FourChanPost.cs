@@ -148,6 +148,13 @@ internal sealed class FourChanPost {
         }
     }
 
+    public string GetCleanMessage() {
+        if (com.IsNullEmptyWhitespace()) {
+            return string.Empty;
+        }
+        return com.Replace("<span class=\"deadlink\">", string.Empty);
+    }
+
     public override bool Equals(object? obj) => obj is FourChanPost other && this.Equals(other);
     public bool Equals(FourChanPost? other) {
         if (other is null) {

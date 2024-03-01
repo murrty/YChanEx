@@ -60,7 +60,7 @@ internal static class Networking {
         RecreateDownloadClient();
 
         // 100 connection limit
-        ServicePointManager.DefaultConnectionLimit = 100;
+        //ServicePointManager.DefaultConnectionLimit = 100;
 
         // Try to load TLS 1.3 (Win 11+)
         // It will use 1.2 if 1.3 is not available, regardless of if the first try works.

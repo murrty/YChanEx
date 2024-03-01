@@ -3,6 +3,7 @@ namespace YChanEx.Parsers;
 using System;
 using System.Drawing;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using SoftCircuits.HtmlMonkey;
 using YChanEx.Posts;
@@ -98,6 +99,31 @@ internal static class FChan {
     }
     public static string GetHtmlTitle(string board, string name) {
         return $"/{board}/ - {name} - fchan";
+    }
+    public static string GetFullBoardName(string board, bool @override) {
+        if (General.UseFullBoardNameForTitle || @override) {
+            return board.ToLowerInvariant() switch {
+                #region Normal image boards
+                "f" => "female",
+                "m" => "male",
+                "h" => "herm",
+                "s" => "straight",
+                "toon" => "toon",
+                "a" => "alternative",
+                "ah" => "alternative (hard)",
+                "c" => "clean",
+                #endregion
+
+                #region Specialized image boards
+                "artist" => "artist",
+                "crit" => "critique",
+                "b" => "banners",
+                #endregion
+
+                _ => $"{board} (Unknown board)"
+            };
+        }
+        return board;
     }
 
     internal static long ConvertSizeToBytes(string size) {

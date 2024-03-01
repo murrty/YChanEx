@@ -24,6 +24,20 @@ internal sealed class VolatileHttpClient : HttpClient {
     /// </summary>
     internal const int HighestTimeout = 1_800_000;
 
+#if DEBUG
+    private int RetryCount = 0;
+    internal readonly Timer _tmr = new((_) => {
+        Console.WriteLine("60 seconds with no result.");
+    }, null, 30_000, 30_000);
+
+    private void tmrStart() {
+        _tmr.Change(60_000, 60_000);
+    }
+    private void tmrStop() {
+        _tmr.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
+    }
+#endif
+
     internal delegate Task DownloadStream(Stream HttpStream, Stream Output, CancellationToken token);
 
     private readonly Proxy _proxy;
@@ -141,13 +155,24 @@ internal sealed class VolatileHttpClient : HttpClient {
     public async Task<HttpResponseMessage?> GetResponseAsync(HttpRequestMessage request, CancellationToken token) {
         HttpResponseMessage? Response = null;
         int Retries = 0;
+#if DEBUG
+        RetryCount = 0;
+#endif
         while (true) {
             try {
-                Response = await SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token)
-                    .ConfigureAwait(false);
+#if DEBUG
+                RetryCount++;
+                tmrStart();
+#endif
+
+                Response = await SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
+#if DEBUG
+                tmrStop();
+#endif
 
                 if (Response == null) {
                     if (++Retries < 5) {
+                        RequestMessage.ResetRequest(request);
                         continue;
                     }
                     return null;
@@ -159,8 +184,7 @@ internal sealed class VolatileHttpClient : HttpClient {
                         request.RequestUri = Response.Headers.Location;
                         RequestMessage.ResetRequest(request);
                         Response.Dispose();
-                        return await GetResponseAsync(request, token)
-                            .ConfigureAwait(false);
+                        return await GetResponseAsync(request, token);
                     }
 #endif // Auto-redirect, for 308+ on framework.
 
@@ -175,6 +199,8 @@ internal sealed class VolatileHttpClient : HttpClient {
             }
             catch {
                 if (++Retries < 5) {
+                    RequestMessage.ResetRequest(request);
+                    Response?.Dispose();
                     continue;
                 }
                 return null;

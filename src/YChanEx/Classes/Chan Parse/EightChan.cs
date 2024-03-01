@@ -76,6 +76,14 @@ internal static class EightChan {
     public static string GetHtmlTitle(string board, string name) {
         return $"/{board}/ - {name} - 8chan";
     }
+    public static string GetFullBoardName(string board, bool @override) {
+        if (General.UseFullBoardNameForTitle || @override) {
+            if (BoardSubtitles.TryGetValue(board, out var Board) && !Board.BoardDescription.IsNullEmptyWhitespace()) {
+                return Board.BoardDescription;
+            }
+        }
+        return board;
+    }
 
     public static DateTimeOffset GetPostTime(EightChanThread Thread) {
         return PostTimeInternal(Thread.creation!);

@@ -3,6 +3,7 @@ namespace YChanEx.Parsers;
 using System;
 using System.Drawing;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using SoftCircuits.HtmlMonkey;
 using YChanEx.Posts;
@@ -95,6 +96,43 @@ internal static class U18Chan {
     }
     public static string GetHtmlTitle(string board, string name) {
         return $"/{board}/ - {name} - U-18Chan";
+    }
+    public static string GetFullBoardName(string board, bool @override) {
+        if (General.UseFullBoardNameForTitle || @override) {
+            return board.ToLowerInvariant() switch {
+                #region Furry Related
+                "fur" => "Furries",
+                "c" => "Furry Comics",
+                "gfur" => "Gay Furries",
+                "gc" => "Gay Furry Comics",
+                "i" => "Intersex",
+                "rs" => "Request & Source",
+                "a" => "Animated",
+                "cute" => "Cute",
+                #endregion
+
+                #region The Basement
+                "pb" => "Post Your Naked Body",
+                "p" => "Ponies", // Why, honestly, WHY?
+                "f" => "Feral",
+                "cub" => "Cub",
+                "gore" => "Gore",
+                #endregion
+
+                #region General
+                "d" => "Discussion",
+                "mu" => "Music",
+                "w" => "Wallpapers",
+                "v" => "Video Games",
+                "lo" => "Lounge",
+                "tech" => "Technology",
+                "lit" => "Literature",
+                #endregion
+
+                _ => $"{board} (Unknown board)"
+            };
+        }
+        return board;
     }
 
     internal static long ConvertSizeToBytes(string size) {

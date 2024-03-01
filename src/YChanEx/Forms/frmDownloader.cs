@@ -583,10 +583,12 @@ public partial class frmDownloader : Form {
                         lbNotModified.Visible = ThreadInfo.CurrentActivity == ThreadStatus.ThreadNotModified;
                         MainFormInstance.SetItemStatus(ThreadInfo, ThreadInfo.CurrentActivity);
                         ThreadInfo.CountdownToNextScan = (ThreadInfo.Chan == ChanType.u18chan ? (60 * 30) : Downloads.ScannerDelay) - 1;
-                        if (Program.DebugMode && ThreadInfo.Chan != ChanType.u18chan) {
-                            ThreadInfo.CountdownToNextScan = 10;
+#if DEBUG
+                        //if (ThreadInfo.Chan != ChanType.u18chan) {
+                        //    ThreadInfo.CountdownToNextScan = 10;
                             //ThreadInfo.CountdownToNextScan = 99999;
-                        }
+                        //}
+#endif
                         lbScanTimer.Text = "soon (tm)";
                         ThreadInfo.CurrentActivity = ThreadStatus.Waiting;
                         tmrScan.Start();
@@ -1278,6 +1280,7 @@ public partial class frmDownloader : Form {
                                 PostFile.Status = FileDownloadStatus.Error;
                                 this.Invoke(() => PostFile.ListViewItem.ImageIndex = ErrorImage);
                             }
+                            Response.Dispose();
                         }
                         else {
                             await DownloadClient.DownloadFileAsync(Response, FileDownloadPath, token);
@@ -1309,8 +1312,13 @@ public partial class frmDownloader : Form {
                             FileRequest.Headers.Add("Referer", ThreadInfo.Data.Url);
                         }
                         using var Response = await DownloadClient.GetResponseAsync(FileRequest, token);
-                        if (Response?.IsSuccessStatusCode == true) {
-                            await DownloadClient.DownloadFileAsync(Response, ThumbFileDownloadPath, token);
+                        if (Response != null) {
+                            if (!Response.IsSuccessStatusCode) {
+                                Response.Dispose();
+                            }
+                            else {
+                                await DownloadClient.DownloadFileAsync(Response, ThumbFileDownloadPath, token);
+                            }
                         }
                     }
 
@@ -1368,6 +1376,7 @@ public partial class frmDownloader : Form {
                     // Check the status code, if it's bad it cannot be used.
                     if (!Response.IsSuccessStatusCode) {
                         HandleStatusCode(Response.StatusCode);
+                        Response.Dispose();
                         if (Response.StatusCode == HttpStatusCode.NotModified) {
                             ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
                             Log.Info($"{ThreadInfo.ThreadLogDisplay} not modified, waiting for next loop.");
@@ -1542,6 +1551,7 @@ public partial class frmDownloader : Form {
                     // Check the status code, if it's bad it cannot be used.
                     if (!Response.IsSuccessStatusCode) {
                         HandleStatusCode(Response.StatusCode);
+                        Response.Dispose();
                         if (Response.StatusCode == HttpStatusCode.NotModified) {
                             ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
                             Log.Info($"{ThreadInfo.ThreadLogDisplay} not modified, waiting for next loop.");
@@ -1721,6 +1731,7 @@ public partial class frmDownloader : Form {
                     // Check the status code, if it's bad it cannot be used.
                     if (!Response.IsSuccessStatusCode) {
                         HandleStatusCode(Response.StatusCode);
+                        Response.Dispose();
                         if (Response.StatusCode == HttpStatusCode.NotModified) {
                             ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
                             Log.Info($"{ThreadInfo.ThreadLogDisplay} not modified, waiting for next loop.");
@@ -1850,8 +1861,8 @@ public partial class frmDownloader : Form {
             Log.Info($"Exiting thread {ThreadInfo.ThreadLogDisplay}");
         });
     }
-    // Needs: Help. Like psychological help. Unused currently, 8kun dead.
     private void Register8kunThread() {
+        // Needs: Help. Like psychological help. Unused currently, 8kun dead.
         this.DownloadThread = new Thread(async () => {
             try {
                 // Check the thread board and id for null value
@@ -1910,6 +1921,7 @@ public partial class frmDownloader : Form {
                     // Check the status code, if it's bad it cannot be used.
                     if (!Response.IsSuccessStatusCode) {
                         HandleStatusCode(Response.StatusCode);
+                        Response.Dispose();
                         if (Response.StatusCode == HttpStatusCode.NotModified) {
                             ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
                             Log.Info($"{ThreadInfo.ThreadLogDisplay} not modified, waiting for next loop.");
@@ -2072,6 +2084,7 @@ public partial class frmDownloader : Form {
                     // Check the status code, if it's bad it cannot be used.
                     if (!Response.IsSuccessStatusCode) {
                         HandleStatusCode(Response.StatusCode);
+                        Response.Dispose();
                         if (Response.StatusCode == HttpStatusCode.NotModified) {
                             ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
                             Log.Info($"{ThreadInfo.ThreadLogDisplay} not modified, waiting for next loop.");
@@ -2231,6 +2244,7 @@ public partial class frmDownloader : Form {
                     // Check the status code, if it's bad it cannot be used.
                     if (!Response.IsSuccessStatusCode) {
                         HandleStatusCode(Response.StatusCode);
+                        Response.Dispose();
                         if (Response.StatusCode == HttpStatusCode.NotModified) {
                             ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
                             Log.Info($"{ThreadInfo.ThreadLogDisplay} not modified, waiting for next loop.");
@@ -2383,6 +2397,7 @@ public partial class frmDownloader : Form {
                     // Check the status code, if it's bad it cannot be used.
                     if (!Response.IsSuccessStatusCode) {
                         HandleStatusCode(Response.StatusCode);
+                        Response.Dispose();
                         if (Response.StatusCode == HttpStatusCode.NotModified) {
                             ThreadInfo.CurrentActivity = ThreadStatus.ThreadNotModified;
                             Log.Info($"{ThreadInfo.ThreadLogDisplay} not modified, waiting for next loop.");
