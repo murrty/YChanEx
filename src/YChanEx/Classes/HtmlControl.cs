@@ -443,7 +443,7 @@ $"""
 
             _ =>
 $"""
-<img src="{(Downloads.SaveThumbnails && !File.SavedThumbnailFile.IsNullEmptyWhitespace() ? "thumb/" + File.SavedThumbnailFile : File.SavedFile)}" {GetImageThumbnailDimension(File)}/>
+<img src="{(Downloads.SaveThumbnails && !File.SavedThumbnailFile.IsNullEmptyWhitespace() ? File.SavedThumbnailFile : File.SavedFile)}" {GetImageThumbnailDimension(File)}/>
 """,
         };
     }

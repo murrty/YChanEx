@@ -67,6 +67,7 @@ internal static class FileHandler {
                 .Replace("<br>", " ")
                 .Replace("<wbr>", "") // Weird inserts between URLs
                 .Replace("<span class=\"quote\">", "") // >implying text xd
+                .Replace("<span class=\"deadlink\">", "") // links that are dead. it's obvious.
                 .Replace("</span>", "") // close of >implying text xd
                                         //.Replace("&gt;", ">")  // These are fixed by WebUtility.HtmlDecode.
                                         //.Replace("&lt;", "<")  // But I'm keeping them commented.

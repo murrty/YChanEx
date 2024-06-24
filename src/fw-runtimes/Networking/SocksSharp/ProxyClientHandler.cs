@@ -9,6 +9,7 @@ using SocksSharp.Proxy;
 using SocksSharp.Proxy.Request;
 using SocksSharp.Proxy.Response;
 using System.Threading;
+using murrty.networking;
 
 /// <summary>
 /// Represents <see cref="HttpMessageHandler"/> with <see cref="IProxyClient{T}"/>
@@ -62,6 +63,11 @@ public class ProxyClientHandler<T> : DelegatingHandler where T : IProxy {
     /// certificate used for authentication.
     /// </summary>
     public RemoteCertificateValidationCallback ServerCertificateCustomValidationCallback { get; set; }
+
+    /// <summary>
+    /// Gets or sets the default timeout used by the handler.
+    /// </summary>
+    public TimeSpan DefaultTimeout { get; set; } = TimeSpan.FromSeconds(100);
     #endregion
 
     /// <summary>
@@ -91,18 +97,21 @@ public class ProxyClientHandler<T> : DelegatingHandler where T : IProxy {
             throw new ArgumentNullException(nameof(request));
         }
 
+        using CancellationTokenSource cancelToken = DelegateHandlerHelpers.CreateToken(request, DefaultTimeout, cancellationToken);
+        CancellationToken token = cancelToken?.Token ?? cancellationToken;
+
         return await Task.Run(async () => {
             if (UseCookies && CookieContainer == null) {
                 UseCookies = false;
             }
 
             CreateConnection(request);
-            await SendDataAsync(request, cancellationToken).ConfigureAwait(false);
-            var responseMessage = await ReceiveDataAsync(request, cancellationToken).ConfigureAwait(false);
+            await SendDataAsync(request, token).ConfigureAwait(false);
+            var responseMessage = await ReceiveDataAsync(request, token).ConfigureAwait(false);
 
             if (IsRedirect(responseMessage.StatusCode)) {
                 request.RequestUri = responseMessage.Headers.Location;
-                return await SendAsync(request, cancellationToken).ConfigureAwait(false);
+                return await SendAsync(request, token).ConfigureAwait(false);
             }
 
             return responseMessage;

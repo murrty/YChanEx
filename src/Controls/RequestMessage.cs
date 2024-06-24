@@ -10,6 +10,7 @@ internal sealed class RequestMessage : HttpRequestMessage {
 #else
     "sendStatus";
 #endif
+    internal const string TimeoutKey = "RequestTimeout";
 
     private static readonly FieldInfo RequestSentField = typeof(HttpRequestMessage).GetTypeInfo()
             .GetField(StatusFieldName, BindingFlags.Instance | BindingFlags.NonPublic) ??

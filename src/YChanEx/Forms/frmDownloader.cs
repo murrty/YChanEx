@@ -11,6 +11,7 @@ using System.Drawing;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.Remoting.Metadata;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -1038,7 +1039,7 @@ public partial class frmDownloader : Form {
                 }
 
                 CurrentFile.SavedFile = FileName + Suffix + "." + CurrentFile.FileExtension;
-                CurrentFile.SavedThumbnailFile = Path.Combine("thumb", ThumbFileName + "." + CurrentFile.ThumbnailFileExtension);
+                CurrentFile.SavedThumbnailFile = "thumb/" + ThumbFileName + "." + CurrentFile.ThumbnailFileExtension;
 
                 // add a new listviewitem to the listview for this image.
                 ListViewItem lvi = new();
@@ -1110,7 +1111,7 @@ public partial class frmDownloader : Form {
                 }
 
                 CurrentFile.SavedFile = FileName + Suffix + "." + CurrentFile.FileExtension;
-                CurrentFile.SavedThumbnailFile = Path.Combine("thumb", ThumbFileName + "." + CurrentFile.ThumbnailFileExtension);
+                CurrentFile.SavedThumbnailFile = "thumb/" + ThumbFileName + "." + CurrentFile.ThumbnailFileExtension;
 
                 // add a new listviewitem to the listview for this image.
                 ListViewItem lvi = new();
@@ -1143,6 +1144,8 @@ public partial class frmDownloader : Form {
                 if (CurrentPost.HasFiles) {
                     for (int x = 0; x < CurrentPost.PostFiles.Count; x++) {
                         GenericFile CurrentFile = CurrentPost.PostFiles[x];
+                        bool FileExists = File.Exists(Path.Combine(ThreadInfo.DownloadPath, CurrentFile.SavedFile));
+
                         ListViewItem lvi = new();
                         lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
                         lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
@@ -1154,14 +1157,20 @@ public partial class frmDownloader : Form {
                         lvi.SubItems[3].Text = CurrentFile.FileHash;
                         lvi.ImageIndex = CurrentFile.Status switch {
                             FileDownloadStatus.Downloaded =>
-                                File.Exists(Path.Combine(ThreadInfo.DownloadPath, CurrentFile.SavedFile)) ?
-                                    ReloadedDownloadedImage : ReloadedMissingImage,
+                                FileExists ? ReloadedDownloadedImage : ReloadedMissingImage,
                             FileDownloadStatus.Error => ErrorImage,
                             FileDownloadStatus.FileNotFound => _404Image,
                             _ => WaitingImage
                         };
                         lvi.Tag = CurrentFile;
                         CurrentFile.ListViewItem = lvi;
+
+                        if (CurrentFile.Status == FileDownloadStatus.Downloaded && !FileExists) {
+                            CurrentFile.Status = FileDownloadStatus.Undownloaded;
+                            lvi.ImageIndex = ReloadedMissingImage;
+                            ThreadInfo.AddedNewPosts = true;
+                        }
+
                         this.Invoke(() => lvImages.Items.Add(lvi));
                     }
                 }
@@ -1177,6 +1186,8 @@ public partial class frmDownloader : Form {
                 if (CurrentPost.HasFiles) {
                     for (int x = 0; x < CurrentPost.PostFiles.Count; x++) {
                         GenericFile CurrentFile = CurrentPost.PostFiles[x];
+                        bool FileExists = File.Exists(Path.Combine(ThreadInfo.DownloadPath, CurrentFile.SavedFile));
+
                         ListViewItem lvi = new();
                         lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
                         lvi.SubItems.Add(new ListViewItem.ListViewSubItem());
@@ -1186,14 +1197,20 @@ public partial class frmDownloader : Form {
                         lvi.SubItems[2].Text = CurrentFile.OriginalFileName + "." + CurrentFile.FileExtension;
                         lvi.ImageIndex = CurrentFile.Status switch {
                             FileDownloadStatus.Downloaded =>
-                                File.Exists(Path.Combine(ThreadInfo.DownloadPath, CurrentFile.SavedFile)) ?
-                                    ReloadedDownloadedImage : ReloadedMissingImage,
+                                FileExists ? ReloadedDownloadedImage : ReloadedMissingImage,
                             FileDownloadStatus.Error => ErrorImage,
                             FileDownloadStatus.FileNotFound => _404Image,
                             _ => WaitingImage
                         };
                         lvi.Tag = CurrentFile;
                         CurrentFile.ListViewItem = lvi;
+
+                        if (CurrentFile.Status == FileDownloadStatus.Downloaded && !FileExists) {
+                            CurrentFile.Status = FileDownloadStatus.Undownloaded;
+                            lvi.ImageIndex = ReloadedMissingImage;
+                            ThreadInfo.AddedNewPosts = true;
+                        }
+
                         this.Invoke(() => lvImages.Items.Add(lvi));
                     }
                 }
@@ -1211,13 +1228,8 @@ public partial class frmDownloader : Form {
     private async Task DownloadFilesAsync(VolatileHttpClient DownloadClient, CancellationToken token) {
         Log.Info("Downloading files");
 
-        // Save the thread data now.
-        if (General.AutoSaveThreads) {
-            ThreadInfo.SaveThread();
-            ThreadInfo.ThreadModified = false;
-        }
-
         if (!ThreadInfo.AddedNewPosts) {
+            AfterFileDownloads();
             return;
         }
 
@@ -1264,7 +1276,7 @@ public partial class frmDownloader : Form {
                         if (ThreadInfo.Chan == ChanType.EightChan) {
                             FileRequest.Headers.Add("Referer", ThreadInfo.Data.Url);
                         }
-                        using var Response = await DownloadClient.GetResponseAsync(FileRequest, token);
+                        var Response = await DownloadClient.GetResponseAsync(FileRequest, token);
                         token.ThrowIfCancellationRequested();
 
                         if (Response == null) {
@@ -1284,6 +1296,7 @@ public partial class frmDownloader : Form {
                         }
                         else {
                             await DownloadClient.DownloadFileAsync(Response, FileDownloadPath, token);
+                            Response.Dispose();
                             token.ThrowIfCancellationRequested();
 
                             ThreadInfo.Data.DownloadedImagesCount++;
@@ -1311,14 +1324,12 @@ public partial class frmDownloader : Form {
                         if (ThreadInfo.Chan == ChanType.EightChan) {
                             FileRequest.Headers.Add("Referer", ThreadInfo.Data.Url);
                         }
-                        using var Response = await DownloadClient.GetResponseAsync(FileRequest, token);
+                        var Response = await DownloadClient.GetResponseAsync(FileRequest, token);
                         if (Response != null) {
-                            if (!Response.IsSuccessStatusCode) {
-                                Response.Dispose();
-                            }
-                            else {
+                            if (Response.IsSuccessStatusCode) {
                                 await DownloadClient.DownloadFileAsync(Response, ThumbFileDownloadPath, token);
                             }
+                            Response.Dispose();
                         }
                     }
 
@@ -1329,6 +1340,14 @@ public partial class frmDownloader : Form {
         }
 
         ThreadInfo.DownloadingFiles = false;
+        ThreadInfo.AddedNewPosts = false;
+        AfterFileDownloads();
+    }
+    private void AfterFileDownloads() {
+        if (General.AutoSaveThreads) {
+            ThreadInfo.SaveThread();
+            ThreadInfo.ThreadModified = false;
+        }
     }
 
     private void Register4chanThread() {
@@ -1363,7 +1382,7 @@ public partial class frmDownloader : Form {
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    using var Response = await DownloadClient.GetResponseAsync(Request, ThreadToken.Token);
+                    var Response = await DownloadClient.GetResponseAsync(Request, ThreadToken.Token);
                     ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the response is null, it's a bad result; break the thread.
@@ -1394,11 +1413,13 @@ public partial class frmDownloader : Form {
                     ThreadInfo.Data.LastModified = Response.Content.Headers.LastModified;
 
                     // Get the json.
-                    using var JsonStream = await DownloadClient.GetStringStreamAsync(Response);
+                    var JsonStream = await DownloadClient.GetStringStreamAsync(Response);
 
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
                     var ThreadData = JsonStream.JsonDeserialize<FourChanThread>();
+                    JsonStream.Dispose();
+                    Response.Dispose();
                     ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
@@ -1538,7 +1559,7 @@ public partial class frmDownloader : Form {
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    using var Response = await DownloadClient.GetResponseAsync(Request, ThreadToken.Token);
+                    var Response = await DownloadClient.GetResponseAsync(Request, ThreadToken.Token);
                     ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the response is null, it's a bad result; break the thread.
@@ -1574,6 +1595,7 @@ public partial class frmDownloader : Form {
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
                     var ThreadData = SevenChan.TryGenerate(ThreadHtml);
+                    Response.Dispose();
                     ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
@@ -1718,7 +1740,7 @@ public partial class frmDownloader : Form {
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    using var Response = await DownloadClient.GetResponseAsync(Request, ThreadToken.Token);
+                    var Response = await DownloadClient.GetResponseAsync(Request, ThreadToken.Token);
                     ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the response is null, it's a bad result; break the thread.
@@ -1755,6 +1777,8 @@ public partial class frmDownloader : Form {
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
                     var ThreadData = JsonStream.JsonDeserialize<EightChanThread>();
+                    JsonStream.Dispose();
+                    Response.Dispose();
 
                     // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
                     if (ThreadData is null) {
@@ -1908,7 +1932,7 @@ public partial class frmDownloader : Form {
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    using var Response = await DownloadClient.GetResponseAsync(Request, ThreadToken.Token);
+                    var Response = await DownloadClient.GetResponseAsync(Request, ThreadToken.Token);
                     ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the response is null, it's a bad result; break the thread.
@@ -1945,6 +1969,8 @@ public partial class frmDownloader : Form {
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
                     var ThreadData = JsonStream.JsonDeserialize<EightKunThread>();
+                    JsonStream.Dispose();
+                    Response.Dispose();
 
                     // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
                     if (ThreadData is null) {
@@ -2072,7 +2098,7 @@ public partial class frmDownloader : Form {
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    using var Response = await DownloadClient.GetResponseAsync(Request, ThreadToken.Token);
+                    var Response = await DownloadClient.GetResponseAsync(Request, ThreadToken.Token);
 
                     // If the response is null, it's a bad result; break the thread.
                     if (Response == null) {
@@ -2107,6 +2133,7 @@ public partial class frmDownloader : Form {
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
                     var ThreadData = FChan.TryGenerate(ThreadHtml);
+                    Response.Dispose();
                     ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
@@ -2231,7 +2258,7 @@ public partial class frmDownloader : Form {
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    using var Response = await DownloadClient.GetResponseAsync(Request, ThreadToken.Token);
+                    var Response = await DownloadClient.GetResponseAsync(Request, ThreadToken.Token);
                     ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the response is null, it's a bad result; break the thread.
@@ -2267,6 +2294,7 @@ public partial class frmDownloader : Form {
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
                     var ThreadData = U18Chan.TryGenerate(ThreadHtml);
+                    Response.Dispose();
                     ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.
@@ -2384,7 +2412,7 @@ public partial class frmDownloader : Form {
 
                     // Try to get the response.
                     this.Invoke(() => lbScanTimer.Text = "Downloading thread data...");
-                    using var Response = await DownloadClient.GetResponseAsync(Request, ThreadToken.Token);
+                    var Response = await DownloadClient.GetResponseAsync(Request, ThreadToken.Token);
                     ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the response is null, it's a bad result; break the thread.
@@ -2420,6 +2448,8 @@ public partial class frmDownloader : Form {
                     // Serialize the json data into a class object.
                     this.Invoke(() => lbScanTimer.Text = "Parsing thread...");
                     var ThreadData = FoolFuuka.Deserialize(JsonStream);
+                    JsonStream.Dispose();
+                    Response.Dispose();
                     ThreadToken.Token.ThrowIfCancellationRequested();
 
                     // If the posts length is 0, there are no posts. No 404, must be improperly downloaded.

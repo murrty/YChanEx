@@ -28,22 +28,22 @@ public partial class frmMain : Form, IMainFom {
     public void SetItemStatus(ThreadInfo Thread, ThreadStatus Status) {
         switch (Status) {
             case ThreadStatus.Waiting: {
-                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Finished scan";
+                SetItemText(Thread.ThreadIndex, "Finished scan");
             } break;
             case ThreadStatus.ThreadScanning: {
-                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Scanning";
+                SetItemText(Thread.ThreadIndex, "Scanning");
             } break;
             case ThreadStatus.ThreadDownloading: {
-                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Downloading";
+                SetItemText(Thread.ThreadIndex, "Downloading");
             } break;
             case ThreadStatus.ThreadNotModified: {
-                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " No new posts";
+                SetItemText(Thread.ThreadIndex, "No new posts");
             } break;
             case ThreadStatus.ThreadIsNotAllowed: {
-                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Fobridden (403)";
+                SetItemText(Thread.ThreadIndex, "Fobridden (403)");
             } break;
             case ThreadStatus.ThreadReloaded: {
-                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = "Reloaded";
+                SetItemText(Thread.ThreadIndex, "Reloaded");
             } break;
 
             case ThreadStatus.ThreadIs404: {
@@ -68,12 +68,12 @@ public partial class frmMain : Form, IMainFom {
                 Icon404WasShown = true;
                 changeTray.Start();
                 niTray.ShowBalloonTip(5000);
-                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = "404'd";
+                SetItemText(Thread.ThreadIndex, "404");
             } break;
             case ThreadStatus.ThreadIsAborted: {
                 Thread.Data.ThreadState = ThreadState.ThreadIsAborted;
                 Thread.ForceSaveThread();
-                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = "Aborted";
+                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Aborted";
             } break;
             case ThreadStatus.ThreadIsArchived: {
                 Thread.Data.ThreadState = ThreadState.ThreadIsArchived;
@@ -97,41 +97,41 @@ public partial class frmMain : Form, IMainFom {
                 Icon404WasShown = true;
                 changeTray.Start();
                 niTray.ShowBalloonTip(5000);
-                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = "Archived";
+                SetItemText(Thread.ThreadIndex, "Archived");
             } break;
             case ThreadStatus.ThreadScanningSoon: {
-                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Scanning soon";
+                SetItemText(Thread.ThreadIndex, "Scanning soon");
             } break;
             case ThreadStatus.ThreadUpdateName: {
-                lvThreads.Items[Thread.ThreadIndex].SubItems[clName.Index].Text = Thread.Data.ThreadName ?? Thread.Data.Url;
+                SetItemText(Thread.ThreadIndex, "Thread.Data.ThreadName ?? Thread.Data.Url");
             } break;
 
             case ThreadStatus.ThreadInfoNotSet: {
-                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Info not set";
+                SetItemText(Thread.ThreadIndex, "Info not set");
             } break;
             case ThreadStatus.ThreadRetrying: {
                 Thread.Data.ThreadState = ThreadState.ThreadIsAlive;
                 Thread.ForceSaveThread();
-                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Retrying";
+                SetItemText(Thread.ThreadIndex, "Retrying");
             } break;
             case ThreadStatus.ThreadImproperlyDownloaded: {
-                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Bad download";
+                SetItemText(Thread.ThreadIndex, "Bad download");
             } break;
             case ThreadStatus.NoThreadPosts: {
-                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " No thread posts";
+                SetItemText(Thread.ThreadIndex, "No thread posts");
             } break;
             case ThreadStatus.FailedToParseThreadHtml: {
-                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Could not parse html";
+                SetItemText(Thread.ThreadIndex, "Could not parse html");
             } break;
             case ThreadStatus.ThreadUnknownError: {
-                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Unknown thread error";
+                SetItemText(Thread.ThreadIndex, "Unknown thread error");
             } break;
             case ThreadStatus.ThreadUnhandledException: {
-                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Unhandled exception";
+                SetItemText(Thread.ThreadIndex, "Unhandled exception");
             } break;
 
             default: {
-                lvThreads.Items[Thread.ThreadIndex].SubItems[clStatus.Index].Text = " Unknown state";
+                SetItemText(Thread.ThreadIndex, "Unknown state");
             } break;
         }
     }
@@ -184,6 +184,10 @@ public partial class frmMain : Form, IMainFom {
                 tvHistory.Nodes[7].Nodes.Add(HistoryItem);
             } break;
         }
+    }
+
+    private void SetItemText(int itemIndex, string txt) {
+        lvThreads.Items[itemIndex].SubItems[clStatus.Index].Text = " " + txt;
     }
 
     /// <summary>

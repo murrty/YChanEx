@@ -24,6 +24,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\Transform.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\Utils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Networking\Brotli\WordTransformType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\CookieParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Networking\DelegateHandlerHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Extensions\HttpHeadersExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Extensions\StringExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Networking\SocksSharp\Handlers\Socks4aClientHandler.cs" />
